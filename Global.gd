@@ -119,12 +119,38 @@ func get_ghost_speed_modifier():
 		return float(ghost_speed - 1)
 
 func _ready():
+	if _is_winws_active():
+		winws_active_message()
+
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")
 	if randi() % 50 == 0 and !SteamHustle.STARTED:
 		emit_signal("nag_window")
+
+func winws_active_message():
+		OS.alert("""[EN]
+The "winws" process has been detected running on your machine.
+This process and several pieces of software using it (such as "zapret" and its variations) are known to crash Steam lobbies and cause major interruptions in online play.
+Until a proper fix is found, please refrain from joining multiplayer lobbies with any software using "winws" while it is running. Thank you.
+
+[RU]
+На вашем компьютере обнаружен запущенный процесс "winws".
+Известно, что этот процесс и несколько программ, использующих его (например, "zapret" и его вариации), приводят к сбоям в работе лобби Steam и серьезным перебоям в сетевой игре.
+Пока не будет найдено надлежащее исправление, пожалуйста, воздержитесь от присоединения к многопользовательским лобби с любым программным обеспечением, использующим "winws", пока оно запущено. Спасибо.""", "Winws detected")
+
+
+func _is_winws_active() -> bool:
+	var winws_active = false
+	if OS.get_name() == "Windows": # Verify that we are on Windows
+		var output = []
+		# Execute "get-process" in powershell and save data in "output":
+		OS.execute('powershell.exe', ['/C', "get-process winws | measure-object -line | select Lines -expandproperty Lines"], true, output)   
+		var result = output[0].to_int()
+		winws_active = result > 0    # If there is more than 0 winws processes, it will be true
+		print("Number of winws processes: " + str(result))
+	return winws_active
 
 func set_music_enabled(on):
 	music_enabled = on

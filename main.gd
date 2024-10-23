@@ -380,7 +380,6 @@ func fix_ghost_objects(ghost_game_):
 		var object = ghost_game_.objs_map[obj_name]
 		if object:
 			object.is_ghost = true
-
 func stop_ghost():
 	if is_instance_valid(game):
 		game.ghost_game = null
@@ -410,4 +409,3 @@ func _on_playback_requested():
 
 func _on_ReplayName_text_entered(_new_text):
 	save_replay()
-
