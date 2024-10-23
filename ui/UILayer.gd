@@ -93,6 +93,11 @@ func _enter_tree():
 		css.reset()
 
 func _ready():
+	if Global.winws_detected:
+		$"%MultiplayerButton".disabled = true
+		$"%SteamMultiplayerButton".disabled = true
+		$"%WinwsLabel".show()
+	
 	$"%SingleplayerButton".connect("pressed", self, "_on_singleplayer_pressed")
 	$"%MultiplayerButton".connect("pressed", self, "_on_multiplayer_pressed")
 	$"%SteamMultiplayerButton".connect("pressed", self, "_on_steam_multiplayer_pressed")

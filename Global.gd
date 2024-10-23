@@ -36,6 +36,8 @@ var forfeit_buttons_enabled = false
 var auto_fc = true
 var ghost_speed = 2
 
+var winws_detected = false
+
 var mods_loaded = false
 var loading_character = ""
 
@@ -121,6 +123,7 @@ func get_ghost_speed_modifier():
 func _ready():
 	if _is_winws_active():
 		winws_active_message()
+		winws_detected = true
 
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")

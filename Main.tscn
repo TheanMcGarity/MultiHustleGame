@@ -2282,6 +2282,19 @@ text = "Incomplete:
 "
 autowrap = true
 
+[node name="WinwsLabel" type="Label" parent="UILayer/MainMenu"]
+unique_name_in_owner = true
+visible = false
+margin_left = 227.0
+margin_top = 133.0
+margin_right = 427.0
+margin_bottom = 172.0
+custom_colors/font_color = Color( 1, 0.2, 0.239216, 1 )
+text = "winws.exe detected! 
+please disable it and restart the game to play in multiplayer lobbies."
+align = 1
+autowrap = true
+
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
 unique_name_in_owner = true
 visible = false
