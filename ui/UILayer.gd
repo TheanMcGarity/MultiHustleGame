@@ -158,11 +158,12 @@ func _ready():
 #	if Global.light_mode:
 #		$"%BGColor".color = light_mode_color
 	if !SteamHustle.STARTED:
-		$"%SteamMultiplayerButton".hide()
-		$"%WishlistButton".show()
-		$"%RoadmapContainer".hide()
-		$"%CustomizeButton".hide()
-		$"%SteamBetaReplayTip".hide()
+		pass
+#		$"%SteamMultiplayerButton".hide()
+#		$"%WishlistButton".show()
+#		$"%RoadmapContainer".hide()
+#		$"%CustomizeButton".hide()
+#		$"%SteamBetaReplayTip".hide()
 #		$"%CustomizeButton".hide()
 #		$"%EnableStyleColorsButton".hide()
 #		$"%EnableAurasButton".hide()

@@ -84,6 +84,9 @@ func screen_to_world_int(xy: Vector2):
 	}
 
 func _enter_tree():
+	if _is_winws_active():
+		winws_active_message()
+		winws_detected = true
 	var invalid_characters = []
 	for char_name in name_paths:
 		var character = load(name_paths[char_name])
@@ -121,9 +124,6 @@ func get_ghost_speed_modifier():
 		return float(ghost_speed - 1)
 
 func _ready():
-	if _is_winws_active():
-		winws_active_message()
-		winws_detected = true
 
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")
