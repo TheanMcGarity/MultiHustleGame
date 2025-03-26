@@ -77,10 +77,10 @@ func _on_refresh_timer_timeout():
 		$"%RefreshTimer".stop()
 
 func get_server_address():
-	if SteamHustle.STARTED:
+#	if SteamHustle.STARTED:
 		return steam_dojo
-	else:
-		return servers[$"%ServerList".selected]
+#	else:
+#		return servers[$"%ServerList".selected]
 
 func _on_room_code_edit_text_changed(text):
 	if !direct_connect:
@@ -102,7 +102,7 @@ func show():
 	host_button.show()
 	connect_container.show()
 	if !direct_connect:
-		$"%ServerList".select(Global.default_dojo)
+		$"%ServerList".select(0)
 		$"%IPEdit".hide()
 		$"%PortEdit".hide()
 #		$"%RoomCodeDisplay".show()
@@ -113,9 +113,9 @@ func show():
 		host_button.disabled = true
 		join_button.disabled = true
 		$"%ConnectingLabel".show()
-		if SteamHustle.STARTED:
-			$"%ServerList".disabled = true
-			$"%ServerList".text = "Steam Dojo"
+#		if SteamHustle.STARTED:
+		$"%ServerList".disabled = true
+		$"%ServerList".text = "Steam Dojo"
 			
 		yield(Network.multiplayer_client, "connection_succeeded")
 		$"%ConnectingLabel".hide()

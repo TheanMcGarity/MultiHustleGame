@@ -1992,7 +1992,7 @@ alignment = 1
 
 [node name="SingleplayerButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 20.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2003,7 +2003,7 @@ flat = true
 [node name="SteamMultiplayerButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 20.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2014,18 +2014,18 @@ flat = true
 [node name="MultiplayerButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 40.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 60.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 1, 0.2, 0.239216, 1 )
-text = "Multiplayer"
+text = "Multiplayer (Legacy)"
 flat = true
 
 [node name="DirectConnectButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 60.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 80.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2036,7 +2036,7 @@ flat = true
 [node name="CustomizeButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 80.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 100.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2047,7 +2047,7 @@ flat = true
 [node name="ReplayButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 100.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 120.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2058,7 +2058,7 @@ flat = true
 [node name="OptionsButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 120.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 140.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2069,7 +2069,7 @@ flat = true
 [node name="CreditsButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 140.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 160.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2080,7 +2080,7 @@ flat = true
 [node name="QuitProgramButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 160.0
-margin_right = 96.0
+margin_right = 102.0
 margin_bottom = 180.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2286,12 +2286,12 @@ autowrap = true
 [node name="WinwsLabel" type="Label" parent="UILayer/MainMenu"]
 unique_name_in_owner = true
 visible = false
-margin_left = 227.0
-margin_top = 133.0
-margin_right = 427.0
-margin_bottom = 172.0
+margin_left = 90.0
+margin_top = 129.0
+margin_right = 550.0
+margin_bottom = 154.0
 custom_colors/font_color = Color( 1, 0.2, 0.239216, 1 )
-text = "winws.exe detected! 
+text = "incompatible network script detected! (winws.exe - zapret?)
 please disable it and restart the game to play in multiplayer lobbies."
 align = 1
 autowrap = true

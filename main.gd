@@ -27,6 +27,9 @@ var started_ghost_this_frame = false
 
 var _Global = Network
 
+func _enter_tree():
+	pass
+
 func _ready():
 	ui_layer.connect("singleplayer_started", self, "_on_game_started", [true])
 	ui_layer.connect("loaded_replay", self, "_on_loaded_replay")

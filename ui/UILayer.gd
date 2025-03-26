@@ -94,7 +94,7 @@ func _enter_tree():
 
 func _ready():
 	if Global.winws_detected:
-		$"%MultiplayerButton".disabled = true
+#		$"%MultiplayerButton".disabled = true
 		$"%SteamMultiplayerButton".disabled = true
 		$"%WinwsLabel".show()
 	
@@ -171,7 +171,7 @@ func _ready():
 	else:
 		$"%WishlistButton".hide()
 		$"%RoadmapContainer".show()
-		$"%MultiplayerButton".text = "Multiplayer (Legacy)"
+#		$"%MultiplayerButton".text = "Multiplayer (Legacy)"
 	
 	$NetworkSyncTimer.connect("timeout", self, "_on_network_timer_timeout")
 	quit_on_rematch = false

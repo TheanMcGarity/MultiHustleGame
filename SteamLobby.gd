@@ -147,6 +147,10 @@ func get_opponent(steam_id):
 	return Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "opponent_id")
 
 func create_lobby(availability: int, size: int):
+	if Global.winws_check():
+		Global.reload()
+		return
+	
 	if LOBBY_ID == 0:
 		Steam.createLobby(availability, size)
 
@@ -154,6 +158,10 @@ func connected():
 	return LOBBY_ID != 0
 
 func join_lobby(lobby_id: int):
+	if Global.winws_check():
+		Global.reload()
+		return
+	
 	print("Attempting to join lobby "+str(lobby_id)+"...")
 
 	# Clear any previous lobby members lists, if you were in a previous lobby
@@ -405,13 +413,12 @@ func _on_opponent_challenge_accepted(steam_id):
 	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "player_id", "1")
 	_setup_game_vs(steam_id)
 
-
 func _read_P2P_Packet():
 	var PACKET_SIZE:int = Steam.getAvailableP2PPacketSize(0)
 
 	
 	if PACKET_SIZE > 0:
-		var PACKET:Dictionary = Steam.readP2PPacket(PACKET_SIZE, 0)
+		var PACKET = Steam.readP2PPacket(PACKET_SIZE, 0)
 
 		if PACKET.empty() or PACKET == null:
 			print("WARNING: read an empty packet with non-zero size!")
@@ -420,10 +427,28 @@ func _read_P2P_Packet():
 		var PACKET_SENDER:int = PACKET["steam_id_remote"]
 		p2p_packet_sender = PACKET_SENDER
 
+#		packets.append(PACKET)
 		
-		var PACKET_CODE:PoolByteArray = PACKET["data"]
-		var readable:Dictionary = bytes2var(PACKET_CODE)
+		
+		if !PACKET.has("data"):
+			print("ERROR: no packet data!")
+			return
+			
+		var PACKET_CODE = PACKET.get("data")
+		
+		var readable = bytes2var(PACKET_CODE)
+		
+		if readable == null:
+			print("ERROR: packet data is null!")
+			return
+		
+		if not (readable is Dictionary):
+			print("ERROR: packet data is not a dictionary!")
+			return
 
+		if readable.empty():
+			print("ERROR: no packet data!")
+			return
 
 		if readable.has("rpc_data"):
 			print("received rpc")

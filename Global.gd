@@ -83,6 +83,12 @@ func screen_to_world_int(xy: Vector2):
 		"y": int(xy.y)
 	}
 
+func winws_check():
+	if _is_winws_active():
+		winws_active_message()
+		winws_detected = true
+	return winws_detected
+
 func _enter_tree():
 	if _is_winws_active():
 		winws_active_message()
@@ -102,7 +108,6 @@ func _enter_tree():
 	call_deferred("add_child", audio_player)
 	audio_player.bus = "Music"
 	
-	
 	var data = get_player_data()
 	for key in data.options:
 		set(key, data.options[key])
@@ -116,6 +121,9 @@ func _enter_tree():
 	set_music_enabled(music_enabled)
 	set_fullscreen(fullscreen)
 #	load_supporter_pack()
+#	var test = PoolByteArray()
+#	var test2 = bytes2var(test)
+
 
 func get_ghost_speed_modifier():
 	if ghost_speed == 1:
@@ -124,7 +132,6 @@ func get_ghost_speed_modifier():
 		return float(ghost_speed - 1)
 
 func _ready():
-
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")
@@ -142,7 +149,6 @@ Until a proper fix is found, please refrain from joining multiplayer lobbies wit
 На вашем компьютере обнаружен запущенный процесс "winws".
 Известно, что этот процесс и несколько программ, использующих его (например, "zapret" и его вариации), приводят к сбоям в работе лобби Steam и серьезным перебоям в сетевой игре.
 Пока не будет найдено надлежащее исправление, пожалуйста, воздержитесь от присоединения к многопользовательским лобби с любым программным обеспечением, использующим "winws", пока оно запущено. Спасибо.""", "Winws detected")
-
 
 func _is_winws_active() -> bool:
 	var winws_active = false
