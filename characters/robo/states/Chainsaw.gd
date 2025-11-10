@@ -117,8 +117,6 @@ func _tick():
 #
 #func _on_hit_something(obj, hitbox):
 #	._on_hit_something(obj, hitbox)
-#	if obj.is_in_group("Fighter"):
-#		host.colliding_with_opponent = false
 #	iasa_at = chainsaw_end_tick
 
 func _exit():

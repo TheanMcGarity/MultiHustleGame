@@ -31,7 +31,7 @@ var can_divekick_hop = true
 
 const RELEASE_MODIFIER = "1.175"
 const HOOK_DISABLE_DIST = "32"
-const HOOK_PULL_SPEED = "2"
+const HOOK_PULL_SPEED = "3"
 const MAX_PULL_SPEED = "15"
 const MAX_PULL_UPWARD_SPEED = "-10"
 const MAX_MOMENTUM_UPWARD_SPEED = "-10"
@@ -49,18 +49,9 @@ func init(pos=null):
 	if infinite_resources:
 		momentum_stores = 1
 
-
 func explode_sticky_bomb():
 	if bomb_thrown and obj_from_name(bomb_projectile):
 		objs_map[bomb_projectile].explode()
-
-#func _on_hit_something(obj, hitbox):
-#	._on_hit_something(obj, hitbox)
-#	if obj and obj.is_in_group("Fighter"):
-#		var hook = obj_from_name(grappling_hook_projectile)
-#		if hook:
-#			if hook.attached_to == opponent.obj_name:
-#				hook.disable()
 
 func on_roll_started():
 	detach()
@@ -103,7 +94,7 @@ func apply_forces():
 	if released_this_turn or pulling:
 		apply_forces_no_limit()
 	else:
-		.apply_forces() 
+		.apply_forces()
 
 func release_momentum():
 #		reset_momentum()

@@ -26,7 +26,7 @@ shader_param/outline_color = Color( 0, 0, 0, 1 )
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
 "frames": [ ExtResource( 3 ) ],
-"loop": false,
+"loop": true,
 "name": "Default",
 "speed": 5.0
 } ]
@@ -89,19 +89,11 @@ width = 6
 height = 6
 damage = 90
 damage_in_combo = 80
-hitstun_ticks = 15
-sdi_modifier = "0.5"
+hitstun_ticks = 14
 parry_meter_gain = 90
 plus_frames = 1
-screenshake_frames = 4
 hit_sound = ExtResource( 5 )
-dir_y = "0.75"
-knockback = "8.5"
-grounded_hit_state = "HurtAerial"
-minimum_grounded_frames = 3
-knockdown = true
-knockdown_extends_hitstun = false
-ground_bounce = false
+knockback = "3.0"
 start_tick = 1
 always_on = true
 
