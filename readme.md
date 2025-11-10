@@ -1,1 +1,2 @@
-requires godotsteam 3.5.1
+# Multihustle Rewrite
+the new multihustle will be a true modification of the game
