@@ -409,7 +409,7 @@ func init(game):
 		turn_timers[index].connect("timeout", self, "_on_turn_timer_timeout", [index])
 		add_child(turn_timers[index], true)
 	#if !is_instance_valid(spacebar_handler):
-	#	spacebar_handler = preload("res://MultiHustle/SpacebarControl.gd").new()
+	#	spacebar_handler = preload("res://multihustle/SpacebarControl.gd").new()
 	#	spacebar_handler.uilayer = self
 	#	add_child(spacebar_handler)
 

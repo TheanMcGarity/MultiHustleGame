@@ -1244,7 +1244,7 @@ var selected_display_data = {}
 var prev_char_button
 var next_char_button
 
-const TEAM_BUTTON_SCENE = preload("res://MultiHustle/Teams/TeamButtonList.tscn")
+const TEAM_BUTTON_SCENE = preload("res://multihustle/teams/TeamButtonList.tscn")
 
 
 

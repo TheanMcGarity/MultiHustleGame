@@ -199,7 +199,7 @@ func _ready():
 	mh_p2_ghost_health_bar = mh_p2_healthbar.get_node("P2GhostHealthBar")
 	mh_p2_ghost_health_bar_trail = mh_p2_healthbar.get_node("P2GhostHealthBar/P2GhostHealthBarTrail")
 
-	health_labels = load("res://MultiHustle/ui/HUD/HPNumbers.tscn").instance()
+	health_labels = load("res://multihustle/ui/HUD/HPNumbers.tscn").instance()
 	p1_health_label = health_labels.get_node("P1HealthLabel")
 	p2_health_label = health_labels.get_node("P2HealthLabel")
 	self.add_child(health_labels)

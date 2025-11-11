@@ -2266,7 +2266,7 @@ var ui_reverse_pressed: bool = false
 var ui_feint_pressed: bool = false
 var ui_di_data = null
 
-#var team_script = preload("res://MultiHustle/Teams/TeamsManager.gd")
+#var team_script = preload("res://multihustle/teams/TeamsManager.gd")
 
 var team:int = 0
 
@@ -2309,7 +2309,7 @@ func change_state(state_name, state_data = null, enter = true, exit = true):
 
 func init_display_name():
 	if (is_ghost):
-		display_name = load("res://MultiHustle/Teams/TeamDisplayGhost.tscn").instance()
+		display_name = load("res://multihustle/teams/TeamDisplayGhost.tscn").instance()
 		add_child(display_name)
 		if Network.game.player_names_rich.has(id):
 			var username = Network.game.player_names_rich[id]
@@ -2321,7 +2321,7 @@ func init_display_name():
 				display_name.bbcode_text = username 
 		return
 	
-	display_name = load("res://MultiHustle/Teams/TeamDisplay.tscn").instance()
+	display_name = load("res://multihustle/teams/TeamDisplay.tscn").instance()
 	add_child(display_name)
 	if Network.game.player_names_rich.has(id):
 		display_name.bbcode_text = Network.game.player_names_rich[id]
