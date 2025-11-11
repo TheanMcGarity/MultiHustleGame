@@ -2039,6 +2039,11 @@ func tick():
 	
 	if (forfeit):
 		hide_display_name()
+		
+	if (not Global.show_player_name and not is_ghost):
+		hide_display_name()
+	if (not Global.show_ghost_name and is_ghost):
+		hide_display_name()
 
 	if not Network.game.match_data.has("selector_char_names"):
 		if Network.multiplayer_active:
@@ -2060,9 +2065,9 @@ func tick():
 	if (Network.game.player_names_rich.has(id)):
 		name = Network.game.player_names_rich[id]
 	
-	if name is String and "center" in name and not set_name:
-		set_name_text(name)
-		set_name = true
+	#if name is String and "center" in name and not set_name:
+	set_name_text(name)
+		#set_name = true
 
 func passive_sadness_gain():
 	var dir = fixed.sign(last_vel.x)

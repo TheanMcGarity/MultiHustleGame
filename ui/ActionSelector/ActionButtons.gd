@@ -107,7 +107,8 @@ func _on_continue_pressed():
 	on_action_submitted("Continue")
 
 func _on_undo_pressed():
-	on_action_submitted("Undo")
+	Global.current_game.undo(true)
+	#on_action_submitted("Undo")
 
 func space_pressed():
 	if visible:

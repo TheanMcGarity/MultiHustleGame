@@ -28,6 +28,9 @@ var started_ghost_this_frame = false
 var _Global = Network
 
 func _ready():
+	if Steam.getAppID() != 2212330:
+		$"%SingleplayerButton".visible = false
+		$"%SteamMultiplayerButton".visible = false
 	ui_layer.connect("singleplayer_started", self, "_on_game_started", [true])
 	ui_layer.connect("loaded_replay", self, "_on_loaded_replay")
 	connect("game_started", ui_layer, "on_game_started")
@@ -67,14 +70,14 @@ func _ready():
 #	SteamHustle.print_all_achievements()
 
 	########################### charloader
-	var container = $"%OptionsContainer".get_node("VBoxContainer").get_node("Contents").get_node("VBoxContainer").get_node("VBoxContainer")
+	var container = $"%OptionsContainer".get_node("VBoxContainer").get_node("Contents").get_node("VBoxContainer").get_node("ScrollContainer").get_node("VBoxContainer")
 
 	if (container.get_node_or_null("LoadOnStart") == null):
 		var btt = Button.new()
 		btt.name = "DeleteCache"
 		btt.text = "delete character cache"
 		container.add_child(btt)
-		container.move_child(btt, len(container.get_children()) - 4)
+		container.move_child(btt, len(container.get_children()) - 3)
 		btt.connect("pressed", self, "_delete_char_cache", [btt])
 #
 	var loaded_mods = false

@@ -1,10 +1,9 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 [ext_resource path="res://multihustle/ui/HUD/UISelectors.gd" type="Script" id=2]
-[ext_resource path="res://MultiHustle/ui/HUD/SelfSelect.gd" type="Script" id=3]
-[ext_resource path="res://MultiHustle/ui/HUD/OpponentSelect.gd" type="Script" id=4]
-[ext_resource path="res://MultiHustle/ui/HUD/MinimizeSelectorsButton.gd" type="Script" id=5]
+[ext_resource path="res://multihustle/ui/HUD/SelfSelect.gd" type="Script" id=3]
+[ext_resource path="res://multihustle/ui/HUD/MinimizeSelectorsButton.gd" type="Script" id=5]
 [ext_resource path="res://multihustle/ui/HUD/OpponentSelect.gd" type="Script" id=6]
 
 [node name="MultiHustle_UISelectors" type="Control"]
@@ -42,7 +41,7 @@ margin_right = 0.00012207
 margin_bottom = -20.0
 rect_pivot_offset = Vector2( 168, 0 )
 clip_text = true
-script = ExtResource( 4 )
+script = ExtResource( 3 )
 
 [node name="OppCharacterSelect" type="OptionButton" parent="Root"]
 anchor_left = 0.814136
@@ -86,7 +85,7 @@ margin_bottom = -23.3
 clip_text = true
 align = 2
 icon_align = 2
-script = ExtResource( 4 )
+script = ExtResource( 6 )
 
 [node name="Label" type="Label" parent="Root/SPOppTargetSelect"]
 modulate = Color( 1, 1, 1, 0.588235 )

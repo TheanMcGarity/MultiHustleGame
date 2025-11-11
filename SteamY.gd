@@ -10,7 +10,7 @@ var IS_OWNED: bool
 
 var STEAM_ID: int
 var STEAM_NAME: String = ""
-
+var STORE_APP_ID = 2212330
 var APP_ID
 
 var STARTED = false
@@ -38,6 +38,7 @@ func _initialize_steam():
 	IS_OWNED = Steam.isSubscribed()
 	Steam.requestCurrentStats()
 	emit_signal("started")
+	
 	
 func _process(_delta):
 	if STARTED:

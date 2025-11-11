@@ -42,6 +42,10 @@ var loading_character = ""
 var mouse_world_position = Vector2()
 var rng = BetterRng.new()
 
+# MH Options
+var show_player_name:bool = true
+var show_ghost_name:bool = true
+
 var name_paths = {
 	"Ninja": "res://characters/stickman/NinjaGuy.tscn",
 	"Cowboy": "res://characters/swordandgun/SwordGuy.tscn",
@@ -220,6 +224,8 @@ func save_options():
 			"auto_fc": auto_fc,
 			"replay_extra_freeze_frames": replay_extra_freeze_frames,
 			"seen_custom_character_nag": seen_custom_character_nag,
+			"show_player_name": show_player_name,
+			"show_ghost_name": show_ghost_name,
 #			"forfeit_buttons_enabled": forfeit_buttons_enabled,
 		}
 	})
@@ -250,6 +256,8 @@ func get_default_player_data():
 			"show_extra_info": false,
 			"replay_extra_freeze_frames": true,
 			"seen_custom_character_nag": false,
+			"show_player_name": true,
+			"show_ghost_name": true,
 #			"forfeit_buttons_enabled": false,
 		}
 	}

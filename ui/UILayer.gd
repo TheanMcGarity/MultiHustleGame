@@ -77,6 +77,8 @@ onready var global_option_check_buttons = {
 	$"%ExtraInfoButton": "show_extra_info",
 	$"%TimerSoundButton": "enable_timer_sound",
 	$"%ExtraFreezeFrames": "replay_extra_freeze_frames",
+	$"%EnablePlayerNames": "show_player_name",
+	$"%EnableGhostNames": "show_ghost_name",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 

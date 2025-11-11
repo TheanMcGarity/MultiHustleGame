@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://ui/default_font.tres" type="DynamicFont" id=1]
-[ext_resource path="res://MultiHustle/Teams/TeamButton.tscn" type="PackedScene" id=2]
+[ext_resource path="res://multihustle/teams/TeamButton.tscn" type="PackedScene" id=2]
 [ext_resource path="res://multihustle/teams/TeamButtonList.gd" type="Script" id=3]
 
 [node name="TeamButtons" type="Node2D"]
