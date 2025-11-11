@@ -13,6 +13,11 @@ func _ready():
 		if ModLoader.charLoaderModDetected:
 			ModLoader.charLoaderModDetected = false
 			_add_char_loader_warning()
+			
+	MH_addWarningMessage()
+	
+	Network.connect("mh_resim_accepted", self, "on_resync")
+	
 
 #Creates mod menu and places it in the options container
 func _add_modlist():
@@ -201,3 +206,65 @@ func _addMisingList():
 			list.list_container.add_child(label)
 		$"%MainMenu".get_node("ModMissingContainer").set("visible", true)
 
+var hasIncompat = false
+var donate_menu
+const testedVersion = "1.9.20-steam"
+
+const incompat_list = [
+	"platform_library",
+	"qol",
+	"AdvancedStyleMenu"
+]
+
+const incompat_reasons = {
+	"qol": "Causes desync,\nand also breaks throw mechanics.",
+	"AdvancedStyleMenu": "Breaks throw mechanics. (including Robot)\nCrashes game when selecting ninja.\nSorry to everyone who needs this mod! Cannot be avoided at this moment.",
+	}
+
+func MH_addWarningMessage():
+	var list = addContainer("MHModIncompatibleContainer", "MultiHustle Incompatibilities")
+	var close = generateButton("Close")
+	close.connect("pressed", self, "MH_modmissing_closebutton_pressed")
+	list.get_node("VBoxContainer").get_node("TitleBar").get_node("Title").add_child(close)
+	MH_checkVersionCompatibility(list.list_container)
+	MH_addIncompatList(list.list_container)
+	if hasIncompat:
+		$"%MainMenu".get_node("MHModIncompatibleContainer").show()
+	else:
+		$"%MainMenu".get_node("MHModIncompatibleContainer").queue_free()
+
+func MH_checkVersionCompatibility(list_container):
+	var top_label = Label.new()
+	top_label.text = "MultiHustle is currently built for game version:\n%s\n(This is only a warning)\n\n" % testedVersion
+	list_container.add_child(top_label)
+	if testedVersion in Global.VERSION:
+		top_label.queue_free()
+	else:
+		hasIncompat = true
+
+func MH_addIncompatList(list_container):
+	var modIncompat = false
+	var top_label = Label.new()
+	top_label.text = "MultiHustle is currently incompatible with:\n"
+	list_container.add_child(top_label)
+	for mod in ModLoader.active_mods:
+		if incompat_list.has(mod[1].name):
+			hasIncompat = true
+			modIncompat = true
+			var label = Label.new()
+			var reason = "[Reason Empty]"
+			if incompat_reasons.has(mod[1].name):
+				reason = incompat_reasons[mod[1].name]
+			label.text = "%s - Reason: %s\n" % [mod[1].friendly_name, reason]
+			list_container.add_child(label)
+	if !modIncompat:
+		top_label.queue_free()
+
+func MH_modmissing_closebutton_pressed():
+	$"%MainMenu".get_node("MHModIncompatibleContainer").queue_free()
+
+func on_resync(player):
+	Network.log_to_file("Checking if resync is ready.")
+	if Network.resync_counter == Network.game.players.size() - Network.game.quitters.size() and Network.player_id == Network.resync_request_player_id:
+		Network.rpc_("mh_resim", [ReplayManager.frames])
+		Network.log_to_file("Rsyncing.")

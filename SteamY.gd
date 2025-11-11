@@ -30,7 +30,8 @@ func _initialize_steam():
 	
 	if INIT['status'] != 1:
 		print("Failed to initialize Steam. " + str(INIT['verbal']))
-	
+	for m in Steam.get_method_list():
+		print(m["name"])
 	APP_ID = Steam.getAppID()
 	IS_ONLINE = Steam.loggedOn()
 	STEAM_ID = Steam.getSteamID()

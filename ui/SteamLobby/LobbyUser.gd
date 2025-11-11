@@ -31,6 +31,13 @@ func init(member):
 		if status == "fighting":
 			$"%ChallengeButton".text = "fighting " + Steam.getFriendPersonaName(int(Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, member.steam_id, "opponent_id")))
 
+	var button:Button = $"%ChallengeButton"
+	button.disabled = true
+	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) != member.steam_id:
+		button.hide()
+	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID:
+		button.disabled = false
+	
 #	var lobby_owner = SteamLobby.am_i_lobby_owner()
 #	rect_min_size.y = MEMBER_MIN_SIZE if !lobby_owner else OWNER_MIN_SIZE
 #	owner_actions.visible = lobby_owner
@@ -38,22 +45,21 @@ func init(member):
 func update_avatar():
 	Steam.getPlayerAvatar(Steam.AVATAR_MEDIUM, member.steam_id)
 
-func on_challenge_pressed():
-	if member:
-		emit_signal("challenge_pressed")
-		SteamLobby.challenge_user(member)
+signal start_game_pressed()
 
-func _loaded_Avatar(id: int, size: int, buffer: PoolByteArray) -> void:
+func on_challenge_pressed():
+	emit_signal("start_game_pressed")
+	SteamLobby.host_game_vs_all()
+
+func _loaded_Avatar(id:int, size:int, buffer:PoolByteArray)->void :
 	if id != member.steam_id:
-		return
-	print("Avatar for user: "+str(id))
-	print("Size: "+str(size))
-	# Create the image and texture for loading
+		return 
+		
 	var AVATAR = Image.new()
-	var AVATAR_TEXTURE: ImageTexture = ImageTexture.new()
+	var AVATAR_TEXTURE:ImageTexture = ImageTexture.new()
 	AVATAR.create_from_data(size, size, false, Image.FORMAT_RGBA8, buffer)
-	# Apply it to the texture
+		
 	AVATAR_TEXTURE.create_from_image(AVATAR)
-	# Set it
+		
 	$"%AvatarIcon".set_texture(AVATAR_TEXTURE)
 	emit_signal("avatar_loaded")

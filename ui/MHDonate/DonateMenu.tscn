@@ -1,0 +1,121 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://theme.tres" type="Theme" id=1]
+[ext_resource path="res://ui/MHDonate/DonateMenu.gd" type="Script" id=2]
+[ext_resource path="res://ui/MHDonate/KofiLogo.png" type="Texture" id=3]
+[ext_resource path="res://ui/MHDonate/KofiButton.gd" type="Script" id=4]
+
+[node name="Window" type="Control"]
+anchor_left = 0.498
+anchor_top = 0.376
+anchor_right = 0.498
+anchor_bottom = 0.376
+margin_left = -198.72
+margin_top = -55.36
+margin_right = 199.28
+margin_bottom = 55.64
+rect_pivot_offset = Vector2( -137, -89 )
+theme = ExtResource( 1 )
+script = ExtResource( 2 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_right = 398.0
+margin_bottom = 99.0
+rect_scale = Vector2( 1, 1.11349 )
+custom_constants/separation = 0
+
+[node name="TitleBar" type="Panel" parent="VBoxContainer"]
+self_modulate = Color( 0.498039, 0.498039, 0.498039, 1 )
+margin_right = 398.0
+margin_bottom = 9.0
+rect_min_size = Vector2( 0, 9 )
+mouse_filter = 1
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="VBoxContainer/TitleBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -1.0
+margin_bottom = 2.0
+mouse_filter = 1
+text = "MultiHustle Developers"
+align = 1
+
+[node name="Close" type="Button" parent="VBoxContainer/TitleBar"]
+unique_name_in_owner = true
+margin_right = 40.0
+margin_bottom = 12.0
+custom_colors/font_color_hover = Color( 1, 0.2, 0.231373, 1 )
+text = "Close"
+flat = true
+
+[node name="Panel" type="Panel" parent="VBoxContainer"]
+margin_top = 9.0
+margin_right = 398.0
+margin_bottom = 119.0
+rect_min_size = Vector2( 0, 110 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Panel"]
+margin_right = 397.0
+margin_bottom = 109.0
+
+[node name="KofiButton" type="Button" parent="VBoxContainer/Panel/VBoxContainer"]
+margin_right = 397.0
+margin_bottom = 20.0
+rect_min_size = Vector2( 0, 20 )
+text = "uGaurdian - Main Developer"
+script = ExtResource( 4 )
+page = "uguardian"
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/Panel/VBoxContainer/KofiButton"]
+margin_left = 117.0
+margin_top = 4.0
+margin_right = 129.0
+margin_bottom = 16.0
+texture = ExtResource( 3 )
+expand = true
+
+[node name="KofiButton3" type="Button" parent="VBoxContainer/Panel/VBoxContainer"]
+margin_top = 21.0
+margin_right = 397.0
+margin_bottom = 41.0
+rect_min_size = Vector2( 0, 20 )
+text = "CTAG - Online Implementation"
+script = ExtResource( 4 )
+page = "ctag07"
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/Panel/VBoxContainer/KofiButton3"]
+margin_left = 112.0
+margin_top = 4.12694
+margin_right = 124.0
+margin_bottom = 16.1269
+rect_pivot_offset = Vector2( 0, 6.28654 )
+texture = ExtResource( 3 )
+expand = true
+
+[node name="KofiButton2" type="Button" parent="VBoxContainer/Panel/VBoxContainer"]
+margin_top = 42.0
+margin_right = 397.0
+margin_bottom = 62.0
+rect_min_size = Vector2( 0, 20 )
+text = "PinkTarr - Rewrite"
+script = ExtResource( 4 )
+page = "pinktarrdev"
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/Panel/VBoxContainer/KofiButton2"]
+margin_left = 135.0
+margin_top = 2.88463
+margin_right = 147.0
+margin_bottom = 14.8846
+rect_pivot_offset = Vector2( 0, 6.28654 )
+texture = ExtResource( 3 )
+expand = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="VBoxContainer/Panel/VBoxContainer"]
+margin_top = 63.0
+margin_right = 397.0
+margin_bottom = 110.0
+rect_min_size = Vector2( 0, 47 )
+bbcode_enabled = true
+bbcode_text = "[center]Please consider supporting us! Click on our names to get sent to a donation page (if that developer has one). If a coffee cup is next to a name, it means that developer has a donation page! [/center]"
+text = "Please consider supporting us! Click on our names to get sent to a donation page (if that developer has one). If a coffee cup is next to a name, it means that developer has a donation page! "

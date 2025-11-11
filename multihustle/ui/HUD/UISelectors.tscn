@@ -1,0 +1,104 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://theme.tres" type="Theme" id=1]
+[ext_resource path="res://MultiHustle/ui/HUD/UISelectors.gd" type="Script" id=2]
+[ext_resource path="res://MultiHustle/ui/HUD/SelfSelect.gd" type="Script" id=3]
+[ext_resource path="res://MultiHustle/ui/HUD/OpponentSelect.gd" type="Script" id=4]
+[ext_resource path="res://MultiHustle/ui/HUD/MinimizeSelectorsButton.gd" type="Script" id=5]
+
+[node name="MultiHustle_UISelectors" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 118.0
+margin_top = 67.0
+margin_right = -140.0
+margin_bottom = -267.0
+grow_horizontal = 2
+rect_pivot_offset = Vector2( 191, 0 )
+theme = ExtResource( 1 )
+script = ExtResource( 2 )
+
+[node name="Button" type="Button" parent="."]
+margin_left = 482.0
+margin_top = -1.0
+margin_right = 494.0
+margin_bottom = 11.0
+text = "-"
+script = ExtResource( 5 )
+node_to_hide = NodePath("../Root")
+
+[node name="Root" type="Control" parent="."]
+margin_right = 382.0
+margin_bottom = 26.0
+
+[node name="SPCharacterSelect" type="OptionButton" parent="Root"]
+anchor_left = -0.253927
+anchor_top = -0.0384615
+anchor_right = 0.187018
+anchor_bottom = 1.19231
+margin_left = 0.00012207
+margin_right = 0.00012207
+margin_bottom = -20.0
+rect_pivot_offset = Vector2( 168, 0 )
+clip_text = true
+script = ExtResource( 3 )
+
+[node name="OppCharacterSelect" type="OptionButton" parent="Root"]
+anchor_left = 0.814136
+anchor_top = -0.0384615
+anchor_right = 1.25393
+anchor_bottom = 0.423077
+margin_left = 1.52588e-05
+clip_text = true
+align = 2
+icon_align = 2
+script = ExtResource( 3 )
+
+[node name="TargetSelect" type="OptionButton" parent="Root"]
+anchor_top = 1.15
+anchor_right = 1.0
+anchor_bottom = 2.55
+margin_left = -56.0
+margin_top = -15.9
+margin_right = -311.0
+margin_bottom = -40.3
+rect_pivot_offset = Vector2( 168, 0 )
+clip_text = true
+script = ExtResource( 4 )
+
+[node name="Label" type="Label" parent="Root/TargetSelect"]
+modulate = Color( 1, 1, 1, 0.588235 )
+margin_left = -40.0
+margin_right = -4.0
+margin_bottom = 11.0
+text = "TARGET"
+
+[node name="SPOppTargetSelect" type="OptionButton" parent="Root"]
+anchor_left = 0.255081
+anchor_top = 0.803846
+anchor_right = 1.27487
+anchor_bottom = 1.89615
+margin_left = 213.559
+margin_top = -6.9
+margin_right = -48.0
+margin_bottom = -23.3
+clip_text = true
+align = 2
+icon_align = 2
+script = ExtResource( 4 )
+
+[node name="Label" type="Label" parent="Root/SPOppTargetSelect"]
+modulate = Color( 1, 1, 1, 0.588235 )
+margin_left = 132.0
+margin_right = 168.0
+margin_bottom = 11.0
+text = "TARGET"
+
+[node name="OppTargetLabel" type="Label" parent="Root"]
+visible = false
+modulate = Color( 1, 1, 1, 0.588235 )
+margin_left = 74.0
+margin_top = 14.0
+margin_right = 479.0
+margin_bottom = 25.0
+align = 2

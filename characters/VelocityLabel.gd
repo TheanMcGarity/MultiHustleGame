@@ -18,8 +18,8 @@ func _process(delta):
 
 	
 
-func _input(event):
-	if event is InputEventMouseMotion:
-		if Global.mouse_world_position.distance_squared_to(fighter.get_hurtbox_center_float()) < Global.mouse_world_position.distance_squared_to(fighter.opponent.get_hurtbox_center_float()):
-			fighter.opponent.velocity_label_container.z_index = 1023
-			get_parent().z_index = 1024
+#func _input(event):
+#	if event is InputEventMouseMotion:
+#		if Global.mouse_world_position.distance_squared_to(fighter.get_hurtbox_center_float()) < Global.mouse_world_position.distance_squared_to(fighter.opponent.get_hurtbox_center_float()):
+#			fighter.opponent.velocity_label_container.z_index = 1023
+#			get_parent().z_index = 1024

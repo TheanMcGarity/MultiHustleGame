@@ -99,26 +99,6 @@ func on_opponent_action_clicked(_action, _data, _extra):
 func _get_opposite_buttons():
 	return opposite_buttons
 
-func _on_submit_pressed():
-	lock_in_pressed = true
-	yield(get_tree(), "idle_frame")
-#	if fighter_extra:
-#		fighter_extra.update_selected_move(current_button.state)
-	yield(get_tree(), "idle_frame")
-	if attempting_lock_in:
-		return
-	attempting_lock_in = true
-	while !can_lock_in:
-		yield(get_tree(), "idle_frame")
-	attempting_lock_in = false
-	var data = null
-	if current_button:
-		data = current_button.get_data()
-	if current_action:
-		on_action_submitted(current_action, data)
-	lock_in_pressed = false
-	locked_in = true
-
 func timeout():
 	if active:
 		_on_submit_pressed()
@@ -168,70 +148,6 @@ func check_extra_button_pressed(node: Node):
 		else:
 			check_extra_button_pressed(child)
 
-
-func reset():
-	for button_category_container in button_category_containers.values():
-		button_category_container.free()
-	for button in buttons:
-		if is_instance_valid(button):
-			if button.data_node:
-				button.data_node.free()
-			button.free()
-	for data in $"%DataContainer".get_children():
-		data.free()
-	if fighter_extra:
-		fighter_extra.free()
-	
-	button_category_containers.clear()
-#	for container in [category_container, action_container, action_data_container]:
-#		for child in container.get_items():
-#			child.free()
-	current_action = null
-	current_button = null
-	last_button = null
-	forfeit = false
-	buttons = []
-
-func init(game, id):
-	reset()
-	self.game = game
-	fighter = game.get_player(id)
-	$"%DI".visible = fighter.di_enabled
-	fighter_extra = fighter.player_extra_params_scene.instance()
-	fighter_extra.connect("data_changed", self, "extra_updated")
-	game.connect("forfeit_started", self, "_on_forfeit_started")
-	fighter_extra.set_fighter(fighter)
-	turbo_mode = fighter.turbo_mode
-	Network.action_button_panels[id] = self
-	buttons = []
-#	for button in button_container.get_children():nudge_button
-#		button.free()
-	var states = []
-	for category in fighter.action_cancels:
-		for state in fighter.action_cancels[category]:
-			if state.show_in_menu and not state in states:
-				states.append(state)
-				create_button(state.name, state.title, state.get_ui_category(), state.data_ui_scene, BUTTON_SCENE, state.button_texture, state.reversible, state.flip_icon, state)
-#	nudge_button = create_button("Nudge", "DI", "Defense", NUDGE_SCENE)
-	sort_categories()
-	connect("action_selected", fighter, "on_action_selected")
-	fighter.connect("action_selected", self, "_on_fighter_action_selected")
-	fighter.connect("forfeit", self, "_on_fighter_forfeit")
-	hide()
-	$"%TopRowDataContainer".add_child(fighter_extra)
-	if player_id == 1:
-#		for i in range(button_category_containers.size()):
-#			$"%CategoryContainer".move_child(button_category_containers[button_category_containers.keys()[i]], button_category_containers.size() - i)
-		$"%CategoryContainer".move_child($"%TurnButtons", $"%CategoryContainer".get_children().size() - 1)
-		$"%TopRowDataContainer".move_child(fighter_extra, 2)
-	else:
-		$"%TopRowDataContainer".move_child(fighter_extra, 0)
-	continue_button = create_button("Continue", "Hold", "Movement", null, preload("res://ui/ActionSelector/ContinueButton.tscn"), null, false)
-	continue_button.get_parent().remove_child(continue_button)
-	continue_button["custom_fonts/font"] = null
-	$"%TurnButtons".add_child(continue_button)
-	$"%TurnButtons".move_child(continue_button, 1)
-#	$"%ReverseButton".show()
 
 func _on_fighter_action_selected(_action, _data, _extra):
 	pass
@@ -441,6 +357,11 @@ func on_action_selected(action, button):
 	if !fighter_extra.can_feint:
 		$"%FeintButton".set_pressed_no_signal(false)
 	send_ui_action()
+	
+	
+	if restoring_state:
+		return
+	_store_ui_state()
 
 func show_button_data_node(button):
 	yield(get_tree(), "idle_frame")
@@ -459,24 +380,11 @@ func get_extra() -> Dictionary:
 		"reverse": $"%ReverseButton".pressed and !$"%ReverseButton".disabled,
 		"feint": $"%FeintButton".pressed and !$"%FeintButton".disabled,
 		"prediction": _get_opposite_buttons().current_prediction,
+		"opponent":fighter.opponent.id
 	}
 	if fighter_extra:
 		extra.merge(fighter_extra.get_extra())
 	return extra
-
-func on_action_submitted(action, data=null, extra=null):
-	active = false
-	extra = get_extra() if extra == null else extra
-#	hide()
-	$"%SelectButton".disabled = true
-	emit_signal("turn_ended")
-	$"%SelectButton".shortcut = null
-#	if Network.multiplayer_active:
-#		yield(get_tree().create_timer(1.0), "timeout")
-	emit_signal("action_selected", action, data, extra)
-	if !SteamLobby.SPECTATING:
-		if Network.player_id == player_id:
-			Network.submit_action(action, data, extra)
 	
 #func debug_text():
 #	$"%DebugLabel".text = str(center_panel.rect_size)
@@ -633,133 +541,447 @@ func update_buttons(refresh = true):
 	if is_instance_valid(continue_button):
 		continue_button.set_disabled(false)
 
-func update_select_button():
-	var user_facing = game.singleplayer or Network.player_id == player_id
-	if !user_facing:
-		$"%SelectButton".disabled = true
+func _on_DIContainer_mouse_entered():
+	pass # Replace with function body.
+
+var id = null
+var restoring_state := false
+
+# Hooked for debugging purposes
+func init(ngame, pid):
+	id = pid
+	Network.log_to_file("Init called for action buttons! ID: " + str(pid))
+	reset()
+	game = ngame
+	fighter = game.get_player(pid)
+	$"%DI".visible = fighter.di_enabled
+	fighter_extra = fighter.player_extra_params_scene.instance()
+	fighter_extra.connect("data_changed", self, "extra_updated")
+	game.connect("forfeit_started", self, "_on_forfeit_started")
+	fighter_extra.set_fighter(fighter)
+	turbo_mode = fighter.turbo_mode
+	Network.action_button_panels[player_id] = self
+	buttons = []
+
+
+	var states = []
+	for category in fighter.action_cancels:
+		for state in fighter.action_cancels[category]:
+			if state.show_in_menu and not state in states:
+				states.append(state)
+				create_button(state.name, state.title, state.get_ui_category(), state.data_ui_scene, BUTTON_SCENE, state.button_texture, state.reversible, state.flip_icon, state)
+
+	sort_categories()
+	connect("action_selected", fighter, "on_action_selected")
+	fighter.connect("action_selected", self, "_on_fighter_action_selected")
+	fighter.connect("forfeit", self, "_on_fighter_forfeit")
+	hide()
+	$"%TopRowDataContainer".add_child(fighter_extra)
+	if player_id == 1:
+
+
+		$"%CategoryContainer".move_child($"%TurnButtons", $"%CategoryContainer".get_children().size() - 1)
+		$"%TopRowDataContainer".move_child(fighter_extra, 2)
+	else :
+		$"%TopRowDataContainer".move_child(fighter_extra, 0)
+	continue_button = create_button("Continue", "Hold", "Movement", null, preload("res://ui/ActionSelector/ContinueButton.tscn"), null, false)
+	continue_button.get_parent().remove_child(continue_button)
+	continue_button["custom_fonts/font"] = null
+	$"%TurnButtons".add_child(continue_button)
+	$"%TurnButtons".move_child(continue_button, 1)
+
+	Network.log_to_file("Init finished for action buttons! ID: " + str(pid))
+
+func re_init(pid):
+	id = pid
+	Network.log_to_file("Re-Init called for action buttons! ID: " + str(pid))
+
+	reset()
+	fighter = game.get_player(pid)
+	$"%DI".visible = fighter.di_enabled
+	fighter_extra = fighter.player_extra_params_scene.instance()
+	fighter_extra.connect("data_changed", self, "extra_updated")
+	fighter_extra.set_fighter(fighter)
+	turbo_mode = fighter.turbo_mode
+	Network.action_button_panels[player_id] = self
+	buttons = []
+
+
+	var states = []
+	for category in fighter.action_cancels:
+		for state in fighter.action_cancels[category]:
+			if state.show_in_menu and not state in states:
+				states.append(state)
+				create_button(state.name, state.title, state.get_ui_category(), state.data_ui_scene, BUTTON_SCENE, state.button_texture, state.reversible, state.flip_icon, state)
+
+	sort_categories()
+	connect("action_selected", fighter, "on_action_selected")
+	fighter.connect("action_selected", self, "_on_fighter_action_selected")
+	fighter.connect("forfeit", self, "_on_fighter_forfeit")
+	hide()
+	$"%TopRowDataContainer".add_child(fighter_extra)
+	if player_id == 1:
+		$"%CategoryContainer".move_child($"%TurnButtons", $"%CategoryContainer".get_children().size() - 1)
+		$"%TopRowDataContainer".move_child(fighter_extra, 2)
+	else :
+		$"%TopRowDataContainer".move_child(fighter_extra, 0)
+	continue_button = create_button("Continue", "Hold", "Movement", null, preload("res://ui/ActionSelector/ContinueButton.tscn"), null, false)
+	continue_button.get_parent().remove_child(continue_button)
+	continue_button["custom_fonts/font"] = null
+	$"%TurnButtons".add_child(continue_button)
+	$"%TurnButtons".move_child(continue_button, 1)
+
+	activate()
+
+	Network.log_to_file("Re-Init finished for action buttons! ID: " + str(id))
+
+func reset():
+	_store_ui_state()
+	visible = false
+	if is_instance_valid(fighter_extra):
+		if fighter_extra.is_connected("data_changed", self, "extra_updated"):
+			fighter_extra.disconnect("data_changed", self, "extra_updated")
 	else:
-		$"%SelectButton".disabled = game.spectating or locked_in
+		fighter_extra = null
+	if is_instance_valid(fighter):
+		if is_connected("action_selected", fighter, "on_action_selected"):
+			disconnect("action_selected", fighter, "on_action_selected")
+		if fighter.is_connected("action_selected", self, "_on_fighter_action_selected"):
+			fighter.disconnect("action_selected", self, "_on_fighter_action_selected")
+		if fighter.is_connected("forfeit", self, "_on_fighter_forfeit"):
+			fighter.disconnect("forfeit", self, "_on_fighter_forfeit")
+	else:
+		fighter = null
 
-func activate(refresh=true):
-	if visible and refresh:
+	for button_category_container in button_category_containers.values():
+		button_category_container.free()
+	for button in buttons:
+		if is_instance_valid(button):
+			if button.data_node:
+				button.data_node.free()
+			button.free()
+	for data in $"%DataContainer".get_children():
+		data.free()
+	if fighter_extra:
+		fighter_extra.free()
+	button_category_containers.clear()
+	current_action = null
+	current_button = null
+	last_button = null
+	forfeit = false
+	buttons = []
+
+func _store_ui_state():
+	if not is_instance_valid(fighter):
 		return
-#	print("activating")
-	active = true
-	locked_in = false
+	var selected_name = null
+	if current_button and current_button.action_name != "":
+		selected_name = current_button.action_name
+	elif current_action and current_action != "Continue":
+		selected_name = current_action
+	var has_selection = selected_name != null
+	fighter.ui_button_pressed = has_selection
+	fighter.ui_selected_action = selected_name
+	if current_button and current_button.data_node:
+		var stored_data = current_button.get_data()
+		fighter.ui_selected_data = _duplicate_value(stored_data)
+	else:
+		fighter.ui_selected_data = null
+	var reverse_button = $"%ReverseButton"
+	if reverse_button:
+		fighter.ui_reverse_pressed = reverse_button.pressed
+	var feint_button = $"%FeintButton"
+	if feint_button:
+		fighter.ui_feint_pressed = feint_button.pressed
+	var di_node = $"%DI"
+	if di_node and di_node.has_method("get_data"):
+		fighter.ui_di_data = di_node.get_data()
+	else:
+		fighter.ui_di_data = null
 
-#	reset_prediction()
-#	_get_opposite_buttons().reset_prediction()
+func _apply_extra_controls(reverse_pressed, feint_pressed, di_data):
+	var reverse_value = reverse_pressed == true
+	var reverse_button = $"%ReverseButton"
+	if reverse_button and reverse_button.has_method("set_pressed_no_signal"):
+		reverse_button.set_pressed_no_signal(reverse_value)
+	elif reverse_button:
+		reverse_button.pressed = reverse_value
+	var feint_value = feint_pressed == true
+	var feint_button = $"%FeintButton"
+	if feint_button and feint_button.has_method("set_pressed_no_signal"):
+		feint_button.set_pressed_no_signal(feint_value)
+	elif feint_button:
+		feint_button.pressed = feint_value
+	if di_data is Dictionary:
+		var di_node = $"%DI"
+		if di_node and di_node.has_method("set_value_float"):
+			var radius = di_node.panel_radius
+			var vec = Vector2(
+				float(di_data.get("x", 0)),
+				float(di_data.get("y", 0))
+			)
+			var converted = Vector2(
+				(vec.x / 100.0) * radius,
+				(vec.y / 100.0) * radius
+			)
+			di_node.set_value_float(converted)
+
+func _duplicate_value(value):
+	if value is Dictionary:
+		return value.duplicate(true)
+	if value is Array:
+		return value.duplicate(true)
+	return value
+
+func _apply_action_data(node, data):
+	if node == null or data == null:
+		return
+	if node is ActionUIData:
+		if node.get_child_count() == 1 and !(data is Dictionary):
+			_apply_action_data(node.get_child(0), data)
+		elif data is Dictionary:
+			for child in node.get_children():
+				if data.has(child.name):
+					_apply_action_data(child, data[child.name])
+		return
+	if node.has_method("load_data"):
+		node.load_data(data)
+		return
+	if node is OptionButton:
+		if data is Dictionary and data.has("id"):
+			var idx = int(data["id"])
+			if idx >= 0 and idx < node.get_item_count():
+				node.select(idx)
+		elif data is Dictionary and data.has("name"):
+			var target = str(data["name"])
+			for i in node.get_item_count():
+				if node.get_item_text(i) == target:
+					node.select(i)
+					break
+		elif typeof(data) in [TYPE_INT, TYPE_REAL]:
+			var idx2 = int(data)
+			if idx2 >= 0 and idx2 < node.get_item_count():
+				node.select(idx2)
+		return
+	if node is CheckButton:
+		var pressed = false
+		if typeof(data) == TYPE_BOOL:
+			pressed = data
+		elif typeof(data) in [TYPE_INT, TYPE_REAL]:
+			pressed = data != 0
+		if node.has_method("set_pressed_no_signal"):
+			node.set_pressed_no_signal(pressed)
+		else:
+			node.pressed = pressed
+		return
+	if node.get("value") != null:
+		var val = data
+		if typeof(data) == TYPE_DICTIONARY and data.has("value"):
+			val = data["value"]
+		if typeof(val) in [TYPE_INT, TYPE_REAL]:
+			node.value = val
+		return
+	if node.has_method("set_height"):
+		var high = true
+		if data is Dictionary:
+			if data.has("y"):
+				high = int(data["y"]) == 0
+			elif data.has("high"):
+				high = bool(data["high"])
+		elif typeof(data) == TYPE_BOOL:
+			high = data
+		node.set_height(high)
+func _restore_fighter_selection(stored_action, reverse_pressed, feint_pressed, di_data):
+	if stored_action == null:
+		return false
+	for button in buttons:
+		if button.action_name == stored_action:
+			restoring_state = true
+			#.on_action_selected(stored_action, button)
+			_apply_extra_controls(reverse_pressed, feint_pressed, di_data)
+			var stored_data = null
+			if is_instance_valid(fighter):
+				stored_data = fighter.ui_selected_data
+			if stored_data != null and button.data_node:
+				_apply_action_data(button.data_node, stored_data)
+				# Ensure fighter cache reflects what was applied
+				_store_ui_state()
+				send_ui_action(stored_action)
+			restoring_state = false
+			return true
+	if is_instance_valid(fighter):
+		fighter.ui_button_pressed = false
+		fighter.ui_selected_action = null
+		fighter.ui_reverse_pressed = false
+		fighter.ui_feint_pressed = false
+		fighter.ui_di_data = null
+		fighter.ui_selected_data = null
+	return false
+
+func _on_submit_pressed():
+	Network.log_to_file("Submit pressed for player " + str(id) + " | Current Button: " + str(current_button))
+	lock_in_pressed = true
+	yield (get_tree(), "idle_frame")
+	yield (get_tree(), "idle_frame")
+
+	if attempting_lock_in:
+		return 
+	attempting_lock_in = true
+	while not can_lock_in:
+		yield (get_tree(), "idle_frame")
+	attempting_lock_in = false
+	var data = null
+	if current_button:
+		data = current_button.get_data()
+	if current_action:
+		on_action_submitted(current_action, data)
+	lock_in_pressed = false
+	locked_in = true
+
+func on_action_submitted(action, data = null, extra = null):
+	Network.log_to_file("Submitting action for player " + str(id) + ", action is " + str(action) + " | " + str(data))
+	active = false
+	extra = get_extra() if extra == null else extra
+	$"%SelectButton".disabled = true
+	emit_signal("turn_ended")
+	$"%SelectButton".shortcut = null
+	emit_signal("action_selected", action, data, extra)
+	_store_ui_state()
+	if not SteamLobby.SPECTATING:
+		if Network.player_id == id:
+			Network.submit_action(action, data, extra)
+
+
+func disable_select():
+	$"%SelectButton".disabled = true
+	$"%SelectButton".shortcut = null
+
+func update_select_button():
+	var user_facing = game.singleplayer or Network.player_id == id
+	if not user_facing:
+		$"%SelectButton".disabled = true
+	else :
+		$"%SelectButton".disabled = game.spectating or locked_in or game.get_player(id).game_over
+
+func activate(refresh = true):
+
+	Network.log_to_file("Action buttons should be showing: " + str(visible) + " | " + str(active))
+
+	if visible and refresh:
+		Network.log_to_file("Returning at point A")
+		return
+
+	active = true
+	var stored_action = null
+	var stored_reverse = false
+	var stored_feint = false
+	var stored_di = null
+	if is_instance_valid(fighter):
+		stored_action = fighter.ui_selected_action
+		stored_reverse = fighter.ui_reverse_pressed
+		stored_feint = fighter.ui_feint_pressed
+		stored_di = fighter.ui_di_data
+	var stored_locked_in = false
+	if is_instance_valid(game) and is_instance_valid(fighter) and game.turns_taken.has(fighter.id):
+		stored_locked_in = game.turns_taken[fighter.id]
+	locked_in = stored_locked_in
+	var restored_selection = false
+
 	if is_instance_valid(fighter):
 		$"%DI".set_label("DI" + " x%.1f" % float(fighter.get_di_scaling(false)))
 		var last_action_name = ReplayManager.get_last_action(fighter.id)
 
 		if last_action_name and fighter.state_machine.states_map.has(last_action_name.action):
 			last_action_name = last_action_name.action
-		else:
+		else :
 			last_action_name = fighter.current_state().name
 
-		var last_action: CharacterState = fighter.state_machine.states_map[last_action_name]
+		var last_action:CharacterState = fighter.state_machine.states_map[last_action_name]
 		$"%LastMoveTexture".texture = last_action.button_texture
 		$"%LastMoveLabel".text = last_action.title if last_action.title else last_action.name
-		$"%LastMoveTexture".visible = !last_action.is_hurt_state
-		$"%LastMoveLabel".visible = !last_action.is_hurt_state
-		$"%LastMoveData".visible = !last_action.is_hurt_state
+		$"%LastMoveTexture".visible = not last_action.is_hurt_state
+		$"%LastMoveLabel".visible = not last_action.is_hurt_state
+		$"%LastMoveData".visible = not last_action.is_hurt_state
 		$"%LastMoveData".text = last_action.get_last_action_text()
 
-	var user_facing = game.singleplayer or Network.player_id == player_id
+	var user_facing = game.singleplayer or Network.player_id == id
 	if Network.multiplayer_active:
 		if user_facing:
 			$"%YouLabel".show()
 			modulate = Color.white
 			Network.action_submitted = false
-		else:
+		else :
 			$"%YouLabel".hide()
 			modulate = Color("b3b3b3")
-	else:
+	else :
 		$"%YouLabel".hide()
 
 	if game.current_tick == 0:
 		$"%UndoButton".set_disabled(true)
-	else:
+	else :
 		$"%UndoButton".set_disabled(false)
 	if Network.multiplayer_active or SteamLobby.SPECTATING:
 		$"%UndoButton".hide()
-#	$"%ReverseButton".set_pressed_no_signal(false)
+
 	$"%ReverseButton".set_disabled(true)
 	$"%ReverseButton".pressed = false
-	$"%FeintButton".pressed = (Global.auto_fc or !user_facing) and fighter.feints > 0
-#	tween_spread()
+	$"%FeintButton".pressed = (Global.auto_fc or not user_facing) and fighter.feints > 0
+
 	current_action = null
 	current_button = null
-	
-	Network.turns_ready = {
-		1: false,
-		2: false
-	}
-	show()
-#		Network.turn_started()
-	
 
-#	for button in buttons:
-#		button.hide()
-#		button.set_disabled(true)
-#		if button.data_node:
-#			button.data_node.hide()
-#			button.data_node.fighter_update()
-	#	if fighter.state_interruptable:
-#		$"%SelectButton".show()
-#		$"%SelectButton".disabled = false
-	if !user_facing:
+	show()
+
+	if (not user_facing) or stored_locked_in or fighter.game_over:
 		$"%SelectButton".disabled = true
-	else:
+	else :
 		$"%SelectButton".disabled = game.spectating
-		
+
 	fighter_extra.hide()
-	
 	update_buttons(refresh)
 
-	
-	if !fighter.busy_interrupt:
+
+	if not fighter.busy_interrupt:
 		fighter_extra.show()
 		fighter_extra.show_behind_parent = true
 		fighter_extra.show_options()
-		
+
 	fighter_extra.reset()
-	
+
+	if not fighter.dummy:
+		restored_selection = _restore_fighter_selection(stored_action, stored_reverse, stored_feint, stored_di)
+
 	if fighter.dummy:
 		on_action_submitted("ContinueAuto", null)
 		hide()
-		
+
 	if fighter.will_forfeit:
 		on_action_submitted("Forfeit", null, null)
 		fighter.dummy = true
 
 	fighter.any_available_actions = any_available_actions
 	if user_facing and $"%AutoButton".pressed:
-		if !any_available_actions:
-			print("no available actions!")
+		if not any_available_actions:
+			Network.log_to_file("no available actions!")
 			on_action_submitted("Continue", null)
 			current_action = "Continue"
 
 	$"%ReverseButton".hide()
-	yield(get_tree(), "idle_frame")
-#	if !$"%ReverseButton".disabled:
+	yield (get_tree(), "idle_frame")
+
 	$"%ReverseButton".show()
-	if !refresh:
+	if not refresh:
+		Network.log_to_file("Returning at point B")
 		return
 	fighter.update_property_list()
-	button_pressed = false
-	send_ui_action("Continue")
+	if not restored_selection:
+		button_pressed = false
+		send_ui_action("Continue")
 	if user_facing:
 		if Network.multiplayer_active:
-			yield(get_tree().create_timer(0.25), "timeout")
+			yield (get_tree().create_timer(0.25), "timeout")
 		$"%SelectButton".shortcut = preload("res://ui/ActionSelector/SelectButtonShortcut.tres")
-#		yield(get_tree().create_timer(randf() * 1), "timeout")
-#		if player_id == 2:
-#			_on_submit_pressed()
-#	if user_facing and Network.multiplayer_active:
-#			yield(Network, "opponent_turn_started")
-#			$"%SelectButton".disabled = true
+
 	if player_id == 1:
 		if Network.p1_undo_action:
 			var input = Network.p1_undo_action
@@ -770,7 +992,3 @@ func activate(refresh=true):
 			var input = Network.p2_undo_action
 			on_action_submitted(input["action"], input["data"], input["extra"])
 			Network.p2_undo_action = null
-
-
-func _on_DIContainer_mouse_entered():
-	pass # Replace with function body.

@@ -484,6 +484,34 @@ func init(pos=null):
 		super_meter = MAX_SUPER_METER
 	last_pos = get_pos()
 	refresh_air_movements()
+	team = Network.get_team(id)
+	
+	#var throw_states = get_nodes_with_script(Network.game.players[id], THROW_STATE_SCRIPT)
+	#for throw_state in throw_states:
+		#Network.ensure_script_override(throw_state)
+		##throw_state.team = team
+
+	Network.game.players[id].team = team
+	
+	Network.teams[team][id] = Network.game.players[id]
+
+	# Doesnt work ig
+	#for throw_state in get_nodes_with_script(self, THROW_STATE_SCRIPT):
+	#	throw_state.team = team
+
+	#var hitbox_nodes = get_nodes_with_script(Network.game.players[id], HB_SCRIPT)
+	#for hitbox in hitbox_nodes:
+	#	if hitbox is THROWBOX_SCRIPT:
+	#		continue
+	#	elif hitbox is MH_HB_SCRIPT:
+	#		hitbox.team = team
+	#	else:
+	#		#print("Failed to assign team; Hitbox nodes aren't compatible! - %s" % hitbox.get_path())
+	#		continue
+
+	if display_name == null:
+		init_display_name()
+
 
 
 func is_ivy():
@@ -1144,6 +1172,36 @@ func counter_hitbox(hitbox):
 
 
 func hit_by(hitbox, force_hit=false):
+	
+	Network.log("player was hit!")
+	
+	var allowed_hit = false
+	
+	if (forfeit):
+		return
+	
+	if (hitbox == null and !allowed_hit):
+		allowed_hit = true
+
+
+	var self_team = team
+	
+	var hb_team = obj_from_name(hitbox.host).team#hitbox.team #Network.temp_hitbox_teams[hitbox]
+	
+	Network.log("hit_by -> self_team="+str(self_team)+", hb_team="+str(hb_team))
+	
+
+	if (self_team == 0 and !allowed_hit):	
+		allowed_hit = true
+	if (hb_team == 0 and !allowed_hit):	
+		allowed_hit = true
+	
+	if self_team != hb_team and !allowed_hit:
+		allowed_hit = true
+	
+	if !allowed_hit:
+		return
+	
 	if parried:
 		return 
 	if hitbox.name in parried_hitboxes:
@@ -1763,141 +1821,6 @@ func clear_buffer():
 func process_continue():
 	return false
 
-func tick_before():
-	if queued_action == "Forfeit":
-		if forfeit:
-			queued_action = "Continue"
-	if clashing:
-		if is_grounded():
-			change_state("Wait")
-		else:
-			change_state("Fall")
-		clashing = false
-	turn_end_effects()
-	dummy_interruptable = false
-	clean_parried_hitboxes()
-	busy_interrupt = false
-
-	update_grounded()
-	if ReplayManager.playback:
-		var input = get_playback_input()
-		if input:
-			queued_action = input["action"]
-			queued_data = input["data"]
-			queued_extra = input["extra"]
-#			last_action = current_tick
-			if queued_action == "Forfeit":
-#				dummy = true
-				forfeit = true
-				Global.current_game.forfeit(id)
-	else:
-		if queued_action:
-			actions += 1
-#			last_action = current_tick
-			if queued_action == "Undo":
-				queued_action = null
-				queued_data = null
-				return
-
-			if queued_action == "Forfeit":
-				forfeit = true
-#			if queued_action != "ContinueAuto":
-			if !is_ghost:
-				ReplayManager.frames[id][current_tick] = {
-					"action": queued_action,
-					"data": queued_data,
-					"extra": queued_extra,
-				}
-	previous_input = last_input.duplicate(true)
-	feinted_last = feinting
-	var pressed_feint = false
-	if refresh_prediction:
-		refresh_prediction = false
-#		current_prediction = -1
-#	if !prediction_processed and !is_in_hurt_state():
-#		process_prediction()
-	blocked_last_turn = false
-	if use_buffer:
-		if buffered_input.has("action"):
-			queued_action = buffered_input.action
-		if buffered_input.has("data"):
-			queued_data = buffered_input.data
-		if buffered_input.has("extra"):
-			queued_extra = buffered_input.extra
-		use_buffer = false
-		used_buffer = true
-		clear_buffer()
-	if queued_extra:
-		turn_frames = 0
-		opponent.turn_frames = 0
-		last_input["extra"] = queued_extra
-		process_extra(queued_extra)
-		pressed_feint = feinting
-	if queued_action:
-		process_action(queued_action)
-		turn_frames = 0
-		opponent.turn_frames = 0
-		turn_start_effects()
-		counterhit_this_turn = false
-		guard_broken_this_turn = false
-		if current_state() is CounterAttack:
-			current_state().bracing = false
-		if brace_effect_applied_yet:
-			brace_effect_applied_yet = false
-			braced_attack = false
-		last_input["action"] = queued_action
-		last_input["data"] = queued_data
-		feint_parriable = false
-		if queued_action == "Continue":
-			var current_state_name = current_state().name
-			if process_continue():
-				pass
-			elif current_state().get_hold_restart() != "" and current_state().interruptible_on_opponent_turn:
-				queued_action = current_state().get_hold_restart()
-				queued_data = current_state().data
-			elif current_state_name in HOLD_RESTARTS and current_state().interruptible_on_opponent_turn:
-				queued_action = current_state_name
-				queued_data = current_state().data
-			elif current_state_name in HOLD_FORCE_STATES and current_state().interruptible_on_opponent_turn:
-				queued_action = HOLD_FORCE_STATES[current_state_name]
-			elif (was_my_turn or (current_state().interruptible_on_opponent_turn and current_state().next_state_on_hold_on_opponent_turn) \
-					or (current_state().hit_fighter and combo_count == 0)) and !feinting and current_state().next_state_on_hold:
-				queued_action = current_state().fallback_state
-			if feinted_last:
-				feint_parriable = true
-			if !current_state().interruptible_on_opponent_turn:
-				current_state().on_continue()
-
-		if current_state().interruptible_on_opponent_turn:
-			current_state().opponent_turn_interrupt()
-#			elif projectile_hit_cancelling:
-#				queued_action = current_state().fallback_state
-
-		if queued_action in state_machine.states_map:
-#			last_action = current_tick
-			if feinted_last:
-				var particle_pos = get_hurtbox_center_float()
-				spawn_particle_effect(preload("res://fx/FeintEffect.tscn"), particle_pos)
-				
-			state_machine._change_state(queued_action, queued_data)
-			if !current_state().is_hurt_state:
-				if !last_turn_block:
-					hitlag_ticks = 0
-				last_turn_block = false
-			if !(current_state() is ParryState):
-				if blocked_hitbox_plus_frames > 0:
-					hitlag_ticks += blocked_hitbox_plus_frames
-					blocked_hitbox_plus_frames = 0
-			if pressed_feint:
-				feinting = true
-				current_state().feinting = true
-		current_state().feinted_last = feinted_last
-	queued_action = null
-	queued_data = null
-	queued_extra = null
-	was_my_turn = false
-	lowest_tick = current_state().current_real_tick
-
 func process_action(queued_action):
 	pass
 
@@ -2113,6 +2036,33 @@ func tick():
 		if "emotes" in ReplayManager.frames:
 			if current_tick in ReplayManager.frames.emotes[id]:
 				emote(ReplayManager.frames.emotes[id][current_tick])
+	
+	if (forfeit):
+		hide_display_name()
+
+	if not Network.game.match_data.has("selector_char_names"):
+		if Network.multiplayer_active:
+			# Basically
+			# !sent_name && id == Network.player_id
+			if not sent_name and id == Network.player_id:
+				Network.rpc_("set_display_name", [Steam.getPersonaName(), Network.player_id])
+				sent_name = true
+		else:
+			if not sent_name:
+				singleplayer_set_display_name()
+		
+	if display_name == null:
+		init_display_name()
+
+	
+	var name := ""
+
+	if (Network.game.player_names_rich.has(id)):
+		name = Network.game.player_names_rich[id]
+	
+	if name is String and "center" in name and not set_name:
+		set_name_text(name)
+		set_name = true
 
 func passive_sadness_gain():
 	var dir = fixed.sign(last_vel.x)
@@ -2306,3 +2256,226 @@ func _draw():
 #	if state_interruptable:
 #		draw_circle(Vector2(0, -16), 8, Color.red)
 	pass
+
+var damage_sources = []
+
+var ui_button_pressed: bool = false
+var ui_selected_action = null
+var ui_selected_data = null
+var ui_reverse_pressed: bool = false
+var ui_feint_pressed: bool = false
+var ui_di_data = null
+
+#var team_script = preload("res://MultiHustle/Teams/TeamsManager.gd")
+
+var team:int = 0
+
+var display_name:RichTextLabel
+
+var sent_name:bool = false
+
+var set_name:bool = false
+
+func hide_display_name():
+	if display_name != null:
+		display_name.hide()
+
+func init_team(player):
+	pass
+
+	
+# inner function please work please work please work please work please please :sob:
+func get_inner_nodes_with_script(current_array, parent, script_type) -> void:
+	for child in parent.get_children():
+		if child.get_script() != null and child is script_type:
+			current_array.append(child)
+		get_inner_nodes_with_script(current_array, child, script_type)
+func get_nodes_with_script(root: Node, script_type: Script) -> Array:
+	var result = []
+	
+		
+	for child in root.get_children():
+		if child.get_script() != null and child is script_type:
+			print("append")
+			result.append(child)
+		get_inner_nodes_with_script(result, child, script_type)
+
+	return result
+	
+func change_state(state_name, state_data = null, enter = true, exit = true):
+	.change_state(state_name, state_data, enter, exit)
+	
+	update_facing() # Facing fixes?
+
+func init_display_name():
+	if (is_ghost):
+		display_name = load("res://MultiHustle/Teams/TeamDisplayGhost.tscn").instance()
+		add_child(display_name)
+		if Network.game.player_names_rich.has(id):
+			var username = Network.game.player_names_rich[id]
+
+			if not username is String:
+				return
+			# any rich text stuff
+			if "[" in username:
+				display_name.bbcode_text = username 
+		return
+	
+	display_name = load("res://MultiHustle/Teams/TeamDisplay.tscn").instance()
+	add_child(display_name)
+	if Network.game.player_names_rich.has(id):
+		display_name.bbcode_text = Network.game.player_names_rich[id]
+
+func set_name_text(txt):
+	if (is_ghost):
+		var main_player = Network.game.players[id]
+		if (is_instance_valid(main_player)):
+			if main_player.display_name == null:
+				main_player.init_display_name()
+
+			main_player.display_name.bbcode_text = txt
+				
+	display_name.bbcode_text = txt
+
+
+# Vanilla function but with opponent select sync
+func tick_before():
+	if queued_action == "Forfeit":
+		if forfeit:
+			queued_action = "Continue"
+	if clashing:
+		if is_grounded():
+			change_state("Wait")
+		else:
+			change_state("Fall")
+		clashing = false
+	turn_end_effects()
+	dummy_interruptable = false
+	clean_parried_hitboxes()
+	busy_interrupt = false
+
+	update_grounded()
+	if ReplayManager.playback:
+		var input = get_playback_input()
+		if input:
+			opponent = Network.game.players[input["opp"]]
+			queued_action = input["action"]
+			queued_data = input["data"]
+			queued_extra = input["extra"]
+			
+			if queued_action == "Forfeit":
+
+				forfeit = true
+				Global.current_game.forfeit(id)
+	else:
+		if queued_action:
+			actions += 1
+
+			if queued_action == "Undo":
+				queued_action = null
+				queued_data = null
+				return
+
+			if queued_action == "Forfeit":
+				forfeit = true
+
+			if not is_ghost:
+				ReplayManager.frames[id][current_tick] = {
+					"action": queued_action, 
+					"data": queued_data, 
+					"extra": queued_extra, 
+					"opp": opponent.id
+				}
+	previous_input = last_input.duplicate(true)
+	feinted_last = feinting
+	var pressed_feint = false
+	if refresh_prediction:
+		refresh_prediction = false
+
+
+
+	blocked_last_turn = false
+	if use_buffer:
+		if buffered_input.has("action"):
+			queued_action = buffered_input.action
+		if buffered_input.has("data"):
+			queued_data = buffered_input.data
+		if buffered_input.has("extra"):
+			queued_extra = buffered_input.extra
+		use_buffer = false
+		used_buffer = true
+		clear_buffer()
+	if queued_extra:
+		turn_frames = 0
+		opponent.turn_frames = 0
+		last_input["extra"] = queued_extra
+		process_extra(queued_extra)
+		pressed_feint = feinting
+	if queued_action:
+		process_action(queued_action)
+		turn_frames = 0
+		opponent.turn_frames = 0
+		turn_start_effects()
+		counterhit_this_turn = false
+		guard_broken_this_turn = false
+		if current_state() is CounterAttack:
+			current_state().bracing = false
+		if brace_effect_applied_yet:
+			brace_effect_applied_yet = false
+			braced_attack = false
+		last_input["action"] = queued_action
+		last_input["data"] = queued_data
+		feint_parriable = false
+		if queued_action == "Continue":
+			var current_state_name = current_state().name
+			if process_continue():
+				pass
+			elif current_state().get_hold_restart() != "" and current_state().interruptible_on_opponent_turn:
+				queued_action = current_state().get_hold_restart()
+				queued_data = current_state().data
+			elif current_state_name in HOLD_RESTARTS and current_state().interruptible_on_opponent_turn:
+				queued_action = current_state_name
+				queued_data = current_state().data
+			elif current_state_name in HOLD_FORCE_STATES and current_state().interruptible_on_opponent_turn:
+				queued_action = HOLD_FORCE_STATES[current_state_name]
+			elif (was_my_turn or (current_state().interruptible_on_opponent_turn and current_state().next_state_on_hold_on_opponent_turn)\
+			or (current_state().hit_fighter and combo_count == 0)) and not feinting and current_state().next_state_on_hold:
+				queued_action = current_state().fallback_state
+			if feinted_last:
+				feint_parriable = true
+			if not current_state().interruptible_on_opponent_turn:
+				current_state().on_continue()
+
+		if current_state().interruptible_on_opponent_turn:
+			current_state().opponent_turn_interrupt()
+
+
+
+		if queued_action in state_machine.states_map:
+
+			if feinted_last:
+				var particle_pos = get_hurtbox_center_float()
+				spawn_particle_effect(preload("res://fx/FeintEffect.tscn"), particle_pos)
+				
+			state_machine._change_state(queued_action, queued_data)
+			if not current_state().is_hurt_state:
+				if not last_turn_block:
+					hitlag_ticks = 0
+				last_turn_block = false
+			if not (current_state() is ParryState):
+				if blocked_hitbox_plus_frames > 0:
+					hitlag_ticks += blocked_hitbox_plus_frames
+					blocked_hitbox_plus_frames = 0
+			if pressed_feint:
+				feinting = true
+				current_state().feinting = true
+		current_state().feinted_last = feinted_last
+	queued_action = null
+	queued_data = null
+	queued_extra = null
+	was_my_turn = false
+	lowest_tick = current_state().current_real_tick
+
+func singleplayer_set_display_name():
+	Network.game.player_names_rich[id] = "[center][color=#"+Network.get_color(Network.get_team(id))+"]"+("p%d" % id)+"[/color][/center]"
+	Network.game.player_names[id] = ("p%d" % id)

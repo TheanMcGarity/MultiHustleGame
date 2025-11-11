@@ -1,4 +1,7 @@
 extends Fighter
+
+class_name Stickman
+
 var can_summon_kunai = true
 var can_summon_kick = true
 var bomb_thrown = false

@@ -136,6 +136,51 @@ func _ready():
 	bttContainer.show()
 	go_button.show()
 	loading_text.hide()
+	
+	# Teams RPC
+	Network._whitelist_rpc_method("on_team_change")
+	
+	# Teams UI
+	# really weird way of making it (?)
+	# Is it how you do this stuff normally?
+	
+	var team_buttons = $"%TeamButtons".get_container()
+	
+	var btn_red = Network.create_team_button("Red", "TeamButtonRed", 1, team_buttons)
+	var btn_blue = Network.create_team_button("Blue", "TeamButtonBlue", 2, team_buttons)
+	var btn_yellow = Network.create_team_button("Yellow", "TeamButtonYellow", 3, team_buttons)
+	var btn_green = Network.create_team_button("Green", "TeamButtonGreen", 4, team_buttons)
+	var btn_ffa =  $"%TeamButtons".get_ffa_button()
+	
+
+	btn_red.connect("pressed", self, "on_team_button_pressed", [btn_red])
+	btn_blue.connect("pressed", self, "on_team_button_pressed", [btn_blue])
+	btn_yellow.connect("pressed", self, "on_team_button_pressed", [btn_yellow])
+	btn_green.connect("pressed", self, "on_team_button_pressed", [btn_green])
+	btn_ffa.connect("pressed", self, "on_team_button_pressed", [btn_ffa])
+	
+	print("Created Teams UI")
+	
+	$"%P1Display".connect("style_selected", self, "_on_style_selected", [1])
+	$"%P2Display".connect("style_selected", self, "_on_style_selected", [2])
+
+	var btn_height = 160 if Network.has_char_loader() else 240
+
+	prev_char_button = Button.new()
+	prev_char_button.text = "<"
+	prev_char_button.rect_position = Vector2(60, btn_height)
+	prev_char_button.rect_size = Vector2(40, 12)
+	prev_char_button.connect("pressed", self, "_update_viewing_char", [-1])
+	add_child(prev_char_button)
+	prev_char_button.hide()
+
+	next_char_button = Button.new()
+	next_char_button.text = ">"
+	next_char_button.rect_position = Vector2(111, btn_height)
+	next_char_button.rect_size = Vector2(40, 12)
+	next_char_button.connect("pressed", self, "_update_viewing_char", [1])
+	add_child(next_char_button)
+	next_char_button.hide()
 
 func load_mods():
 	var dir = Directory.new()
@@ -186,16 +231,6 @@ func on_mods_load_finished():
 #	if is_instance_valid(loadThread2):
 	loadThread2.wait_to_finish()
 	pass
-
-func _on_network_character_selected(player_id, character, style=null):
-	selected_characters[player_id] = character
-	selected_styles[player_id] = style
-	if Network.is_host() and player_id == Network.player_id:
-		$"%GameSettingsPanelContainer".hide()
-	if selected_characters[1] != null and selected_characters[2] != null:
-#		$"%GoButton".disabled = false
-		if Network.is_host():
-			Network.rpc_("send_match_data", get_match_data())
 
 func _on_network_match_locked_in(match_data):
 	network_match_data = match_data
@@ -284,6 +319,15 @@ func init(singleplayer=true):
 		$ButtonSoundPlayer.setup()
 	_on_button_mouse_entered(buttons[0])
 	
+	if singleplayer:
+		return
+	
+	for key in Network.network_ids.keys():
+		selected_characters[key] = null
+		hovered_characters[key] = null
+		selected_styles[key] = null
+	
+	
 func get_character_data(button):
 	var data = {}
 	var scene = button.character_scene.instance()
@@ -345,7 +389,7 @@ func display_character(id, data):
 #	if !singleplayer:
 #		Network.select_character(data, $"%P1Display".selected_style if current_player == 1 else $"%P2Display".selected_style)
 
-func _on_button_pressed(button):
+func _on_button_pressed_vanilla(button):
 	if btt_disableTimer > 0 or currentlyLoading:
 		button.set_pressed_no_signal(false)
 		return
@@ -365,28 +409,6 @@ func quit():
 #	if SteamLobby.LOBBY_ID != 0:
 	SteamLobby.quit_match()
 	Global.reload()
-
-func get_match_data():
-	if singleplayer:
-		selected_styles = {
-			1: $"%P1Display".selected_style,
-			2: $"%P2Display".selected_style
-		}
-	var data = {
-		"singleplayer": singleplayer,
-		"selected_characters": selected_characters,
-		"selected_styles": selected_styles,
-#		"selected_customs": selected_customs,
-	}
-	if singleplayer or Network.is_host():
-		randomize()
-		data.merge({"seed": randi()})
-	
-	if SteamLobby.LOBBY_ID != 0 and SteamLobby.MATCH_SETTINGS:
-		data.merge(SteamLobby.MATCH_SETTINGS)
-	else:
-		data.merge($"%GameSettingsPanelContainer".get_data())
-	return data
 
 func go():
 	if !singleplayer:
@@ -687,6 +709,15 @@ func buffer_select(button):
 			$"%GoButton".disabled = false
 	if not singleplayer:
 		Network.select_character(data, $"%P1Display".selected_style if current_player == 1 else $"%P2Display".selected_style)
+		
+	
+	current_player_real = current_player_real + 1
+	if current_player_real > 2:
+		var color = get_saturated_color(current_player_real)
+		print("COLOR = " + str(color))
+		$"%SelectingLabel".modulate = color
+	set_display_color(0)
+	post_button_edit(button)
 
 # as of update 3.3, this function gets called on _process. hopefully in the future this can be added onto another init function
 func createButtons():
@@ -837,13 +868,6 @@ func net_updateModLists():
 		i += 1
 
 # this function gets called on main.gd
-func net_loadReplayChars(_replayChars):
-	var rc = _replayChars
-	if rc != []:
-		if (isCustomChar(rc[0])):
-			loadListChar(name_to_index[retro_charName(rc[0])])
-		if (isCustomChar(rc[1])):
-			loadListChar(name_to_index[retro_charName(rc[1])])
 
 func net_isCharacterAvailable(_charName):
 	var custom = isCustomChar(_charName)
@@ -1211,3 +1235,164 @@ func _createImportFiles(folder, _charName, _charPath): # returns an array of mis
 		_import_copy("user://char_cache/" + modName.validate_node_name() + "-" + md.author.validate_node_name() + "-" + folder_to_hash(folder) + "-" + clVersion.validate_node_name() + ".pck") # will cache the asset package for faster load times on subsequent sessions
 
 	return missingFiles
+
+
+var current_player_real = current_player
+var viewing_character = 1
+var real_selected_styles = {}
+var selected_display_data = {}
+var prev_char_button
+var next_char_button
+
+const TEAM_BUTTON_SCENE = preload("res://MultiHustle/Teams/TeamButtonList.tscn")
+
+
+
+func _on_CharacterSelect_visibility_changed():
+	pass
+
+func _on_network_character_selected(player_id, character, style = null):
+	selected_characters[player_id] = character
+	selected_styles[player_id] = style
+	if Network.is_host() and player_id == Network.player_id:
+		$"%GameSettingsPanelContainer".hide()
+	Network.log_to_file("Player " + str(player_id) + " selected character " + str(character))
+	Network.log_to_file("Current characters selected: " + str(selected_characters))
+	for chara in selected_characters.values():
+		if chara == null:
+			return
+	Network.log_to_file("All players selected a character, starting game")
+	if Network.is_host():
+		var match_data = get_match_data()
+		Network.rpc_("send_match_data", match_data)
+		
+
+
+func on_team_button_pressed(button):
+	print("Team button pressed! - "+button.name)
+	
+	if singleplayer:
+		Network.singleplayer_on_team_change(button.team_id, ("p%d" % current_player), current_player)
+		set_display_color(button.team_id)
+		return
+	
+	var steam_id = Steam.getSteamID()
+	var username = Steam.getFriendPersonaName(steam_id)
+	
+	Network.rpc_("on_team_change", [button.team_id, username, Network.player_id])
+
+func set_display_color(team):
+	var right:bool = current_player_real != 1
+
+	var label:Label = $"%P1Display".get_node("PlayerLabel")
+	if right:
+		label = $"%P2Display".get_node("PlayerLabel")
+	
+	label.add_color_override("font_color", Network.get_color(team))
+
+func set_viewing_display_color(team):
+	var label:Label = $"%P1Display".get_node("PlayerLabel")
+	
+	label.add_color_override("font_color", Network.get_color(team))
+
+
+func _update_viewing_char(by):
+	if current_player_real < 3: return
+	viewing_character = wrapi(viewing_character + by, 1, current_player_real)
+	$"%P1Display".get_node("PlayerLabel").text = "P%d" % viewing_character
+	var style = null if not real_selected_styles.has(viewing_character) else real_selected_styles[viewing_character]
+	var data = selected_display_data[viewing_character]
+	$"%P1Display"._on_style_selected(style)
+	$"%P1Display".load_character_data(data)
+	set_viewing_display_color(Network.get_team(viewing_character))
+
+func _on_style_selected(style, pidx):
+	if pidx == 1:
+		real_selected_styles[viewing_character] = style
+	else:
+		real_selected_styles[current_player_real] = style
+
+func _on_button_pressed(button):
+	if singleplayer:
+		Network.player_character_names[current_player_real] = button.text
+		if Network.player_character_uses.has(button.text):
+			Network.player_character_uses[button.text] += 1
+		else:
+			Network.player_character_uses[button.text] = 1
+
+		_on_button_pressed_vanilla(button)
+		if !Network.has_char_loader():
+			current_player_real = current_player_real + 1
+			set_display_color(0)
+			post_button_edit(button)
+	else:
+		_on_button_pressed_vanilla(button)
+
+
+func post_button_edit(button):
+	var pid = current_player_real
+	if Network.multiplayer_active:
+		pid = Network.player_id
+	Network.team_init(pid)
+
+	if singleplayer:
+		current_player = current_player_real
+		selected_display_data[current_player - 1] = get_display_data(button)
+		$"%SelectingLabel".text = "P%d SELECT YOUR CHARACTER" % current_player
+		if current_player > 2:
+			$"%P2Display".get_node("PlayerLabel").text = "P%d" % current_player
+			prev_char_button.show()
+			next_char_button.show()
+			if Network.has_char_loader():
+				$"%P1Display".rect_position.y = -30
+		for button in buttons:
+			button.disabled = false
+	if not singleplayer:
+		# TODO
+		#Network.select_character(data, $"%P1Display".selected_style if current_player == 1 else $"%P2Display".selected_style)
+		pass
+
+func get_match_data():
+	if singleplayer:
+		for index in selected_characters.keys():
+			var style = null if not real_selected_styles.has(index) else real_selected_styles[index]
+			selected_styles[index] = style
+	var data = {
+		"singleplayer":singleplayer,
+		"selected_characters":selected_characters,
+		"selected_styles":selected_styles,
+	}
+	if singleplayer or Network.is_host():
+		randomize()
+		data.merge({"seed":randi()})
+	if SteamLobby.LOBBY_ID != 0 and SteamLobby.MATCH_SETTINGS:
+		data.merge(SteamLobby.MATCH_SETTINGS)
+	else :
+		data.merge($"%GameSettingsPanelContainer".get_data())
+	return data
+
+# Character Loader Overrides
+
+func net_loadReplayChars(_replayChars):
+	var second = false
+	var pair = []
+	var idx = 0
+	var name_to_index = get("name_to_index")
+	for rc in _replayChars:
+		if rc != []:
+			if (isCustomChar(rc[idx])):
+				loadListChar(name_to_index[retro_charName(rc[idx])])
+		idx += 1
+
+func get_saturated_color(id: int):
+	var rng = RandomNumberGenerator.new()
+	rng.seed = id * 5872
+
+	var hue = fmod(rng.randf() * 2.58913, 1)
+	var saturation = 0.4 + rng.randf() * 0.6
+	var value = 0.7 + rng.randf() * 0.3
+	print(hue)
+	print(saturation)
+	print(value)
+	print(Color.from_hsv(hue, saturation, value, 1))
+	return Color.from_hsv(hue, saturation, value)

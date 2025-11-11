@@ -30,8 +30,15 @@ func init():
 			2: {},
 		}
 	}
+	
+	var mh_data = {}
+	frames["MultiHustle"] = mh_data
+	for index in Global.current_game.players:
+		frames[index] = {}
+		frames["emotes"][index] = {}
+		mh_data[index] = {}
 
-func frame_ids():
+func frame_ids_vanilla():
 	return [1, 2]
 
 func cut_replay(last_frame):
@@ -55,27 +62,6 @@ func get_last_action(id):
 func emote(message, player_id, tick):
 	if !playback:
 		frames.emotes[player_id][tick] = message
-	
-func undo(cut=true):
-	if resimulating:
-		return
-	var last_frame = 0
-	var last_id = 1
-	for id in frame_ids():
-		for frame in frames[id].keys():
-			if frame > last_frame:
-				last_frame = frame
-				last_id = id
-	var other_id = 1 if last_id == 2 else 2
-	if cut:
-		frames[last_id].erase(last_frame)
-		frames[other_id].erase(last_frame)
-	resimulating = true
-	playback = true
-	resim_tick = (last_frame - 2) if cut else -1
-
-func generate_mp_replay_name(p1: String, p2: String):
-	return p1 + "_v_" + p2 + "_" + generate_replay_name()
 
 func generate_replay_name():
 	var time = Time.get_datetime_dict_from_system()
@@ -91,6 +77,23 @@ func save_replay_mp(match_data, p1, p2):
 	save_replay(match_data, generate_mp_replay_name(p1, p2), true)
 
 func save_replay(match_data: Dictionary, file_name="", autosave=false):
+	
+	var team_data = {}
+	
+	for player in Network.game.players:
+		team_data[player] = Network.get_team(player)
+
+	match_data["teams"] = team_data
+
+	# would rename to rich_display_names but that would break existing teams replays
+	match_data["rich_display_names"] = Network.game.player_names_rich
+
+	var char_names:Dictionary;
+	if Network.multiplayer_active:
+		char_names = Network.game.player_names
+	else:
+		char_names = Network.player_character_names
+	match_data["selector_char_names"] = char_names
 	if file_name == "":
 		file_name = generate_replay_name() 
 	file_name = Utils.filter_filename(file_name) 
@@ -155,3 +158,37 @@ func force_ints(dict):
 			dict[key] = int(dict[key])
 		if dict[key] is Dictionary:
 			force_ints(dict[key])
+	
+
+func frame_ids():
+	var ids = frame_ids_vanilla()
+	for id in frames:
+		if id is int and !ids.has(id):
+			ids.append(id)
+	return ids
+
+func undo(cut = true):
+	if resimulating:
+		return 
+	var last_frame = 0
+	var last_id = 1
+	for id in frame_ids():
+		for frame in frames[id].keys():
+			if frame > last_frame:
+				last_frame = frame
+				last_id = id
+	
+		if cut:
+			frames[id].erase(last_frame)
+	
+	resimulating = true
+	playback = true
+	resim_tick = (last_frame - 2) if cut else - 1
+
+func generate_mp_replay_name(p1: String, p2: String):
+	var v_name = "MH_"
+	for player in Network.game.player_names:
+		var p_name = Network.game.player_names[player]
+		v_name += p_name.substr(0, 3)
+		v_name += "-vs-"
+	return v_name.substr(0, len(v_name) - 4) + "_" + generate_replay_name()

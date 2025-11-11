@@ -9,6 +9,7 @@ const CAMERA_MAX_Y_DIST = 210
 const QUITTER_FOCUS_TICKS = 60
 const CLASH_DAMAGE_DIFF = 25
 const CAMERA_PADDING = 20
+const DEBUG_THROW_ROUTING := false
 
 export(int) var char_distance = 200
 export(int) var stage_width = 1100
@@ -21,6 +22,7 @@ signal simulation_continue()
 signal playback_requested()
 signal game_ended()
 signal game_won(winner)
+signal team_game_won(winner)
 signal ghost_finished()
 signal make_afterimage()
 signal ghost_my_turn()
@@ -146,6 +148,29 @@ var ghost_time = 0.0
 
 var camera_zoom = 1.0
 
+var player_datas:Dictionary = {}
+var player_turns:Dictionary = {}
+var players:Dictionary = {}
+var player_usernames:Dictionary = {}
+var player_supers:Dictionary = {}
+var ghost_player_actionables:Dictionary = {}
+var player_ghost_ready_tick:Dictionary = {}
+var game_started_real:bool = false
+var multiHustle_CharManager
+var turns_taken:Dictionary = {}
+var needs_refresh:bool = true
+var current_opponent_indicies:Dictionary = {}
+var player_colors:Dictionary = {}
+var color_rng:BetterRng = BetterRng.new()
+var throws_consumed:Dictionary = {}
+var players_hittable_dic:Dictionary = {}
+var network_simulate_readies:Dictionary = {}
+var player_names:Dictionary = {}
+var player_names_rich:Dictionary = {}
+var players_getting_throwed:Dictionary = {}
+var quitters:Array = []
+var is_team_win := false
+
 #var has_ghost_frozen_yet = false
 
 func get_ticks_left():
@@ -182,56 +207,92 @@ func connect_signals(object):
 	object.connect("object_spawned", self, "on_object_spawned")
 	object.connect("particle_effect_spawned", self, "on_particle_effect_spawned")
 
-func copy_to(game: Game):
-	if !game_started:
+func copy_to(game):
+	set_vanilla_game_started(true)
+
+	if not self.game_started:
 		return
-#	var p1_pos = p1.get_pos()
-#	var p2_pos = p2.get_pos()
-#	print(p1_pos)
-#	print(p2_pos)
-#	game.p1.set_pos(p1_pos.x, p1_pos.y)
-#	game.p2.set_pos(p2_pos.x, p2_pos.y)
-	p1.chara.copy_to(game.p1.chara)
-	p2.chara.copy_to(game.p2.chara)
-	game.p1.update_data()
-	game.p2.update_data()
-	p1.copy_to(game.p1)
-	p2.copy_to(game.p2)
-	game.p1.hp = p1.hp
-	game.p2.hp = p2.hp
+	game.player_colors = player_colors.duplicate(true)
+	game.current_opponent_indicies = current_opponent_indicies.duplicate(true)
+	for index in players.keys():
+		var player_old = players[index]
+		player_old.chara.copy_to(game.players[index].chara)
+		game.players[index].update_data()
+		player_old.copy_to(game.players[index])
+		var player_new = game.players[index]
+		match(index):
+			1:
+				game.p1 = player_new
+			2:
+				game.p2 = player_new
+		player_new.hp = player_old.hp
+	# Delayed opponent initialization just to be sure
+	for index in players.keys():
+		if is_instance_valid(players[index].opponent):
+			game.players[index].opponent = game.players[players[index].opponent.id]
 	clean_objects()
 	for object in game.objects:
-		object.free()
-	for fx in game.effects:
-		fx.free()
-	for object in objects:
 		if is_instance_valid(object):
-			if !object.disabled:
+			object.free()
+	for fx in game.effects:
+		if is_instance_valid(fx):
+			fx.free()
+	for object in self.objects:
+		if is_instance_valid(object):
+			if not object.disabled:
 				var new_obj = load(object.filename).instance()
 				game.on_object_spawned(new_obj)
-				object.copy_to(new_obj)
-			else:
-				game.objs_map[str(game.objs_map.size() + 1)] = null
-	game.camera.limit_left = camera.limit_left
-	game.camera.limit_right = camera.limit_right
+				# Refuses to override, so done manually here. Thanks to Degritone for part of the code
+				new_obj.init()
+				var old_state_machine = object.get("state_machine") # Just making sure the object has a state machine
+				if old_state_machine != null:
+					var old_map = old_state_machine.states_map
+					var old_hitboxes = object.hitboxes
+					var new_state_machine = new_obj.state_machine
+					var new_map = new_state_machine.states_map
+					var new_hitboxes = new_obj.hitboxes
+					if new_hitboxes.size() < old_hitboxes.size():
+						new_hitboxes.resize(old_hitboxes.size())
+					for key in new_map:
+						var state = new_map[key]
+						for old_hit in old_map[key].get_children():
+							if (old_hit is Hitbox and !state.has_node(old_hit.name)):
+								var new_hit = old_hit.duplicate()
+								new_hit.name = old_hit.name
+								state.add_child(new_hit)
+								# REVIEW - Possibly try to eliminate pointless rechecking
+								for index in old_hitboxes.size():
+									if old_hit == old_hitboxes[index]:
+										new_hitboxes[index] = new_hit
 
+				object.copy_to(new_obj)
+			else :
+				game.objs_map[str(game.objs_map.size() + 1)] = null
+	game.camera.limit_left = self.camera.limit_left
+	game.camera.limit_right = self.camera.limit_right
 
 func _on_super_started(ticks, player):
-	if is_ghost:
+	set_vanilla_game_started(true)
+
+	if self.is_ghost:
 		return
-	if ticks == 0:
+	if ticks == null:
 		ticks = 0
 		var state = player.current_state()
 		if state.get("super_freeze_ticks") != null:
 			if state.super_freeze_ticks > ticks:
 				ticks = state.super_freeze_ticks
-	super_freeze_ticks = ticks
-	
-	super_active = true
-	if player == p1:
-		p1_super = true
-	if player == p2:
-		p2_super = true
+	self.super_freeze_ticks = ticks
+
+	self.super_active = true
+	for index in players.keys():
+		if player == players[index]:
+			player_supers[index] = true
+			match(index):
+				1:
+					p1_super = true
+				2:
+					p2_super = true
 
 func get_screen_position(player_id):
 	var screen_center = camera.get_camera_screen_center()
@@ -239,12 +300,10 @@ func get_screen_position(player_id):
 	var result = player_position - screen_center
 	return result / camera.zoom.x
 
-func get_player(id) -> Fighter:
-	if id == 1:
-		return p1
-	if id == 2:
-		return p2
-	return null
+func get_player(id):
+	set_vanilla_game_started(true)
+
+	return players[id]
 
 func on_particle_effect_spawned(fx: ParticleEffect):
 	if ReplayManager.resimulating:
@@ -287,8 +346,10 @@ func _on_obj_exit_tree(obj):
 	objects.erase(obj)
 
 func on_hitbox_refreshed(hitbox_name):
-	p1.parried_hitboxes.erase(hitbox_name)
-	p2.parried_hitboxes.erase(hitbox_name)
+	set_vanilla_game_started(true)
+
+	for index in players.keys():
+		players[index].parried_hitboxes.erase(hitbox_name)
 	pass
 
 func on_clash():
@@ -312,196 +373,202 @@ func on_global_hitlag(amount):
 	hit_freeze = true
 
 func forfeit(id):
-	if forfeit:
-		return
-	forfeit = true
-	get_player(id).forfeit()
-	get_player((id % 2) + 1).on_action_selected("Continue", null, null)
-	emit_signal("forfeit_started", id)
-	quitter_focus = true
-	forfeit_player = get_player(id)
-	quitter_focus_ticks = QUITTER_FOCUS_TICKS
+	set_vanilla_game_started(true)
+	players[id].forfeit()
 
-func start_game(singleplayer: bool, match_data: Dictionary):
+func start_game(singleplayer:bool, match_data:Dictionary):
+	set_vanilla_game_started(true)
+
+	#print(match_data)
+	
+	if match_data.has("teams"):
+		var team_dict = match_data["teams"]
+		var replay_teams = {1:{},2:{},3:{},4:{},0:{}}
+		var replay_teams_living = {1:0,2:0,3:0,4:0,0:0}
+		for team_player in team_dict:
+			replay_teams[team_dict[team_player]][team_player] = null
+			replay_teams_living[team_dict[team_player]] += 1
+			pass
+		Network.teams = replay_teams
+		Network.team_living = replay_teams_living
+	# Only for compatibility with old replays
+	if match_data.has("display_names"):
+		player_names_rich = match_data["display_names"]
+	if match_data.has("rich_display_names"):
+		player_names_rich = match_data["rich_display_names"]
+
+	if match_data.has("selector_char_names"):
+		Network.player_character_names = match_data["selector_char_names"]
+
 	self.match_data = match_data
-	
+	color_rng.seed = match_data.seed
+
 	if match_data.has("spectating"):
-		spectating = match_data.spectating
-		if is_ghost:
-			spectating = false
-	if Global.name_paths.has(match_data.selected_characters[1]["name"]):
-		p1 = load(Global.name_paths[match_data.selected_characters[1]["name"]]).instance()
-	else:
-		return false
-	if Global.name_paths.has(match_data.selected_characters[2]["name"]):
-		p2 = load(Global.name_paths[match_data.selected_characters[2]["name"]]).instance()
-	else:
-		return false
+		self.spectating = match_data.spectating
+		if self.is_ghost:
+			self.spectating = false
+	# Implement variable key loader
+	for index in match_data.selected_characters.keys():
+		if multiHustle_CharManager.InitCharacter(self, index, match_data.selected_characters[index]) == false:
+			Network.log("Failed to load character")
+			return false
+
+	for player in players.values():
+		player.connect("parried", self, "on_parry")
+		player.connect("clashed", self, "on_clash")
+		player.connect("predicted", self, "on_prediction", [player])
 	
-	p1.connect("parried", self, "on_parry")
-	p2.connect("parried", self, "on_parry")
-	p1.connect("clashed", self, "on_clash")
-	p2.connect("clashed", self, "on_clash")
-#	p1.connect("blocked", self, "on_block")
-#	p2.connect("blocked", self, "on_block")
-	p1.connect("predicted", self, "on_prediction", [p1])
-	p2.connect("predicted", self, "on_prediction", [p2])
-	stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)
+	if not Network.multiplayer_active:
+		var team0_last = Network.teams[0][Network.teams[0].keys()[-1]]
+		if not players.has(team0_last):
+			var team_dict = Network.teams[0]
+			if team_dict.has(team0_last):
+				Network.team_living[0] -= 1
+				team_dict.erase(team0_last)
+		
+	self.stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)
 	if match_data.has("game_length"):
-		time = match_data["game_length"]
+		self.time = match_data["game_length"]
 	if match_data.has("frame_by_frame"):
-		frame_by_frame = match_data.frame_by_frame
+		self.frame_by_frame = match_data.frame_by_frame
 	if match_data.has("char_distance"):
-		char_distance = match_data["char_distance"]
+		self.char_distance = match_data["char_distance"]
 	if match_data.has("clashing_enabled"):
-		clashing_enabled = match_data["clashing_enabled"]
+		self.clashing_enabled = match_data["clashing_enabled"]
 	if match_data.has("asymmetrical_clashing"):
-		asymmetrical_clashing = match_data["asymmetrical_clashing"]
+		self.asymmetrical_clashing = match_data["asymmetrical_clashing"]
 	if match_data.has("global_gravity_modifier"):
-		global_gravity_modifier = match_data["global_gravity_modifier"]
+		self.global_gravity_modifier = match_data["global_gravity_modifier"]
 	if match_data.has("has_ceiling"):
-		has_ceiling = match_data["has_ceiling"]
+		self.has_ceiling = match_data["has_ceiling"]
 	if match_data.has("ceiling_height"):
-		ceiling_height = match_data["ceiling_height"]
+		self.ceiling_height = match_data["ceiling_height"]
 	if match_data.has("prediction_enabled"):
-		prediction_enabled = match_data["prediction_enabled"]
-	p1.has_ceiling = has_ceiling
-	p2.has_ceiling = has_ceiling
-	p1.ceiling_height = ceiling_height
-	p2.ceiling_height = ceiling_height
-
-#	if !is_ghost:
-#		print("seed: ", match_data.seed)
-
-	p1.name = "P1"
-	p2.name = "P2"
-	p1.logic_rng = BetterRng.new()
-	p2.logic_rng = BetterRng.new()
-	p1.logic_rng_static = BetterRng.new()
-	p2.logic_rng_static = BetterRng.new()
-	p1.logic_rng.seed = hash(match_data.seed)
-	p1.logic_rng_seed = hash(match_data.seed)
-	p2.logic_rng.seed = hash(match_data.seed + 1)
-	p2.logic_rng_seed = hash(match_data.seed + 1)
-	p1.logic_rng_static.seed =  hash(match_data.seed)
-	p1.logic_rng_static_seed =  hash(match_data.seed)
-	p2.logic_rng_static.seed =  hash(match_data.seed + 1)
-	p2.logic_rng_static_seed =  hash(match_data.seed + 1)
-
-	p2.id = 2
-	p1.is_ghost = is_ghost
-	p2.is_ghost = is_ghost
-	p1.set_gravity_modifier(global_gravity_modifier)
-	p2.set_gravity_modifier(global_gravity_modifier)
-	if !is_ghost:
+		self.prediction_enabled = match_data["prediction_enabled"]
+	for index in players.keys():
+		var player = players[index]
+		player.has_ceiling = has_ceiling
+		player.name = str("P", index)
+		player.logic_rng = BetterRng.new()
+		player.logic_rng_static = BetterRng.new()
+		var rng_seed = hash(match_data.seed + index - 1)
+		player.logic_rng.seed = rng_seed
+		player.logic_rng_seed = rng_seed
+		player.logic_rng_static.seed = rng_seed
+		player.logic_rng_static_seed = rng_seed
+		player.id = index
+		player.is_ghost = self.is_ghost
+		player.set_gravity_modifier(self.global_gravity_modifier)
+	if not self.is_ghost:
 		Global.current_game = self
 	for value in match_data:
-		for player in [p1, p2]:
+		for player in players.values():
 			if player.get(value) != null:
 				player.set(value, match_data[value])
 
-	$Players.add_child(p1)
-	$Players.add_child(p2)
-	p1.set_color(Color("aca2ff"))
-	p2.set_color(Color("ff7a81"))
-	p1.init()
-	p2.init()
-
+	for index in players.keys():
+		var player = players[index]
+		$Players.add_child(player)
+		player.set_color(MultiHustle_get_color_by_index(index))
+		player.init()
+	
 	if match_data.has("selected_styles"):
-		var style1 = match_data.selected_styles[1]
-		var style2 = match_data.selected_styles[2]
-#		if Custom.can_use_style(1, style1):
-		if is_ghost or Custom.can_use_style(1, style1):
-			p1.apply_style(style1)
-		
-#		if Custom.can_use_style(2, style1):
-		if is_ghost or Custom.can_use_style(2, style1):
-			p2.apply_style(style2)
+		for index in players.keys():
+			if match_data.selected_styles.has(index):
+				var style = match_data.selected_styles[index]
+				if self.is_ghost or Custom.can_use_style(index, style):
+					players[index].apply_style(style)
 
 	if match_data.has("gravity_enabled"):
-		gravity_enabled = match_data.gravity_enabled
-		p1.gravity_enabled = match_data.gravity_enabled
-		p2.gravity_enabled = match_data.gravity_enabled
-	
-	
-	
-	p1.connect("undo", self, "set", ["undoing", true])
-	p2.connect("undo", self, "set", ["undoing", true])
-	p1.connect("super_started", self, "_on_super_started", [p1])
-	p2.connect("super_started", self, "_on_super_started", [p2])
-	p1.connect("global_hitlag", self, "on_global_hitlag")
-	p2.connect("global_hitlag", self, "on_global_hitlag")
-	connect_signals(p1)
-	connect_signals(p2)
-	objs_map = {
-		"P1": p1,
-		"P2": p2,
-	}
-	p1.objs_map = objs_map
-	p2.objs_map = objs_map
-	snapping_camera = true
+		self.gravity_enabled = match_data.gravity_enabled
+		for player in players.values():
+			player.gravity_enabled = match_data.gravity_enabled
+
+
+
+			player.connect("undo", self, "set", ["undoing", true])
+			player.connect("super_started", self, "_on_super_started", [player])
+			connect_signals(player)
+	self.objs_map = {}
+	for index in players.keys():
+		self.objs_map[str("P", index)] = players[index]
+	for player in players.values():
+		player.objs_map = self.objs_map
+	self.snapping_camera = true
 	self.singleplayer = singleplayer
 	if singleplayer:
-		if match_data["p2_dummy"]:
-			p2.dummy = true
+		# Dummy mode is not currently supported
+		#if match_data["p2_dummy"]:
+		#	players[2].dummy = true
 		pass
-	elif !is_ghost:
+	elif not self.is_ghost:
 		Network.game = self
-	if !singleplayer:
-		started_multiplayer = true
+	if not singleplayer:
+		self.started_multiplayer = true
 		if Network.multiplayer_active:
-			p1_username = Network.pid_to_username(1)
-			p2_username = Network.pid_to_username(2)
+			for index in players.keys():
+				var username = Network.pid_to_username(index)
+				player_usernames[index] = username
+				match(index):
+					1:
+						p1_username = username
+					2:
+						p2_username = username
 
-			my_id = Network.player_id
-	current_tick = -1
-	if !is_ghost:
+			self.my_id = Network.player_id
+	self.current_tick = - 1
+	if not self.is_ghost:
 		if ReplayManager.playback:
 			get_max_replay_tick()
-		elif !match_data.has("replay"):
+		elif not match_data.has("replay"):
 			ReplayManager.init()
-		else:
+		else :
 			get_max_replay_tick()
-			if ReplayManager.frames[1].size() > 0 or ReplayManager.frames[2].size() > 0:
-				ReplayManager.playback = true
+			for id in ReplayManager.frame_ids():
+				if ReplayManager.frames[id].size() > 0:
+					ReplayManager.playback = true
 
-	var height = 0
-	if match_data.has("char_height"):
-		height = -match_data.char_height
+	# Set player positions
+	process_player_positions()
 
-	p1.set_pos(-char_distance, height)
-	p2.set_pos(char_distance, height)
+	if self.stage_width >= 320:
+		self.camera.limit_left = - self.stage_width - 20
+		self.camera.limit_right = self.stage_width + 20
 
 	
-	p1.stage_width = stage_width
-	p2.stage_width = stage_width
-	if stage_width >= 320:
-		camera.limit_left = -stage_width - CAMERA_PADDING
-		camera.limit_right = stage_width + CAMERA_PADDING
-	
-#	p1.set_pos(0, 0)
-#	p2.set_pos(0, -100)
-	p1.opponent = p2
-	p2.opponent = p1
-	p2.set_facing(-1)
-	p1.update_data()
-	p2.update_data()
-	p1_data = p1.data
-	p2_data = p2.data
-	apply_hitboxes([p1,p2])
-	if !ReplayManager.resimulating:
+
+	#Here is where we have a problem, leaving it be for now
+	for index in players.keys():
+		var player = players[index]
+		var evenModulo = index % 2
+		current_opponent_indicies[index] = evenModulo + 1
+		player.opponent = players[evenModulo + 1]
+		if evenModulo == 0:
+			player.set_facing(-1)
+	for index in players.keys():
+		var player = players[index]
+		player.update_data()
+		player_datas[index] = player.data
+		match(index):
+			1:
+				p1_data = player.data
+			2:
+				p2_data = player.data
+	apply_hitboxes(players.values())
+	if not ReplayManager.resimulating:
 		show_state()
-	if ReplayManager.playback and !ReplayManager.resimulating and !is_ghost:
-		yield(get_tree().create_timer(0.5 if !ReplayManager.replaying_ingame else 0.25), "timeout")
-	game_started = true
-	if !is_ghost:
+	if ReplayManager.playback and not ReplayManager.resimulating and not self.is_ghost:
+		yield (get_tree().create_timer(0.5 if not ReplayManager.replaying_ingame else 0.25), "timeout")
+	self.game_started = true
+	if not self.is_ghost:
 		if SteamLobby.is_fighting():
 			SteamLobby.on_match_started()
 
 	if match_data.has("starting_meter"):
 		var meter_amount = p1.fixed.round(p1.fixed.mul(str(Fighter.MAX_SUPER_METER), match_data.starting_meter))
-		p1.gain_super_meter(meter_amount)
-		p2.gain_super_meter(meter_amount)
+		for index in players.keys():
+			var player = players[index]
+			player.gain_super_meter(meter_amount)
 
 func on_prediction(ticks=7, player=null):
 	_on_super_started(ticks, player)
@@ -509,24 +576,24 @@ func on_prediction(ticks=7, player=null):
 	pass
 
 func update_data():
-	p1.update_data()
-	p2.update_data()
-	p1_data = p1.data
-	p2_data = p2.data
+	set_vanilla_game_started(true)
+
+	for index in players.keys():
+		var player = players[index]
+		player.update_data()
+		player_datas[index] = player.data
+		match(index):
+			1:
+				p1_data = player.data
+			2:
+				p2_data = player.data
 
 func get_max_replay_tick():
-#	if spectating:
-#		max_replay_tick = spectate_tick
-#		if max_replay_tick >= current_tick:
-#			ReplayManager.playback = true
-#		return
 	max_replay_tick = 0
-	for tick in ReplayManager.frames[1].keys():
-		if tick > max_replay_tick:
-			max_replay_tick = tick
-	for tick in ReplayManager.frames[2].keys():
-		if tick > max_replay_tick:
-			max_replay_tick = tick
+	for id in ReplayManager.frame_ids():
+		for tick in ReplayManager.frames[id].keys():
+			if tick > max_replay_tick:
+				max_replay_tick = tick
 	return max_replay_tick
 
 func clean_objects():
@@ -548,100 +615,137 @@ func process_fx():
 			fx.tick()
 
 func tick():
-	if is_ghost and not prediction_enabled:
-		return 
-	if quitter_focus and quitter_focus_ticks > 0:
-		if (QUITTER_FOCUS_TICKS - quitter_focus_ticks) % 10 == 0:
-			if forfeit_player:
-				forfeit_player.toggle_quit_graphic()
-		quitter_focus_ticks -= 1
-		return 
+	set_vanilla_game_started(true)
+
+	if self.is_ghost and not self.prediction_enabled:
+		return
+	if self.quitter_focus and self.quitter_focus_ticks > 0:
+		if (60 - self.quitter_focus_ticks) % 10 == 0:
+			if self.forfeit_player:
+				self.forfeit_player.toggle_quit_graphic()
+		self.quitter_focus_ticks -= 1
+		return
 	else :
-		if forfeit_player:
-			forfeit_player.toggle_quit_graphic(false)
-		quitter_focus = false
-	frame_passed = true
+		if self.forfeit_player:
+			self.forfeit_player.toggle_quit_graphic(false)
+		self.quitter_focus = false
+	self.frame_passed = true
 	if not singleplayer:
-		if not is_ghost:
+		if not self.is_ghost:
 			Network.reset_action_inputs()
 
+	process_opponents()
+
 	clean_objects()
-	for object in objects:
+	for object in self.objects:
 		if object.disabled:
 			continue
 		if not object.initialized:
 			object.init()
-		
+
 		object.tick()
 		var pos = object.get_pos()
-		if pos.x < - stage_width:
-			object.set_pos( - stage_width, pos.y)
-		elif pos.x > stage_width:
-			object.set_pos(stage_width, pos.y)
-		if has_ceiling and pos.y <= - ceiling_height:
-			object.set_y( - ceiling_height)
+		if pos.x < - self.stage_width:
+			object.set_pos( - self.stage_width, pos.y)
+		elif pos.x > self.stage_width:
+			object.set_pos(self.stage_width, pos.y)
+		if self.has_ceiling and pos.y <= - self.ceiling_height:
+			object.set_y( - self.ceiling_height)
 			object.on_hit_ceiling()
 
-	process_fx()
-	current_tick += 1
-	
-	p1.current_tick = current_tick
-	p2.current_tick = current_tick
+	for fx in self.effects:
+		if is_instance_valid(fx):
+			fx.tick()
+	self.current_tick += 1
 
+	for player_key in range(1, players.size()):
+		var player:Fighter = players[player_key]
 
-	p1.lowest_tick = - 1
-	p2.lowest_tick = - 1
-	var players = resolve_port_priority()
+		player.current_tick = self.current_tick
+		
+		player.lowest_tick = - 1
+
 	
-	players[0].tick_before()
-	players[1].tick_before()
-	players[0].update_advantage()
-	players[1].update_advantage()
-	players[0].tick()
-	players[1].tick()
+	var playerPorts = resolve_port_priority()
+
+		
+	for player in playerPorts:
+		player.tick_before()
+
+	for player in playerPorts:
+		player.update_advantage()
+	
+	for player in playerPorts:
+		player.tick()
 
 	resolve_same_x_coordinate()
 	initialize_objects()
-	p1_data = p1.data
-	p2_data = p2.data
-	resolve_collisions(players[0], players[1])
-	apply_hitboxes(players)
-	p1_data = p1.data
-	p2_data = p2.data
+	for index in players.keys():
+		var data = players[index].data
+		player_datas[index] = data
+		match(index):
+			1:
+				p1_data = data
+			2:
+				p2_data = data
+	resolve_collisions_all()
+	apply_hitboxes(playerPorts)
+	for index in players.keys():
+		var data = players[index].data
+		player_datas[index] = data
+		match(index):
+			1:
+				p1_data = data
+			2:
+				p2_data = data
 
-	if (p1.state_interruptable or p1.dummy_interruptable) and not p1.busy_interrupt:
-		p2.reset_combo()
-		
-	if (p2.state_interruptable or p2.dummy_interruptable) and not p2.busy_interrupt:
-		p1.reset_combo()
+	# This needs to be reviewed, not sure how to handle it anyways
+	for player in players.values():
+		var opponent = player.opponent
+		if (opponent.state_interruptable or opponent.dummy_interruptable) and not opponent.busy_interrupt:
+			player.reset_combo()
 
-	
-	if is_ghost:
-		if not ghost_hidden:
-			if not visible and current_tick >= 0:
+
+	if self.is_ghost:
+		if not self.ghost_hidden:
+			if not self.visible and self.current_tick >= 0:
 				show()
-		return 
+		return
 
-	if not game_finished:
+	if not self.game_finished:
 		if ReplayManager.playback:
 			if not ReplayManager.resimulating:
-				is_in_replay = true
-				if current_tick > max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
+				self.is_in_replay = true
+				if self.current_tick > self.max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
 					ReplayManager.set_deferred("playback", false)
 			else :
-				if current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else max_replay_tick - 2):
+				if self.current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else self.max_replay_tick - 2):
 					if not Network.multiplayer_active:
 						ReplayManager.playback = false
 					ReplayManager.resimulating = false
-					camera.reset_shake()
+					self.camera.reset_shake()
 	else :
 		ReplayManager.frames.finished = true
 	if should_game_end():
-		if started_multiplayer:
+		if self.started_multiplayer:
 			if not ReplayManager.playback:
-				Network.autosave_match_replay(match_data, p1_username, p2_username)
+				Network.autosave_match_replay(match_data, player_usernames[1], player_usernames[2])
 		end_game()
+	for player in players.values():
+		if player.hp <= 0:
+			if not(player.game_over):
+				Network.team_living[player.team] -= 1
+				print("player death:" + str(player.team)+", team_living[]: "+str(Network.team_living))
+			
+			player.game_over = true
+		else:
+			player.game_over = false
+	
+	if not is_ghost:
+		var opp = Network.main.uiselectors.selects[2][0].active_char_index
+		var opp_target = Network.main.uiselectors.selects[2][0].get_char_name(opp)
 
+		Network.main.uiselectors.opp_target_label.text = "OPP TARGET: %s" % opp_target
 var priorities = [
 	funcref(self,"state_priority"),
 	funcref(self,"comboing"),
@@ -650,17 +754,37 @@ var priorities = [
 	funcref(self,"forward_movement"),
 	funcref(self,"lower_health")
 ]
+func resolve_port_priority(id = false):
+	set_vanilla_game_started(true)
 
-func resolve_port_priority(id=false):
-	var priority = 0
-	var p1_state = p1.current_state()
-	var p2_state = p2.current_state()
-	for p in priorities:
-		priority = p.call_func(p1_state,p2_state)
-		if(priority>0):
-			break
-	priority = max(1,priority)
-	return ([p1,p2] if priority==1 else [p2,p1]) if !id else id
+	# TODO: Figure out how to implement id properly
+	var order = []
+	var playerAdded = {}
+	for index in players.keys():
+		playerAdded[index] = false
+	var pairs = get_all_pairs(players.keys())
+	for p in self.priorities:
+		for pair in pairs:
+			var index1 = pair[0]
+			var index2 = pair[1]
+			var p1 = players[index1]
+			var p2 = players[index2]
+			var p1_state = p1.current_state()
+			var p2_state = p2.current_state()
+			var priority = p.call_func(p1_state, p2_state)
+			match priority:
+				1:
+					if !playerAdded[index1]:
+						order.append(p1)
+						playerAdded[index1] = true
+				2:
+					if !playerAdded[index2]:
+						order.append(p2)
+						playerAdded[index2] = true
+	for index in players.keys():
+		if playerAdded[index] == false:
+			order.append(players[index])
+	return order
 
 func state_priority(p1_state, p2_state):
 	if p1_state.tick_priority < p2_state.tick_priority:
@@ -709,10 +833,15 @@ func attacks(p1_state,p2_state):
 		return 1 if p1_damage>p2_damage else 2
 	return 0
 
-func lower_sadness(_1,_2):
-	if(abs(p1.penalty-p2.penalty)<10):
+func lower_sadness(_1, _2):
+	set_vanilla_game_started(true)
+
+	# What even are these parameters!?
+	var p1 = players[1]
+	var p2 = players[2]
+	if (abs(p1.penalty - p2.penalty) < 10):
 		return 0
-	return 1 if p1.penalty<p2.penalty else 2
+	return 1 if p1.penalty < p2.penalty else 2
 
 func forward_movement(p1_state,p2_state):
 	if(p1_state.beats_backdash and !p2_state.beats_backdash):
@@ -723,12 +852,17 @@ func forward_movement(p1_state,p2_state):
 		return 2
 	return 0
 
-func lower_health(_1,_2):
-	var p1_hp = p1.hp/p1.MAX_HEALTH
-	var p2_hp = p2.hp/p2.MAX_HEALTH
-	if(p1_hp==p2_hp):
+func lower_health(_1, _2):
+	set_vanilla_game_started(true)
+
+	# What even are these parameters!?
+	var p1 = players[1]
+	var p2 = players[2]
+	var p1_hp = p1.hp / p1.MAX_HEALTH
+	var p2_hp = p2.hp / p2.MAX_HEALTH
+	if (p1_hp == p2_hp):
 		return 0
-	return 1 if p1_hp<p2_hp else 2
+	return 1 if p1_hp < p2_hp else 2
 
 func int_abs(n: int):
 	if n < 0:
@@ -744,32 +878,49 @@ func int_clamp(n: int, min_: int, max_: int):
 		return max_
 
 func should_game_end():
-	return (current_tick > time or p1.hp <= 0 or p2.hp <= 0)
+	set_vanilla_game_started(true)
+	
+	var alive_teams := 4
+	alive_teams -= int(calc_team_is_living(1))
+	alive_teams -= int(calc_team_is_living(2))
+	alive_teams -= int(calc_team_is_living(3))
+	alive_teams -= int(calc_team_is_living(4))
+	
+	
+	is_team_win = alive_teams <= 1
+	var ffa_living = calc_team_living_count(0)
+	var ffa_alive := calc_team_living_count(0) > 0
+
+	print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
+
+	if (ffa_alive):
+		is_team_win = false
+
+		var liveCount = len(players)
+		for player in players.values():
+			liveCount -= int(player.game_over)
+			
+		return (self.current_tick > self.time or liveCount <= 1)
+	
+
+	return alive_teams <= 1
 
 func resolve_same_x_coordinate():
-	# prevent both players occupying the same x coordinate
-	var p1_pos = p1.get_pos()
-	var p2_pos = p2.get_pos()
-	if p1_pos.x == p2_pos.x:
-		var player_to_move = p1 if current_tick % 2 == 0 else p2
-		var direction_to_move = 1 if current_tick % 2 == 0 else -1
-		var x = p1_pos.x
-		if x < 0:
-			direction_to_move = 1
-			if p1.get_facing_int() == -1:
-				player_to_move = p1
-			elif p2.get_facing_int() == -1:
-				player_to_move = p2
-		elif x > 0:
-			direction_to_move = -1
-			if p1.get_facing_int() == 1:
-				player_to_move = p1
-			elif p2.get_facing_int() == 1:
-				player_to_move = p2
-		player_to_move.set_x(player_to_move.get_pos().x + direction_to_move)
-		player_to_move.update_data()
+	set_vanilla_game_started(true)
 
-func resolve_collisions(p1, p2, step=0):
+	for pair in get_all_pairs(players.values()):
+		resolve_same_x_coordinate_internal(pair[0], pair[1])
+
+func resolve_collisions(p1, p2, step = 0):
+	if step > 0:
+		return true
+	else:
+		var result = resolve_collisions_vanilla(p1, p2, step)
+		if result is bool:
+			return result
+		else:
+			return false
+func resolve_collisions_vanilla(p1, p2, step=0):
 	p1.update_collision_boxes()
 	p2.update_collision_boxes()
 	var x_pos = p1.data.object_data.position_x
@@ -858,233 +1009,39 @@ func resolve_collisions(p1, p2, step=0):
 			p1.update_data()
 			p2.update_data()
 			return resolve_collisions(p1, p2, step+1)
-
 func apply_hitboxes(players):
-	var px1 = players[0]
-	var px2 = players[1]
+	set_vanilla_game_started(true)
 
-	var p1_hitboxes = px1.get_active_hitboxes()
-	var p2_hitboxes = px2.get_active_hitboxes()
+	var players_w_hitboxes = []
+	players_w_hitboxes.resize(len(players))
+	for index in len(players):
+		var player = players[index]
+		players_w_hitboxes[index] = [player, player.get_active_hitboxes()]
 
-	var p1_pos = px1.get_pos()
-	var p2_pos = px2.get_pos()
+	for player in players:
+		throws_consumed[player] = null
+		players_hittable_dic[player] = true
+
+	# TODO - Prioritize overlaps to selected opponent
+	# TODO - Prioritize throw techs in consumption
+	for hitboxpair in get_all_pairs(players_w_hitboxes):
+		apply_hitboxes_internal(hitboxpair)
+	apply_hitboxes_objects(players)
+
+	"""
+	for obj in throws_consumed:
+		if throws_consumed[obj] != null:
+			for hitbox in obj.get_active_hitboxes():
+				if hitbox.throw:
+					hitbox.deactivate()
+					pass
+	"""
+	# This is to clear out any objects that got added to it
+	throws_consumed.clear()
 	
-	for hitbox in p1_hitboxes:
-		hitbox.update_position(p1_pos.x, p1_pos.y)
-	for hitbox in p2_hitboxes:
-		hitbox.update_position(p2_pos.x, p2_pos.y)
 
-	var p2_hit_by = get_colliding_hitbox(p1_hitboxes, px2.hurtbox) if not px2.invulnerable else null
-	var p1_hit_by = get_colliding_hitbox(p2_hitboxes, px1.hurtbox) if not px1.invulnerable else null
-	var p1_hit = false
-	var p2_hit = false
-	var p1_throwing = false
-	var p2_throwing = false
-
-	if p1_hit_by:
-		if not (p1_hit_by is ThrowBox):
-			p1_hit = true
-		else:
-			p2_throwing = true
-
-	if p2_hit_by:
-		if not (p2_hit_by is ThrowBox):
-			p2_hit = true
-		else:
-			p1_throwing = true
-
-	var clash_position = Vector2()
-	var clashed = false
-	if clashing_enabled:
-		for p1_hitbox in p1_hitboxes:
-			if p1_hitbox is ThrowBox:
-				continue
-			if not p1_hitbox.can_clash:
-				continue
-			var p2_hitbox = get_colliding_hitbox(p2_hitboxes, p1_hitbox)
-			if p2_hitbox:
-				if p2_hitbox is ThrowBox:
-					continue
-				if not p2_hitbox.can_clash:
-					continue
-				var valid_clash = false
-				
-				
-
-				if asymmetrical_clashing:
-					if p1_hit and not p2_hit:
-						if p1_hitbox.damage - p2_hitbox.damage < CLASH_DAMAGE_DIFF:
-							valid_clash = true
-
-					if p2_hit and not p1_hit:
-						if p2_hitbox.damage - p1_hitbox.damage < CLASH_DAMAGE_DIFF:
-							valid_clash = true
-
-				if ( not p1_hit and not p2_hit) or (p1_hit and p2_hit):
-					if Utils.int_abs(p2_hitbox.damage - p1_hitbox.damage) < CLASH_DAMAGE_DIFF:
-						valid_clash = true
-					elif p1_hitbox.damage > p2_hitbox.damage:
-						p1_hit = false
-						clash_position = p2_hitbox.get_center_float()
-						_spawn_particle_effect(preload("res://fx/ClashEffect.tscn"), clash_position)
-					elif p1_hitbox.damage < p2_hitbox.damage:
-						clash_position = p1_hitbox.get_center_float()
-						_spawn_particle_effect(preload("res://fx/ClashEffect.tscn"), clash_position)
-						p2_hit = false
-				
-				if valid_clash:
-					clashed = true
-					clash_position = p2_hitbox.get_overlap_center_float(p1_hitbox)
-					
-					break
-
-	if clashed:
-		px1.clash()
-		px2.clash()
-		px1.add_penalty(-25)
-		px2.add_penalty(-25)
-		_spawn_particle_effect(preload("res://fx/ClashEffect.tscn"), clash_position)
-	else:
-		if p1_hit:
-				if !(p1_throwing and !p1_hit_by.beats_grab):
-					p1_hit_by.hit(px1)
-				else:
-					p1_hit = false
-		if p2_hit:
-				if !(p2_throwing and !p2_hit_by.beats_grab):
-					p2_hit_by.hit(px2)
-				else:
-					p2_hit = false
-
-	var players_hittable = true
-	
-	if not p2_hit and not p1_hit:
-		if p2_throwing and p1_throwing and px1.current_state().throw_techable and px2.current_state().throw_techable:
-				px1.state_machine.queue_state("ThrowTech")
-				px2.state_machine.queue_state("ThrowTech")
-				players_hittable = false
-				
-		elif p2_throwing and p1_throwing and not px1.current_state().throw_techable and not px2.current_state().throw_techable:
-			players_hittable = false
-
-		elif p1_throwing:
-			if px1.current_state().throw_techable and px2.current_state().throw_techable:
-				px1.state_machine.queue_state("ThrowTech")
-				px2.state_machine.queue_state("ThrowTech")
-				players_hittable = false
-
-			var can_hit = true
-			if px2.is_grounded() and not p2_hit_by.hits_vs_grounded:
-				can_hit = false
-			if not px2.is_grounded() and not p2_hit_by.hits_vs_aerial:
-				can_hit = false
-			if !players_hittable:
-				can_hit = false
-#			if px2.is_bracing() and px2.current_state().counter_type == CounterAttack.CounterType.Grab:
-#				can_hit = false
-#				px1.state_machine.queue_state("ThrowTech")
-#				px2.state_machine.queue_state("ThrowTech")
-#				return
-			if can_hit:
-				p2_hit_by.hit(px2)
-				if p2_hit_by.throw_state:
-					px1.state_machine.queue_state(p2_hit_by.throw_state)
-				players_hittable = false
-
-		elif p2_throwing:
-			if px1.current_state().throw_techable and px2.current_state().throw_techable:
-				px1.state_machine.queue_state("ThrowTech")
-				px2.state_machine.queue_state("ThrowTech")
-				players_hittable = false
-
-			var can_hit = true
-			if px1.is_grounded() and not p1_hit_by.hits_vs_grounded:
-				can_hit = false
-			if not px1.is_grounded() and not p1_hit_by.hits_vs_aerial:
-				can_hit = false
-			if !players_hittable:
-				can_hit = false
-#			if px1.is_bracing() and px1.current_state().counter_type == CounterAttack.CounterType.Grab:
-#				can_hit = false
-#				px1.state_machine.queue_state("ThrowTech")
-#				px2.state_machine.queue_state("ThrowTech")
-#				return
-			if can_hit:
-				p1_hit_by.hit(px1)
-				if p1_hit_by.throw_state:
-					px2.state_machine.queue_state(p1_hit_by.throw_state)
-				players_hittable = false
-
-	var objects_to_hit = []
-	var objects_hit_each_other = false
-	var player_hit_object = false
-	var players_to_hit = []
-	var objects_hit_player = false
-	
-	for object in objects:
-		if object.disabled:
-			continue
-		
-		# ty wuffie
-		var o_hitboxes = object.get_active_hitboxes()
-
-		var o_pos = object.get_pos()
-
-		for hitbox in o_hitboxes:
-			hitbox.update_position(o_pos.x, o_pos.y)
-
-		if players_hittable:
-			for p in [px1, px2]:
-				var p_hit_by
-				if p == p1:
-					if object.id == 1 and not object.damages_own_team:
-						continue
-				if p == p2:
-					if object.id == 2 and not object.damages_own_team:
-						continue
-					
-				var can_be_hit_by_melee = object.get("can_be_hit_by_melee")
-			
-				if p:
-					var obj_hit_by = get_colliding_hitbox(p.get_active_hitboxes(), object.hurtbox)
-					if obj_hit_by and (can_be_hit_by_melee or obj_hit_by.hitbox_type == Hitbox.HitboxType.Detect):
-						player_hit_object = true
-						objects_to_hit.append([obj_hit_by, object])
-
-					if p.projectile_invulnerable and object.get("immunity_susceptible"):
-						continue
-
-					var hitboxes = object.get_active_hitboxes()
-					p_hit_by = get_colliding_hitbox(hitboxes, p.hurtbox)
-					if p_hit_by:
-						players_to_hit.append([p_hit_by, p])
-						objects_hit_player = true
-
-		var opp_objects = []
-		var opp_id = (object.id % 2) + 1
-
-		for opp_object in objects:
-			if opp_object.disabled:
-				continue
-			if opp_object.id==opp_id or (object.hit_by_self_projectiles and opp_object!=object):
-				opp_objects.append(opp_object)
-
-		if !object.projectile_immune:
-			for opp_object in opp_objects:
-				var obj_hit_by
-				var obj_hitboxes = opp_object.get_active_hitboxes()
-				obj_hit_by = get_colliding_hitbox(obj_hitboxes, object.hurtbox)
-				if obj_hit_by:
-					objects_hit_each_other = true
-					objects_to_hit.append([obj_hit_by, object])
-		
-	if objects_hit_each_other or player_hit_object:
-		for pair in objects_to_hit:
-			pair[0].hit(pair[1])
-	if objects_hit_player:
-		for pair in players_to_hit:
-			pair[0].hit(pair[1])
-
+# Currently if someone gets caught in a tech crossfire, they just get teched too
+# Only use players for throwee, otherwise set throws_consumed directly
 func get_colliding_hitbox(hitboxes, hurtbox) -> Hitbox:
 	var hit_by = null
 	for hitbox in hitboxes:
@@ -1137,11 +1094,18 @@ func get_colliding_hitbox(hitboxes, hurtbox) -> Hitbox:
 	return hit_by
 
 func is_waiting_on_player():
-	if forfeit_player != null:
+	set_vanilla_game_started(true)
+
+	if self.forfeit_player != null:
 		return false
-	if !game_started:
+	if not self.game_started:
 		return false
-	return (p1.state_interruptable or p2.state_interruptable)
+	for player in players.values():
+		if not player.game_over:
+			if player.state_interruptable:
+				return true
+	return false
+
 
 func simulate_until_ready():
 	while !is_waiting_on_player():
@@ -1173,168 +1137,208 @@ func start_playback():
 	emit_signal("playback_requested")
 
 func end_game():
-	if game_finished:
-		return
-	game_end_tick = current_tick
-	game_finished = true
-	p1.game_over = true
-	p2.game_over = true
+	set_vanilla_game_started(true)
 
-	if !is_ghost:
-		if !ReplayManager.playback and !ReplayManager.replaying_ingame and !is_in_replay:
-			if !Network.multiplayer_active and !SteamLobby.SPECTATING:
+	if self.game_finished:
+		return
+	self.game_end_tick = self.current_tick
+	self.game_finished = true
+	for player in players.values():
+		player.game_over = true
+
+	if not self.is_ghost:
+		if not ReplayManager.playback and not ReplayManager.replaying_ingame and not self.is_in_replay:
+			if not Network.multiplayer_active and not SteamLobby.SPECTATING:
 				SteamHustle.unlock_achievement("ACH_CHESS")
 		ReplayManager.play_full = true
 	var winner = 0
-	if p2.hp > p1.hp:
-		winner = 2
-	elif p1.hp > p2.hp:
-		winner = 1
+	var losers = []
+	var highestHealth = 0
+	var lowestHealth = 9223372036854775807
 	
-	var loser = 1
-	if winner == 1:
-		loser = 2
-	if get_player(loser).had_sadness:
-		if Network.multiplayer_active and winner == Network.player_id:
-			SteamHustle.unlock_achievement("ACH_WIN_VS_SADNESS")
-	
-	emit_signal("game_ended")
+	# TODO - Figure out better logic for losers
+	if not is_team_win:
+		for index in players.keys():
+			var player = players[index]
+			if player.hp > highestHealth:
+				winner = index
+				highestHealth = player.hp
+			if player.hp < lowestHealth:
+				losers.append(index)
+				if (player.hp < lowestHealth):
+					lowestHealth = player.hp
+				
+		for loser in losers:
+			if get_player(loser).had_sadness:
+				if Network.multiplayer_active and winner == Network.player_id:
+					SteamHustle.unlock_achievement("ACH_WIN_VS_SADNESS")
+		emit_signal("game_ended")
 
-	emit_signal("game_won", winner)
+		emit_signal("game_won", winner)
+
+	else:
+		for index in Network.teams.keys():
+			var count = calc_team_living_count(index)
+			if count > 0:
+				winner = index
+				break
+		emit_signal("game_ended")
+
+		emit_signal("team_game_won", winner)
+
+	
+
 
 func negative_on_hit(player):
 	return player.current_state().started_during_combo and !player.opponent.current_state().started_during_combo
 
 func process_tick():
-#	super_active = super_freeze_ticks > 0
-	if super_freeze_ticks > 0:
-		if hit_freeze:
-			process_fx()
-#		super_freeze_ticks -= 1
-#		if super_freeze_ticks == 0:
-#			super_active = false
-#			p1_super = false
-#			p2_super = false
-#			parry_freeze = false
+	set_vanilla_game_started(true)
+
+	if self.super_freeze_ticks > 0:
 		return
 
-	var can_tick = !Global.frame_advance or (advance_frame_input)
+	self.network_simulate_ready = true
+	for value in self.network_simulate_readies.values():
+		if !value:
+			self.network_simulate_ready = value
+
+	var can_tick = not Global.frame_advance or (self.advance_frame_input)
 	if can_tick:
-		advance_frame_input = false
-	if !Global.frame_advance:
+		self.advance_frame_input = false
+	if not Global.frame_advance:
 		if Global.playback_speed_mod > 0:
-			can_tick = real_tick % Global.playback_speed_mod == 0
-	if (Network.multiplayer_active) and !ghost_tick and !spectating:
-		can_tick = network_simulate_ready
+			can_tick = self.real_tick % Global.playback_speed_mod == 0
+	if (Network.multiplayer_active) and not self.ghost_tick and not self.spectating:
+		can_tick = self.network_simulate_ready
 	if ReplayManager.resimulating:
 		ReplayManager.playback = true
 		can_tick = true
-#	if Network.player_id == 2:
-#		can_tick = can_tick and (real_tick % 8 == 0)
 
-	if !ReplayManager.playback:
-		if !is_waiting_on_player():
+	if not ReplayManager.playback:
+		if not is_waiting_on_player():
 				if can_tick:
-#				if Input.is_action_just_pressed("frame_advance"):
-					if !Global.frame_advance:
-						snapping_camera = true
+
+					if not Global.frame_advance:
+						self.snapping_camera = true
 					call_deferred("simulate_one_tick")
-#					if p1_turn or p2_turn:
-#						call_deferred("_on_turn_started")
-					p1_turn = false
-					p2_turn = false
-					if game_paused:
+
+
+					for index in players.keys():
+						player_turns[index] = false
+						match(index):
+							1:
+								p1_turn = false
+							2:
+								p2_turn = false
+					if self.game_paused:
 						if Network.multiplayer_active:
 							Network.can_open_action_buttons = false
-					game_paused = false
-		else:
+					self.game_paused = false
+		else :
 			ReplayManager.frames.finished = false
-			game_paused = true
+			self.game_paused = true
 			var someones_turn = false
-			if p1.state_interruptable and !p1_turn:
-				p2.busy_interrupt = (!p2.state_interruptable and !(p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2)))
-				if !p2.busy_interrupt:
-					p2.current_state().on_interrupt()
-				p2.state_interruptable = true
-				p1.show_you_label()
-				p1_turn = true
-#				p1.update_advantage()
-#				p2.update_advantage()
-				if singleplayer:
-					emit_signal("player_actionable")
-				elif !is_ghost:
-					someones_turn = true
-				player_actionable = true
+			var turn_trigger = false
+			for index in players.keys():
+				var player = players[index]
+				if player.state_interruptable && !player_turns[index]:
+					turn_trigger = true
+					break
+			if turn_trigger:
+				for index in players.keys():
+					var player = players[index]
+					player.busy_interrupt = ( not player.state_interruptable and not (player.current_state().interruptible_on_opponent_turn or player.feinting or negative_on_hit(player)))
+					if not player.busy_interrupt:
+						player.current_state().on_interrupt()
+					player.state_interruptable = true;
+					player.show_you_label()
+					player_turns[index] = true
+					match index:
+						1:
+							self.p1_turn = true
+						2:
+							self.p2_turn = true
 
-			elif p2.state_interruptable and !p2_turn:
-				someones_turn = true
-				p1.busy_interrupt = (!p1.state_interruptable and !(p1.current_state().interruptible_on_opponent_turn or p1.feinting or negative_on_hit(p1)))
-				if !p1.busy_interrupt:
-					p1.current_state().on_interrupt()
-				p1.state_interruptable = true
-				p2.show_you_label()
-				p2_turn = true
-#				p1.update_advantage()
-#				p2.update_advantage()
 				if singleplayer:
 					emit_signal("player_actionable")
-				elif !is_ghost:
+				elif not is_ghost:
 					someones_turn = true
 				player_actionable = true
 
 			if someones_turn:
 				ReplayManager.replaying_ingame = false
 				if Network.multiplayer_active:
-					if network_sync_tick != current_tick:
-						Network.rpc_("end_turn_simulation", [current_tick, Network.player_id])
-						network_sync_tick = current_tick
-						network_simulate_ready = false
+					if self.network_sync_tick != self.current_tick:
+						Network.rpc_("end_turn_simulation", [self.current_tick, Network.player_id])
+						self.network_sync_tick = self.current_tick
+						for key in self.network_simulate_readies.keys():
+							if not self.players[key].game_over:
+								self.network_simulate_readies[key] = false
+						self.network_simulate_ready = false
 						Network.sync_unlock_turn()
 						Network.on_turn_started()
 
-#						SteamLobby.update_spectator_tick(current_tick)
 	else:
 		if ReplayManager.resimulating:
-			snapping_camera = true
+			self.snapping_camera = true
 			call_deferred("resimulate")
-			yield(get_tree(), "idle_frame")
-			game_paused = false
+			yield (get_tree(), "idle_frame")
+			self.game_paused = false
 		else:
-			if buffer_edit:
+			if self.buffer_edit:
 				ReplayManager.playback = false
-				ReplayManager.cut_replay(current_tick)
-				buffer_edit = false
+				ReplayManager.cut_replay(self.current_tick)
+				self.buffer_edit = false
 			if can_tick:
 				call_deferred("simulate_one_tick")
 
 func _process(delta):
+
+	for quitter in quitters:
+		Network.main.ui_layer.silent_end_turn_for(quitter)
+		Network.sync_unlocks[quitter] = true
+		Network.turns_ready[quitter] = true
+		network_simulate_readies[quitter] = true
+
+	set_vanilla_game_started(true)
+
 	update()
 	super_dim()
-	
-	if camera.global_position.y > camera.limit_bottom - get_viewport_rect().size.y/2:
-		camera.global_position.y = camera.limit_bottom - get_viewport_rect().size.y/2
-	if camera.global_position.x > camera.limit_right - get_viewport_rect().size.x/2:
-		camera.global_position.x = camera.limit_right - get_viewport_rect().size.x/2
-	if camera.global_position.x < camera.limit_left + get_viewport_rect().size.x/2:
-		camera.global_position.x = camera.limit_left + get_viewport_rect().size.x/2
-	
+	if self.camera.global_position.y > self.camera.limit_bottom - .get_viewport_rect().size.y / 2:
+		self.camera.global_position.y = self.camera.limit_bottom - .get_viewport_rect().size.y / 2
+	if self.camera.global_position.x > self.camera.limit_right - .get_viewport_rect().size.x / 2:
+		self.camera.global_position.x = self.camera.limit_right - .get_viewport_rect().size.x / 2
+	if self.camera.global_position.x < self.camera.limit_left + .get_viewport_rect().size.x / 2:
+		self.camera.global_position.x = self.camera.limit_left + .get_viewport_rect().size.x / 2
+
 	if is_instance_valid(ghost_game):
-		ghost_game.camera_zoom = camera_zoom
+		ghost_game.camera_zoom = self.camera_zoom
 		ghost_game.update_camera_limits()
 
-	if game_started and !is_ghost:
-		camera.zoom = Vector2.ONE
-		var dist = p1.get_hurtbox_center().y - p2.get_hurtbox_center().y
-		if abs(p1.get_hurtbox_center().y - p2.get_hurtbox_center().y) > CAMERA_MAX_Y_DIST:
-			var dist_ratio = abs(dist) / float(CAMERA_MAX_Y_DIST)
-			camera.zoom = Vector2.ONE * dist_ratio
-		camera.zoom *= camera_zoom
+	if self.game_started and not self.is_ghost:
+		self.camera.zoom = Vector2.ONE
+		var hurtboxCenterYs = []
+		for player in players.values():
+			hurtboxCenterYs.append(player.get_hurtbox_center().y)
+		var lowy = hurtboxCenterYs[0]
+		var highy = hurtboxCenterYs[0]
+		for y in hurtboxCenterYs:
+			if y < lowy:
+				lowy = y
+			if y > highy:
+				highy = y
+		var dist = highy - lowy
+		if dist > 210:
+			var dist_ratio = dist / float(210)
+			self.camera.zoom = Vector2.ONE * dist_ratio
+		self.camera.zoom *= self.camera_zoom
 	if is_instance_valid(ghost_game):
-		ghost_game.camera.zoom = camera.zoom
-		ghost_game.camera.position = camera.position
-		ghost_game.camera.position = camera.position
+		ghost_game.camera.zoom = self.camera.zoom
+		ghost_game.camera.position = self.camera.position
+		ghost_game.camera.position = self.camera.position
 
-	camera_snap_position = camera.position
+	self.camera_snap_position = self.camera.position
 
 	if is_ghost and Global.ghost_speed > 2:
 		var current_time = Time.get_unix_time_from_system()
@@ -1346,196 +1350,185 @@ func _process(delta):
 			ghost_time = current_time
 			if ghost_actionable_freeze_ticks > 0:
 				pass
-			else:
+			else :
 				for i in range(floor(ghost_delta / min_delta)):
 					call_deferred("ghost_tick")
-		
+
+	set_vanilla_game_started(false)
 
 func _physics_process(_delta):
-	if forfeit:
-		game_paused = false
-		game_finished = true
-	camera.tick()
-	real_tick += 1
-	if !$GhostStartTimer.is_stopped():
+	set_vanilla_game_started(true)
+
+	if self.forfeit:
+		self.game_paused = false
+		self.game_finished = true
+	self.camera.tick()
+	self.real_tick += 1
+	if not $GhostStartTimer.is_stopped():
+		set_vanilla_game_started(false)
 		return
-	if undoing:
-		undo()
+	if self.undoing:
+		#.undo() # Allow vanilla handler to manage this one
+		set_vanilla_game_started(false)
 		return
-	if !game_started:
+	if not self.game_started:
+		set_vanilla_game_started(false)
 		return
 
-	if !is_ghost:
-		if !game_finished:
+	if not self.is_ghost:
+		if not self.game_finished:
 			if ReplayManager.playback:
 				for i in range(1):
 					process_tick()
-			else:
+			else :
 				process_tick()
-		else:
+		else :
 			call_deferred("simulate_one_tick")
-			if current_tick >= game_end_tick + 120:
+			if self.current_tick >= self.game_end_tick + 120:
 				start_playback()
-	else:
-		if ghost_actionable_freeze_ticks > 0:
-			ghost_actionable_freeze_ticks -= 1
-			if ghost_actionable_freeze_ticks == 0:
+	else :
+		if self.ghost_actionable_freeze_ticks > 0:
+			self.ghost_actionable_freeze_ticks -= 1
+			if self.ghost_actionable_freeze_ticks == 0:
 				emit_signal("make_afterimage")
 		elif Global.ghost_speed <= 2:
 			call_deferred("ghost_tick")
 
-	super_active = super_freeze_ticks > 0
-	if super_active:
-		super_freeze_ticks -= 1
-		if super_freeze_ticks == 0:
-			super_active = false
-			p1_super = false
-			p2_super = false
-			parry_freeze = false
+	self.super_active = self.super_freeze_ticks > 0
+	if self.super_freeze_ticks > 0:
+		self.super_freeze_ticks -= 1
+		if self.super_freeze_ticks == 0:
+			self.super_active = false
+			for index in players.keys():
+				player_supers[index] = false
+				match(index):
+					1:
+						p1_super = false
+					2:
+						p2_super = false
+			self.parry_freeze = false
 			prediction_effect = false
-			hit_freeze = false
 
-
-	if !is_waiting_on_player():
+	if not is_waiting_on_player():
 		emit_signal("simulation_continue")
-		if player_actionable and !is_ghost and Network.multiplayer_active:
+		if self.player_actionable and not self.is_ghost and Network.multiplayer_active:
 			Network.sync_tick()
-		player_actionable = false
-	
-	if !is_ghost:
-		if snapping_camera:
-			var target = (p1.global_position + p2.global_position) / 2
-			if forfeit_player:
-				target = forfeit_player.global_position
-			if camera.focused_object:
-				target = camera.focused_object.get_center_position_float()
-			if camera.global_position.distance_squared_to(target) > 10:
-				camera.global_position = lerp(camera.global_position, target, 0.28)
+		self.player_actionable = false
+
+	if not self.is_ghost:
+		if self.snapping_camera:
+			var target = Vector2(0, 0)
+			if self.camera.focused_object:
+				target = self.camera.focused_object.get_center_position_float()
+			elif self.forfeit_player:
+				target = self.forfeit_player.global_position
+			else:
+				for player in players.values():
+					if player.game_over:
+						continue
+					
+					target += player.global_position
+				target /= len(players)
+			if self.camera.global_position.distance_squared_to(target) > 10:
+				self.camera.global_position = lerp(self.camera.global_position, target, 0.28)
 	if is_instance_valid(ghost_game):
-		ghost_game.camera.global_position = camera.global_position
-	#		undo()
-	waiting_for_player_prev = is_waiting_on_player()
-	
-	if !is_ghost and buffer_playback:
+		ghost_game.camera.global_position = self.camera.global_position
+
+	self.waiting_for_player_prev = is_waiting_on_player()
+
+	if not self.is_ghost and self.buffer_playback:
 		ReplayManager.resimulating = false
-		game_finished = false
+		self.game_finished = false
 		emit_signal("simulation_continue")
 		start_playback()
 
-	if spectating and !is_ghost and !ReplayManager.play_full:
-		for id in [1, 2]:
+	if self.spectating and not self.is_ghost and not ReplayManager.play_full:
+		for id in ReplayManager.frame_ids():
 			for input_tick in ReplayManager.frames[id].keys():
-				if current_tick == input_tick - 1:
-	#					ReplayManager.playback = true
-	#				if game.current_tick == input_tick:
+				if self.current_tick == input_tick - 1:
+
+
 					var input = ReplayManager.frames[id][input_tick]
 					get_player(id).on_action_selected(input.action, input.data, input.extra)
 
+	set_vanilla_game_started(false)
+
 func ghost_tick():
-#	p1.actionable_label.hide()
-#	p2.actionable_label.hide()
+	set_vanilla_game_started(true)
+
+
+
 	var simulate_frames = 1
-	if ghost_speed == 1:
-		simulate_frames = 1 if ghost_tick % 4 == 0 else 0
-	ghost_tick += 1
+	if self.ghost_speed == 1:
+		simulate_frames = 1 if self.ghost_tick % 4 == 0 else 0
+	self.ghost_tick += 1
 
-#	var ghost_multiplier = 1
-#	if ghost_speed == 1:
-#		ghost_multiplier = 4
 
-#	ghost_advantage_tick /= ghost_multiplier
+
+
+
+
 	p1.grounded_indicator.hide()
 	p2.grounded_indicator.hide()
 	for i in range(simulate_frames):
-		if ghost_actionable_freeze_ticks == 0:
+		if self.ghost_actionable_freeze_ticks == 0:
 			ghost_simulated_ticks += 1
 			simulate_one_tick()
-		if current_tick > GHOST_FRAMES:
+		if self.current_tick > GHOST_FRAMES:
 			emit_signal("ghost_finished")
 
-		if p1.ghost_blocked_melee_attack > 0 and !p1.block_frame_label.visible:
-			p1.block_frame_label.show()
-			p1.block_frame_label.text = "Parry %s @ %sf" % [p1.ghost_wrong_block, p1.ghost_blocked_melee_attack]
-		
-		if p2.ghost_blocked_melee_attack > 0 and !p2.block_frame_label.visible:
-			p2.block_frame_label.show()
-			p2.block_frame_label.text = "Parry %s @ %sf" % [p2.ghost_wrong_block, p2.ghost_blocked_melee_attack]
-	
-		var p1_tick = ghost_simulated_ticks+(p1.hitlag_ticks if !ghost_p2_actionable else 0)
-		if (p1.state_interruptable or p1.dummy_interruptable or p1.state_hit_cancellable) and not ghost_p1_actionable:
-			p1_ghost_ready_tick = p1_tick
-#			p1_ghost_ready_tick = ghost_advantage_tick+(p1.hitlag_ticks*ghost_multiplier if !ghost_p2_actionable else 0)
-		else:
-			p1_ghost_ready_tick = null
-		if p1.ghost_got_hit and !p1.hit_frame_label.visible:
-			p1.hit_frame_label.show()
-			p1.hit_frame_label.text = "Hit @ %sf" % p1.turn_frames
-		if(ghost_simulated_ticks==p1_ghost_ready_tick):
-#		if(ghost_tick/ghost_multiplier==p1_ghost_ready_tick):
-			p1.ghost_ready_tick = p1_ghost_ready_tick
-			p1_ghost_ready_tick = null
-			ghost_p1_actionable = true
-			p1.set_ghost_colors()
-			if ghost_freeze:
-				ghost_actionable_freeze_ticks = GHOST_ACTIONABLE_FREEZE_TICKS
-			else:
-				ghost_actionable_freeze_ticks = 1
-			if !p1.actionable_label.visible:
-				p1.actionable_label.show()
-				p1.actionable_label.text = "Ready\nin %sf" % p1.turn_frames
-				p1.grounded_indicator.visible = p1.is_grounded() and p1.ghost_was_in_air
-#				p2.grounded_indicator.visible = p2.is_grounded()
-			emit_signal("ghost_my_turn")
-			if p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2):
-				if !p2.actionable_label.visible:
-					p2.actionable_label.show()
-					if p2.current_state().anim_length == p2.current_state().current_tick + 1 or p2.current_state().iasa_at == p2.current_state().current_tick:
-						p2.actionable_label.text = "Ready\nin %sf" % p2.turn_frames
-					else:
-						p2.actionable_label.text = "Interrupt\nin %sf" % p2.turn_frames
-#					p1.grounded_indicator.visible = p1.is_grounded()
-					p2.grounded_indicator.visible = p2.is_grounded() and p2.ghost_was_in_air
-				ghost_p2_actionable = true
-				
-#			else:
-#				ghost_actionable_freeze_ticks = 1
-		var p2_tick = ghost_simulated_ticks+(p2.hitlag_ticks if !ghost_p1_actionable else 0)
-		if (p2.state_interruptable or p2.dummy_interruptable or p2.state_hit_cancellable) and not ghost_p2_actionable:
-			p2_ghost_ready_tick = p2_tick
-#			p2_ghost_ready_tick = ghost_advantage_tick+(p2.hitlag_ticks*ghost_multiplier if !ghost_p1_actionable else 0)
-		else:
-			p2_ghost_ready_tick = null
-		if p2.ghost_got_hit and !p2.hit_frame_label.visible:
-			p2.hit_frame_label.show()
-			p2.hit_frame_label.text = "Hit @ %sf" % p2.turn_frames
-		if(ghost_simulated_ticks==p2_ghost_ready_tick):
-			p2.ghost_ready_tick = p2_ghost_ready_tick
-			p2_ghost_ready_tick = null
-			ghost_p2_actionable = true
-			p2.set_ghost_colors()
-			if ghost_freeze:
-				ghost_actionable_freeze_ticks = GHOST_ACTIONABLE_FREEZE_TICKS
-			else:
-				ghost_actionable_freeze_ticks = 1
-			if !p2.actionable_label.visible:
-				p2.actionable_label.show()
-				p2.actionable_label.text = "Ready\nin %sf" % p2.turn_frames
-#				p1.grounded_indicator.visible = p1.is_grounded()
-				p2.grounded_indicator.visible = p2.is_grounded() and p2.ghost_was_in_air
-			emit_signal("ghost_my_turn")
-			if p1.current_state().interruptible_on_opponent_turn or p1.feinting or negative_on_hit(p1):
-				ghost_p1_actionable = true
-				if !p1.actionable_label.visible:
+		# REVIEW - This could probably be optimized
+		for index in players.keys():
+			var p1 = players[index]
+			if p1.ghost_blocked_melee_attack > 0 and not p1.block_frame_label.visible:
+				p1.block_frame_label.show()
+				p1.block_frame_label.text = "Parry %s @ %sf" % [p1.ghost_wrong_block, p1.ghost_blocked_melee_attack]
+
+			var p1_tick = ghost_simulated_ticks + (p1.hitlag_ticks if not is_other_ghost_actionable(index) else 0)
+			if (p1.state_interruptable or p1.dummy_interruptable or p1.state_hit_cancellable) and not ghost_player_actionables[index]:
+				player_ghost_ready_tick[index] = p1_tick
+			else :
+				player_ghost_ready_tick[index] = null
+			if p1.ghost_got_hit and not p1.hit_frame_label.visible:
+				p1.hit_frame_label.show()
+				p1.hit_frame_label.text = "Hit @ %sf" % p1.turn_frames
+			if (ghost_simulated_ticks == player_ghost_ready_tick[index]):
+				p1.ghost_ready_tick = player_ghost_ready_tick[index]
+				player_ghost_ready_tick[index] = null
+				ghost_player_actionables[index] = true
+				match(index):
+					1:
+						ghost_p1_actionable = true
+					2:
+						ghost_p2_actionable = true
+				p1.set_ghost_colors()
+				if self.ghost_freeze:
+					self.ghost_actionable_freeze_ticks = GHOST_ACTIONABLE_FREEZE_TICKS
+				else :
+					self.ghost_actionable_freeze_ticks = 1
+				if not p1.actionable_label.visible:
 					p1.actionable_label.show()
-					if p1.current_state().anim_length == p1.current_state().current_tick + 1 or p1.current_state().iasa_at == p1.current_state().current_tick:
-						p1.actionable_label.text = "Ready\nin %sf" % p1.turn_frames
-					else:
-						p1.actionable_label.text = "Interrupt\nin %sf" % p1.turn_frames
+					p1.actionable_label.text = "Ready\nin %sf" % p1.turn_frames
 					p1.grounded_indicator.visible = p1.is_grounded() and p1.ghost_was_in_air
-#					p2.grounded_indicator.visible = p2.is_grounded()
-				
-#			else:
-#				ghost_actionable_freeze_ticks = 1
+
+				emit_signal("ghost_my_turn")
+				for index2 in players.keys():
+					var p2 = players[index2]
+					if p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2):
+						if not p2.actionable_label.visible:
+							p2.actionable_label.show()
+							if p2.current_state().anim_length == p2.current_state().current_tick + 1 or p2.current_state().iasa_at == p2.current_state().current_tick:
+								p2.actionable_label.text = "Ready\nin %sf" % p2.turn_frames
+							else :
+								p2.actionable_label.text = "Interrupt\nin %sf" % p2.turn_frames
+
+							p2.grounded_indicator.visible = p2.is_grounded() and p2.ghost_was_in_air
+						ghost_player_actionables[index2] = true
+						match(index2):
+							1:
+								ghost_p1_actionable = true
+							2:
+								ghost_p2_actionable = true
 
 func super_dim():
 	pass
@@ -1645,11 +1638,816 @@ func custom_draw_func():
 	pass
 
 func show_state():
-	p1.position = p1.get_pos_visual()
-	p2.position = p2.get_pos_visual()
-	p1.update()
-	p2.update()
-	for object in objects:
+	set_vanilla_game_started(true)
+
+	for player in players.values():
+		player.position = player.get_pos_visual()
+		player.update()
+	for object in self.objects:
 		object.position = object.get_pos_visual()
 		object.update()
+
+
+
+func _debug_throw(event: String, payload := {}):
+	if not DEBUG_THROW_ROUTING:
+		return
+	var tag = "[Ghost]" if self.is_ghost else "[Main]"
+	print("%s %s %s" % [tag, event, payload])
+
+
+
+
+func MultiHustle_get_color_by_index(index):
+	# TODO - Add more auto-colors
+	if !player_colors.has(index):
+		match index:
+			1:
+				player_colors[index] = Color("aca2ff")
+			2:
+				player_colors[index] = Color("ff7a81")
+			3:
+				player_colors[index] = Color("8effe9")
+			4:
+				player_colors[index] = Color("ddff8e")
+			_: # This SHOULD be deterministic, but I could see something going wrong.
+				player_colors[index] = Color(color_rng.randf(), color_rng.randf(), color_rng.randf())
+	return player_colors[index]
+
+
+
+func process_player_positions():
+	var height = 0
+	if match_data.has("char_height"):
+		height = - match_data.char_height
+
+	var tempDistance = self.char_distance
+	var alternation: bool = false
+
+	var team_pos_data = calc_player_order()
+
+	if not is_ghost:
+		print("team_pos_data: "+str(team_pos_data))
+
+	match team_pos_data.size():
+		1:
+			for player in players.values():
+				if alternation == false:
+					player.set_pos(-tempDistance, height)
+					alternation = true
+				else:
+					player.set_pos(tempDistance, height)
+					tempDistance = (self.char_distance * 2) + tempDistance
+					alternation = false
+
+				player.stage_width = self.stage_width
+		2:
+			for idx in team_pos_data[0]:
+				var player = players[idx]
+				
+				player.set_pos(tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+
+			tempDistance = self.char_distance
+
+			for idx in team_pos_data[1]:
+				var player = players[idx]
+				
+				player.set_pos(-tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+		4:
+			for idx in team_pos_data[0]:
+				var player = players[idx]
+				
+				player.set_pos(tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+
+			tempDistance = self.char_distance + tempDistance
+
+			for idx in team_pos_data[1]:
+				var player = players[idx]
+				
+				player.set_pos(tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+
+			tempDistance = self.char_distance
+
+			for idx in team_pos_data[2]:
+				var player = players[idx]
+				
+				player.set_pos(-tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+			
+			tempDistance = self.char_distance + tempDistance
+			
+			for idx in team_pos_data[3]:
+				var player = players[idx]
+				
+				player.set_pos(-tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+		3:
+			for idx in team_pos_data[0]:
+				var player = players[idx]
+				
+				player.set_pos(tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+
+
+			tempDistance = self.char_distance + tempDistance
+			for idx in team_pos_data[1]:
+				var player = players[idx]
+
+				player.set_pos(tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width	
+				tempDistance = self.char_distance
+
+			tempDistance = self.char_distance
+
+			for idx in team_pos_data[2]:
+				var player = players[idx]
+				
+				player.set_pos(-tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+		5:
+			for idx in team_pos_data[0]:
+				var player = players[idx]
+				
+				player.set_pos(tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+			
+			tempDistance = self.char_distance + tempDistance
+
+			for idx in team_pos_data[1]:
+				var player = players[idx]
+				
+				player.set_pos(tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+
+			tempDistance = self.char_distance
+
+			for idx in team_pos_data[2]:
+				var player = players[idx]
+
+				player.set_pos(-tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+			tempDistance = self.char_distance + tempDistance
+			for idx in team_pos_data[3]:
+				var player = players[idx]
+				
+				player.set_pos(-tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
+				
+			tempDistance = self.char_distance + tempDistance
+
+			for idx in team_pos_data[4]:
+				var player = players[idx]
+				
+				player.set_pos(-tempDistance, height)
+				tempDistance = self.char_distance + tempDistance
+
+				player.stage_width = self.stage_width
 	
+
+
+
+func calc_team_is_living(var team:int) -> bool:
+	var team_alive = Network.team_living[team]
+	
+	return team_alive < 1
+
+
+
+func calc_team_living_count(var team:int) -> int:
+	var team_alive = Network.team_living[team]
+	
+	return team_alive
+
+func get_all_pairs(list):
+	var idx = 0
+	var listEnd = len(list)
+	var listEndMinus = listEnd - 1
+	var result = []
+	for p1 in list:
+		for p2 in list.slice(idx+1, listEnd):
+			result.append([p1, p2])
+		idx = idx + 1
+		if (idx == listEndMinus):
+			break
+	return result
+
+
+
+func resolve_same_x_coordinate_internal(p1, p2):
+	# Consider temporary variable assignment and base calling instead
+	var p1_pos = p1.get_pos()
+	var p2_pos = p2.get_pos()
+	if p1_pos.x == p2_pos.x:
+		var player_to_move = p1 if self.current_tick % 2 == 0 else p2
+		var direction_to_move = 1 if self.current_tick % 2 == 0 else - 1
+		var x = p1_pos.x
+		if x < 0:
+			direction_to_move = 1
+			if p1.get_facing_int() == - 1:
+				player_to_move = p1
+			elif p2.get_facing_int() == - 1:
+				player_to_move = p2
+		elif x > 0:
+			direction_to_move = - 1
+			if p1.get_facing_int() == 1:
+				player_to_move = p1
+			elif p2.get_facing_int() == 1:
+				player_to_move = p2
+		player_to_move.set_x(player_to_move.get_pos().x + direction_to_move)
+		player_to_move.update_data()
+
+
+
+func resolve_collisions_all(step = 0):
+	var repeat = false
+	for pair in get_all_pairs(players.values()):
+		repeat = repeat or resolve_collisions(pair[0], pair[1], 0)
+	if repeat and step < 5:
+		return resolve_collisions_all(step + 1)
+
+
+
+# Currently if someone gets caught in a tech crossfire, they just get teched too
+# Only use players for throwee, otherwise set throws_consumed directly
+func consume_throw_by(thrower, throwee, is_tech):
+	if !throws_consumed.has(thrower):
+		throws_consumed[thrower] = null
+	consume_throw_propagate(throwee)
+	if !is_tech:
+		var current = throws_consumed[thrower]
+		if current == null:
+			current = []
+		if current is Array:
+			if not current.has(throwee):
+				current.append(throwee)
+				_register_players_getting_throwed(thrower, throwee)
+		throws_consumed[thrower] = current
+	else:
+		thrower.state_machine.queue_state("ThrowTech")
+		throws_consumed[thrower] = true
+		_unregister_players_getting_throwed(thrower)
+func consume_throw_propagate(throwee):
+	if !throws_consumed.has(throwee):
+		return
+	var throwee_targets = throws_consumed[throwee]
+	if throwee_targets == null or throwee_targets == true:
+		return
+	if throwee_targets is Array:
+		throws_consumed[throwee] = true
+		_unregister_players_getting_throwed(throwee)
+		for target in throwee_targets:
+			if is_instance_valid(target):
+				target.state_machine.queue_state("ThrowTech")
+				consume_throw_propagate(target)
+
+func _register_players_getting_throwed(thrower, throwee):
+	if thrower == null or throwee == null:
+		return
+	if not thrower.is_in_group("Fighter") or not throwee.is_in_group("Fighter"):
+		return
+	var thrower_id = thrower.id
+	var throwee_id = throwee.id
+	if thrower_id == null or throwee_id == null:
+		return
+	if not players_getting_throwed.has(thrower_id):
+		players_getting_throwed[thrower_id] = []
+	if not players_getting_throwed[thrower_id].has(throwee_id):
+		players_getting_throwed[thrower_id].append(throwee_id)
+
+func _unregister_players_getting_throwed(thrower, throwee = null):
+	if thrower == null:
+		return
+	if not thrower.is_in_group("Fighter"):
+		return
+	var thrower_id = thrower.id
+	if thrower_id == null:
+		return
+	if not players_getting_throwed.has(thrower_id):
+		return
+	if throwee == null:
+		players_getting_throwed.erase(thrower_id)
+		return
+	if not throwee.is_in_group("Fighter"):
+		return
+	var throwee_id = throwee.id
+	if throwee_id == null:
+		return
+	players_getting_throwed[thrower_id].erase(throwee_id)
+	if players_getting_throwed[thrower_id].empty():
+		players_getting_throwed.erase(thrower_id)
+
+func _thrower_locked_out(thrower):
+	if thrower == null:
+		return false
+	if !throws_consumed.has(thrower):
+		return false
+	return throws_consumed[thrower] == true
+
+func _thrower_has_target(thrower, target):
+	if thrower == null or target == null:
+		return false
+	if !throws_consumed.has(thrower):
+		return false
+	var value = throws_consumed[thrower]
+	return value is Array and value.has(target)
+
+# throws_consumed is handled by instance, but may be passed by reference in the future
+
+
+func apply_hitboxes_internal(playerhitboxpair:Array):
+	var pair1 = playerhitboxpair[0]
+	var pair2 = playerhitboxpair[1]
+	var px1 = pair1[0]
+	var px2 = pair2[0]
+
+	var p1_hitboxes = pair1[1]
+	var p2_hitboxes = pair2[1]
+
+	var p1_pos = px1.get_pos()
+	var p2_pos = px2.get_pos()
+
+	for hitbox in p1_hitboxes:
+		hitbox.update_position(p1_pos.x, p1_pos.y)
+	for hitbox in p2_hitboxes:
+		hitbox.update_position(p2_pos.x, p2_pos.y)
+
+	var p2_hit_by = get_colliding_hitbox(p1_hitboxes, px2.hurtbox) if not px2.invulnerable else null
+	var p1_hit_by = get_colliding_hitbox(p2_hitboxes, px1.hurtbox) if not px1.invulnerable else null
+	var p1_hit = false
+	var p2_hit = false
+	var p1_throwing = false
+	var p2_throwing = false
+
+	if p1_hit_by:
+		if not (p1_hit_by is ThrowBox):
+			p1_hit = true
+		else :
+			p2_throwing = true
+			if DEBUG_THROW_ROUTING:
+				_debug_throw("throw_contact", {
+					"attacker": px2.name,
+					"defender": px1.name,
+					"hitbox": p1_hit_by.name
+				})
+
+	if p2_hit_by:
+		if not (p2_hit_by is ThrowBox):
+			p2_hit = true
+		else :
+			p1_throwing = true
+			if DEBUG_THROW_ROUTING:
+				_debug_throw("throw_contact", {
+					"attacker": px1.name,
+					"defender": px2.name,
+					"hitbox": p2_hit_by.name
+				})
+
+	var clash_position = Vector2()
+	var clashed = false
+	if clashing_enabled:
+		for p1_hitbox in p1_hitboxes:
+			if p1_hitbox is ThrowBox:
+				continue
+			if not p1_hitbox.can_clash:
+				continue
+			var p2_hitbox = get_colliding_hitbox(p2_hitboxes, p1_hitbox)
+			if p2_hitbox:
+				if p2_hitbox is ThrowBox:
+					continue
+				if not p2_hitbox.can_clash:
+					continue
+				var valid_clash = false
+
+
+
+				if self.asymmetrical_clashing:
+					if p1_hit and not p2_hit:
+						if p1_hitbox.damage - p2_hitbox.damage < 40:
+							valid_clash = true
+
+					if p2_hit and not p1_hit:
+						if p2_hitbox.damage - p1_hitbox.damage < 40:
+							valid_clash = true
+
+				if ( not p1_hit and not p2_hit) or (p1_hit and p2_hit):
+					if Utils.int_abs(p2_hitbox.damage - p1_hitbox.damage) < 40:
+						valid_clash = true
+					elif p1_hitbox.damage > p2_hitbox.damage:
+						p1_hit = false
+						clash_position = p2_hitbox.get_center_float()
+						_spawn_particle_effect(preload("res://fx/ClashEffect.tscn"), clash_position)
+					elif p1_hitbox.damage < p2_hitbox.damage:
+						clash_position = p1_hitbox.get_center_float()
+						_spawn_particle_effect(preload("res://fx/ClashEffect.tscn"), clash_position)
+						p2_hit = false
+
+				if valid_clash:
+					clashed = true
+					clash_position = p2_hitbox.get_overlap_center_float(p1_hitbox)
+
+					break
+
+	if clashed:
+		px1.clash()
+		px2.clash()
+		px1.add_penalty( - 25)
+		px2.add_penalty( - 25)
+		_spawn_particle_effect(preload("res://fx/ClashEffect.tscn"), clash_position)
+	else :
+		if p1_hit:
+				if not (p1_throwing and not p1_hit_by.beats_grab):
+					MH_wrapped_hit(p1_hit_by, px1)
+				else :
+					p1_hit = false
+		if p2_hit:
+				if not (p2_throwing and not p2_hit_by.beats_grab):
+					MH_wrapped_hit(p2_hit_by, px2)
+				else :
+					p2_hit = false
+
+	# REVIEW: Make sure this new system isn't gonna merc anything.
+	#var players_hittable = true
+	var players_hittable = true
+	if DEBUG_THROW_ROUTING:
+		_debug_throw("pair_evaluated", {
+			"p1": px1.name,
+			"p2": px2.name,
+			"p1_throwing": p1_throwing,
+			"p2_throwing": p2_throwing,
+			"p1_hit": p1_hit_by != null,
+			"p2_hit": p2_hit_by != null
+		})
+
+	if not p2_hit and not p1_hit:
+		if p2_throwing and p1_throwing and px1.current_state().throw_techable and px2.current_state().throw_techable:
+				#px1.state_machine.queue_state("ThrowTech")
+				#px2.state_machine.queue_state("ThrowTech")
+				consume_throw_by(px1, px2, true)
+				consume_throw_by(px2, px1, true)
+				#players_hittable = false
+				players_hittable_dic[px1] = false
+				players_hittable_dic[px2] = false
+
+		elif p2_throwing and p1_throwing and not px1.current_state().throw_techable and not px2.current_state().throw_techable:
+			#players_hittable = false
+			players_hittable_dic[px1] = false
+			players_hittable_dic[px2] = false
+
+		elif p1_throwing:
+			if px1.current_state().throw_techable and px2.current_state().throw_techable:
+				#px1.state_machine.queue_state("ThrowTech")
+				#px2.state_machine.queue_state("ThrowTech")
+				consume_throw_by(px1, px2, true)
+				consume_throw_by(px2, px1, true)
+				#players_hittable = false
+				players_hittable_dic[px1] = false
+				players_hittable_dic[px2] = false
+
+			var can_hit = true
+			var fail_reasons = []
+			var victim_state = px2.current_state()
+			var victim_grabbed = victim_state and victim_state.state_name == "Grabbed"
+			var debug_payload = null
+			if DEBUG_THROW_ROUTING:
+				debug_payload = {
+					"thrower": px1.name,
+					"target": px2.name,
+					"victim_state": victim_state.state_name if victim_state else "",
+					"grounded": px2.is_grounded(),
+					"hits_vs_grounded": p2_hit_by.hits_vs_grounded,
+					"hits_vs_aerial": p2_hit_by.hits_vs_aerial,
+					"players_hittable": MH_players_hittable(px1, px2)
+				}
+			if px2.is_grounded() and not p2_hit_by.hits_vs_grounded:
+				can_hit = false
+				fail_reasons.append("grounded_block")
+			if not px2.is_grounded() and not p2_hit_by.hits_vs_aerial:
+				can_hit = false
+				fail_reasons.append("aerial_block")
+			if not MH_players_hittable(px1, px2):
+				can_hit = false
+				fail_reasons.append("players_hittable")
+
+			if not can_hit and p2_hit_by.throw and victim_grabbed:
+				fail_reasons.append("override_grabbed")
+				can_hit = true
+				if DEBUG_THROW_ROUTING and debug_payload:
+					debug_payload["reasons"] = fail_reasons.duplicate()
+					_debug_throw("throw_override", debug_payload)
+
+			if can_hit:
+				var locked_out = _thrower_locked_out(px1)
+				var has_target = _thrower_has_target(px1, px2)
+				if locked_out or has_target:
+					if DEBUG_THROW_ROUTING and debug_payload:
+						debug_payload["locked_out"] = locked_out
+						debug_payload["has_target"] = has_target
+						_debug_throw("throw_blocked", debug_payload)
+					return
+				MH_wrapped_hit(p2_hit_by, px2)
+				if p2_hit_by.throw_state:
+					if DEBUG_THROW_ROUTING and debug_payload:
+						debug_payload["throw_state"] = p2_hit_by.throw_state
+						_debug_throw("queue_throw_state", debug_payload)
+					px1.state_machine.queue_state(p2_hit_by.throw_state)
+					# NOTE - This allows for a character to have special MultiHustle grab handling
+					if p2_hit_by.throw_state.begins_with("MH_"):
+						return [px1, "MH_Grab"]
+				consume_throw_by(px1, px2, false)
+				#players_hittable = false
+				players_hittable_dic[px1] = false
+				players_hittable_dic[px2] = false
+			elif DEBUG_THROW_ROUTING and debug_payload:
+				debug_payload["reasons"] = fail_reasons
+				_debug_throw("throw_gated", debug_payload)
+
+
+		elif p2_throwing:
+			if px1.current_state().throw_techable and px2.current_state().throw_techable:
+				#px1.state_machine.queue_state("ThrowTech")
+				#px2.state_machine.queue_state("ThrowTech")
+				consume_throw_by(px1, px2, true)
+				consume_throw_by(px2, px1, true)
+				#players_hittable = false
+				players_hittable_dic[px1] = false
+				players_hittable_dic[px2] = false
+			var can_hit = true
+			var fail_reasons = []
+			var victim_state = px1.current_state()
+			var victim_grabbed = victim_state and victim_state.state_name == "Grabbed"
+			var debug_payload = null
+			if DEBUG_THROW_ROUTING:
+				debug_payload = {
+					"thrower": px2.name,
+					"target": px1.name,
+					"victim_state": victim_state.state_name if victim_state else "",
+					"grounded": px1.is_grounded(),
+					"hits_vs_grounded": p1_hit_by.hits_vs_grounded,
+					"hits_vs_aerial": p1_hit_by.hits_vs_aerial,
+					"players_hittable": MH_players_hittable(px1, px2)
+				}
+			if px1.is_grounded() and not p1_hit_by.hits_vs_grounded:
+				can_hit = false
+				fail_reasons.append("grounded_block")
+			if not px1.is_grounded() and not p1_hit_by.hits_vs_aerial:
+				can_hit = false
+				fail_reasons.append("aerial_block")
+			if not MH_players_hittable(px1, px2):
+				can_hit = false
+				fail_reasons.append("players_hittable")
+
+			if not can_hit and p1_hit_by.throw and victim_grabbed:
+				fail_reasons.append("override_grabbed")
+				can_hit = true
+				if DEBUG_THROW_ROUTING and debug_payload:
+					debug_payload["reasons"] = fail_reasons.duplicate()
+					_debug_throw("throw_override", debug_payload)
+
+			if can_hit:
+				var locked_out = _thrower_locked_out(px2)
+				var has_target = _thrower_has_target(px2, px1)
+				if locked_out or has_target:
+					if DEBUG_THROW_ROUTING and debug_payload:
+						debug_payload["locked_out"] = locked_out
+						debug_payload["has_target"] = has_target
+						_debug_throw("throw_blocked", debug_payload)
+					return
+				MH_wrapped_hit(p1_hit_by, px1)
+				if p1_hit_by.throw_state:
+					if DEBUG_THROW_ROUTING and debug_payload:
+						debug_payload["throw_state"] = p1_hit_by.throw_state
+						_debug_throw("queue_throw_state", debug_payload)
+					px2.state_machine.queue_state(p1_hit_by.throw_state)
+					# NOTE - This allows for a character to have special MultiHustle grab handling
+					if p1_hit_by.throw_state.begins_with("MH_"):
+						return [px2, "MH_Grab"]
+				consume_throw_by(px2, px1, false)
+				#players_hittable = false
+				players_hittable_dic[px1] = false
+				players_hittable_dic[px2] = false
+			elif DEBUG_THROW_ROUTING and debug_payload:
+				debug_payload["reasons"] = fail_reasons
+				_debug_throw("throw_gated", debug_payload)
+
+
+
+
+func apply_hitboxes_objects(players:Array):
+	# REVIEW - Literally everything here
+	var objects_to_hit = []
+	var objects_hit_each_other = false
+	var player_hit_object = false
+	var players_to_hit = []
+	var objects_hit_player = false
+
+	for object in self.objects:
+		if object.disabled:
+			continue
+
+
+		var o_hitboxes = object.get_active_hitboxes()
+
+		var o_pos = object.get_pos()
+
+		for hitbox in o_hitboxes:
+			hitbox.update_position(o_pos.x, o_pos.y)
+
+		for p in players:
+			if !players_hittable_dic[p]:
+				continue
+			# This should always be the same as the player index
+			var index = p.id
+			var p_hit_by
+			if object.id == index and not object.damages_own_team:
+				continue
+
+			var can_be_hit_by_melee = object.get("can_be_hit_by_melee")
+
+			if p:
+				var obj_hit_by = get_colliding_hitbox(p.get_active_hitboxes(), object.hurtbox)
+				if obj_hit_by and (can_be_hit_by_melee or obj_hit_by.hitbox_type == Hitbox.HitboxType.Detect):
+					player_hit_object = true
+					objects_to_hit.append([obj_hit_by, object])
+
+				if p.projectile_invulnerable and object.get("immunity_susceptible"):
+					continue
+
+				var hitboxes = object.get_active_hitboxes()
+				p_hit_by = get_colliding_hitbox(hitboxes, p.hurtbox)
+				if p_hit_by:
+					players_to_hit.append([p_hit_by, p])
+					objects_hit_player = true
+
+		# REVIEW: Make sure this works properly
+		var opp_objects = []
+
+		for opp_object in self.objects:
+			if opp_object.disabled:
+				continue
+			if opp_object.id != object.id:
+				opp_objects.append(opp_object)
+
+		if not object.projectile_immune:
+			for opp_object in opp_objects:
+				var obj_hit_by
+				var obj_hitboxes = opp_object.get_active_hitboxes()
+				obj_hit_by = get_colliding_hitbox(obj_hitboxes, object.hurtbox)
+				if obj_hit_by:
+					objects_hit_each_other = true
+					objects_to_hit.append([obj_hit_by, object])
+
+	if objects_hit_each_other or player_hit_object:
+		for pair in objects_to_hit:
+			var hitbox = pair[0]
+			var target = pair[1]
+			var host = hitbox.host
+			if hitbox.throw || hitbox is ThrowBox:
+				if not _thrower_locked_out(host) and not _thrower_has_target(host, target):
+					MH_wrapped_hit(hitbox, target)
+					# I'm genuinely not even sure what or how to handle this
+			else:
+				MH_wrapped_hit(hitbox, target)
+	if objects_hit_player:
+		for pair in players_to_hit:
+			var hitbox = pair[0]
+			var target = pair[1]
+			var host = hitbox.host
+			if hitbox.throw || hitbox is ThrowBox:
+				if not _thrower_locked_out(host) and not _thrower_has_target(host, target):
+					MH_wrapped_hit(hitbox, target)
+					consume_throw_by(host, target, false)
+			else:
+				MH_wrapped_hit(hitbox, target)
+
+
+
+func MH_wrapped_hit(hitbox, target):
+	var host = hitbox.host
+	var result
+	if not target.get("opponent") == null:
+		var opponentTemp = target.opponent
+		if host.is_in_group("Fighter"):
+			target.opponent = host
+		elif host.fighter_owner:
+			target.opponent = host.fighter_owner
+		result = hitbox.hit(target)
+		target.opponent = opponentTemp
+	else:
+		Network.log("Couldn't set opponent for hitbox")
+		result = hitbox.hit(target)
+	return result
+
+
+
+func MH_players_hittable(px1, px2):
+	return players_hittable_dic[px1] && players_hittable_dic[px2]
+
+
+
+func set_vanilla_game_started(toggle:bool):
+	# Godot doesn't allow lifecycle functions to be properly overridden
+	match(toggle):
+		true:
+			if game_started_real:
+				self.game_started = true
+				game_started_real = false
+		false:
+			if self.game_started:
+				game_started_real = true
+				self.game_started = false
+
+
+
+func is_other_ghost_actionable(selfIndex):
+	set_vanilla_game_started(true)
+
+	for index in players.keys():
+		if index == selfIndex:
+			continue
+		if ghost_player_actionables[index]:
+			return true
+	return false
+
+
+
+
+func get_player_from_name(id:String):
+	for player in players.values():
+		if player.name == id:
+			return player
+
+
+
+func process_opponents():
+	for index in players:
+		var player = players[index]
+		if !ReplayManager.playback:
+			if player.queued_extra:
+				var queued_extra = player.queued_extra
+				if queued_extra:
+					if "opponent" in queued_extra:
+						player.opponent = players[queued_extra["opponent"]]
+		else:
+			# Apparently current tick doesn't update until after objects... so I'm forced check one ahead locally.
+			var current_tick = self.current_tick+1
+			var ticks = ReplayManager.frames[index]
+			if ticks.has(current_tick):
+				var input = ticks[current_tick]
+				if input:
+					var queued_extra = input["extra"]
+					if queued_extra:
+						if "opponent" in queued_extra:
+							players[index].opponent = players[queued_extra["opponent"]]
+
+		# I probably don't need to do this every frame, but it doesn't really hurt.
+		if not Network.multiplayer_active:
+			if Network.sp_opp_dict.has(index):
+				player.opponent = players[Network.sp_opp_dict[index]]
+		# TODO - Add some sort of a way to force update current target selection
+		#if !is_ghost:
+
+
+
+func calc_player_order():
+	var buckets := {}
+	for id in players.keys():
+		var team = Network.get_team(id)
+		if not buckets.has(team):
+			buckets[team] = []
+		buckets[team].append(id)
+	var order := []
+	var keys := buckets.keys()
+	keys.sort()
+	for k in keys:
+		order.append(buckets[k])
+	return order
+

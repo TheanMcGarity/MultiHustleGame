@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ui/default_font.tres" type="DynamicFont" id=1]
+
+[node name="RichTextLabel" type="RichTextLabel"]
+margin_left = -75.0
+margin_top = -40.0
+margin_right = 75.0
+margin_bottom = -27.0
+custom_fonts/normal_font = ExtResource( 1 )
+bbcode_enabled = true
+bbcode_text = "[center][color=#1d8df5]PLAYER[/color][/center]"
+text = "PLAYER"

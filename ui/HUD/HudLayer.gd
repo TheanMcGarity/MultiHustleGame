@@ -68,9 +68,6 @@ var p2_effects = []
 var p1_prev_super = 0
 var p2_prev_super = 0
 
-func _ready():
-	hide()
-	$"%WinLabel".hide()
 
 func init(game):
 	show()
@@ -129,7 +126,13 @@ func init(game):
 	
 	
 	game.connect("game_won", self, "on_game_won")
-	pass
+	
+	
+	# Reset the portrait colors so that replaying doesnt show the incorrect thing
+	$"%P1Portrait".modulate = game.MultiHustle_get_color_by_index(1)
+	$"%P2Portrait".self_modulate = game.MultiHustle_get_color_by_index(2)
+
+	game.connect("team_game_won", self, "on_team_won")
 
 func healthbar_armor_effect(player, healthbar: TextureProgress, no_armor_image, armor_image, projectile_armor_image):
 	if player.has_armor():
@@ -142,13 +145,6 @@ func healthbar_armor_effect(player, healthbar: TextureProgress, no_armor_image, 
 		if healthbar.texture_progress != no_armor_image:
 			healthbar.texture_progress = no_armor_image
 
-func on_game_won(winner):
-	$"HudAnimationPlayer".play("game_won")
-	if winner == 0:
-		$"%WinLabel".text = "DRAW"
-	else:
-		$"%WinLabel".text = "P" + str(winner) + " WIN"
-	SteamHustle.record_winner(winner)
 
 func super_speed_scale(ticks):
 	return 15 * (15 / float(ticks))
@@ -161,164 +157,234 @@ func drain_health_trail(trail, drain_value):
 	else:
 		trail.value = drain_value
 
+var p1index:int = 1
+var p2index:int = 2
+
+var mh_p1_healthbar: TextureProgress;
+var mh_p2_healthbar: TextureProgress;
+var mh_p1_health_bar_trail: TextureProgress;
+var mh_p2_health_bar_trail: TextureProgress;
+var mh_p1_ghost_health_bar: TextureProgress;
+var mh_p2_ghost_health_bar: TextureProgress;
+var mh_p1_ghost_health_bar_trail: TextureProgress;
+var mh_p2_ghost_health_bar_trail: TextureProgress;
+
+var health_labels
+var p1_health_label
+var p2_health_label
+
+func _ready():
+	$"%P1ShowStyle".connect("toggled", self, "_on_show_style_toggled", [1])
+	$"%P2ShowStyle".connect("toggled", self, "_on_show_style_toggled", [2])
+	
+	mh_p1_healthbar = p1_healthbar.duplicate()
+	mh_p1_healthbar.name = "MH_P1HealthBar"
+	mh_p1_healthbar.rect_position.x = 0
+	$"%P1HealthBar".add_child(mh_p1_healthbar)
+	p1_healthbar.self_modulate.a = 0
+	p1_health_bar_trail.modulate.a = 0
+	p1_ghost_health_bar.modulate.a = 0
+	mh_p1_health_bar_trail = mh_p1_healthbar.get_node("P1HealthBarTrail")
+	mh_p1_ghost_health_bar = mh_p1_healthbar.get_node("P1GhostHealthBar")
+	mh_p1_ghost_health_bar_trail = mh_p1_healthbar.get_node("P1GhostHealthBar/P1GhostHealthBarTrail")
+	
+	mh_p2_healthbar = p2_healthbar.duplicate()
+	mh_p2_healthbar.name = "MH_P2HealthBar"
+	mh_p2_healthbar.rect_position.x = 0
+	$"%P2HealthBar".add_child(mh_p2_healthbar)
+	p2_healthbar.self_modulate.a = 0
+	p2_health_bar_trail.modulate.a = 0
+	p2_ghost_health_bar.modulate.a = 0
+	mh_p2_health_bar_trail = mh_p2_healthbar.get_node("P2HealthBarTrail")
+	mh_p2_ghost_health_bar = mh_p2_healthbar.get_node("P2GhostHealthBar")
+	mh_p2_ghost_health_bar_trail = mh_p2_healthbar.get_node("P2GhostHealthBar/P2GhostHealthBarTrail")
+
+	health_labels = load("res://MultiHustle/ui/HUD/HPNumbers.tscn").instance()
+	p1_health_label = health_labels.get_node("P1HealthLabel")
+	p2_health_label = health_labels.get_node("P2HealthLabel")
+	self.add_child(health_labels)
+
+
+	hide()
+	$"%WinLabel".hide()
+
+func on_game_won(winner):
+	$"HudAnimationPlayer".play("game_won")
+	if winner == 0:
+		$"%WinLabel".text = "DRAW"
+	else:
+		if not Network.multiplayer_active or SteamLobby.SPECTATING:
+			$"%WinLabel".text = "P%d {%s) WON!" % [winner, Network.player_character_names[winner]] 
+		else:
+			$"%WinLabel".text = "%s WON!" % Network.game.player_names[winner]
+	SteamHustle.record_winner(winner)
+
+func on_team_won(winner):
+	$"HudAnimationPlayer".play("game_won")
+	var string:String
+	match winner:
+		1:
+			string = "RED"
+		2:
+			string = "BLUE"
+		3:
+			string = "YELLOW"
+		4:
+			string = "GREEN"
+		_:
+			string = "#"+str(winner)
+
+	print("TEAM WON! - " + string)
+	$"%WinLabel".text = "TEAM " + string + " WIN"
+
+func _on_show_style_toggled(on, pidx):
+	var player_id = self["p%dindex" % pidx]
+	if is_instance_valid(game):
+		var player = game.get_player(player_id)
+		if on:
+			player.reapply_style()
+		else :
+			player.reset_style()
+			player.sprite.get_material().set_shader_param("color", game.MultiHustle_get_color_by_index(player_id))
+
+func initp1(p1index):
+	self.p1index = p1index
+	p1 = game.players[p1index]
+	p1_air_option_display.fighter = p1
+	$"%P1Portrait".texture = p1.character_portrait
+	if is_instance_valid(game):
+		$"%P1Portrait".modulate = game.MultiHustle_get_color_by_index(p1index)
+	$"%P1FeintDisplay".fighter = p1
+	yield(get_tree(), "idle_frame")
+	p1_healthbar.max_value = 1500
+	p1_health_bar_trail.max_value = 1500
+	p1_health_bar_trail.value = 1500
+	p1_ghost_health_bar_trail.max_value = 1500
+	p1_ghost_health_bar_trail.value = 1500
+	p1_ghost_health_bar.max_value = 1500
+	
+	mh_p1_healthbar.max_value = 1500
+	mh_p1_health_bar_trail.max_value = 1500
+	mh_p1_health_bar_trail.value = 1500
+	mh_p1_ghost_health_bar_trail.max_value = 1500
+	mh_p1_ghost_health_bar_trail.value = 1500
+	mh_p1_ghost_health_bar.max_value = 1500
+	
+	p1_super_meter.max_value = p1.MAX_SUPER_METER
+	p1_burst_meter.fighter = p1
+
+	if Network.multiplayer_active and not SteamLobby.SPECTATING:
+		if (Network.game.player_names.has(p1index)):
+			$"%P1Username".text = Network.game.player_names[p1index]
+	elif not Network.multiplayer_active:
+		Network.player_character_names[p1index]
+	elif game.match_data.has("user_data"):
+		if game.match_data.user_data.has("p"+str(p1index)):
+			$"%P1Username".text = Network.game.player_names[p1index]
+	
+	$"%P1ShowStyle".set_pressed_no_signal(p1.is_style_active == true)
+
+	p1_health_label.text = "%d/%d" % [p1.hp, p1.MAX_HEALTH]
+
+	print("initp1->MAX_HEALTH=%d" % p1.MAX_HEALTH)
+
+
+func initp2(p2index):
+	self.p2index = p2index
+	p2 = game.players[p2index]
+	p2_air_option_display.fighter = p2
+	$"%P2Portrait".texture = p2.character_portrait
+	if is_instance_valid(game):
+		$"%P2Portrait".self_modulate = game.MultiHustle_get_color_by_index(p2index)
+	
+	yield(get_tree(), "idle_frame")
+	
+	p2_healthbar.max_value = 1500
+	p2_health_bar_trail.max_value = 1500
+	p2_health_bar_trail.value = 1500
+	$"%P2FeintDisplay".fighter = p2
+	p2_ghost_health_bar_trail.max_value = 1500
+	p2_ghost_health_bar_trail.value = 1500
+	mh_p2_ghost_health_bar_trail.max_value = 1500
+	mh_p2_ghost_health_bar_trail.value = 1500
+	
+	p2_ghost_health_bar.max_value = 1500
+	mh_p2_ghost_health_bar.max_value = 1500
+	
+
+	
+	p2_super_meter.max_value = p2.MAX_SUPER_METER
+	p2_burst_meter.fighter = p2
+
+	if Network.multiplayer_active and not SteamLobby.SPECTATING:
+		if (Network.game.player_names.has(p2index)):
+			$"%P2Username".text = Network.game.player_names[p2index]
+	elif not Network.multiplayer_active:
+		$"%P2Username".text = Network.player_character_names[p2index]
+	elif game.match_data.has("user_data"):
+		if game.match_data.user_data.has("p"+str(p2index)):
+			$"%P2Username".text = Network.game.player_names[p2index]
+	
+	$"%P2ShowStyle".set_pressed_no_signal(p2.is_style_active == true)
+
+
+	p2_health_label.text = "%d/%d" % [p2.hp, p2.MAX_HEALTH]
+
+	print("initp2->MAX_HEALTH=%d" % p2.MAX_HEALTH)
+
+func reinit(p1index:int, p2index:int):
+	initp1(p1index)
+	initp2(p2index)
+
+# Need to store HP trails here since values from UI are unreliable
+var ghost_hp_trails = {}
+var hp_trails = {}
+
 func _physics_process(_delta):
 	if is_instance_valid(game):
-
-		drain_health_trail(p1_health_bar_trail, p1.trail_hp)
-		drain_health_trail(p2_health_bar_trail, p2.trail_hp)
-
-		p1_healthbar.value = max(p1.get_visual_hp(), 0)
-		p2_healthbar.value = max(p2.get_visual_hp(), 0)
-		if p2_prev_super < p2.supers_available:
-			p2_super_meter.value = p2.MAX_SUPER_METER
-			active_p2_super_meter.value = p2.MAX_SUPER_METER
-		else:
-			p2_super_meter.value = p2.super_meter
-			active_p2_super_meter.value = p2.super_meter
-		if p1_prev_super < p1.supers_available:
-			p1_super_meter.value = p1.MAX_SUPER_METER
-			active_p1_super_meter.value = p1.MAX_SUPER_METER
-		else:
-			p1_super_meter.value = p1.super_meter
-			active_p1_super_meter.value = p1.super_meter
-		p1_prev_super = p1.supers_available
-		p2_prev_super = p2.supers_available
-		p1_num_supers.texture.current_frame = clamp(p1.supers_available, 0, 9)
-		p2_num_supers.texture.current_frame = clamp(p2.supers_available, 0, 9)
-		p1_combo_counter.set_combo(str(p1.visible_combo_count))
-		p2_combo_counter.set_combo(str(p2.visible_combo_count))
-
+		# Process all HP trails here first
+		for index in game.players.keys():
+			var plr = game.players[index]
+			var trail = 0 if not index in hp_trails else hp_trails[index]
+			if plr.trail_hp < trail:
+				hp_trails[index] -= TRAIL_DRAIN_RATE
+				if hp_trails[index] < plr.trail_hp:
+					hp_trails[index] = plr.trail_hp
+			else:
+				hp_trails[index] = plr.trail_hp
+		
+		mh_p1_healthbar.value = max(p1.hp, 0)
+		mh_p2_healthbar.value = max(p2.hp, 0)
+		mh_p1_health_bar_trail.value = hp_trails[p1index]
+		mh_p2_health_bar_trail.value = hp_trails[p2index]
+		
+		p1_health_label.text = "%d/%d" % [p1.hp, p1.MAX_HEALTH]
+		p2_health_label.text = "%d/%d" % [p2.hp, p2.MAX_HEALTH]
 		if is_instance_valid(game.ghost_game):
-			p1_ghost_health_bar.visible = true
-			p2_ghost_health_bar.visible = true
-			var gg: Game = game.ghost_game
-			var p1_ghost = gg.get_player(1)
-			var p2_ghost = gg.get_player(2)
-			p1_ghost_health_bar.value = max(p1_ghost.get_visual_hp(), 0)
-			p2_ghost_health_bar.value = max(p2_ghost.get_visual_hp(), 0)
-			drain_health_trail(p1_ghost_health_bar_trail, p1_ghost.trail_hp)
-			drain_health_trail(p2_ghost_health_bar_trail, p2_ghost.trail_hp)
+			# Process all ghost HP trails here first
+			for index in game.players.keys():
+				var plr = game.ghost_game.players[index]
+				if plr.trail_hp < ghost_hp_trails[index]:
+					ghost_hp_trails[index] -= TRAIL_DRAIN_RATE
+					if ghost_hp_trails[index] < plr.trail_hp:
+						ghost_hp_trails[index] = plr.trail_hp
+				else:
+					ghost_hp_trails[index] = plr.trail_hp
+			
+			# Now update ghost HP hud accordingly
+			var p1_ghost = game.ghost_game.players[p1index]
+			var p2_ghost = game.ghost_game.players[p2index]
+			mh_p1_ghost_health_bar.value = max(p1_ghost.hp, 0)
+			mh_p2_ghost_health_bar.value = max(p2_ghost.hp, 0)
+			mh_p1_ghost_health_bar_trail.value = ghost_hp_trails[p1index]
+			mh_p2_ghost_health_bar_trail.value = ghost_hp_trails[p2index]
 		else:
-			p1_ghost_health_bar.value = 0
-			p2_ghost_health_bar.value = 0
-			p1_ghost_health_bar_trail.value = 0
-			p2_ghost_health_bar_trail.value = 0
-			p1_ghost_health_bar.visible = false
-			p2_ghost_health_bar.visible = false
-#
-		healthbar_armor_effect(p1, p1_healthbar, preload("res://ui/healthbar3.png"), preload("res://ui/healthbar3_armor.png"), preload("res://ui/healthbar_projectile_armor.png"))
-		healthbar_armor_effect(p1, p1_ghost_health_bar, preload("res://ui/healthbar3.png"), preload("res://ui/healthbar3_armor.png"), preload("res://ui/healthbar_projectile_armor.png"))
-		healthbar_armor_effect(p2, p2_healthbar, preload("res://ui/healthbar_p2_3.png"), preload("res://ui/healthbar_p2_3_armor.png"), preload("res://ui/healthbar_projectile_armor_p2.png"))
-		healthbar_armor_effect(p2, p2_ghost_health_bar, preload("res://ui/healthbar_p2_3.png"), preload("res://ui/healthbar_p2_3_armor.png"), preload("res://ui/healthbar_projectile_armor_p2.png"))
-
-		$"%P1ShowStyle".visible = game.game_paused and p1.applied_style != null
-		$"%P2ShowStyle".visible = game.game_paused and p2.applied_style != null
-#
-		if !ReplayManager.playback or p1.visible_combo_count > 1:
-			$"%P1DmgLabel".text = str(p1.combo_damage * 10) + " DMG"
-		else:
-			$"%P1DmgLabel".text = ""
-		$"%P1DmgLabel".visible = p1.combo_damage > 0
-		if !ReplayManager.playback or p2.visible_combo_count > 1:
-			$"%P2DmgLabel".text = str(p2.combo_damage * 10) + " DMG"
-		else:
-			$"%P2DmgLabel".text = ""
-		$"%P2DmgLabel".visible = p2.combo_damage > 0
-
-		$"%P1HitLabel".visible = p1.visible_combo_count >= 2
-		$"%P2HitLabel".visible = p2.visible_combo_count >= 2
-	
-		$"%Timer".text = str(game.get_ticks_left())
-		$"%SuperDim".visible = game.super_active and !game.parry_freeze
-		$"%P1SuperTexture".visible = game.p1_super
-		$"%P2SuperTexture".visible = game.p2_super
-		p1_super_meter.texture_progress = preload("res://ui/super_bar3.png") if p1.supers_available < 1 else preload("res://ui/super_ready.tres")
-		p2_super_meter.texture_progress = preload("res://ui/super_bar3.png") if p2.supers_available < 1 else preload("res://ui/super_ready.tres")
-
-		active_p1_super_meter.texture_progress = preload("res://ui/super_bar_small3.png") if p1.supers_available < 1 else preload("res://ui/super_ready_small.tres")
-		active_p2_super_meter.texture_progress = preload("res://ui/super_bar_small3.png") if p2.supers_available < 1 else preload("res://ui/super_ready_small.tres")
-
-
-		$"%P1CounterLabel".visible = p2.current_state() is CharacterHurtState and p2.current_state().counter and (game.game_paused or (game.real_tick / 2) % 2 == 0)
-		$"%P2CounterLabel".visible = p1.current_state() is CharacterHurtState and p1.current_state().counter and (game.game_paused or (game.real_tick / 2) % 2 == 0)
-		$"%P1GuardBreakLabel".visible = p2.guard_broken_this_turn and (game.game_paused or (game.real_tick / 2) % 2 == 0)
-		$"%P2GuardBreakLabel".visible = p1.guard_broken_this_turn and (game.game_paused or (game.real_tick / 2) % 2 == 0)
-		p1_brace_label.visible = p1.current_state() is CounterAttack and p1.current_state().bracing and (game.game_paused or ((game.real_tick / 2) + 1) % 2 == 0)
-		p2_brace_label.visible = p2.current_state() is CounterAttack and p2.current_state().bracing  and (game.game_paused or ((game.real_tick / 2) + 1) % 2 == 0)
-
-		var p1_paused_initiative = game.game_paused and !p1.check_initiative() and !p1.busy_interrupt
-		var p2_paused_initiative = game.game_paused and !p2.check_initiative() and !p2.busy_interrupt
-		$"%P1AdvantageLabel".visible = (p1.initiative and p1.current_state().initiative_effect)
-		$"%P2AdvantageLabel".visible = (p2.initiative and p2.current_state().initiative_effect)
-		$"%P1AdvantageLabel".modulate.a = 1.0 - p1.current_state().current_tick * 0.1
-		$"%P2AdvantageLabel".modulate.a = 1.0 - p2.current_state().current_tick * 0.1
-		active_p1_initiative.visible = p1_paused_initiative and action_buttons.visible and p1_action_buttons.visible
-		active_p2_initiative.visible = p2_paused_initiative and action_buttons.visible and p2_action_buttons.visible
-
-		p1_sadness_label.visible = p1.penalty > p1.PENALTY_MIN_DISPLAY
-		p2_sadness_label.visible = p2.penalty > p2.PENALTY_MIN_DISPLAY
+			for index in game.players.keys():
+				ghost_hp_trails[index] = 0
+			mh_p1_ghost_health_bar.value = 0
+			mh_p2_ghost_health_bar.value = 0
+			mh_p1_ghost_health_bar_trail.value = 0
+			mh_p2_ghost_health_bar_trail.value = 0
 		
-		if p1.penalty_ticks <= 0:
-			p1_sadness_label.visible = p1_sadness_label.visible and Utils.wave(0, 1, 0.25) < 0.50
-			p1_sadness_label.text = "SAD!"
-			p1_sadness_label.modulate = Color("ff333d")
-		else:
-			p1_sadness_label.visible = true
-			p1_sadness_label.text = "SADNESS"
-			p1_sadness_label.modulate = Color("d440b6")
-		
-		if p2.penalty_ticks <= 0:
-			p2_sadness_label.visible = p2_sadness_label.visible and Utils.wave(0, 1, 0.25) < 0.50
-			p2_sadness_label.text = "SAD!"
-			p2_sadness_label.modulate = Color("ff333d")
-		else:
-			p2_sadness_label.visible = true
-			p2_sadness_label.text = "SADNESS"
-			p2_sadness_label.modulate = Color("d440b6")
-	
-		if game.super_active and !game.parry_freeze:
-			if !super_started:
-				var fx_scene = preload("res://fx/superparticle.tscn") if !game.prediction_effect else preload("res://fx/predictparticle.tscn")
-				if game.p1_super:
-					var fx = fx_scene.instance()
-					fx.set_speed_scale(super_speed_scale(game.super_freeze_ticks))
-					p1_super_effects_node.call_deferred("add_child", fx)
-					p1_effects.append(fx)
-					
-				if game.p2_super:
-					var fx = fx_scene.instance()
-					fx.set_speed_scale(super_speed_scale(game.super_freeze_ticks))
-					p2_super_effects_node.call_deferred("add_child", fx)
-					p1_effects.append(fx)
-				super_started = true
-			$"%P1SuperTexture".set_material(p1.get_material())
-			$"%P2SuperTexture".set_material(p2.get_material())
-			var screen_center = game.get_viewport_rect().size/2
-			var p1_texture: Texture = p1.sprite.frames.get_frame(p1.sprite.animation, p1.sprite.frame)
-			var p2_texture: Texture = p2.sprite.frames.get_frame(p2.sprite.animation, p2.sprite.frame)
-			var p1_offset
-			var p2_offset
-			if p1_texture:
-				$"%P1SuperTexture".rect_size = p1_texture.get_size() / game.camera.zoom.x
-				p1_offset = (p1_texture.get_size() / 2) / game.camera.zoom.x
-			if p2_texture:
-				$"%P2SuperTexture".rect_size = p2_texture.get_size() / game.camera.zoom.x
-				p2_offset = (p2_texture.get_size() / 2) / game.camera.zoom.x
-			$"%P1SuperTexture".texture = p1_texture
-			$"%P1SuperTexture".flip_h = p1.flip.scale.x < 0
-			$"%P2SuperTexture".texture = p2_texture
-			$"%P2SuperTexture".flip_h = p2.flip.scale.x < 0
-			if p1_offset:
-				$"%P1SuperTexture".rect_global_position = game.get_screen_position(1) + screen_center - p1_offset - (Vector2(0, 4) / game.camera.zoom.x)
-				p1_super_effects_node.position = p1_offset
-			if p2_offset:
-				$"%P2SuperTexture".rect_global_position = game.get_screen_position(2) + screen_center - p2_offset - (Vector2(0, 4) / game.camera.zoom.x)
-				p2_super_effects_node.position = p2_offset
-		else:
-			super_started = false
-			$"%P1SuperTexture".visible = false
-			$"%P2SuperTexture".visible = false
-			for effect in p1_effects + p2_effects:
-				effect.queue_free()
-				p1_effects = []
-				p2_effects = []
+		$"%P1SuperTexture".visible = game.player_supers[p1index]
+		$"%P2SuperTexture".visible = game.player_supers[p2index]

@@ -1,0 +1,51 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://ui/default_font.tres" type="DynamicFont" id=1]
+[ext_resource path="res://MultiHustle/Teams/TeamButton.tscn" type="PackedScene" id=2]
+[ext_resource path="res://multihustle/teams/TeamButtonList.gd" type="Script" id=3]
+
+[node name="TeamButtons" type="Node2D"]
+script = ExtResource( 3 )
+
+[node name="TeamScrollContainer" type="ScrollContainer" parent="."]
+margin_left = 382.0
+margin_top = 331.0
+margin_right = 632.0
+margin_bottom = 357.0
+grow_horizontal = 2
+grow_vertical = 2
+follow_focus = true
+
+[node name="TeamCenterContainer" type="CenterContainer" parent="TeamScrollContainer"]
+margin_right = 250.0
+size_flags_horizontal = 3
+
+[node name="TeamButtonContainer" type="GridContainer" parent="TeamScrollContainer/TeamCenterContainer"]
+unique_name_in_owner = true
+margin_left = 125.0
+margin_right = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 5
+size_flags_vertical = 5
+custom_constants/vseparation = 1
+custom_constants/hseparation = 1
+columns = 9
+
+[node name="Label" type="Label" parent="."]
+margin_left = 382.0
+margin_top = 316.0
+margin_right = 632.0
+margin_bottom = 330.0
+custom_fonts/font = ExtResource( 1 )
+text = "Select a Team:"
+align = 1
+
+[node name="FFAButton" parent="." instance=ExtResource( 2 )]
+unique_name_in_owner = true
+margin_left = 426.0
+margin_top = 316.0
+margin_right = 466.0
+margin_bottom = 330.0
+rect_min_size = Vector2( 40, 14 )
+text = "FFA"

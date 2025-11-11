@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://theme.tres" type="Theme" id=1]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="P2HealthLabel" type="Label" parent="."]
+margin_left = 480.0
+margin_top = 21.0
+margin_right = 552.0
+margin_bottom = 32.0
+theme = ExtResource( 1 )
+text = "1500/1500"
+align = 2
+valign = 1
+
+[node name="P1HealthLabel" type="Label" parent="."]
+margin_left = 90.0
+margin_top = 21.0
+margin_right = 162.0
+margin_bottom = 32.0
+theme = ExtResource( 1 )
+text = "1500/1500"
+valign = 1
