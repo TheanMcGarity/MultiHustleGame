@@ -380,8 +380,9 @@ func get_extra() -> Dictionary:
 		"reverse": $"%ReverseButton".pressed and !$"%ReverseButton".disabled,
 		"feint": $"%FeintButton".pressed and !$"%FeintButton".disabled,
 		"prediction": _get_opposite_buttons().current_prediction,
-		"opponent":fighter.opponent.id
 	}
+	if is_instance_valid(fighter.opponent):
+		extra["opponent"] = fighter.opponent.id
 	if fighter_extra:
 		extra.merge(fighter_extra.get_extra())
 	return extra

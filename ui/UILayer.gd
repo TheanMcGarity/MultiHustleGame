@@ -433,7 +433,7 @@ func _on_direct_connect_button_pressed():
 	
 func _on_support_mh_button_pressed():
 	mh_support_window.show()
-	hide_main_menu()
+	#hide_main_menu()
 
 func _on_multiplayer_pressed():
 	SteamLobby.leave_Lobby()

@@ -2182,12 +2182,12 @@ text = "BUY THE FULL VERSION ON STEAM!!"
 underline = 1
 
 [node name="MultiHustleLabel" type="Label" parent="UILayer/MainMenu/Title"]
-margin_left = 218.0
-margin_top = 42.0
-margin_right = 301.0
-margin_bottom = 53.0
+margin_left = 34.0
+margin_top = 33.0
+margin_right = 64.0
+margin_bottom = 44.0
 custom_colors/font_color = Color( 0.145098, 1, 0.729412, 1 )
-text = "(with MultiHustle)"
+text = "(Multi)"
 
 [node name="SocialLinks" type="HBoxContainer" parent="UILayer/MainMenu"]
 margin_top = 335.0
@@ -2267,48 +2267,46 @@ __meta__ = {
 
 [node name="RoadmapButton" type="Button" parent="UILayer/MainMenu/RoadmapContainer"]
 unique_name_in_owner = true
-margin_right = 46.0
+margin_right = 115.0
 margin_bottom = 12.0
 size_flags_horizontal = 0
 toggle_mode = true
 action_mode = 0
-text = "ROADMAP"
+text = "MULTIHUSTLE ROADMAP"
 
 [node name="RoadmapListContainer" type="VBoxContainer" parent="UILayer/MainMenu/RoadmapContainer"]
 unique_name_in_owner = true
 visible = false
 margin_top = 13.0
 margin_right = 155.0
-margin_bottom = 202.0
+margin_bottom = 160.0
 
-[node name="Complete2" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+[node name="Title" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
 margin_right = 155.0
-margin_bottom = 81.0
-text = "Hi it's me ivy sly the develogrammer of this game!
-the base game is all done but i plan to add cool new stuff over time so here's all that :)
-"
+margin_bottom = 11.0
+text = "MultiHustle Roadmap:"
 autowrap = true
 
 [node name="Complete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
 modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
-margin_top = 82.0
+margin_top = 12.0
 margin_right = 155.0
-margin_bottom = 121.0
+margin_bottom = 51.0
 text = "Complete:
-- Base game
-- Steam workshop"
+- Base mod
+- Teams"
 autowrap = true
 
 [node name="Incomplete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
 modulate = Color( 1, 1, 1, 0.482353 )
-margin_top = 122.0
+margin_top = 52.0
 margin_right = 155.0
-margin_bottom = 189.0
+margin_bottom = 147.0
 text = "Incomplete:
-- Fix all teh bugs
-- probly 1 or 2 new characters
-- Idk other stuff
-"
+- Fix stupid bugs
+- Bugtest Throws
+- New gamemodes
+- - MultiControl (1 player controls 2+ characters, planned for 1.0.0)"
 autowrap = true
 
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
@@ -2894,6 +2892,7 @@ autostart = true
 
 [node name="SoftlockResetButton" type="Button" parent="UILayer"]
 unique_name_in_owner = true
+visible = false
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -2946,6 +2945,7 @@ visible = false
 
 [node name="MHCharSelectors" parent="UILayer" instance=ExtResource( 77 )]
 unique_name_in_owner = true
+visible = false
 
 [node name="GhostWaitTimer" type="Timer" parent="."]
 unique_name_in_owner = true

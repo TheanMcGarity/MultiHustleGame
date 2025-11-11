@@ -86,8 +86,8 @@ func update_throw_position():
 func _get_host_game():
 	var node = host
 	while node:
-		#if node is Game:
-		#	return node
+		if "Game" in node.name:
+			return node
 		node = node.get_parent()
 	return Network.game
 
@@ -101,8 +101,8 @@ func _update_primary_target(target):
 	primary_target = target
 
 func _enter_shared():
-	var label = "[ThrowState %s]" % ("Ghost" if host.is_ghost else "Main")
-	print("%s entering %s" % [label, name])
+	#var label = "[ThrowState %s]" % ("Ghost" if host.is_ghost else "Main")
+	#print("%s entering %s" % [label, name])
 	var next_state = ._enter_shared()
 	_gather_initial_targets()
 	_ensure_throw_target()
@@ -133,6 +133,8 @@ func _tick_shared():
 		released = false
 	._tick_shared()
 	if !released and release and current_tick + 1 == release_frame:
+		if (!host.is_ghost):
+			print("release")
 		_release()
 		released = true
 	if !released:
@@ -510,6 +512,7 @@ func _register_target_with_game(target):
 	_log_registered_targets(game, "register_target_game_post")
 
 func _log_grabbed_targets(context: String, focus_target, newly_added: bool):
+	return
 	var target_name = focus_target.name if focus_target and focus_target.get("name") else "[unknown]"
 	var names = []
 	for entry in grabbed_targets:
@@ -526,6 +529,7 @@ func _log_grabbed_targets(context: String, focus_target, newly_added: bool):
 	])
 
 func _log_target_source(context: String, targets: Array):
+	return
 	var names = []
 	for entry in targets:
 		if entry and entry.get("name"):
@@ -539,6 +543,7 @@ func _log_target_source(context: String, targets: Array):
 	])
 
 func _log_registered_targets(game, context: String):
+	return
 	if host == null or game == null:
 		return
 	var thrower_id = host.id
@@ -551,6 +556,7 @@ func _log_registered_targets(game, context: String):
 	])
 
 func _log_debug(context: String, detail: String, target):
+	return
 	var tag = "Ghost" if host and host.is_ghost else "Main"
 	var target_name = target.name if target and target.get("name") else "[none]"
 	print("[ThrowState %s] context=%s detail=%s host=%s grabbed=%s hit=%s target=%s" % [
