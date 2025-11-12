@@ -57,7 +57,16 @@ var data
 var obj_data
 var current_tick = 0
 var game_tick = 0
-var hitlag_ticks = 0
+
+var hitlag_ticks = 0# setget set__hitlag_ticks
+func set__hitlag_ticks(new):
+	hitlag_ticks = new
+	if (Global.current_game.is_global_hitlag_activated_now):
+		print("GLOBAL HITSTOP DETECTED!")
+		Global.current_game.is_global_hitlag_activated_now = false
+		for player in Global.current_game.player:
+			player.hitlag_ticks = new
+
 var combo_count = 0
 
 var gravity_enabled = true
@@ -612,7 +621,7 @@ func detect(obj):
 	current_state().detect(obj)
 	
 func check_params(x, y):
-	assert((x is int and y is int) or (x is String and y is String))
+	assert((x is int and y is int) or (x is float and y is float) or (x is String and y is String))
 
 func set_x(x: int):
 	chara.set_x(x)

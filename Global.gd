@@ -45,6 +45,7 @@ var rng = BetterRng.new()
 # MH Options
 var show_player_name:bool = true
 var show_ghost_name:bool = true
+var show_health_numbers:bool = true
 
 var name_paths = {
 	"Ninja": "res://characters/stickman/NinjaGuy.tscn",
@@ -226,6 +227,7 @@ func save_options():
 			"seen_custom_character_nag": seen_custom_character_nag,
 			"show_player_name": show_player_name,
 			"show_ghost_name": show_ghost_name,
+			"show_health_numbers": show_health_numbers,
 #			"forfeit_buttons_enabled": forfeit_buttons_enabled,
 		}
 	})
@@ -258,6 +260,7 @@ func get_default_player_data():
 			"seen_custom_character_nag": false,
 			"show_player_name": true,
 			"show_ghost_name": true,
+			"show_health_numbers": false,
 #			"forfeit_buttons_enabled": false,
 		}
 	}

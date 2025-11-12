@@ -107,8 +107,7 @@ func _on_continue_pressed():
 	on_action_submitted("Continue")
 
 func _on_undo_pressed():
-	Global.current_game.undo(true)
-	#on_action_submitted("Undo")
+	Global.current_game.undo()
 
 func space_pressed():
 	if visible:
@@ -121,6 +120,7 @@ func _physics_process(delta):
 			visible = false
 
 func _process(delta):
+	rect_position.y = 57
 	$"%DI".set_flash(false)
 	if active and is_instance_valid(fighter):
 		if fighter.will_forfeit:
@@ -564,7 +564,16 @@ func init(ngame, pid):
 	turbo_mode = fighter.turbo_mode
 	Network.action_button_panels[player_id] = self
 	buttons = []
-
+	if "P1" in name:
+		$"%BottomRow".alignment = BoxContainer.ALIGN_END
+		$"%TopRow".alignment = BoxContainer.ALIGN_END
+		$"%TopRowDataContainer".move_child($"%DIContainer", 0)
+		$"%TopRowDataContainer".grow_horizontal = Control.GROW_DIRECTION_END
+	else:
+		$"%BottomRow".alignment = BoxContainer.ALIGN_BEGIN
+		$"%TopRow".alignment = BoxContainer.ALIGN_BEGIN
+		$"%TopRowDataContainer".grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	
 
 	var states = []
 	for category in fighter.action_cancels:

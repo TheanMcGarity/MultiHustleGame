@@ -79,6 +79,7 @@ onready var global_option_check_buttons = {
 	$"%ExtraFreezeFrames": "replay_extra_freeze_frames",
 	$"%EnablePlayerNames": "show_player_name",
 	$"%EnableGhostNames": "show_ghost_name",
+	$"%EnableHealthLabel": "show_health_numbers",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 

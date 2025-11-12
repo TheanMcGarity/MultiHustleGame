@@ -24,7 +24,13 @@ var player_name = "Me"
 var network_ids = {}
 var multiplayer_active = false setget ,get_multiplayer_active
 
-var game = null
+var game setget set_game,get_game 
+
+func set_game(new):
+	Global.current_game = new
+	game = new
+func get_game():
+	return Global.current_game
 
 var multiplayer_client: MultiplayerClient = null
 var multiplayer_host = false

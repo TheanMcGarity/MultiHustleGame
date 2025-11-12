@@ -303,7 +303,9 @@ func get_screen_position(player_id):
 func get_player(id):
 	set_vanilla_game_started(true)
 
-	return players[id]
+	if players.has(id):
+		return players[id]
+	return players[1] # im scared to return null, so ill just do this ig
 
 func on_particle_effect_spawned(fx: ParticleEffect):
 	if ReplayManager.resimulating:
@@ -365,9 +367,12 @@ func on_block():
 	super_freeze_ticks = 7 
 	parry_freeze = true
 
+var is_global_hitlag_activated_now = false
+
 func on_global_hitlag(amount):
 	if is_ghost:
 		return
+	is_global_hitlag_activated_now = true
 	super_freeze_ticks = amount
 	parry_freeze = true
 	hit_freeze = true

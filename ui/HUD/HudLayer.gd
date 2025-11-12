@@ -202,6 +202,9 @@ func _ready():
 	health_labels = load("res://multihustle/ui/HUD/HPNumbers.tscn").instance()
 	p1_health_label = health_labels.get_node("P1HealthLabel")
 	p2_health_label = health_labels.get_node("P2HealthLabel")
+	if not Global.show_health_numbers:
+		p1_health_label.hide()
+		p2_health_label.hide()
 	self.add_child(health_labels)
 
 

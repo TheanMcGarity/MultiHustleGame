@@ -12,6 +12,7 @@ limit_angle = true
 limit_range_degrees = 90.0
 limit_center_degrees = -90.0
 limit_symmetrical = false
+default_value = Vector2( -4.37114e-08, -1 )
 
 [node name="PlotPanel" parent="." index="0"]
 margin_top = 13.0
@@ -28,9 +29,8 @@ margin_right = 80.0
 
 [node name="XLabel" parent="." index="3"]
 margin_left = 80.0
-margin_right = 100.0
-text = "0.35"
+margin_right = 86.0
 
 [node name="YLabel" parent="." index="4"]
 margin_right = 80.0
-text = "-0.35"
+text = "-0.5"

@@ -458,6 +458,12 @@ func get_visual_hp():
 	return MAX_HEALTH * pow(ratio, VISUAL_GUTS_RATIO)
 
 func init(pos=null):
+	if (get("crossintro")):
+		self.crossintro = null
+	if (get("char_name")):
+		self.char_name = null
+	if (get("charname")):
+		self.charname = null
 	.init(pos)
 	if !is_ghost:
 		Network.player_objects[id] = self
@@ -1186,7 +1192,11 @@ func hit_by(hitbox, force_hit=false):
 
 	var self_team = team
 	
-	var hb_team = obj_from_name(hitbox.host).team#hitbox.team #Network.temp_hitbox_teams[hitbox]
+	var from_name = obj_from_name(hitbox.host)
+	
+	var hb_team = 0#obj_from_name(hitbox.host).team#hitbox.team #Network.temp_hitbox_teams[hitbox]
+	if "team" in from_name:
+		hb_team = from_name.team
 	
 	Network.log("hit_by -> self_team="+str(self_team)+", hb_team="+str(hb_team))
 	
@@ -2065,7 +2075,7 @@ func tick():
 	if (Network.game.player_names_rich.has(id)):
 		name = Network.game.player_names_rich[id]
 	
-	#if name is String and "center" in name and not set_name:
+	#if name is String and "center" in name and not :
 	set_name_text(name)
 		#set_name = true
 
