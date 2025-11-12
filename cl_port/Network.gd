@@ -659,3 +659,4 @@ remotesync func client_disconnected(id):
 
 		log_to_file("CLIENT FORFEIT -> %d" % id)
 		
+

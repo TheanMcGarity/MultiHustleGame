@@ -31,6 +31,16 @@ func _ready():
 	if Steam.getAppID() != 2212330:
 		$"%SingleplayerButton".visible = false
 		$"%SteamMultiplayerButton".visible = false
+		$"%ReplayButton".visible = false
+		$"%CustomizeButton".visible = false
+		$"%OptionsButton".visible = false
+		$"%CreditsButton".visible = false
+		$"%SupportMHButton".visible = false
+		
+		$"%Piracy1".visible = true
+		$"%Piracy2".visible = true
+		$"%Piracy3".visible = true
+		$"%Piracy4".visible = true
 	ui_layer.connect("singleplayer_started", self, "_on_game_started", [true])
 	ui_layer.connect("loaded_replay", self, "_on_loaded_replay")
 	connect("game_started", ui_layer, "on_game_started")

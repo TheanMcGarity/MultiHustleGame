@@ -33,8 +33,9 @@ func init(member):
 
 	var button:Button = $"%ChallengeButton"
 	button.disabled = true
-	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) != member.steam_id:
-		button.hide()
+	button.hide()
+	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == member.steam_id:
+		button.show()
 	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID:
 		button.disabled = false
 	

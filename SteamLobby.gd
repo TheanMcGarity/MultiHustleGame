@@ -412,11 +412,18 @@ func _read_P2P_Packet():
 
 	if PACKET_SIZE > 0:
 		var PACKET:Dictionary = Steam.readP2PPacket(PACKET_SIZE, 0)
-		if PACKET.empty() or PACKET == null:
+		#print(PACKET)
+		if PACKET.empty():
 			Network.log_to_file("WARNING: read an empty packet with non-zero size!")
+			
+		if PACKET == null:
+			print("WARNING: The packet was null!")
+			return
+		
 		var PACKET_SENDER:int = PACKET["steam_id_remote"]
 		p2p_packet_sender = PACKET_SENDER
 		var PACKET_CODE:PoolByteArray = PACKET["data"]
+		print(PACKET)
 		var readable:Dictionary = bytes2var(PACKET_CODE)
 		Network.log_to_file("P2P packet recieved! Sender: " + str(p2p_packet_sender) + " Data: " + str(readable), true)
 		if readable.has("rpc_data"):
@@ -493,6 +500,7 @@ func _read_P2P_Packet():
 
 		if PACKET.empty() or PACKET == null:
 			print("WARNING: read an empty packet with non-zero size!")
+			return
 
 		
 		var PACKET_SENDER:int = PACKET["steam_id_remote"]
@@ -500,6 +508,7 @@ func _read_P2P_Packet():
 
 		
 		var PACKET_CODE:PoolByteArray = PACKET["data"]
+		print(PACKET_CODE)
 		var readable:Dictionary = bytes2var(PACKET_CODE)
 
 
@@ -1015,8 +1024,8 @@ func _receive_rpc(data):
 	for id in OPPONENT_IDS.values():
 		if id == p2p_packet_sender:
 			a = true
-	if !a:
-		return
+	#if !a:
+	#	return
 	var args = data.rpc_data.arg
 	if args == null:
 		args = []
@@ -1094,10 +1103,12 @@ func send_sync(OPPONENT_IDS):
 		"sync_confirm":true
 	}
 	_send_P2P_Packet(0, data)
+	sync_confirm(SteamHustle.STEAM_ID)
 
 func sync_confirm(steam_id):
 	Network.log_to_file("sync_confirm called")
 	sync_confirms[steam_id] = true
+	print(sync_confirms)
 	if is_syncing:
 		#for confirmation in sync_confirms.values():
 		#	if !confirmation:

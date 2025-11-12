@@ -213,7 +213,7 @@ const testedVersion = "1.9.20-steam"
 const incompat_list = [
 	"platform_library",
 	"qol",
-	"AdvancedStyleMenu"
+	#"AdvancedStyleMenu"
 ]
 
 const incompat_reasons = {

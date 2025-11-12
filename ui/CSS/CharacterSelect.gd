@@ -236,10 +236,10 @@ func _on_network_match_locked_in(match_data):
 	network_match_data = match_data
 	if SteamLobby.LOBBY_ID != 0 and SteamLobby.OPPONENT_ID != 0:
 		Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "character", match_data.selected_characters[SteamLobby.PLAYER_SIDE].name)
-	if (loadThread != null):
-		loadThread.wait_to_finish()
-	loadThread = Thread.new()
-	loadThread.start(self, "net_async_loadOtherChar")
+	#if (loadThread != null):
+	#	loadThread.wait_to_finish()
+	#loadThread = Thread.new()
+	#loadThread.start(self, "net_async_loadOtherChar")
 
 func reset():
 	hide()
@@ -610,7 +610,7 @@ func addCharButton(_name, _charPath, _bttName = ""):
 # the loadListChar function loads the character from the given index in the charList array.
 # also acts as an issue catcher, returns an array of missing files (or an empty array if there aren't any)
 # missing files can either be .png.import/.wav.import files or missing audio files in the .import folder, given that currently there's only support for .wav conversion
-func loadListChar(index, hideName = false): # hide name parameter is for online, to not reveal the other player's choice
+func loadListChar(index, hideName = false, player_num = -1): # hide name parameter is for online, to not reveal the other player's choice
 	currentlyLoading = true
 	var _name = charList[index][0]
 	var _charPath = charList[index][1]
@@ -624,6 +624,11 @@ func loadListChar(index, hideName = false): # hide name parameter is for online,
 	loadingLabel_start() # little message at the corner of the screen that shows up saying "Character Loaded"
 	
 	var displayName = curFighter if !hideName else "Opponent's Character"
+	
+	if player_num != -1 and hideName:
+		displayName = "Player %d's Character" % player_num
+
+	
 
 	var miss = _createImportFiles(curModFolder, displayName, _charPath) # this function will return the missing files array, it also updates the loading percent
 	
@@ -828,17 +833,44 @@ func createLabel(_text, _name, _x, _y, _from = self):
 	return label
 ## Custom network things ##
 
+func _add_to_num_list_string(string:String, num:int, total_count:int, curr_count:int):
+	var new := string
+	var diff = total_count - curr_count
+	
+	if diff == 1:
+		new += ", and %d" % num
+	elif curr_count == 1:
+		new += "%d" % num
+	else:
+		new += ", %d" % num
+	
+	return new
+
 var enable_online_go = false
 func net_async_loadOtherChar():
-	print("there should be 2 of these")
-	for c in selected_characters.values():
+	var string := "Player(s) "
+	var curr = 0
+	var total = selected_characters.size()
+	loadingLabel_start()
+	for id in selected_characters.keys():
+		curr += 1
+		var c = selected_characters[id]
 		if (c != null):
 			if (isCustomChar(c.name)):
-				loadListChar(name_to_index[c.name], true)
-				loadingText = "Character Loaded"
-				loadingLabel_vanish()
-				currentlyLoading = false
+				loadListChar(name_to_index[c.name], true, id)
+				#loadingLabel_vanish()
+				
+				_add_to_num_list_string(string, id, total, curr)
+	
+	string += " Character(s) Loaded"
+	
+	loadingLabel_vanish()
+	
+	
+	currentlyLoading = false
 
+	print("Unlock GO?")
+	
 	if !Network.multiplayer_host:
 		net_sendPacket("go_button_activate")
 		#Network.rpc_("go_button_activate")
@@ -893,7 +925,7 @@ func net_isCharacterAvailable(_charName):
 func net_sendPacket(name):
 	if (_Global.isSteamGame):
 		var fullData = {"_packetName" : name}
-		SteamLobby._send_P2P_Packet(SteamLobby.OPPONENT_ID, fullData)
+		SteamLobby._send_P2P_Packet(0, fullData)
 	else:
 		Network.rpc_(name)
 
@@ -1261,10 +1293,8 @@ func _on_network_character_selected(player_id, character, style = null):
 	for chara in selected_characters.values():
 		if chara == null:
 			return
-	Network.log_to_file("All players selected a character, starting game")
-	if Network.is_host():
-		var match_data = get_match_data()
-		Network.rpc_("send_match_data", match_data)
+	net_async_loadOtherChar() # Load all player characters
+		
 		
 
 
