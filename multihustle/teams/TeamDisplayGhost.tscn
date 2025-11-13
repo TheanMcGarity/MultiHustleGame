@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=2]
 
-[ext_resource path="res://MultiHustle/ui/default_font_no_outline.tres" type="DynamicFont" id=1]
+[ext_resource path="res://multihustle/ui/default_font_no_outline.tres" type="DynamicFont" id=1]
 
 [node name="RichTextLabel" type="RichTextLabel"]
 margin_left = -75.0

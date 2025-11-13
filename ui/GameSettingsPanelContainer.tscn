@@ -33,7 +33,7 @@ scroll_horizontal_enabled = false
 [node name="GameSettingsContainer" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
 unique_name_in_owner = true
 margin_right = 152.0
-margin_bottom = 395.0
+margin_bottom = 421.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -113,9 +113,8 @@ value = 3600.0
 
 [node name="Separator" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 visible = false
-margin_top = 49.0
-margin_right = 152.0
-margin_bottom = 53.0
+margin_right = 158.0
+margin_bottom = 4.0
 rect_min_size = Vector2( 0, 4 )
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
@@ -219,9 +218,9 @@ value = 15.0
 
 [node name="Separator2" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 visible = false
-margin_top = 97.0
-margin_right = 152.0
-margin_bottom = 101.0
+margin_top = 5.0
+margin_right = 158.0
+margin_bottom = 9.0
 rect_min_size = Vector2( 0, 4 )
 
 [node name="HBoxContainer5" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
@@ -395,9 +394,9 @@ align = 1
 
 [node name="Separator3" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 visible = false
-margin_top = 163.0
-margin_right = 152.0
-margin_bottom = 167.0
+margin_top = 10.0
+margin_right = 158.0
+margin_bottom = 14.0
 rect_min_size = Vector2( 0, 4 )
 
 [node name="MinDIScalingContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
@@ -467,9 +466,9 @@ align = 1
 
 [node name="Separator4" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 visible = false
-margin_top = 201.0
-margin_right = 152.0
-margin_bottom = 205.0
+margin_top = 15.0
+margin_right = 158.0
+margin_bottom = 19.0
 rect_min_size = Vector2( 0, 4 )
 
 [node name="P2Dummy" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
@@ -479,7 +478,7 @@ margin_right = 152.0
 margin_bottom = 213.0
 hint_tooltip = "Player 2 will not be prompted for input."
 size_flags_horizontal = 15
-text = "No P2 Input"
+text = "Only P1 Input"
 expand_icon = true
 
 [node name="PredictionEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
@@ -629,12 +628,48 @@ size_flags_horizontal = 15
 text = "Always Perfect Parry"
 expand_icon = true
 
+[node name="BoostMoveEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 396.0
+margin_right = 152.0
+margin_bottom = 408.0
+hint_tooltip = "Enables teams to use the \"Boost\" move."
+size_flags_horizontal = 15
+pressed = true
+text = "Allow Team Boosting"
+expand_icon = true
+
+[node name="RescueMoveEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 409.0
+margin_right = 152.0
+margin_bottom = 421.0
+rect_pivot_offset = Vector2( -291, -340 )
+hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to be throw others out of the way during the other person's hitstun"
+size_flags_horizontal = 15
+pressed = true
+text = "Allow Team Rescue"
+expand_icon = true
+
+[node name="HealMoveEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 422.0
+margin_right = 152.0
+margin_bottom = 434.0
+rect_pivot_offset = Vector2( -291, -340 )
+hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to be throw others out of the way during the other person's hitstun"
+size_flags_horizontal = 15
+pressed = true
+text = "Allow Team Heal Super"
+expand_icon = true
+
 [node name="FrameByFrame" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
 visible = false
-margin_top = 114.0
-margin_right = 128.0
-margin_bottom = 126.0
+margin_top = 396.0
+margin_right = 152.0
+margin_bottom = 408.0
 hint_tooltip = "Play through the match frame-by-frame. Not recommended for multiplayer."
 size_flags_horizontal = 15
 text = "Frame By Frame"

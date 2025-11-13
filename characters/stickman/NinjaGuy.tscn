@@ -691,12 +691,12 @@ script = ExtResource( 202 )
 [node name="Super3" parent="Sounds" index="12"]
 pitch_variation = 0.03
 
-[node name="Wait" parent="StateMachine" index="11"]
+[node name="Wait" parent="StateMachine" index="13"]
 allowed_stances_string = "Normal
 BackSway"
 change_stance_to = "Normal"
 
-[node name="Burst" parent="StateMachine" index="12"]
+[node name="Burst" parent="StateMachine" index="14"]
 interrupt_exceptions_string = "WhiffCancel"
 
 [node name="Hitbox" parent="StateMachine/Burst" index="0"]
@@ -705,7 +705,7 @@ beats_grab = false
 [node name="Hitbox" parent="StateMachine/OffensiveBurst" index="0"]
 beats_grab = false
 
-[node name="Fall" parent="StateMachine" index="18"]
+[node name="Fall" parent="StateMachine" index="20"]
 allowed_stances_string = "Normal
 BackSway"
 change_stance_to = "Normal"
@@ -713,9 +713,6 @@ change_stance_to = "Normal"
 [node name="HostCommand" type="Node" parent="StateMachine/SuperFallStartup" index="0"]
 script = ExtResource( 256 )
 command = "super_fall_detach"
-
-[node name="DashForward" parent="StateMachine" index="27"]
-dash_speed = 14
 
 [node name="Fireball" type="Node2D" parent="StateMachine" index="28"]
 script = ExtResource( 5 )
@@ -3883,43 +3880,46 @@ always_on = true
 
 [node name="AirBoost" type="Node" parent="StateMachine/DiveKick2" index="1"]
 
-[node name="ChargeDashForward" parent="StateMachine" index="81"]
+[node name="DashForward" parent="StateMachine" index="82"]
+dash_speed = 14
+
+[node name="ChargeDashForward" parent="StateMachine" index="83"]
 interrupt_from_string = ""
 dash_speed = 10
 
-[node name="Jump" parent="StateMachine" index="85"]
+[node name="Jump" parent="StateMachine" index="87"]
 y_modifier = "1.33"
 
-[node name="SuperJump" parent="StateMachine" index="87"]
+[node name="SuperJump" parent="StateMachine" index="89"]
 data_ui_scene = ExtResource( 254 )
 interrupt_exceptions_string = "StoreMomentum"
 
-[node name="DoubleJump" parent="StateMachine" index="88"]
+[node name="DoubleJump" parent="StateMachine" index="90"]
 allowed_stances_string = "All"
 change_stance_to = "Normal"
 
-[node name="WhiffInstantCancel" parent="StateMachine" index="91"]
+[node name="WhiffInstantCancel" parent="StateMachine" index="93"]
 hit_cancel_exceptions_string = ""
 
-[node name="Grab" parent="StateMachine" index="99"]
+[node name="Grab" parent="StateMachine" index="101"]
 interrupt_into_string = "Aerial
 Grounded"
 
 [node name="ThrowBox" parent="StateMachine/Grab" index="0"]
 _c_Grouping = 1
 
-[node name="AirGrab" parent="StateMachine" index="100"]
+[node name="AirGrab" parent="StateMachine" index="102"]
 interrupt_into_string = "Aerial
 Grounded"
 
 [node name="ThrowBox" parent="StateMachine/AirGrab" index="0"]
 _c_Grouping = 1
 
-[node name="JumpGrab" parent="StateMachine" index="101"]
+[node name="JumpGrab" parent="StateMachine" index="103"]
 interrupt_into_string = "Aerial
 Grounded"
 
-[node name="ForwardThrow" parent="StateMachine" index="102"]
+[node name="ForwardThrow" parent="StateMachine" index="104"]
 sprite_animation = "GroundedThrow"
 anim_length = 19
 force_dir_x = "1.0"
@@ -3981,7 +3981,7 @@ knockdown_extends_hitstun = false
 start_tick = 9
 active_ticks = 1
 
-[node name="BackThrow" parent="StateMachine" index="103"]
+[node name="BackThrow" parent="StateMachine" index="105"]
 sprite_animation = "GroundedThrow"
 anim_length = 19
 throw_positions = {
@@ -4045,21 +4045,21 @@ knockdown_extends_hitstun = false
 start_tick = 9
 active_ticks = 1
 
-[node name="AirForwardThrow" parent="StateMachine" index="104"]
+[node name="AirForwardThrow" parent="StateMachine" index="106"]
 hitstun_ticks = 17
 knockback = "14"
 dir_y = "1.0"
 
-[node name="AirBackThrow" parent="StateMachine" index="105"]
+[node name="AirBackThrow" parent="StateMachine" index="107"]
 hitstun_ticks = 17
 knockback = "14"
 dir_y = "1.0"
 
-[node name="AirDownThrow" parent="StateMachine" index="106"]
+[node name="AirDownThrow" parent="StateMachine" index="108"]
 hitstun_ticks = 17
 knockback = "14"
 
-[node name="Taunt" parent="StateMachine" index="108"]
+[node name="Taunt" parent="StateMachine" index="110"]
 script = ExtResource( 201 )
 iasa_at = 12
 change_stance_to = "NunChuk"

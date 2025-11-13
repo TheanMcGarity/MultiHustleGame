@@ -43,9 +43,10 @@ var mouse_world_position = Vector2()
 var rng = BetterRng.new()
 
 # MH Options
-var show_player_name:bool = true
-var show_ghost_name:bool = true
-var show_health_numbers:bool = true
+var show_player_name := true
+var show_ghost_name := true
+var show_health_numbers := false
+var player_hp_label := true
 
 var name_paths = {
 	"Ninja": "res://characters/stickman/NinjaGuy.tscn",
@@ -228,6 +229,7 @@ func save_options():
 			"show_player_name": show_player_name,
 			"show_ghost_name": show_ghost_name,
 			"show_health_numbers": show_health_numbers,
+			"player_hp_label": player_hp_label,
 #			"forfeit_buttons_enabled": forfeit_buttons_enabled,
 		}
 	})
@@ -261,6 +263,7 @@ func get_default_player_data():
 			"show_player_name": true,
 			"show_ghost_name": true,
 			"show_health_numbers": false,
+			"player_hp_label": true,
 #			"forfeit_buttons_enabled": false,
 		}
 	}

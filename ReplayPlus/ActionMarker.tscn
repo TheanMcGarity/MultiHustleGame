@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ReplayPlus/ActionMarker.gd" type="Script" id=1]
+
+[node name="ActionMarker" type="TextureRect"]
+margin_right = 16.0
+margin_bottom = 16.0
+mouse_default_cursor_shape = 2
+stretch_mode = 4
+script = ExtResource( 1 )

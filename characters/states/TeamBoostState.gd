@@ -2,12 +2,27 @@ extends CharacterState
 
 export var _c_Boost_Settings = 0
 onready var hitbox = $TeamBoostHitbox
-export var boost_strength:int = 1
+export var boost_strength:float = 1
 
 export(String, MULTILINE) var hitstun_requirement := "disallow\nallow_only"
+export(String) var required_match_setting = ""
 
 func is_usable():
-	return .is_usable() and host.team != 0
+	#ar ret = false
+	
+	if host.team == 0:
+		return false
+		
+	#for team_member in Network.teams[host.team]:
+	#	var chara = Global.current_game.players[team_member]
+	#	if chara.id != host.id:
+	#		if (overlaps(hitbox, chara.collision_box) and is_char_hitstun_allowed(chara)):
+	#			ret = true
+	#			break
+	#			
+	if (Global.current_game.match_data.has(required_match_setting)):
+		return .is_usable() and Global.current_game.match_data[required_match_setting]# and ret
+	return .is_usable()# and ret
 
 func get_hitstun_mode()->int:
 	var ret = 0
@@ -26,10 +41,10 @@ func is_char_hitstun_allowed(chara)->bool:
 		hitstun_amount = chara.current_state().hitstun_ticks
 	
 	match hitstun_mode:
+		2:
+			return hitstun_amount > 0
 		1:
 			return hitstun_amount < 1
-		2:
-			return hitstun_amount > 1
 		3:
 			return true
 		_:
@@ -74,7 +89,7 @@ func _frame_0():
 				var vel = _add_vec(final_vec, chara.get_vel())
 				chara.set_vel(vel.x, vel.y)
 				#print(vel)
-				
+				   
 func overlaps(box, other):
 	if box.width == 0 and box.height == 0:
 		return false

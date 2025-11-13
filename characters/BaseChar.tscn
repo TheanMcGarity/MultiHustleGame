@@ -1,4 +1,4 @@
-[gd_scene load_steps=201 format=2]
+[gd_scene load_steps=202 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -199,6 +199,7 @@
 [ext_resource path="res://sound/common/ex2.wav" type="AudioStream" id=197]
 [ext_resource path="res://characters/states/TeamBoostState.gd" type="Script" id=198]
 [ext_resource path="res://ui/ActionSelector/ActionUIData/TeamBoostActionUIData.tscn" type="PackedScene" id=199]
+[ext_resource path="res://characters/HPLabel.gd" type="Script" id=200]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
@@ -649,11 +650,16 @@ script = ExtResource( 198 )
 __meta__ = {
 "_editor_description_": ""
 }
-anim_length = 11
+apply_forces = true
+apply_fric = true
+apply_grav = true
+sprite_animation = "ParryHigh"
+anim_length = 10
 title = "Rescue"
 type = 4
 data_ui_scene = ExtResource( 199 )
 air_type = 2
+interruptible_on_opponent_turn = true
 interrupt_from_string = "Grounded
 Aerial
 GroundedSpecial
@@ -665,15 +671,16 @@ interrupt_into_string = "Grounded
 Aerial"
 super_level_ = 1
 supers_used_ = 1
-boost_strength = 15
+boost_strength = 7.0
 hitstun_requirement = "allow_only"
+required_match_setting = "rescue_move_allowed"
 
 [node name="TeamBoostHitbox" type="Node2D" parent="StateMachine/TeamBoostHitstun" index="0"]
 z_index = 1000
 script = ExtResource( 7 )
 y = -16
-width = 28
-height = 28
+width = 42
+height = 42
 activated = false
 hitbox_type = 6
 scale_combo = false
@@ -702,11 +709,16 @@ script = ExtResource( 198 )
 __meta__ = {
 "_editor_description_": ""
 }
-anim_length = 11
+apply_forces = true
+apply_fric = true
+apply_grav = true
+sprite_animation = "ParryHigh"
+anim_length = 10
 title = "Boost"
 type = 4
 data_ui_scene = ExtResource( 199 )
 air_type = 2
+interruptible_on_opponent_turn = true
 interrupt_from_string = "Grounded
 Aerial
 GroundedSpecial
@@ -718,15 +730,16 @@ interrupt_into_string = "Grounded
 Aerial"
 super_level_ = 1
 supers_used_ = 1
-boost_strength = 15
+boost_strength = 10.0
 hitstun_requirement = "disallow"
+required_match_setting = "boost_move_allowed"
 
 [node name="TeamBoostHitbox" type="Node2D" parent="StateMachine/TeamBoost" index="0"]
 z_index = 1000
 script = ExtResource( 7 )
 y = -16
-width = 28
-height = 28
+width = 55
+height = 55
 activated = false
 hitbox_type = 6
 scale_combo = false
@@ -2168,9 +2181,11 @@ __meta__ = {
 }
 
 [node name="VelocityLabelContainer" type="Node2D" parent="." index="13"]
+visible = false
 z_index = 1024
 
 [node name="VelocityLabel" type="RichTextLabel" parent="VelocityLabelContainer" index="0"]
+visible = false
 margin_left = -49.0
 margin_right = 49.0
 margin_bottom = 81.0
@@ -2195,5 +2210,30 @@ margin_bottom = 13.0
 theme = ExtResource( 47 )
 text = "Grounded"
 align = 1
+
+[node name="HPLabel" type="RichTextLabel" parent="." index="15"]
+unique_name_in_owner = true
+visible = false
+modulate = Color( 1, 1, 1, 0.784314 )
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -40.0
+margin_top = 5.0
+margin_right = 40.0
+margin_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+rect_clip_content = false
+mouse_filter = 2
+size_flags_vertical = 4
+theme = ExtResource( 47 )
+bbcode_enabled = true
+bbcode_text = "[center][color=#ffffff]1500[/color] / 1500[/center]"
+text = "1500 / 1500"
+script = ExtResource( 200 )
+__meta__ = {
+"_editor_description_": ""
+}
+text_format = "[center][color=#%s]%d[/color] / %d[/center]"
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

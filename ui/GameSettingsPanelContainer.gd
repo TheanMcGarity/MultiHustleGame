@@ -41,6 +41,9 @@ onready var settings_nodes = {
 	"max_di_scaling": $"%MaxDIScalingMeter",
 	"di_combo_limit": $"%DIComboLimit",
 	"brace_enabled": $"%BraceEnabled",
+	"boost_move_allowed": $"%BoostMoveEnabled",
+	"rescue_move_allowed": $"%RescueMoveEnabled",
+	"heal_move_allowed": $"%HealMoveEnabled",
 }
 
 var float_to_string = [

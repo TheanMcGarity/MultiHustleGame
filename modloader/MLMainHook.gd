@@ -212,12 +212,14 @@ const testedVersion = "1.9.20-steam"
 
 const incompat_list = [
 	"platform_library",
+	"ReplayPlus",
 	#"qol",
 	#"AdvancedStyleMenu"
 ]
 
 const incompat_reasons = {
 	"qol": "Causes desync,\nand also breaks throw mechanics.",
+	"ReplayPlus": "Crashes when opening timeline.\nA multihustle version of the timeline will be made soon",
 	"AdvancedStyleMenu": "Breaks throw mechanics. (including Robot)\nCrashes game when selecting ninja.\nSorry to everyone who needs this mod! Cannot be avoided at this moment.",
 	}
 

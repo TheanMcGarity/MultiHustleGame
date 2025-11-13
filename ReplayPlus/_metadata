@@ -1,0 +1,15 @@
+{
+  "author": "Snazzah",
+  "client_side": true,
+  "description": "Adds a replay timeline and other replay tweaks",
+  "friendly_name": "Replay+",
+  "id": "12345",
+  "link": "",
+  "name": "ReplayPlus",
+  "overwrites": false,
+  "priority": 0,
+  "requires": [
+    ""
+  ],
+  "version": "1.2.0"
+}

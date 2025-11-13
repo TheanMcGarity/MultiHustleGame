@@ -17,6 +17,8 @@ signal predicted(freeze_ticks)
 
 #signal got_counter_hit()
 
+onready var hp_label = $"%HPLabel"
+
 var MAX_HEALTH = 1500
 
 #const STALING_REDUCTIONS = [
@@ -940,8 +942,30 @@ func hitbox_from_name(hitbox_name):
 	var obj = obj_from_name(obj_name)
 	if obj:
 		return objs_map[obj_name].hitboxes[hitbox_id]
-
+func _get_helth_label_color() -> Color:
+	var ratio = clamp(float(hp) / float(MAX_HEALTH), 0.0, 1.0)
+	
+	#if id == 2 and not is_ghost:
+	#	print("ratio = %f, curr = %d, max = %d" % [ratio, hp, MAX_HEALTH])
+	
+	if ratio > 0.666:
+		return Color(1, 1, 1)
+	elif ratio > 0.5:
+		var t = (ratio - 0.5) / (0.6667 - 0.5)
+		return Color(1, 1, 1).linear_interpolate(Color(1, 1, 0), 1 - t)
+	elif ratio > 0.4:
+		var t = (ratio - 0.4) / (0.5 - 0.4)
+		return Color(1, 1, 0).linear_interpolate(Color(1, 0.5, 0), 1 - t)
+	else:
+		var t = ratio / 0.4
+		return Color(1, 0.5, 0).linear_interpolate(Color(1, 0, 0), 1 - t)
+	
 func _process(delta):
+	hp_label.text_variables.hp = hp
+	hp_label.text_variables.max_hp = MAX_HEALTH
+	hp_label.text_variables.hp_color = _get_helth_label_color().to_html(false)
+	hp_label.is_ghost = is_ghost
+	
 	if ivy_effect and !is_ghost:
 		sprite.get_material().set_shader_param("color", Color.from_hsv(ivy_effect_t, 0.8, 1))
 #		sprite.get_material().set_shader_param("outline_color", Color.from_hsv(1 - ivy_effect_t, 1.0, 1.0))
