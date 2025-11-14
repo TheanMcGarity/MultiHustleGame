@@ -930,6 +930,7 @@ func on_state_started(state):
 
 func thrown_by(hitbox: ThrowBox):
 	emit_signal("got_hit")
+	
 	state_machine._change_state("Grabbed")
 
 func on_grabbed():
@@ -1203,7 +1204,7 @@ func counter_hitbox(hitbox):
 
 func hit_by(hitbox, force_hit=false):
 	
-	Network.log("player was hit!")
+	#Network.log("player was hit!")
 	
 	var allowed_hit = false
 	
@@ -1222,7 +1223,7 @@ func hit_by(hitbox, force_hit=false):
 	if "team" in from_name:
 		hb_team = from_name.team
 	
-	Network.log("hit_by -> self_team="+str(self_team)+", hb_team="+str(hb_team))
+	#Network.log("hit_by -> self_team="+str(self_team)+", hb_team="+str(hb_team))
 	
 
 	if (self_team == 0 and !allowed_hit):	
@@ -1250,6 +1251,10 @@ func hit_by(hitbox, force_hit=false):
 		hit_out_of_brace = true
 
 	if hitbox.throw and not is_otg():
+		var state = obj_from_name(hitbox.host).current_state()
+		print("Got thrown by hitbox! Self=%d" % id)
+		if state is ThrowState:
+			state._add_grabbed_target(self)
 		return thrown_by(hitbox)
 	if force_hit or (not can_parry_hitbox(hitbox)):
 		ghost_got_hit = true
@@ -2341,10 +2346,10 @@ func get_nodes_with_script(root: Node, script_type: Script) -> Array:
 
 	return result
 	
-func change_state(state_name, state_data = null, enter = true, exit = true):
-	.change_state(state_name, state_data, enter, exit)
+#func change_state(state_name, state_data = null, enter = true, exit = true):
+	#.change_state(state_name, state_data, enter, exit)
 	
-	update_facing() # Facing fixes?
+	#update_facing() # Facing fixes?
 
 func init_display_name():
 	if (is_ghost):

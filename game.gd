@@ -559,6 +559,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 				p1_data = player.data
 			2:
 				p2_data = player.data
+	#print("PLR DICT: "+str(players))
 	apply_hitboxes(players.values())
 	if not ReplayManager.resimulating:
 		show_state()
@@ -896,7 +897,7 @@ func should_game_end():
 	var ffa_living = calc_team_living_count(0)
 	var ffa_alive := calc_team_living_count(0) > 0
 
-	print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
+	#print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
 
 	if (ffa_alive):
 		is_team_win = false
@@ -1928,7 +1929,7 @@ func consume_throw_propagate(throwee):
 		return
 	if throwee_targets is Array:
 		throws_consumed[throwee] = true
-		_unregister_players_getting_throwed(throwee)
+		#_unregister_players_getting_throwed(throwee)
 		for target in throwee_targets:
 			if is_instance_valid(target):
 				target.state_machine.queue_state("ThrowTech")
@@ -1975,6 +1976,8 @@ func _thrower_locked_out(thrower):
 		return false
 	if !throws_consumed.has(thrower):
 		return false
+	if throws_consumed[thrower] is Array:
+		return true
 	return throws_consumed[thrower] == true
 
 func _thrower_has_target(thrower, target):
@@ -2189,8 +2192,7 @@ func apply_hitboxes_internal(playerhitboxpair:Array):
 						return [px1, "MH_Grab"]
 				consume_throw_by(px1, px2, false)
 				#players_hittable = false
-				players_hittable_dic[px1] = false
-				players_hittable_dic[px2] = false
+				_mark_players_unhittable(px1, px2, p2_hit_by)
 			elif DEBUG_THROW_ROUTING and debug_payload:
 				debug_payload["reasons"] = fail_reasons
 				_debug_throw("throw_gated", debug_payload)
@@ -2257,8 +2259,7 @@ func apply_hitboxes_internal(playerhitboxpair:Array):
 						return [px2, "MH_Grab"]
 				consume_throw_by(px2, px1, false)
 				#players_hittable = false
-				players_hittable_dic[px1] = false
-				players_hittable_dic[px2] = false
+				_mark_players_unhittable(px2, px1, p1_hit_by)
 			elif DEBUG_THROW_ROUTING and debug_payload:
 				debug_payload["reasons"] = fail_reasons
 				_debug_throw("throw_gated", debug_payload)
@@ -2358,6 +2359,7 @@ func apply_hitboxes_objects(players:Array):
 func MH_wrapped_hit(hitbox, target):
 	var host = hitbox.host
 	var result
+	var restore_opponent = !(hitbox.throw or hitbox is ThrowBox)
 	if not target.get("opponent") == null:
 		var opponentTemp = target.opponent
 		if host.is_in_group("Fighter"):
@@ -2365,7 +2367,8 @@ func MH_wrapped_hit(hitbox, target):
 		elif host.fighter_owner:
 			target.opponent = host.fighter_owner
 		result = hitbox.hit(target)
-		target.opponent = opponentTemp
+		if restore_opponent:
+			target.opponent = opponentTemp
 	else:
 		Network.log("Couldn't set opponent for hitbox")
 		result = hitbox.hit(target)
@@ -2375,6 +2378,15 @@ func MH_wrapped_hit(hitbox, target):
 
 func MH_players_hittable(px1, px2):
 	return players_hittable_dic[px1] && players_hittable_dic[px2]
+
+func _mark_players_unhittable(attacker, defender, hitbox):
+	var lock_attacker = true
+	if hitbox and (hitbox.throw or hitbox is ThrowBox):
+		lock_attacker = false
+	if lock_attacker and attacker in players_hittable_dic:
+		players_hittable_dic[attacker] = false
+	if defender in players_hittable_dic:
+		players_hittable_dic[defender] = false
 
 
 
@@ -2455,4 +2467,3 @@ func calc_player_order():
 	for k in keys:
 		order.append(buckets[k])
 	return order
-

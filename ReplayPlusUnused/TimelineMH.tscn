@@ -18,10 +18,10 @@ border_width_right = 3
 border_color = Color( 0.2, 0.2, 0.2, 1 )
 
 [sub_resource type="StyleBoxFlat" id=1]
-bg_color = Color( 0.560784, 0.811765, 0.603922, 1 )
+bg_color = Color( 0.137255, 0.32549, 0.172549, 1 )
 border_width_top = 4
 border_width_bottom = 4
-border_color = Color( 0.458824, 1, 0.615686, 1 )
+border_color = Color( 0.0705882, 0.454902, 0.184314, 1 )
 corner_detail = 12
 
 [sub_resource type="StyleBoxFlat" id=2]
@@ -30,9 +30,8 @@ bg_color = Color( 0.0666667, 0.0666667, 0.0666667, 1 )
 [node name="Timeline" type="VBoxContainer"]
 anchor_top = 1.0
 anchor_bottom = 1.0
-margin_top = -85.0
+margin_top = -100.0
 margin_right = 640.0
-margin_bottom = -3.0
 rect_min_size = Vector2( 0, 60 )
 size_flags_vertical = 3
 theme = ExtResource( 2 )
@@ -125,7 +124,7 @@ text = " Lock Cam "
 [node name="Panel" type="PanelContainer" parent="."]
 margin_top = 14.0
 margin_right = 640.0
-margin_bottom = 82.0
+margin_bottom = 100.0
 size_flags_vertical = 3
 
 [node name="Tooltip" type="PanelContainer" parent="Panel"]
@@ -183,31 +182,31 @@ unique_name_in_owner = true
 margin_left = 1.0
 margin_top = 1.0
 margin_right = 639.0
-margin_bottom = 67.0
+margin_bottom = 85.0
 rect_min_size = Vector2( 0, 44 )
 size_flags_vertical = 3
 scroll_vertical_enabled = false
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/ScrollContainer"]
 margin_right = 142.0
-margin_bottom = 66.0
+margin_bottom = 84.0
 rect_min_size = Vector2( 0, 66 )
 size_flags_horizontal = 0
 size_flags_vertical = 3
 
 [node name="Control" type="Control" parent="Panel/ScrollContainer/HBoxContainer"]
 margin_right = 20.0
-margin_bottom = 66.0
+margin_bottom = 84.0
 rect_min_size = Vector2( 20, 0 )
 size_flags_horizontal = 0
 
 [node name="Timeline" type="ProgressBar" parent="Panel/ScrollContainer/HBoxContainer"]
 unique_name_in_owner = true
 margin_left = 21.0
-margin_top = 3.0
+margin_top = 2.0
 margin_right = 121.0
-margin_bottom = 63.0
-rect_min_size = Vector2( 100, 60 )
+margin_bottom = 82.0
+rect_min_size = Vector2( 100, 80 )
 rect_pivot_offset = Vector2( 0, 10 )
 mouse_filter = 1
 size_flags_horizontal = 0
@@ -285,7 +284,7 @@ color = Color( 0.466667, 0.466667, 0.466667, 1 )
 unique_name_in_owner = true
 margin_left = -19.0
 margin_right = 82.0
-margin_bottom = 60.0
+margin_bottom = 80.0
 __meta__ = {
 "_editor_description_": "
 "
@@ -294,15 +293,13 @@ __meta__ = {
 [node name="TimelineContainer" type="Container" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions"]
 unique_name_in_owner = true
 margin_left = 19.0
-margin_top = -3.0
-margin_right = 59.0
-margin_bottom = 57.0
+margin_right = 74.0
+margin_bottom = 80.0
 script = ExtResource( 10 )
 min_spacing = 3.0
 
 [node name="P0Actions" type="Control" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer"]
 unique_name_in_owner = true
-visible = false
 margin_right = 40.0
 margin_bottom = 16.0
 rect_min_size = Vector2( 0, 16 )
@@ -312,19 +309,73 @@ points = PoolVector2Array( 0, 8, 50, 8 )
 width = 1.0
 
 [node name="Label" type="Label" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer/P0Actions"]
-margin_left = -11.0
-margin_top = 14.0
-margin_right = 1.0
-margin_bottom = 25.0
-rect_rotation = -90.0
+margin_left = -12.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 0, 16 )
 text = "P0"
 align = 1
+valign = 1
+
+[node name="P0Actions2" type="Control" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer"]
+unique_name_in_owner = true
+margin_right = 40.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 0, 16 )
+
+[node name="Line" type="Line2D" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer/P0Actions2"]
+points = PoolVector2Array( 0, 8, 50, 8 )
+width = 1.0
+
+[node name="Label" type="Label" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer/P0Actions2"]
+margin_left = -12.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 0, 16 )
+text = "P0"
+align = 1
+valign = 1
+
+[node name="P0Actions3" type="Control" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer"]
+unique_name_in_owner = true
+margin_right = 40.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 0, 16 )
+
+[node name="Line" type="Line2D" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer/P0Actions3"]
+points = PoolVector2Array( 0, 8, 50, 8 )
+width = 1.0
+
+[node name="Label" type="Label" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer/P0Actions3"]
+margin_left = -12.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 0, 16 )
+text = "P0"
+align = 1
+valign = 1
+
+[node name="P0Actions4" type="Control" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer"]
+unique_name_in_owner = true
+margin_right = 40.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 0, 16 )
+
+[node name="Line" type="Line2D" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer/P0Actions4"]
+points = PoolVector2Array( 0, 8, 50, 8 )
+width = 1.0
+
+[node name="Label" type="Label" parent="Panel/ScrollContainer/HBoxContainer/Timeline/PlayerActions/TimelineContainer/P0Actions4"]
+margin_left = -12.0
+margin_bottom = 16.0
+rect_min_size = Vector2( 0, 16 )
+text = "P0"
+align = 1
+valign = 1
 
 [node name="StartLabel" type="Label" parent="Panel/ScrollContainer/HBoxContainer/Timeline"]
 anchor_top = 0.492
 anchor_bottom = 0.5
-margin_left = -30.0
+margin_left = -31.0
 margin_top = -5.02
+margin_right = -1.0
 margin_bottom = 5.5
 rect_rotation = -90.0
 rect_pivot_offset = Vector2( 15, 5.5 )
@@ -338,7 +389,7 @@ uppercase = true
 [node name="Control2" type="Control" parent="Panel/ScrollContainer/HBoxContainer"]
 margin_left = 122.0
 margin_right = 142.0
-margin_bottom = 66.0
+margin_bottom = 84.0
 rect_min_size = Vector2( 20, 0 )
 size_flags_horizontal = 0
 

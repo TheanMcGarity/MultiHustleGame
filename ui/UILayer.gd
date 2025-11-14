@@ -29,6 +29,7 @@ var draw_bg_circle = false
 var lock_in_tick = -INF
 
 const DISCORD_URL = "https://discord.gg/YourOnlyMoveIsHUSTLE"
+const MH_DISCORD_URL = "https://discord.gg/3XPegc53bS"
 const TWITTER_URL = "https://x.com/YourMoveHUSTLE"
 const IVY_SLY_URL = "https://www.ivysly.com"
 const TIKTOK_URL = "https://www.tiktok.com/@youronlymoveishustle"
@@ -98,6 +99,7 @@ func _enter_tree():
 		css.reset()
 
 func _ready():
+	$"%MHDiscordLink".connect("pressed", self, "_invite_to_mh_discord")
 	$"%SingleplayerButton".connect("pressed", self, "_on_singleplayer_pressed")
 	$"%MultiplayerButton".connect("pressed", self, "_on_multiplayer_pressed")
 	$"%SteamMultiplayerButton".connect("pressed", self, "_on_steam_multiplayer_pressed")
@@ -509,9 +511,8 @@ func _unhandled_input(event):
 #						Global.frame_advance = !Global.frame_advance
 #					if event.scancode == KEY_F:
 #						game.advance_frame_input = true
-#			if event.scancode == KEY_SPACE:
-#				p1_action_buttons.space_pressed()
-#				p2_action_buttons.space_pressed()
+			if event.scancode == KEY_SPACE:
+				ContinueAll()
 	if event is InputEventMouseButton:
 		if event.pressed:
 			$"%ChatWindow".unfocus_line_edit()
@@ -798,18 +799,24 @@ func submit_dummy_action(player_id, action = "Continue", data = null, extras = n
 		# This solution is questionable, but it should work? This is just to lock in automatically when the local player is dead
 		buttons._on_submit_pressed()
 	else:
-		.end_turn_for(player_id)
+		#.end_turn_for(player_id)
 		var fighter = game.get_player(player_id)
 		fighter.on_action_selected(action, data, extras)
 		game.turns_taken[player_id] = true
 		Network.turns_ready[player_id] = true
 
+var player_action_map := {}
+onready var turn_taken_sound = $"%TurnTakenSoundPlayer"
 func ContinueAll():
-	if !Network.multiplayer_active:
+	#print(player_action_map)
+	
+	if Network.main.singleplayer:
+		turn_taken_sound.play()
 		for index in game.players.keys():
 			if game.turns_taken[index] == false:
-				if self.main.player_ghost_actions.has(index):
-					submit_dummy_action(index, self.main.player_ghost_actions[index], self.main.player_ghost_datas[index], self.main.player_ghost_extras[index])
+				if player_action_map.has(index):
+					submit_dummy_action(index, self.player_action_map[index].action, self.player_action_map[index].data, self.player_action_map[index].extra)
+					player_action_map.erase(index)
 				else:
 					submit_dummy_action(index)
 
@@ -881,3 +888,6 @@ func _on_SoftlockResetButton_pressed():
 	Network.rpc_("send_mh_chat_message_preformatted", [text])
 	Network.request_softlock_fix()
 	$"%SoftlockResetButton".disabled = true
+	
+func _invite_to_mh_discord():
+	OS.shell_open(MH_DISCORD_URL)

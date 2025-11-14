@@ -673,7 +673,6 @@ super_level_ = 1
 supers_used_ = 1
 boost_strength = 7.0
 hitstun_requirement = "allow_only"
-required_match_setting = "rescue_move_allowed"
 
 [node name="TeamBoostHitbox" type="Node2D" parent="StateMachine/TeamBoostHitstun" index="0"]
 z_index = 1000
@@ -732,7 +731,6 @@ super_level_ = 1
 supers_used_ = 1
 boost_strength = 10.0
 hitstun_requirement = "disallow"
-required_match_setting = "boost_move_allowed"
 
 [node name="TeamBoostHitbox" type="Node2D" parent="StateMachine/TeamBoost" index="0"]
 z_index = 1000

@@ -639,6 +639,7 @@ func autosave_match_replay(match_data, user1, user2):
 func stop_multiplayer(leave_steam_lobby=false):
 	print("stopping multiplayer")
 	multiplayer_active = false
+	
 	if peer:
 		peer.close_connection()
 	_reset()

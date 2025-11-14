@@ -104,21 +104,21 @@ func _enter_shared():
 	#var label = "[ThrowState %s]" % ("Ghost" if host.is_ghost else "Main")
 	#print("%s entering %s" % [label, name])
 	var next_state = ._enter_shared()
-	_gather_initial_targets()
-	_ensure_throw_target()
-	_force_targets_grabbed()
+	#_gather_initial_targets()
+	#_ensure_throw_target()
+	#_force_targets_grabbed()
 	return next_state
 
 func _frame_0_shared():
 	_ensure_throw_target()
-	host.opponent.change_state("Grabbed")
+	#host.opponent.change_state("Grabbed")
 	if use_start_throw_pos:
 		host.throw_pos_x = start_throw_pos_x
 		host.throw_pos_y = start_throw_pos_y
 	else:
 		update_throw_position()
 	var throw_pos = host.get_global_throw_pos()
-	host.opponent.set_pos(throw_pos.x, throw_pos.y)
+	#host.opponent.set_pos(throw_pos.x, throw_pos.y)
 	_force_targets_grabbed()
 	_align_secondary_targets()
 
@@ -154,7 +154,7 @@ func _tick_after():
 
 func _exit_shared():
 	._exit_shared()
-	_restore_original_opponent()
+	#_restore_original_opponent()
 
 func _on_hit_something(obj, hitbox):
 	if obj and obj.is_in_group("Fighter"):
@@ -224,11 +224,11 @@ func _force_post_release_state(target, hitbox):
 	target.state_machine._change_state(next_state, {"hitbox": hitbox})
 
 func _gather_initial_targets():
-	grabbed_targets.clear()
+	#grabbed_targets.clear()
 	_load_targets_from_data()
 	_merge_targets_from_game()
-	if grabbed_targets.empty() and _is_valid_target(host.opponent) and host.opponent.current_state().state_name == "Grabbed":
-		_add_grabbed_target(host.opponent, false, false)
+	#if grabbed_targets.empty() and _is_valid_target(host.opponent) and host.opponent.current_state().state_name == "Grabbed":
+	#	_add_grabbed_target(host.opponent, false, false)
 
 func _merge_targets_from_game():
 	for target in _lookup_targets_from_game():
@@ -237,13 +237,13 @@ func _merge_targets_from_game():
 		_add_grabbed_target(target)
 
 func _ensure_throw_target():
-	_merge_targets_from_game()
+	#_merge_targets_from_game()
 	_prune_invalid_targets()
-	var target = _pick_throw_target()
-	if target:
-		_update_primary_target(target)
-		_add_grabbed_target(target)
-	return target
+	#var target = _pick_throw_target()
+	#if target:
+	#	_update_primary_target(target)
+	#	_add_grabbed_target(target)
+	return# target
 
 func _pick_throw_target():
 	var from_list = _first_valid_from(grabbed_targets)
@@ -454,7 +454,7 @@ func _restore_original_opponent():
 		game.players_getting_throwed.erase(host.id)
 	previous_opponent = null
 	primary_target = null
-	grabbed_targets.clear()
+	#grabbed_targets.clear()
 	hit_opponents.clear()
 	grabbed_ids.clear()
 
@@ -512,7 +512,7 @@ func _register_target_with_game(target):
 	_log_registered_targets(game, "register_target_game_post")
 
 func _log_grabbed_targets(context: String, focus_target, newly_added: bool):
-	return
+	#return
 	var target_name = focus_target.name if focus_target and focus_target.get("name") else "[unknown]"
 	var names = []
 	for entry in grabbed_targets:
@@ -520,12 +520,13 @@ func _log_grabbed_targets(context: String, focus_target, newly_added: bool):
 			names.append(entry.name)
 		else:
 			names.append("[unknown]")
-	print("[ThrowState %s] context=%s target=%s new=%s targets=%s" % [
+	push_warning("[ThrowState %s] context=%s target=%s new=%s targets=%s state=%s" % [
 		"Ghost" if host and host.is_ghost else "Main",
 		context,
 		target_name,
 		str(newly_added),
-		names
+		names,
+		name,
 	])
 
 func _log_target_source(context: String, targets: Array):

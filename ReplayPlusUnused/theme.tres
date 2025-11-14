@@ -1,14 +1,14 @@
 [gd_resource type="Theme" load_steps=55 format=2]
 
-[ext_resource path="res://ui/default_font.tres" type="DynamicFont" id=1]
-[ext_resource path="res://ui/HorizSlider/grabber.png" type="Texture" id=2]
-[ext_resource path="res://ui/checkbutton1.png" type="Texture" id=3]
-[ext_resource path="res://ui/checkbutton2.png" type="Texture" id=4]
+[ext_resource path="res://ui/check_off.png" type="Texture" id=1]
+[ext_resource path="res://ui/updown.png" type="Texture" id=2]
+[ext_resource path="res://ui/check_on.png" type="Texture" id=3]
+[ext_resource path="res://ui/checkbutton4.png" type="Texture" id=4]
 [ext_resource path="res://ui/checkbutton3.png" type="Texture" id=5]
-[ext_resource path="res://ui/checkbutton4.png" type="Texture" id=6]
-[ext_resource path="res://ui/updown.png" type="Texture" id=7]
-[ext_resource path="res://ui/check_off.png" type="Texture" id=8]
-[ext_resource path="res://ui/check_on.png" type="Texture" id=9]
+[ext_resource path="res://ui/HorizSlider/grabber.png" type="Texture" id=6]
+[ext_resource path="res://ui/checkbutton1.png" type="Texture" id=7]
+[ext_resource path="res://ui/checkbutton2.png" type="Texture" id=8]
+[ext_resource path="res://ui/default_font.tres" type="DynamicFont" id=9]
 
 [sub_resource type="StyleBoxFlat" id=9]
 bg_color = Color( 0.0352941, 0.0352941, 0.0352941, 1 )
@@ -219,7 +219,7 @@ border_width_bottom = 1
 border_color = Color( 1, 0.2, 0.239216, 1 )
 
 [resource]
-default_font = ExtResource( 1 )
+default_font = ExtResource( 9 )
 Button/styles/disabled = SubResource( 9 )
 Button/styles/focus = SubResource( 51 )
 Button/styles/hover = SubResource( 11 )
@@ -229,14 +229,14 @@ ChallengeButton/base_type = "Button"
 ChallengeButton/styles/hover = SubResource( 26 )
 ChallengeButton/styles/normal = SubResource( 27 )
 CheckBox/constants/hseparation = 4
-CheckBox/icons/checked = ExtResource( 9 )
-CheckBox/icons/checked_disabled = ExtResource( 9 )
-CheckBox/icons/unchecked = ExtResource( 8 )
-CheckBox/icons/unchecked_disabled = ExtResource( 8 )
-CheckButton/icons/off = ExtResource( 3 )
+CheckBox/icons/checked = ExtResource( 3 )
+CheckBox/icons/checked_disabled = ExtResource( 3 )
+CheckBox/icons/unchecked = ExtResource( 1 )
+CheckBox/icons/unchecked_disabled = ExtResource( 1 )
+CheckButton/icons/off = ExtResource( 7 )
 CheckButton/icons/off_disabled = ExtResource( 5 )
-CheckButton/icons/on = ExtResource( 4 )
-CheckButton/icons/on_disabled = ExtResource( 6 )
+CheckButton/icons/on = ExtResource( 8 )
+CheckButton/icons/on_disabled = ExtResource( 4 )
 ColorPicker/constants/sv_height = 60
 ColorPicker/constants/sv_width = 60
 HBoxContainer/constants/separation = 1
@@ -244,9 +244,9 @@ HScrollBar/styles/grabber = SubResource( 46 )
 HScrollBar/styles/grabber_highlight = SubResource( 48 )
 HScrollBar/styles/grabber_pressed = SubResource( 49 )
 HScrollBar/styles/scroll = SubResource( 47 )
-HSlider/icons/grabber = ExtResource( 2 )
-HSlider/icons/grabber_disabled = ExtResource( 2 )
-HSlider/icons/grabber_highlight = ExtResource( 2 )
+HSlider/icons/grabber = ExtResource( 6 )
+HSlider/icons/grabber_disabled = ExtResource( 6 )
+HSlider/icons/grabber_highlight = ExtResource( 6 )
 HSlider/icons/tick = null
 HSlider/styles/grabber_area = SubResource( 18 )
 HSlider/styles/grabber_area_highlight = SubResource( 18 )
@@ -269,7 +269,7 @@ LineEdit/colors/font_color_uneditable = Color( 1, 1, 1, 0.752941 )
 LineEdit/styles/focus = SubResource( 23 )
 LineEdit/styles/normal = SubResource( 22 )
 LineEdit/styles/read_only = SubResource( 24 )
-OptionButton/icons/arrow = ExtResource( 7 )
+OptionButton/icons/arrow = ExtResource( 2 )
 Panel/styles/panel = SubResource( 4 )
 PanelAlt/base_type = "Panel"
 PanelAlt/styles/panel = SubResource( 31 )
@@ -283,7 +283,7 @@ PredictButton/styles/pressed = SubResource( 44 )
 SelectButton/base_type = "Button"
 SelectButton/styles/hover = SubResource( 13 )
 SelectButton/styles/normal = SubResource( 14 )
-SpinBox/icons/updown = ExtResource( 7 )
+SpinBox/icons/updown = ExtResource( 2 )
 TabContainer/styles/panel = SubResource( 30 )
 TabContainer/styles/tab_bg = SubResource( 28 )
 TabContainer/styles/tab_disabled = SubResource( 28 )
@@ -327,7 +327,7 @@ TextEdit/styles/focus = SubResource( 23 )
 TextEdit/styles/normal = SubResource( 22 )
 TextEdit/styles/read_only = SubResource( 24 )
 TooltipLabel/colors/font_color = Color( 1, 1, 1, 1 )
-TooltipLabel/fonts/font = ExtResource( 1 )
+TooltipLabel/fonts/font = ExtResource( 9 )
 TooltipPanel/styles/panel = SubResource( 19 )
 VBoxContainer/constants/separation = 1
 VScrollBar/styles/grabber = SubResource( 5 )

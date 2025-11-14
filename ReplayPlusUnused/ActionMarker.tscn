@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=2]
 
-[ext_resource path="res://ReplayPlus/ActionMarker.gd" type="Script" id=1]
+[ext_resource path="res://ReplayPlusUnused/ActionMarker.gd" type="Script" id=1]
 
 [node name="ActionMarker" type="TextureRect"]
 margin_right = 16.0

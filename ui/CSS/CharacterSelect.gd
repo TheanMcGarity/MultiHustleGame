@@ -84,7 +84,13 @@ var loaded_mods = false
 var pageLabel
 var searchBar
 
+
+#func _reset_match_data():
+	
+
 func _ready():
+	#Network,connect("multiplayer_stopped", self, "_reset_match_data")
+	
 	bttContainer.hide()
 	loading_text.show()
 	go_button.hide()

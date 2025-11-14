@@ -9,6 +9,8 @@ var queued_trycatch_targets:Array = []
 var trycatch_state:Dictionary = {}
 var trycatch_connected = false
 
+var grabbed_ids # idk why it just threw an error on a line where it had just been assigning this value 2 lines before that this var isnt there
+
 func _frame_0():
 	var target_state = "DisembowelGrabFollowup" if !data else "TryCatchGroundSlam"
 	#._frame_0()
@@ -17,8 +19,8 @@ func _frame_0():
 			continue
 		if not h.throw:
 			h.throw = true
-		h.throw_state = target_state
-		h.followup_state = target_state
+		#h.throw_state = target_state
+		#h.followup_state = target_state
 
 func _enter():
 	queued_trycatch_targets.clear()

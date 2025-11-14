@@ -893,7 +893,7 @@ func state_tick():
 		once = false
 		state_machine.tick()
 		if (!state_machine.state.endless) and state_machine.state.current_tick >= state_machine.state.anim_length and state_machine.queued_states == []:
-			state_machine.queue_state(state_machine.state.fallback_state)
+			state_machine.queue_state(state_machine.state.fallback_state, null, state_machine.state, true)
 			state_machine.tick()
 
 func get_states():

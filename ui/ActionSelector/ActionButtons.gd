@@ -54,7 +54,8 @@ var button_category_containers = {
 func _input(event):
 	if event is InputEventAction:
 		if event.is_action_pressed("submit_action"):
-			_on_submit_pressed()
+			if !Global.current_game.singleplayer:
+				_on_submit_pressed()
 
 func _ready():
 
@@ -113,6 +114,7 @@ func space_pressed():
 	if visible:
 		if !$"%SelectButton".disabled and $"%SelectButton".visible:
 			_on_submit_pressed()
+	
 
 func _physics_process(delta):
 	if is_instance_valid(game):
@@ -135,6 +137,8 @@ func _process(delta):
 	if buffered_ui_actions:
 		_send_ui_action(buffered_ui_actions[-1])
 		buffered_ui_actions = []
+	
+	
 	
 func unpress_extra_on_lock_in():
 	var select_button: Button = $"%SelectButton"
@@ -260,6 +264,7 @@ func _on_prediction_selected(selected_category):
 	_get_opposite_buttons().send_ui_action()
 
 func send_ui_action(action=null):
+	
 	buffered_ui_actions.append(action)
 
 func _send_ui_action(action=null):
@@ -299,6 +304,13 @@ func _send_ui_action(action=null):
 	update_select_button()
 
 	update_buttons(false)
+
+	if is_instance_valid(current_button):
+		Network.main.ui_layer.player_action_map[Network.main.ui_layer.GetRealID(player_id)] = {
+			"action": current_action,
+			"data": current_button.get_data(),
+			"extra": current_extra
+		}
 
 	if current_button:
 		$"%ReverseButton".set_disabled(!current_button.is_reversible() if current_button.has_method("is_reversible") else !current_button.reversible)
@@ -857,10 +869,12 @@ func on_action_submitted(action, data = null, extra = null):
 	emit_signal("turn_ended")
 	$"%SelectButton".shortcut = null
 	emit_signal("action_selected", action, data, extra)
-	_store_ui_state()
+	#_store_ui_state()
 	if not SteamLobby.SPECTATING:
 		if Network.player_id == id:
 			Network.submit_action(action, data, extra)
+	var ui = Network.main.ui_layer
+	
 
 
 func disable_select():

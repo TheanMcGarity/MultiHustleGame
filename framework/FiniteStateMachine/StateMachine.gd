@@ -118,12 +118,22 @@ func auto_transition(_anim_name):
 	if next:
 		queue_state(next)
 
-func queue_state(new_state, data=null, old_state=state):
+func queue_state(new_state, data=null, old_state=state, dont_log=false):
 	if old_state.active:
 		queued_states = []
 		queued_data = []
 		queued_states.push_back(new_state)
 		queued_data.append(data)
+		
+		if dont_log:
+			return
+		
+		if data:
+			print("Queued state %s with data %s" % [new_state, data])
+			push_warning("Queued state %s with data %s" % [new_state, data])
+		else:
+			print("Queued state %s" % [new_state])
+			push_warning("Queued state %s" % [new_state])
 
 func update(delta):
 	if queued_states.size() > 0:
@@ -134,7 +144,7 @@ func update(delta):
 	if next_state_name == null:
 		next_state_name = state._update(delta)
 	if next_state_name:
-		queue_state(next_state_name)
+		queue_state(next_state_name,null,state,true)
 
 func tick():
 	if queued_states.size() > 0:
@@ -148,7 +158,7 @@ func tick():
 	if next_state_name == null:
 		next_state_name = state._tick_after()
 	if next_state_name:
-		queue_state(next_state_name)
+		queue_state(next_state_name,null,state,true)
 
 func deactivate():
 	state.active = false

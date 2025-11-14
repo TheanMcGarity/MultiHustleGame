@@ -16,6 +16,7 @@ func _ready():
 			
 	MH_addWarningMessage()
 	
+		
 	Network.connect("mh_resim_accepted", self, "on_resync")
 	
 
@@ -212,7 +213,7 @@ const testedVersion = "1.9.20-steam"
 
 const incompat_list = [
 	"platform_library",
-	"ReplayPlus",
+	#"ReplayPlus",
 	#"qol",
 	#"AdvancedStyleMenu"
 ]

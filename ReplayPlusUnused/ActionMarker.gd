@@ -22,7 +22,8 @@ func init(tl, id, action, frame, frame_data):
 
 func _ready():
 	rect_position.x = (frame * tl.ui_zoom) - 8
-	rect_position.y = 0 if id == 1 else -17
+	rect_position.y = (0 if id == 1 else -17) if not "mh" in Global.VERSION.to_lower() else 0 
+	
 	texture = action.button_texture
 	expand = true
 	stretch_mode = STRETCH_KEEP_ASPECT
@@ -32,6 +33,9 @@ func _ready():
 func get_neighboring_actions():
 	var result = []
 	for child in get_parent().get_children():
+		if not child is TextureRect:
+			continue
+			
 		if rect_position.x - (rect_size.x * 2) < child.rect_position.x and rect_position.x + (rect_size.x * 2) > child.rect_position.x and not frame == child.frame:
 			result.append(child)
 	return result
