@@ -58,7 +58,13 @@ var name_paths = {
 }
 
 var songs = {
-	"bg1": preload("res://sound/music/bg1.mp3")
+	"bg1": preload("res://sound/music/bg1.mp3"),
+	
+	# Do not share on github, this is just for my enjoyment, as i don't really like listening to bg1
+	#"fight": preload("res://PeakOSTDoNotShare/ut_enemy_fight.wav"),
+	#"dummy": preload("res://PeakOSTDoNotShare/ut_dummy_fight.wav"),
+	#"mr_underman": preload("res://PeakOSTDoNotShare/sand_undertable.wav"),
+	#"hotland": preload("res://PeakOSTDoNotShare/ut_hotland_zone.wav"),
 }
 
 var character_select_node = null
@@ -136,8 +142,10 @@ func set_music_enabled(on):
 	music_enabled = on
 	if on:
 		play_random_song()
+		audio_player.connect("finished", self, "play_random_song")
 	else:
 		audio_player.stop()
+		#audio_player.disconnect("finished", self)
 
 func play_random_song():
 	play_song(rng.choose(songs.keys()))

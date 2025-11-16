@@ -423,7 +423,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player.connect("clashed", self, "on_clash")
 		player.connect("predicted", self, "on_prediction", [player])
 	
-	if not Network.multiplayer_active:
+	if not Network.multiplayer_active and not match_data.has("replay"):
 		var team0_last = Network.teams[0][Network.teams[0].keys()[-1]]
 		if not players.has(team0_last):
 			var team_dict = Network.teams[0]

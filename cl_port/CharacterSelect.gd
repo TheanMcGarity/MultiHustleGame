@@ -615,7 +615,6 @@ func _on_network_match_locked_in(match_data):
 
 var enable_online_go = false
 func net_async_loadOtherChar():
-	print("there should be 2 of these")
 	for c in selected_characters.values():
 		if (c != null):
 			if (isCustomChar(c.name)):

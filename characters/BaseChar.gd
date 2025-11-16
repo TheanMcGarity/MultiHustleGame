@@ -2340,7 +2340,7 @@ func get_nodes_with_script(root: Node, script_type: Script) -> Array:
 		
 	for child in root.get_children():
 		if child.get_script() != null and child is script_type:
-			print("append")
+			#print("append")
 			result.append(child)
 		get_inner_nodes_with_script(result, child, script_type)
 

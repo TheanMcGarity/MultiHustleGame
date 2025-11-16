@@ -57,7 +57,6 @@ var team: int = 0
 var hit_opponents := []
 var grabbed_targets: Array = []
 var primary_target = null
-var previous_opponent = null
 var grabbed_ids: Array = []
 
 func _enter():
@@ -94,31 +93,37 @@ func _get_host_game():
 func _update_primary_target(target):
 	if not _is_valid_target(target):
 		return
-	if host.opponent != target:
-		if previous_opponent == null:
-			previous_opponent = host.opponent
-		host.opponent = target
 	primary_target = target
+
+func _get_primary_throw_target():
+	if _is_valid_target(primary_target):
+		return primary_target
+	for target in grabbed_targets:
+		if _is_valid_target(target):
+			primary_target = target
+			return target
+	return null
 
 func _enter_shared():
 	#var label = "[ThrowState %s]" % ("Ghost" if host.is_ghost else "Main")
 	#print("%s entering %s" % [label, name])
 	var next_state = ._enter_shared()
-	#_gather_initial_targets()
-	#_ensure_throw_target()
-	#_force_targets_grabbed()
+	_gather_initial_targets()
+	_ensure_throw_target()
+	_force_targets_grabbed()
 	return next_state
 
 func _frame_0_shared():
 	_ensure_throw_target()
-	#host.opponent.change_state("Grabbed")
 	if use_start_throw_pos:
 		host.throw_pos_x = start_throw_pos_x
 		host.throw_pos_y = start_throw_pos_y
 	else:
 		update_throw_position()
 	var throw_pos = host.get_global_throw_pos()
-	#host.opponent.set_pos(throw_pos.x, throw_pos.y)
+	var main_target = _get_primary_throw_target()
+	if _is_valid_target(main_target):
+		main_target.set_pos(throw_pos.x, throw_pos.y)
 	_force_targets_grabbed()
 	_align_secondary_targets()
 
@@ -138,7 +143,10 @@ func _tick_shared():
 		_release()
 		released = true
 	if !released:
-		host.opponent.colliding_with_opponent = false
+		_force_targets_grabbed()
+		var main_target = _get_primary_throw_target()
+		if _is_valid_target(main_target):
+			main_target.colliding_with_opponent = false
 		host.colliding_with_opponent = false
 	update_throw_position()
 	_update_secondary_collisions()
@@ -149,24 +157,25 @@ func _tick_after():
 	if !released:
 		host.update_data()
 		var throw_pos = host.get_global_throw_pos()
-		host.opponent.set_pos(throw_pos.x, throw_pos.y)
+		var main_target = _get_primary_throw_target()
+		if _is_valid_target(main_target):
+			main_target.set_pos(throw_pos.x, throw_pos.y)
 	_align_secondary_targets()
 
 func _exit_shared():
 	._exit_shared()
-	#_restore_original_opponent()
+	_restore_original_opponent()
 
 func _on_hit_something(obj, hitbox):
-	if obj and obj.is_in_group("Fighter"):
-		_add_grabbed_target(obj)
-		_update_primary_target(obj)
+	_add_grabbed_target(obj)
+	_update_primary_target(obj)
 	._on_hit_something(obj, hitbox)
 
 func _release():
 	throw = false
 	var pos = _prepare_release_position()
 	if not _apply_release_to_targets(pos):
-		_apply_release_to_target(host.opponent, pos)
+		_apply_release_to_target(_get_primary_throw_target(), pos)
 	if screenshake_amount > 0 and screenshake_frames > 0 and !host.is_ghost:
 		var camera = get_tree().get_nodes_in_group("Camera")[0]
 		camera.bump(Vector2(), screenshake_amount, screenshake_frames / 60.0)
@@ -224,11 +233,10 @@ func _force_post_release_state(target, hitbox):
 	target.state_machine._change_state(next_state, {"hitbox": hitbox})
 
 func _gather_initial_targets():
-	#grabbed_targets.clear()
+	grabbed_targets.clear()
+	primary_target = null
 	_load_targets_from_data()
 	_merge_targets_from_game()
-	#if grabbed_targets.empty() and _is_valid_target(host.opponent) and host.opponent.current_state().state_name == "Grabbed":
-	#	_add_grabbed_target(host.opponent, false, false)
 
 func _merge_targets_from_game():
 	for target in _lookup_targets_from_game():
@@ -237,13 +245,12 @@ func _merge_targets_from_game():
 		_add_grabbed_target(target)
 
 func _ensure_throw_target():
-	#_merge_targets_from_game()
+	_merge_targets_from_game()
 	_prune_invalid_targets()
-	#var target = _pick_throw_target()
-	#if target:
-	#	_update_primary_target(target)
-	#	_add_grabbed_target(target)
-	return# target
+	var target = _pick_throw_target()
+	if target:
+		_add_grabbed_target(target)
+	return target
 
 func _pick_throw_target():
 	var from_list = _first_valid_from(grabbed_targets)
@@ -255,8 +262,6 @@ func _pick_throw_target():
 	var cached_target = _resolve_cached_target()
 	if cached_target:
 		return cached_target
-	if _is_valid_target(host.opponent) and host.opponent.current_state().state_name == "Grabbed":
-		return host.opponent
 	return null
 
 func _resolve_last_hit_target():
@@ -287,6 +292,8 @@ func _add_grabbed_target(target, prioritize := true, persist := true, force_alig
 	elif not already:
 		grabbed_targets.append(target)
 	_sync_grabbed_target(target, not already, persist, force_align)
+	if prioritize or not _is_valid_target(primary_target):
+		primary_target = target
 	_log_grabbed_targets("add_grabbed_target", target, not already)
 
 func _sync_grabbed_target(target, newly_added: bool, persist: bool, force_align: bool):
@@ -301,7 +308,8 @@ func _sync_grabbed_target(target, newly_added: bool, persist: bool, force_align:
 		if target.opponent != host:
 			target.opponent = host
 		_force_single_target_grabbed(target)
-		if target != host.opponent:
+		var main_target = _get_primary_throw_target()
+		if target != main_target:
 			_position_secondary_target(target)
 
 func _cache_hit_target(target):
@@ -377,8 +385,9 @@ func _force_single_target_grabbed(target):
 func _align_secondary_targets():
 	if released or grabbed_targets.empty():
 		return
+	var main_target = _get_primary_throw_target()
 	for target in grabbed_targets:
-		if target == host.opponent:
+		if target == main_target:
 			continue
 		_force_single_target_grabbed(target)
 		_position_secondary_target(target)
@@ -447,14 +456,11 @@ func _store_grabbed_ids():
 func _restore_original_opponent():
 	if not released:
 		_release_unfinished_targets()
-	if previous_opponent and host.opponent == primary_target:
-		host.opponent = previous_opponent
 	var game = _get_host_game()
 	if game and game.players_getting_throwed.has(host.id):
 		game.players_getting_throwed.erase(host.id)
-	previous_opponent = null
 	primary_target = null
-	#grabbed_targets.clear()
+	grabbed_targets.clear()
 	hit_opponents.clear()
 	grabbed_ids.clear()
 

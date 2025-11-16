@@ -125,6 +125,10 @@ func queue_state(new_state, data=null, old_state=state, dont_log=false):
 		queued_states.push_back(new_state)
 		queued_data.append(data)
 		
+		return # not needing to debug this atm
+		if host.is_ghost:
+			return
+			
 		if dont_log:
 			return
 		

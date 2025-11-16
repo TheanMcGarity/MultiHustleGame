@@ -457,7 +457,7 @@ func get_living_players_on_team(team:int):
 	if (teams[team] == null):
 		print("null team")
 	var living = teams[team].size()
-	print(str(team)+" "+living)
+	#print(str(team)+" "+living)
 	for player in teams[team]:
 		living -= int(player.game_over)
 	return living
@@ -578,7 +578,7 @@ remotesync func select_opp(my_id, opp_id):
 
 
 func select_opponent(self_id, opp_id):
-	print("select_opponent->self_id=%d opp_id=%d" % [self_id, opp_id])
+	#("select_opponent->self_id=%d opp_id=%d" % [self_id, opp_id])
 	if multiplayer_active:
 		rpc_("select_opp", [self_id, opp_id])
 	else: # Singleplayer port
@@ -638,6 +638,9 @@ var sp_opp_dict = {}
 
 remotesync func client_disconnected(id):
 	log_to_file("CLIENT DISCONNECTED -> %d" % id)
+	if not is_instance_valid(game):
+		print("Game is invalid!")
+		return
 	var ui = main.ui_layer
 	var player = game.players[id]
 	if player:
