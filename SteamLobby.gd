@@ -423,7 +423,12 @@ func _read_P2P_Packet():
 		var PACKET_SENDER:int = PACKET["steam_id_remote"]
 		p2p_packet_sender = PACKET_SENDER
 		var PACKET_CODE:PoolByteArray = PACKET["data"]
-		print(PACKET)
+		
+		if ((int(PACKET_CODE[0]) & 0xFF) >= 27):
+			print("Invalid packet variant!")
+			return
+			
+		#print(PACKET)
 		var readable:Dictionary = bytes2var(PACKET_CODE)
 		Network.log_to_file("P2P packet recieved! Sender: " + str(p2p_packet_sender) + " Data: " + str(readable), true)
 		if readable.has("rpc_data"):
@@ -493,95 +498,6 @@ func _read_P2P_Packet():
 				Network.player_forfeit(readable.spectator_player_forfeit)
 		if readable.has("validate_auth_session"):
 			_validate_Auth_Session(readable.validate_auth_session, PACKET_SENDER)
-
-	
-	if PACKET_SIZE > 0:
-		var PACKET:Dictionary = Steam.readP2PPacket(PACKET_SIZE, 0)
-
-		if PACKET.empty() or PACKET == null:
-			print("WARNING: read an empty packet with non-zero size!")
-			return
-
-		
-		var PACKET_SENDER:int = PACKET["steam_id_remote"]
-		p2p_packet_sender = PACKET_SENDER
-
-		
-		var PACKET_CODE:PoolByteArray = PACKET["data"]
-		print(PACKET_CODE)
-		var readable:Dictionary = bytes2var(PACKET_CODE)
-
-
-		if readable.has("rpc_data"):
-			print("received rpc")
-			_receive_rpc(readable)
-		if readable.has("challenge_from"):
-			_receive_challenge(readable.challenge_from, readable.match_settings)
-		if readable.has("challenge_accepted"):
-			if PACKET_SENDER == CHALLENGING_STEAM_ID:
-				_on_opponent_challenge_accepted(readable.challenge_accepted)
-		if readable.has("match_quit"):
-			if PACKET_SENDER == OPPONENT_ID:
-				if Network.rematch_menu:
-					emit_signal("quit_on_rematch")
-					Steam.setLobbyMemberData(LOBBY_ID, "status", "busy")
-				if not is_instance_valid(Global.current_game):
-					Global.reload()
-				Steam.setLobbyMemberData(LOBBY_ID, "opponent_id", "")
-				Steam.setLobbyMemberData(LOBBY_ID, "character", "")
-				Steam.setLobbyMemberData(LOBBY_ID, "player_id", "")
-		if readable.has("match_settings_updated"):
-			if PACKET_SENDER == LOBBY_OWNER:
-				if SETTINGS_LOCKED:
-					NEW_MATCH_SETTINGS = readable.match_settings_updated
-				else :
-					MATCH_SETTINGS = readable.match_settings_updated
-				emit_signal("received_match_settings", readable.match_settings_updated)
-		if readable.has("player_busy"):
-			
-			pass
-		if readable.has("request_match_settings"):
-			_send_P2P_Packet(readable.request_match_settings, {"match_settings_updated":MATCH_SETTINGS})
-		if readable.has("message"):
-			if readable.message == "handshake":
-				emit_signal("handshake_made")
-		
-		if readable.has("challenge_cancelled"):
-			if PACKET_SENDER == CHALLENGER_STEAM_ID:
-				emit_signal("challenger_cancelled")
-				CHALLENGER_STEAM_ID = 0
-		if readable.has("challenge_declined"):
-			_on_challenge_declined(readable.challenge_declined)
-		if readable.has("spectate_accept"):
-			if PACKET_SENDER == REQUESTING_TO_SPECTATE:
-				REQUESTING_TO_SPECTATE = 0
-				_on_spectate_request_accepted(readable)
-		if readable.has("spectator_replay_update"):
-			if PACKET_SENDER == SPECTATING_ID:
-				_on_received_spectator_replay(readable.spectator_replay_update)
-		if readable.has("request_spectate"):
-			_on_received_spectate_request(readable.request_spectate)
-		if readable.has("spectate_ended"):
-			_remove_spectator(readable.spectate_ended)
-		if readable.has("spectate_declined"):
-			if PACKET_SENDER == REQUESTING_TO_SPECTATE:
-				REQUESTING_TO_SPECTATE = 0
-				_on_spectate_declined()
-		if readable.has("spectator_sync_timers"):
-			if PACKET_SENDER == SPECTATING_ID:
-				_on_spectate_sync_timers(readable.spectator_sync_timers)
-		if readable.has("spectator_turn_ready"):
-			if PACKET_SENDER == SPECTATING_ID:
-				_on_spectate_turn_ready(readable.spectator_turn_ready)
-		if readable.has("spectator_tick_update"):
-			if PACKET_SENDER == SPECTATING_ID:
-				_on_spectate_tick_update(readable.spectator_tick_update)
-		if readable.has("spectator_player_forfeit"):
-			if PACKET_SENDER == SPECTATING_ID:
-				Network.player_forfeit(readable.spectator_player_forfeit)
-		if readable.has("validate_auth_session"):
-			_validate_Auth_Session(readable.validate_auth_session, PACKET_SENDER)
-		_read_P2P_Packet_custom(readable)
 
 
 
@@ -879,14 +795,13 @@ func _on_P2P_Session_Request(remote_id: int) -> void:
 	_make_P2P_Handshake()
 
 func rpc_(function_name, arg = []):
-	if OPPONENT_ID != 0:
-		var data = {
-			"rpc_data":{
-				"func":function_name, 
-				"arg":arg
-			}
+	var data = {
+		"rpc_data":{
+			"func":function_name, 
+			"arg":arg
 		}
-		_send_P2P_Packet(0, data)
+	}
+	_send_P2P_Packet(0, data)
 
 
 func _send_P2P_Packet(target: int, packet_data: Dictionary) -> void:

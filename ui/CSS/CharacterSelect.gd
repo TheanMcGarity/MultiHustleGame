@@ -418,6 +418,7 @@ func quit():
 
 func go():
 	if !singleplayer:
+		network_match_data["selected_characters"] = selected_characters
 		emit_signal("match_ready", network_match_data)
 	else:
 		emit_signal("match_ready", get_match_data())
@@ -888,6 +889,7 @@ func net_async_loadOtherChar():
 			enable_online_go = false
 
 func net_startMatch():
+	
 	buffer_go = true
 	net_sendPacket("go_button_pressed")
 	#Network.rpc_("go_button_pressed")
@@ -1299,6 +1301,10 @@ func _on_network_character_selected(player_id, character, style = null):
 	for chara in selected_characters.values():
 		if chara == null:
 			return
+	
+	if Network.is_host():
+		Network.rpc_("send_match_data", get_match_data())
+		
 	net_async_loadOtherChar() # Load all player characters
 		
 		
@@ -1366,6 +1372,7 @@ func _on_button_pressed(button):
 
 
 func post_button_edit(button):
+	var data = get_character_data(button)
 	var pid = current_player_real
 	if Network.multiplayer_active:
 		pid = Network.player_id
@@ -1383,8 +1390,7 @@ func post_button_edit(button):
 				$"%P1Display".rect_position.y = -30
 		for button in buttons:
 			button.disabled = false
-	if not singleplayer:
-		# TODO
+	else:
 		#Network.select_character(data, $"%P1Display".selected_style if current_player == 1 else $"%P2Display".selected_style)
 		pass
 

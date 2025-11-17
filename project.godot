@@ -488,7 +488,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Your Only Move Is HUSTLE"
+config/name="MultiHustle"
 run/main_scene="res://Main.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="YourOnlyMoveIsHUSTLE"

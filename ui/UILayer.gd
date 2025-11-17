@@ -99,6 +99,7 @@ func _enter_tree():
 		css.reset()
 
 func _ready():
+	$"%FullScreenRescueButton".connect("pressed", self, "_fix_window_position")
 	$"%MHDiscordLink".connect("pressed", self, "_invite_to_mh_discord")
 	$"%SingleplayerButton".connect("pressed", self, "_on_singleplayer_pressed")
 	$"%MultiplayerButton".connect("pressed", self, "_on_multiplayer_pressed")
@@ -891,3 +892,15 @@ func _on_SoftlockResetButton_pressed():
 	
 func _invite_to_mh_discord():
 	OS.shell_open(MH_DISCORD_URL)
+
+func _fix_window_position():
+	print("Fixing position!")
+	var original_value = Global.fullscreen
+	
+	Global.set_fullscreen(false)
+	
+	yield(get_tree(), "idle_frame")
+	yield(get_tree(), "idle_frame")
+	yield(get_tree(), "idle_frame")
+	
+	Global.set_fullscreen(original_value)

@@ -176,7 +176,7 @@ func _on_received_spectator_match_data(data):
 
 func _on_match_ready(data):
 	match_data = data
-	singleplayer = true if match_data.has("replay") else data["singleplayer"]
+	#singleplayer = true if match_data.has("replay") else data["singleplayer"]
 	if !match_data.has("replay"):
 		ReplayManager.playback = false
 	SteamLobby.SETTINGS_LOCKED = false
