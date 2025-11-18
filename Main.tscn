@@ -1139,7 +1139,7 @@ align = 1
 unique_name_in_owner = true
 anchor_right = 1.0
 anchor_bottom = 1.0
-mouse_filter = 2
+mouse_filter = 1
 theme = ExtResource( 4 )
 __meta__ = {
 "_edit_lock_": true
@@ -2333,15 +2333,15 @@ custom_constants/separation = 4
 unique_name_in_owner = true
 margin_bottom = 11.0
 
-[node name="RoadmapContainer" type="Control" parent="UILayer/MainMenu"]
+[node name="RoadmapContainer" type="Control" parent="UILayer"]
 unique_name_in_owner = true
-margin_left = 2.0
 margin_top = 2.0
-margin_right = 42.0
+margin_right = 40.0
 margin_bottom = 42.0
 mouse_filter = 2
+theme = ExtResource( 4 )
 
-[node name="RoadmapButton" type="Button" parent="UILayer/MainMenu/RoadmapContainer"]
+[node name="RoadmapButton" type="Button" parent="UILayer/RoadmapContainer"]
 unique_name_in_owner = true
 margin_top = 1.0
 margin_right = 115.0
@@ -2351,28 +2351,34 @@ toggle_mode = true
 action_mode = 0
 text = "MULTIHUSTLE ROADMAP"
 
-[node name="RoadmapListContainer" type="VBoxContainer" parent="UILayer/MainMenu/RoadmapContainer"]
-unique_name_in_owner = true
-margin_top = 14.0
-margin_right = 225.0
-margin_bottom = 285.0
+[node name="VBoxContainer" type="HBoxContainer" parent="UILayer/RoadmapContainer"]
+margin_left = -640.0
+margin_top = 13.0
+margin_bottom = 358.0
 script = ExtResource( 78 )
-slide_time = 0.725
-off_x = -235
-on_x = 5
+slide_time = 0.6
+off_x = -640
+off_object_positions = {
+NodePath("../../MainMenu"): 0.0
+}
+on_object_positions = {
+NodePath("../../MainMenu"): 640.0
+}
 
-[node name="MajorBugs" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+[node name="MajorBugs" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 0.913725, 0.0156863, 0.0156863, 1 )
-margin_right = 225.0
-margin_bottom = 53.0
+margin_right = 126.0
+margin_bottom = 345.0
+rect_min_size = Vector2( 126, 345 )
 text = "MAJOR BUG: Replays are extremely buggy! Do not play for the reason of making replays!  This also breaks resync and undo. This will be fixed in 0.8.1"
 autowrap = true
 
-[node name="Complete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+[node name="Complete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
-margin_top = 54.0
-margin_right = 225.0
-margin_bottom = 149.0
+margin_left = 127.0
+margin_right = 253.0
+margin_bottom = 345.0
+rect_min_size = Vector2( 126, 345 )
 text = "Complete:
 - Base mod
 - Teams
@@ -2382,33 +2388,36 @@ text = "Complete:
 - - Boost"
 autowrap = true
 
-[node name="WIP" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+[node name="WIP" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 0.921569, 0.694118, 0.258824, 1 )
-margin_top = 150.0
-margin_right = 225.0
-margin_bottom = 203.0
+margin_left = 254.0
+margin_right = 380.0
+margin_bottom = 345.0
+rect_min_size = Vector2( 126, 345 )
 text = "In Development:
 - Team combo moves
 - - Heal
 - - Rescue"
 autowrap = true
 
-[node name="Incomplete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+[node name="Incomplete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 1, 1, 1, 0.482353 )
-margin_top = 204.0
-margin_right = 225.0
-margin_bottom = 271.0
+margin_left = 381.0
+margin_right = 507.0
+margin_bottom = 345.0
+rect_min_size = Vector2( 126, 345 )
 text = "Not Started:
 - Fix stupid bugs
 - New gamemodes
 - - MultiControl (1 player controls 2+ characters, planned for 1.0.0)"
 autowrap = true
 
-[node name="Bugs" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+[node name="Bugs" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 1, 0.239216, 0, 1 )
-margin_top = 272.0
-margin_right = 225.0
-margin_bottom = 339.0
+margin_left = 508.0
+margin_right = 634.0
+margin_bottom = 345.0
+rect_min_size = Vector2( 126, 345 )
 text = "Known Bugs:
 - Some throw moves that hit multiple players don't do the same damage to everybody
 - Joining another game without restarting the game first causes a crash"
@@ -3166,7 +3175,7 @@ anchor_bottom = 1.0
 [connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/ClearParticlesButton" to="UILayer" method="_on_ClearParticlesButton_pressed"]
 [connection signal="text_entered" from="UILayer/GameUI/PausePanel/VBoxContainer/ReplayName" to="." method="_on_ReplayName_text_entered"]
 [connection signal="pressed" from="UILayer/MainMenu/ButtonContainer/WorkshopUploader" to="UILayer" method="_on_WorkshopUploader_pressed"]
-[connection signal="toggled" from="UILayer/MainMenu/RoadmapContainer/RoadmapButton" to="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer" method="toggle"]
+[connection signal="toggled" from="UILayer/RoadmapContainer/RoadmapButton" to="UILayer/RoadmapContainer/VBoxContainer" method="toggle"]
 [connection signal="pressed" from="UILayer/ResimRequestScreen/RequestUndoPanel/VBoxContainer/HBoxContainer/ResimYes" to="UILayer/ResimRequestScreen" method="_on_ResimYes_pressed"]
 [connection signal="pressed" from="UILayer/ResimRequestScreen/RequestUndoPanel/VBoxContainer/HBoxContainer/ResimNo" to="UILayer/ResimRequestScreen" method="_on_ResimNo_pressed"]
 [connection signal="pressed" from="UILayer/SoftlockResetButton" to="UILayer" method="_on_SoftlockResetButton_pressed"]
