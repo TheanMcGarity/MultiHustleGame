@@ -2365,7 +2365,7 @@ on_x = 5
 modulate = Color( 0.913725, 0.0156863, 0.0156863, 1 )
 margin_right = 225.0
 margin_bottom = 53.0
-text = "MAJOR BUG: Replays are extremely buggy! Do not play for the reason of making replays!  This also breaks resync and undo. This will be fixed soon."
+text = "MAJOR BUG: Replays are extremely buggy! Do not play for the reason of making replays!  This also breaks resync and undo. This will be fixed in 0.8.1"
 autowrap = true
 
 [node name="Complete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
