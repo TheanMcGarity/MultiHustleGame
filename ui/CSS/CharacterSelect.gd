@@ -1304,7 +1304,6 @@ func _on_network_character_selected(player_id, character, style = null):
 	
 	if Network.is_host():
 		Network.rpc_("send_match_data", get_match_data())
-		
 	net_async_loadOtherChar() # Load all player characters
 		
 		

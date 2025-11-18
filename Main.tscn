@@ -614,6 +614,7 @@ script = ExtResource( 63 )
 margin_left = 69.0
 margin_right = 309.0
 margin_bottom = 77.0
+mouse_filter = 1
 size_flags_horizontal = 3
 
 [node name="Label2" type="Label" parent="HudLayer/HudLayer/FeintDisplay"]
@@ -1082,6 +1083,7 @@ modulate = Color( 0.67451, 0.635294, 1, 0.705882 )
 margin_right = 311.0
 margin_bottom = 144.0
 grow_horizontal = 2
+mouse_filter = 1
 size_flags_horizontal = 3
 size_flags_vertical = 7
 theme = ExtResource( 4 )
@@ -1094,6 +1096,7 @@ margin_left = 315.0
 margin_right = 626.0
 margin_bottom = 144.0
 grow_horizontal = 2
+mouse_filter = 1
 size_flags_horizontal = 3
 size_flags_vertical = 7
 theme = ExtResource( 4 )
@@ -1222,7 +1225,6 @@ alignment = 1
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
 margin_right = 320.0
 margin_bottom = 140.0
-mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 2
@@ -1981,12 +1983,13 @@ __meta__ = {
 
 [node name="FullScreenRescueButton" type="Button" parent="UILayer/MainMenu"]
 unique_name_in_owner = true
+visible = false
 margin_left = 119.0
 margin_top = -1.0
 margin_right = 244.0
 margin_bottom = 19.0
 rect_min_size = Vector2( 0, 20 )
-hint_tooltip = "Press this only if your window position  is bugged!"
+hint_tooltip = "Press this only if your window position is bugged!"
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
 custom_colors/font_color_pressed = Color( 0.262745, 0.74902, 1, 1 )
@@ -2358,34 +2361,43 @@ slide_time = 0.725
 off_x = -235
 on_x = 5
 
-[node name="Complete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
-modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
+[node name="MajorBugs" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+modulate = Color( 0.913725, 0.0156863, 0.0156863, 1 )
 margin_right = 225.0
 margin_bottom = 53.0
+text = "MAJOR BUG: Replays are extremely buggy! Do not play for the reason of making replays!  This also breaks resync and undo. This will be fixed soon."
+autowrap = true
+
+[node name="Complete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
+modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
+margin_top = 54.0
+margin_right = 225.0
+margin_bottom = 149.0
 text = "Complete:
 - Base mod
 - Teams
-- Replay+ Timeline Support"
+- Replay+ Timeline Support
+- Throws
+- Team combo moves
+- - Boost"
 autowrap = true
 
 [node name="WIP" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
 modulate = Color( 0.921569, 0.694118, 0.258824, 1 )
-margin_top = 54.0
+margin_top = 150.0
 margin_right = 225.0
-margin_bottom = 135.0
+margin_bottom = 203.0
 text = "In Development:
-- Throws
 - Team combo moves
-- - Boost
-- - Rescue
-- - Heal"
+- - Heal
+- - Rescue"
 autowrap = true
 
 [node name="Incomplete" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
 modulate = Color( 1, 1, 1, 0.482353 )
-margin_top = 136.0
+margin_top = 204.0
 margin_right = 225.0
-margin_bottom = 203.0
+margin_bottom = 271.0
 text = "Not Started:
 - Fix stupid bugs
 - New gamemodes
@@ -2393,10 +2405,10 @@ text = "Not Started:
 autowrap = true
 
 [node name="Bugs" type="Label" parent="UILayer/MainMenu/RoadmapContainer/RoadmapListContainer"]
-modulate = Color( 1, 0.101961, 0.101961, 1 )
-margin_top = 204.0
+modulate = Color( 1, 0.239216, 0, 1 )
+margin_top = 272.0
 margin_right = 225.0
-margin_bottom = 271.0
+margin_bottom = 339.0
 text = "Known Bugs:
 - Some throw moves that hit multiple players don't do the same damage to everybody
 - Joining another game without restarting the game first causes a crash"
