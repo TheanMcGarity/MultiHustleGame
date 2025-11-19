@@ -9,10 +9,16 @@ export var on_object_positions = {}
 
 var state:bool = false
 
+export var main_menu_node:NodePath
+
 onready var y_pos = rect_position.y
+onready var main_menu = get_node(main_menu_node)
 
 func _ready():
 	rect_position.x = off_x
+
+func _process(d):
+	get_parent().visible = main_menu.visible
 
 func toggle(val):
 	var tween := create_tween()

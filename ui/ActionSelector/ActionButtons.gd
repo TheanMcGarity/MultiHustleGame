@@ -862,9 +862,9 @@ func _on_submit_pressed():
 	locked_in = true
 
 func on_action_submitted(action, data = null, extra = null):
-	Network.log_to_file("Submitting action for player " + str(id) + ", action is " + str(action) + " | " + str(data))
 	active = false
 	extra = get_extra() if extra == null else extra
+	Network.log_to_file("Submitting action %s for player %d | Data:%s | Extra:%s" % [action, id, data, extra])
 	$"%SelectButton".disabled = true
 	emit_signal("turn_ended")
 	$"%SelectButton".shortcut = null
@@ -973,8 +973,8 @@ func activate(refresh = true):
 
 	fighter_extra.reset()
 
-	if not fighter.dummy:
-		restored_selection = _restore_fighter_selection(stored_action, stored_reverse, stored_feint, stored_di)
+	#if not fighter.dummy:
+	#	restored_selection = _restore_fighter_selection(stored_action, stored_reverse, stored_feint, stored_di)
 
 	if fighter.dummy:
 		on_action_submitted("ContinueAuto", null)

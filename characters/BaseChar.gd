@@ -2425,11 +2425,13 @@ func tick_before():
 
 			if not is_ghost:
 				ReplayManager.frames[id][current_tick] = {
+					"debug_print": {"frame":current_tick, "player":id},
 					"action": queued_action, 
 					"data": queued_data, 
 					"extra": queued_extra, 
-					"opp": opponent.id
+					"opp": opponent.id,
 				}
+				print(ReplayManager.frames[id][current_tick])
 	previous_input = last_input.duplicate(true)
 	feinted_last = feinting
 	var pressed_feint = false

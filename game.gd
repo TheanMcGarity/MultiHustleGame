@@ -664,7 +664,7 @@ func tick():
 			fx.tick()
 	self.current_tick += 1
 
-	for player_key in range(1, players.size()):
+	for player_key in range(1, players.size() + 1):
 		var player:Fighter = players[player_key]
 
 		player.current_tick = self.current_tick

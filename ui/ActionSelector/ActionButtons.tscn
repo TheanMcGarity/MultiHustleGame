@@ -134,7 +134,7 @@ size_flags_vertical = 3
 [node name="SelectButton" type="Button" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
 margin_right = 45.0
-margin_bottom = 19.0
+margin_bottom = 14.0
 hint_tooltip = "Submit the selected action and end your turn."
 mouse_default_cursor_shape = 2
 size_flags_vertical = 3
@@ -188,9 +188,9 @@ align = 1
 
 [node name="FeintButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
-margin_top = 20.0
+margin_top = 15.0
 margin_right = 45.0
-margin_bottom = 39.0
+margin_bottom = 29.0
 hint_tooltip = "Uses one charge of Free Cancel. Allows you to freely cancel your melee attack on the opponent's turn."
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -202,10 +202,9 @@ expand_icon = true
 
 [node name="ReverseButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
-visible = false
-margin_top = 20.0
-margin_right = 38.0
-margin_bottom = 39.0
+margin_top = 30.0
+margin_right = 45.0
+margin_bottom = 44.0
 hint_tooltip = "Perform your action backwards."
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -216,16 +215,16 @@ icon_align = 1
 expand_icon = true
 
 [node name="ContinueButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons" instance=ExtResource( 3 )]
-visible = false
-margin_top = 20.0
-margin_right = 38.0
-margin_bottom = 39.0
+margin_top = 45.0
+margin_right = 45.0
+margin_bottom = 60.0
 
 [node name="UndoButton" type="Button" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
-margin_top = 40.0
+visible = false
+margin_top = 52.0
 margin_right = 45.0
-margin_bottom = 60.0
+margin_bottom = 64.0
 hint_tooltip = "Resimulate the match until the previous turn."
 mouse_default_cursor_shape = 2
 size_flags_horizontal = 3
@@ -235,9 +234,9 @@ text = "Undo"
 [node name="AutoButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
 visible = false
-margin_top = 45.0
-margin_right = 38.0
-margin_bottom = 60.0
+margin_top = 65.0
+margin_right = 45.0
+margin_bottom = 77.0
 size_flags_vertical = 3
 action_mode = 0
 text = "Auto"

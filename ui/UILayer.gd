@@ -248,6 +248,8 @@ func _on_join_lobby_success():
 #	$"%MainMenu".hide()
 
 func hide_main_menu(all=false):
+	$"%RoadmapContainer".hide()
+
 	if all:
 		$"%MainMenu".hide()
 	else:

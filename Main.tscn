@@ -2378,21 +2378,13 @@ NodePath("../../MainMenu"): 0.0
 on_object_positions = {
 NodePath("../../MainMenu"): 640.0
 }
-
-[node name="MajorBugs" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
-modulate = Color( 0.913725, 0.0156863, 0.0156863, 1 )
-margin_right = 126.0
-margin_bottom = 345.0
-rect_min_size = Vector2( 126, 345 )
-text = "MAJOR BUG: Replays are extremely buggy! Do not play for the reason of making replays!  This also breaks resync and undo. This will be fixed in 0.8.2"
-autowrap = true
+main_menu_node = NodePath("../../MainMenu")
 
 [node name="Complete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
-margin_left = 127.0
-margin_right = 253.0
+margin_right = 160.0
 margin_bottom = 345.0
-rect_min_size = Vector2( 126, 345 )
+rect_min_size = Vector2( 160, 345 )
 text = "Complete:
 - Base mod
 - Teams
@@ -2404,10 +2396,10 @@ autowrap = true
 
 [node name="WIP" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 0.921569, 0.694118, 0.258824, 1 )
-margin_left = 254.0
-margin_right = 380.0
+margin_left = 161.0
+margin_right = 321.0
 margin_bottom = 345.0
-rect_min_size = Vector2( 126, 345 )
+rect_min_size = Vector2( 160, 345 )
 text = "In Development:
 - Team combo moves
 - - Heal
@@ -2416,10 +2408,10 @@ autowrap = true
 
 [node name="Incomplete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 1, 1, 1, 0.482353 )
-margin_left = 381.0
-margin_right = 507.0
+margin_left = 322.0
+margin_right = 482.0
 margin_bottom = 345.0
-rect_min_size = Vector2( 126, 345 )
+rect_min_size = Vector2( 160, 345 )
 text = "Not Started:
 - Fix stupid bugs
 - New gamemodes
@@ -2428,13 +2420,15 @@ autowrap = true
 
 [node name="Bugs" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
 modulate = Color( 1, 0.239216, 0, 1 )
-margin_left = 508.0
-margin_right = 634.0
+margin_left = 483.0
+margin_right = 643.0
 margin_bottom = 345.0
-rect_min_size = Vector2( 126, 345 )
+rect_min_size = Vector2( 160, 345 )
 text = "Known Bugs:
 - Some throw moves that hit multiple players don't do the same damage to everybody
-- Joining another game without restarting the game first causes a crash"
+- Joining another game without restarting the game first causes a crash
+- Player Extras sometimes just dont work in replays, which will desync them.
+- Facing direction is sometimes wrong"
 autowrap = true
 
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
