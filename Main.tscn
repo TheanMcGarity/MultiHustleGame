@@ -1139,7 +1139,7 @@ align = 1
 unique_name_in_owner = true
 anchor_right = 1.0
 anchor_bottom = 1.0
-mouse_filter = 1
+mouse_filter = 2
 theme = ExtResource( 4 )
 __meta__ = {
 "_edit_lock_": true
@@ -2145,6 +2145,20 @@ custom_colors/font_color_pressed = Color( 0.262745, 0.74902, 1, 1 )
 text = "Credits"
 flat = true
 
+[node name="ChangelogButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 120.0
+margin_right = 144.0
+margin_bottom = 140.0
+rect_min_size = Vector2( 0, 20 )
+rect_pivot_offset = Vector2( 42, -27 )
+mouse_default_cursor_shape = 2
+custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
+custom_colors/font_color_pressed = Color( 0.262745, 0.74902, 1, 1 )
+text = "MH Changelogs"
+flat = true
+
 [node name="MHDiscordLink" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 120.0
@@ -2370,7 +2384,7 @@ modulate = Color( 0.913725, 0.0156863, 0.0156863, 1 )
 margin_right = 126.0
 margin_bottom = 345.0
 rect_min_size = Vector2( 126, 345 )
-text = "MAJOR BUG: Replays are extremely buggy! Do not play for the reason of making replays!  This also breaks resync and undo. This will be fixed in 0.8.1"
+text = "MAJOR BUG: Replays are extremely buggy! Do not play for the reason of making replays!  This also breaks resync and undo. This will be fixed in 0.8.2"
 autowrap = true
 
 [node name="Complete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]

@@ -470,6 +470,9 @@ remotesync func set_display_name(name:String, char_id:int):
 	if name == null or name == "":
 		name = "!!Invalid Persona Name!!"
 		color = "630700"
+	
+	if not is_instance_valid(game):
+		return
 
 	game.player_names_rich[char_id] = "[center][color=#%s]%s[/color][/center]" % [color, name]
 	game.player_names[char_id] = name
@@ -663,3 +666,7 @@ remotesync func client_disconnected(id):
 		log_to_file("CLIENT FORFEIT -> %d" % id)
 		
 
+signal steam_lobby_sync_confirmed(steam_id, opps)
+
+remotesync func net_sync_confirm(steam_id, opps):
+	emit_signal("steam_lobby_sync_confirmed", steam_id, opps)

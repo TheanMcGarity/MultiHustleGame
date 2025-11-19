@@ -213,6 +213,7 @@ const testedVersion = "1.9.20-steam"
 
 const incompat_list = [
 	"platform_library",
+	"MultiHustle",
 	#"ReplayPlus",
 	#"qol",
 	#"AdvancedStyleMenu"
@@ -222,6 +223,7 @@ const incompat_reasons = {
 	"qol": "Causes desync,\nand also breaks throw mechanics.",
 	"ReplayPlus": "Crashes when opening timeline.\nA multihustle version of the timeline will be made soon",
 	"AdvancedStyleMenu": "Breaks throw mechanics. (including Robot)\nCrashes game when selecting ninja.\nSorry to everyone who needs this mod! Cannot be avoided at this moment.",
+	"MultiHustle": "You have the original pre-rewrite MH Installed! This will break stuff.",
 	}
 
 func MH_addWarningMessage():
@@ -271,3 +273,4 @@ func on_resync(player):
 	if Network.resync_counter == Network.game.players.size() - Network.game.quitters.size() and Network.player_id == Network.resync_request_player_id:
 		Network.rpc_("mh_resim", [ReplayManager.frames])
 		Network.log_to_file("Rsyncing.")
+

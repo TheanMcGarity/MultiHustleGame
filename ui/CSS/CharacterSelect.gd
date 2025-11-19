@@ -1205,6 +1205,8 @@ func _import_end():
 func _createImportFiles(folder, _charName, _charPath): # returns an array of missing files
 	var dir = Directory.new()
 
+	print("creating import files for %s in %s" % [_charName, folder])
+
 	# if mod cache exists, just import it and return
 	var md = ModLoader._readMetadata(folder + "/_metadata")
 	var modName = md.name

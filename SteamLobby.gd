@@ -81,6 +81,7 @@ func _ready() -> void:
 	Steam.connect("get_auth_session_ticket_response", self, "_get_Auth_Session_Ticket_Response")
 	Steam.connect("validate_auth_ticket_response", self, "_validate_Auth_Ticket_Response")
 	Network.connect("game_error", self, "_on_game_error")
+	Network.connect("steam_lobby_sync_confirmed", self, "sync_confirm")
 	spectator_update_timer = Timer.new()
 	spectator_update_timer.connect("timeout", self, "_on_spectator_update_timer_timeout")
 	add_child(spectator_update_timer)
@@ -511,8 +512,8 @@ func _read_P2P_Packet_custom(readable):
 				
 	if readable.has("multihustle_start"):
 		send_sync(readable.multihustle_start)
-	if readable.has("sync_confirm"):
-		sync_confirm(readable.steam_id)
+	#if readable.has("sync_confirm"):
+	#	sync_confirm(readable.steam_id)
 
 func set_status(status):
 	Steam.setLobbyMemberData(LOBBY_ID, "status", status)
@@ -1013,17 +1014,17 @@ func send_sync(OPPONENT_IDS):
 		Network.register_player_steam(steam_id)
 	sync_confirms[SteamHustle.STEAM_ID] = true
 	is_syncing = true
-	var data = {
-		"steam_id":SteamHustle.STEAM_ID,
-		"sync_confirm":true
-	}
-	_send_P2P_Packet(0, data)
-	sync_confirm(SteamHustle.STEAM_ID)
+	Network.rpc_("net_sync_confirm", [SteamHustle.STEAM_ID, OPPONENT_IDS])
+	#sync_confirm(SteamHustle.STEAM_ID)
 
-func sync_confirm(steam_id):
+func sync_confirm(steam_id, opps):
+	OPPONENT_IDS = opps
 	Network.log_to_file("sync_confirm called")
 	sync_confirms[steam_id] = true
 	print(sync_confirms)
+
+	is_syncing = true # i dont even want to explain
+
 	if is_syncing:
 		#for confirmation in sync_confirms.values():
 		#	if !confirmation:
@@ -1043,6 +1044,7 @@ func _setup_game_vs_group(OPPONENT_IDS):
 	for index in OPPONENT_IDS.keys():
 		var steam_id = OPPONENT_IDS[index]
 		if steam_id == SteamHustle.STEAM_ID:
+			print("setting player side to %d" % index)
 			PLAYER_SIDE = index
 			Network.player_id = index
 			Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "player_id", str(index))
