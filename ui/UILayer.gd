@@ -412,7 +412,13 @@ func init(game):
 	p1_time_run_out = false
 	p2_time_run_out = false
 	
+	for timer in turn_timers.values():
+		if is_instance_valid(timer):
+			timer.stop()
+			timer.queue_free()
+		
 	turn_timers = {}
+	
 	for index in game.players.keys():
 		turn_timers[index] = Timer.new()
 		turn_timers[index].connect("timeout", self, "_on_turn_timer_timeout", [index])
@@ -679,6 +685,14 @@ func _on_ClearParticlesButton_pressed():
 		if game.get_player(2).aura_particle:
 			game.get_player(2).aura_particle.restart()
 	pass # Replace with function body.
+
+func _on_CalcEndMatch_pressed():
+	if is_instance_valid(game):
+		game.print_should_game_end_data()
+
+func _on_Resim_pressed():
+	if is_instance_valid(game):
+		game.undo(false)
 
 
 func _on_RoadmapButton_toggled(button_pressed):

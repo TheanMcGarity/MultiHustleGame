@@ -397,7 +397,10 @@ func pid_to_username(player_id):
 			return Global.current_game.match_data.user_data["p" + str(player_id)]
 		if direct_connect:
 			return players[network_ids[opponent_player_id(player_id)]] # idk why i need to do this
-		return players[network_ids[player_id]]
+		var net_id = network_ids[player_id]
+		if !players.has(net_id):
+			return 1
+		return players[net_id]
 
 
 func opponent_id(pid=player_id):

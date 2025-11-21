@@ -489,17 +489,7 @@ func _process(delta):
 	# loading label thing, waits like 3 seconds to start dissapearing
 	loadingLabel.text = loadingText
 
-	if (retract_loaded):
-		if labelTimer == 0:
-			loadingLabel.percent_visible += delta * 3
-		if (loadingLabel.percent_visible >= 1):
-			labelTimer += delta
-		if (labelTimer > 2):
-			loadingLabel.percent_visible -= delta * 2
-			if (loadingLabel.percent_visible - delta * 4 <= 0):
-				retract_loaded = false
-				loadingLabel.percent_visible = 0
-	
+
 	if _Global.isSteamGame:
 		Network.multiplayer_host = Network.steam_isHost
 
@@ -613,7 +603,6 @@ func addCharButton(_name, _charPath, _bttName = ""):
 		# move up player portraits if theres more than 5 buttons
 #		if (_Global.default_chars + customCharNumber > 5):
 #			self.get_node("HBoxContainer").set_position(Vector2(0, -50))
-
 # the loadListChar function loads the character from the given index in the charList array.
 # also acts as an issue catcher, returns an array of missing files (or an empty array if there aren't any)
 # missing files can either be .png.import/.wav.import files or missing audio files in the .import folder, given that currently there's only support for .wav conversion

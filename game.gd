@@ -911,6 +911,22 @@ func should_game_end():
 
 	return alive_teams <= 1
 
+func print_should_game_end_data():
+	set_vanilla_game_started(true)
+	
+	var alive_teams := 4
+	alive_teams -= int(calc_team_is_living(1))
+	alive_teams -= int(calc_team_is_living(2))
+	alive_teams -= int(calc_team_is_living(3))
+	alive_teams -= int(calc_team_is_living(4))
+	
+	
+	is_team_win = alive_teams <= 1
+	var ffa_living = calc_team_living_count(0)
+	var ffa_alive := calc_team_living_count(0) > 0
+
+	print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
+
 func resolve_same_x_coordinate():
 	set_vanilla_game_started(true)
 

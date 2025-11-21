@@ -1215,7 +1215,7 @@ size_flags_stretch_ratio = 4.79
 [node name="ActionButtons" type="HBoxContainer" parent="UILayer/GameUI/BottomBar"]
 unique_name_in_owner = true
 margin_right = 641.0
-margin_bottom = 140.0
+margin_bottom = 127.0
 rect_min_size = Vector2( 0, 120 )
 mouse_filter = 2
 size_flags_horizontal = 3
@@ -1224,21 +1224,21 @@ alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
 margin_right = 320.0
-margin_bottom = 140.0
+margin_bottom = 127.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 2
 
 [node name="Control" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer"]
-margin_top = 35.0
+margin_top = 22.0
 margin_right = 320.0
-margin_bottom = 35.0
+margin_bottom = 22.0
 
 [node name="P1InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 36.0
+margin_top = 23.0
 margin_right = 320.0
-margin_bottom = 56.0
+margin_bottom = 43.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1299,9 +1299,9 @@ texture = ExtResource( 35 )
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 57.0
+margin_top = 44.0
 margin_right = 320.0
-margin_bottom = 140.0
+margin_bottom = 127.0
 rect_min_size = Vector2( 0, 73 )
 size_flags_horizontal = 3
 opponent_action_buttons_path = NodePath("../../VBoxContainer2/P2ActionButtons")
@@ -1309,7 +1309,7 @@ opponent_action_buttons_path = NodePath("../../VBoxContainer2/P2ActionButtons")
 [node name="VBoxContainer2" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
 margin_left = 321.0
 margin_right = 641.0
-margin_bottom = 140.0
+margin_bottom = 127.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -1317,9 +1317,9 @@ alignment = 2
 
 [node name="P2InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2"]
 unique_name_in_owner = true
-margin_top = 36.0
+margin_top = 23.0
 margin_right = 320.0
-margin_bottom = 56.0
+margin_bottom = 43.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1379,9 +1379,9 @@ mouse_filter = 2
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 57.0
+margin_top = 44.0
 margin_right = 320.0
-margin_bottom = 140.0
+margin_bottom = 127.0
 rect_min_size = Vector2( 0, 73 )
 size_flags_horizontal = 3
 player_id = 2
@@ -1389,7 +1389,7 @@ opponent_action_buttons_path = NodePath("../../VBoxContainer/P1ActionButtons")
 
 [node name="OptionsBarContainer" type="MarginContainer" parent="UILayer/GameUI/BottomBar"]
 unique_name_in_owner = true
-margin_top = 140.0
+margin_top = 127.0
 margin_right = 641.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 12 )
@@ -1397,17 +1397,20 @@ mouse_filter = 2
 custom_constants/margin_right = 5
 custom_constants/margin_left = 5
 
-[node name="OptionsBar" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer"]
-unique_name_in_owner = true
-visible = false
+[node name="BarAlign" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer"]
 margin_left = 5.0
 margin_right = 636.0
+margin_bottom = 25.0
+
+[node name="OptionsBar" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign"]
+unique_name_in_owner = true
+margin_right = 631.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 1
 
-[node name="GhostButton" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar"]
+[node name="GhostButton" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar"]
 unique_name_in_owner = true
 margin_left = 12.0
 margin_right = 112.0
@@ -1417,7 +1420,7 @@ pressed = true
 action_mode = 0
 text = "show prediction"
 
-[node name="AfterimageButton" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar"]
+[node name="AfterimageButton" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar"]
 unique_name_in_owner = true
 margin_left = 113.0
 margin_right = 194.0
@@ -1425,7 +1428,7 @@ margin_bottom = 12.0
 pressed = true
 text = "afterimages"
 
-[node name="FreezeOnMyTurn" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar"]
+[node name="FreezeOnMyTurn" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar"]
 unique_name_in_owner = true
 margin_left = 195.0
 margin_right = 297.0
@@ -1433,7 +1436,7 @@ margin_bottom = 12.0
 pressed = true
 text = "freeze on ready"
 
-[node name="FreezeSound" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar"]
+[node name="FreezeSound" type="CheckButton" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar"]
 unique_name_in_owner = true
 margin_left = 298.0
 margin_right = 386.0
@@ -1441,21 +1444,21 @@ margin_bottom = 12.0
 pressed = true
 text = "freeze sound"
 
-[node name="GhostSpeed" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar"]
+[node name="GhostSpeed" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar"]
 unique_name_in_owner = true
 margin_left = 387.0
 margin_right = 530.0
 margin_bottom = 12.0
 script = ExtResource( 13 )
 
-[node name="Label" type="Label" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/GhostSpeed"]
+[node name="Label" type="Label" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/GhostSpeed"]
 unique_name_in_owner = true
 margin_right = 84.0
 margin_bottom = 11.0
 theme = ExtResource( 4 )
 text = "prediction speed:"
 
-[node name="1Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/GhostSpeed"]
+[node name="1Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/GhostSpeed"]
 unique_name_in_owner = true
 margin_left = 85.0
 margin_right = 113.0
@@ -1464,7 +1467,7 @@ rect_min_size = Vector2( 12, 0 )
 toggle_mode = true
 text = "x0.25"
 
-[node name="2Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/GhostSpeed"]
+[node name="2Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/GhostSpeed"]
 unique_name_in_owner = true
 margin_left = 114.0
 margin_right = 128.0
@@ -1474,7 +1477,7 @@ toggle_mode = true
 pressed = true
 text = "x1"
 
-[node name="3Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/GhostSpeed"]
+[node name="3Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/GhostSpeed"]
 unique_name_in_owner = true
 margin_left = 129.0
 margin_right = 143.0
@@ -1483,7 +1486,7 @@ rect_min_size = Vector2( 12, 0 )
 toggle_mode = true
 text = "x2"
 
-[node name="4Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/GhostSpeed"]
+[node name="4Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/GhostSpeed"]
 unique_name_in_owner = true
 visible = false
 margin_left = 144.0
@@ -1493,19 +1496,43 @@ rect_min_size = Vector2( 12, 0 )
 toggle_mode = true
 text = "x4"
 
-[node name="ClearParticlesButton" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar"]
+[node name="ClearParticlesButton" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar"]
 unique_name_in_owner = true
 margin_left = 531.0
 margin_right = 604.0
 margin_bottom = 12.0
 text = "clear particles"
 
-[node name="PredictionSettingsCloseButton" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar"]
+[node name="PredictionSettingsCloseButton" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar"]
 unique_name_in_owner = true
 margin_left = 605.0
 margin_right = 619.0
 margin_bottom = 12.0
 icon = ExtResource( 66 )
+
+[node name="DebugBar" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign"]
+margin_top = 13.0
+margin_right = 631.0
+margin_bottom = 25.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="CalcEndMatch" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/DebugBar"]
+unique_name_in_owner = true
+margin_left = 253.0
+margin_right = 324.0
+margin_bottom = 12.0
+rect_pivot_offset = Vector2( -283, -158 )
+text = "print end data"
+
+[node name="Resim" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/DebugBar"]
+unique_name_in_owner = true
+margin_left = 325.0
+margin_right = 378.0
+margin_bottom = 12.0
+rect_pivot_offset = Vector2( -283, -158 )
+text = "resimulate"
 
 [node name="PausePanel" type="PanelContainer" parent="UILayer/GameUI"]
 unique_name_in_owner = true
@@ -1654,6 +1681,7 @@ __meta__ = {
 
 [node name="PredictionSettingsOpenButton" type="Button" parent="UILayer/GameUI"]
 unique_name_in_owner = true
+visible = false
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -3180,7 +3208,9 @@ visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/ClearParticlesButton" to="UILayer" method="_on_ClearParticlesButton_pressed"]
+[connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/ClearParticlesButton" to="UILayer" method="_on_ClearParticlesButton_pressed"]
+[connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/DebugBar/CalcEndMatch" to="UILayer" method="_on_ClearParticlesButton_pressed"]
+[connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/DebugBar/Resim" to="UILayer" method="_on_ClearParticlesButton_pressed"]
 [connection signal="text_entered" from="UILayer/GameUI/PausePanel/VBoxContainer/ReplayName" to="." method="_on_ReplayName_text_entered"]
 [connection signal="pressed" from="UILayer/MainMenu/ButtonContainer/WorkshopUploader" to="UILayer" method="_on_WorkshopUploader_pressed"]
 [connection signal="toggled" from="UILayer/RoadmapContainer/RoadmapButton" to="UILayer/RoadmapContainer/VBoxContainer" method="toggle"]
