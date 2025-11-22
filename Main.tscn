@@ -1,4 +1,4 @@
-[gd_scene load_steps=91 format=2]
+[gd_scene load_steps=93 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -78,6 +78,8 @@
 [ext_resource path="res://ui/MHDonate/DonateMenu.tscn" type="PackedScene" id=76]
 [ext_resource path="res://multihustle/ui/HUD/UISelectors.tscn" type="PackedScene" id=77]
 [ext_resource path="res://RoadmapListContainer.gd" type="Script" id=78]
+[ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
+[ext_resource path="res://ui/mh.png" type="Texture" id=80]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -1215,7 +1217,7 @@ size_flags_stretch_ratio = 4.79
 [node name="ActionButtons" type="HBoxContainer" parent="UILayer/GameUI/BottomBar"]
 unique_name_in_owner = true
 margin_right = 641.0
-margin_bottom = 127.0
+margin_bottom = 140.0
 rect_min_size = Vector2( 0, 120 )
 mouse_filter = 2
 size_flags_horizontal = 3
@@ -1224,21 +1226,21 @@ alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
 margin_right = 320.0
-margin_bottom = 127.0
+margin_bottom = 140.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 2
 
 [node name="Control" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer"]
-margin_top = 22.0
+margin_top = 35.0
 margin_right = 320.0
-margin_bottom = 22.0
+margin_bottom = 35.0
 
 [node name="P1InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 23.0
+margin_top = 36.0
 margin_right = 320.0
-margin_bottom = 43.0
+margin_bottom = 56.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1299,9 +1301,9 @@ texture = ExtResource( 35 )
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 44.0
+margin_top = 57.0
 margin_right = 320.0
-margin_bottom = 127.0
+margin_bottom = 140.0
 rect_min_size = Vector2( 0, 73 )
 size_flags_horizontal = 3
 opponent_action_buttons_path = NodePath("../../VBoxContainer2/P2ActionButtons")
@@ -1309,7 +1311,7 @@ opponent_action_buttons_path = NodePath("../../VBoxContainer2/P2ActionButtons")
 [node name="VBoxContainer2" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
 margin_left = 321.0
 margin_right = 641.0
-margin_bottom = 127.0
+margin_bottom = 140.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -1317,9 +1319,9 @@ alignment = 2
 
 [node name="P2InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2"]
 unique_name_in_owner = true
-margin_top = 23.0
+margin_top = 36.0
 margin_right = 320.0
-margin_bottom = 43.0
+margin_bottom = 56.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1379,9 +1381,9 @@ mouse_filter = 2
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 44.0
+margin_top = 57.0
 margin_right = 320.0
-margin_bottom = 127.0
+margin_bottom = 140.0
 rect_min_size = Vector2( 0, 73 )
 size_flags_horizontal = 3
 player_id = 2
@@ -1389,7 +1391,7 @@ opponent_action_buttons_path = NodePath("../../VBoxContainer/P1ActionButtons")
 
 [node name="OptionsBarContainer" type="MarginContainer" parent="UILayer/GameUI/BottomBar"]
 unique_name_in_owner = true
-margin_top = 127.0
+margin_top = 140.0
 margin_right = 641.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 12 )
@@ -1400,7 +1402,7 @@ custom_constants/margin_left = 5
 [node name="BarAlign" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer"]
 margin_left = 5.0
 margin_right = 636.0
-margin_bottom = 25.0
+margin_bottom = 12.0
 
 [node name="OptionsBar" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign"]
 unique_name_in_owner = true
@@ -1511,6 +1513,7 @@ margin_bottom = 12.0
 icon = ExtResource( 66 )
 
 [node name="DebugBar" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign"]
+visible = false
 margin_top = 13.0
 margin_right = 631.0
 margin_bottom = 25.0
@@ -2208,11 +2211,13 @@ margin_bottom = 160.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( -87, -115 )
 mouse_default_cursor_shape = 2
-custom_colors/font_color = Color( 0.623529, 0.917647, 0.72549, 1 )
-custom_colors/font_color_hover = Color( 0.435294, 1, 0.513726, 1 )
-custom_colors/font_color_pressed = Color( 0, 0.752941, 0.0941176, 1 )
-text = "Support MultiHustle Devs"
+custom_colors/font_color_hover = Color( 0.717647, 0.717647, 0.717647, 1 )
+custom_colors/font_color_pressed = Color( 0.486275, 0.486275, 0.486275, 1 )
+text = "Donate"
 flat = true
+script = ExtResource( 79 )
+colors = [ Color( 0.960784, 0.243137, 0.243137, 1 ), Color( 0.921569, 0.592157, 0.243137, 1 ), Color( 0.980392, 0.823529, 0.290196, 1 ), Color( 0.490196, 0.788235, 0.192157, 1 ), Color( 0.156863, 0.815686, 0.552941, 1 ), Color( 0.278431, 0.643137, 0.968627, 1 ), Color( 0.752941, 0.258824, 0.890196, 1 ) ]
+transition_time = 0.7
 
 [node name="QuitProgramButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
@@ -2319,12 +2324,24 @@ alignment = 2
 [node name="ItchButton" type="Button" parent="UILayer/MainMenu/SocialLinks"]
 unique_name_in_owner = true
 visible = false
-margin_left = 573.0
-margin_right = 595.0
+margin_left = 551.0
+margin_right = 573.0
 margin_bottom = 24.0
 rect_min_size = Vector2( 20, 20 )
 icon = ExtResource( 52 )
 icon_align = 1
+
+[node name="DiscordButton2" type="Button" parent="UILayer/MainMenu/SocialLinks"]
+unique_name_in_owner = true
+margin_left = 553.0
+margin_right = 573.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 20, 20 )
+mouse_default_cursor_shape = 2
+icon = ExtResource( 80 )
+flat = true
+icon_align = 1
+expand_icon = true
 
 [node name="DiscordButton" type="Button" parent="UILayer/MainMenu/SocialLinks"]
 unique_name_in_owner = true
@@ -2467,30 +2484,49 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 margin_left = -43.0
-margin_top = -144.0
+margin_top = -160.0
 margin_right = 43.0
+margin_bottom = -16.0
 theme = ExtResource( 4 )
 alignment = 1
 
 [node name="Label" type="Label" parent="UILayer/PostGameButtons"]
-margin_top = 53.0
+modulate = Color( 1, 0.25098, 0.25098, 1 )
+margin_top = 13.0
 margin_right = 86.0
-margin_bottom = 64.0
+margin_bottom = 66.0
+text = "replays might be broken until you restart your game!"
+align = 1
+autowrap = true
+
+[node name="Label2" type="Label" parent="UILayer/PostGameButtons"]
+margin_top = 67.0
+margin_right = 86.0
+margin_bottom = 78.0
+align = 1
+autowrap = true
+
+[node name="Label3" type="Label" parent="UILayer/PostGameButtons"]
+margin_top = 79.0
+margin_right = 86.0
+margin_bottom = 104.0
 text = "replay autosaved"
+align = 1
+autowrap = true
 
 [node name="RematchButton" type="Button" parent="UILayer/PostGameButtons"]
 unique_name_in_owner = true
-margin_top = 65.0
+margin_top = 105.0
 margin_right = 86.0
-margin_bottom = 77.0
+margin_bottom = 117.0
 theme = ExtResource( 4 )
 text = "Rematch"
 
 [node name="QuitButton" type="Button" parent="UILayer/PostGameButtons"]
 unique_name_in_owner = true
-margin_top = 78.0
+margin_top = 118.0
 margin_right = 86.0
-margin_bottom = 90.0
+margin_bottom = 130.0
 theme = ExtResource( 4 )
 text = "Quit"
 

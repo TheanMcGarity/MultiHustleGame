@@ -521,7 +521,7 @@ remotesync func request_mh_resim(requester_id:int):
 
 var resync_request_player_id:int = 0
 
-
+var quitter_count = 0
 
 remotesync func accept_mh_resim(player_id:int):
 	# todo: make better
@@ -533,7 +533,7 @@ remotesync func accept_mh_resim(player_id:int):
 		var team = Network.get_team(Network.player_id)
 		var color = Network.get_color(team)
 		var username = game.player_names[Network.player_id]
-		var msg = ("[color=#%s]%s[/color] clicked RESYNC. %d/%d" % [color, username, resync_counter, players.size() - game.quitters.size()]) 
+		var msg = ("[color=#%s]%s[/color] clicked RESYNC. %d/%d" % [color, username, resync_counter, game.players.size() - quitter_count]) 
 
 		rpc_("send_mh_chat_message_preformatted", [msg])
 
@@ -653,11 +653,12 @@ remotesync func client_disconnected(id):
 		sync_unlocks[id] = true
 		turns_ready[id] = true
 		game.quitters.append(id)
+		quitter_count += 1
 		ui.end_turn_for_real(id)
 		player.on_action_selected("Forfeit", null, null)
 
 		resync_counter += 1
-		if resync_counter == game.players.size() and player_id == resync_request_player_id:
+		if resync_counter >= game.players.size() - quitter_count and player_id == resync_request_player_id:
 			rpc_("mh_resim", [ReplayManager.frames])
 			log_to_file("Rsyncing from forfeit.")
 		

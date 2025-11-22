@@ -270,7 +270,7 @@ func MH_modmissing_closebutton_pressed():
 
 func on_resync(player):
 	Network.log_to_file("Checking if resync is ready.")
-	if Network.resync_counter == Network.game.players.size() - Network.game.quitters.size() and Network.player_id == Network.resync_request_player_id:
+	if Network.resync_counter >= Network.game.players.size() - Network.quitter_count and Network.player_id == Network.resync_request_player_id:
 		Network.rpc_("mh_resim", [ReplayManager.frames])
 		Network.log_to_file("Rsyncing.")
 
