@@ -957,7 +957,7 @@ func resolve_collisions_vanilla(p1, p2, step=0):
 	else:
 		edge_distance = int_abs(p1_right_edge - p2_left_edge)
 
-	if p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box):
+	if (p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box)) and not (p1.team == p2.team and (not p1.team == 0 or p2.team == 0)):
 		var push_p1_left = (p1.get_facing_int() == 1)
 		if p1.reverse_state:
 			push_p1_left = !push_p1_left
@@ -1027,7 +1027,7 @@ func resolve_collisions_vanilla(p1, p2, step=0):
 			p2.update_data()
 			return resolve_collisions(p1, p2, step+1)
 		
-		if p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box):
+		if (p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box)) and not (p1.team == p2.team and not (p1.team == 0 or p2.team == 0)):
 			p1.update_data()
 			p2.update_data()
 			return resolve_collisions(p1, p2, step+1)
@@ -2012,6 +2012,12 @@ func apply_hitboxes_internal(playerhitboxpair:Array):
 	var pair2 = playerhitboxpair[1]
 	var px1 = pair1[0]
 	var px2 = pair2[0]
+
+	if px1.game_over or px2.game_over:
+		return
+		
+	if px1.team == px2.team and not (p1.team == 0 or p2.team == 0):
+		return
 
 	var p1_hitboxes = pair1[1]
 	var p2_hitboxes = pair2[1]

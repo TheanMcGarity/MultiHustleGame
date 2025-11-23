@@ -922,6 +922,7 @@ func incr_combo(scale=true, projectile=false, force=false, combo_scale_amount=1)
 		unlock_achievement("ACH_UNFAIR")
 
 func is_colliding_with_opponent():
+	
 	return ((colliding_with_opponent or (current_state() is CharacterHurtState and (hitlag_applied - hitlag_ticks) < HITLAG_COLLISION_TICKS)) and current_state().state_name != "Grabbed")
 
 func on_state_started(state):
