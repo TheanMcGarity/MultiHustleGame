@@ -984,3 +984,11 @@ func compare(obj):
 func _draw():
 #	draw_circle(to_local(get_pos_visual()), 5, Color.white)
 	pass
+
+func get_team() -> int:
+	if self.get("team"):
+		return self.team
+	
+	if creator == null:
+		return 0
+	return creator.get_team()

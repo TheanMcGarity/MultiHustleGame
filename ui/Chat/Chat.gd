@@ -55,15 +55,10 @@ func play_chat_sound():
 func on_steam_chat_message_received(steam_id: int, message: String):
 	if !SteamLobby.can_get_messages_from_user(steam_id):
 		return
-	var color = "ff333d" if (Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "player_id") == "2") else "1d8df5"
-	if (Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")=="spectating"):
-		color = "999999"
-		if steam_id == SteamHustle.STEAM_ID:
-			color = "DDDDDD"
-
+	var color = "d931e8"
 	var steam_name = Steam.getFriendPersonaName(steam_id)
 	
-	var text = ProfanityFilter.filter(("<[color=#%s]" % [color]) + steam_name + "[/color]>: " + message)
+	var text = ProfanityFilter.filter(("<[color=#%s]%s[/color]>: %s" % [color, steam_name, message]))
 	var node = RichTextLabel.new()
 	node.bbcode_enabled = true
 	node.append_bbcode(text)
@@ -147,6 +142,16 @@ func _ready():
 	resync_button.hide()
 	resync_button.connect("pressed", self, "on_resync_press")
 	print("MH Modded Chat ready!")
+	
+	$"%ShowButton".connect("pressed", self, "toggle")
+	$"%LineEdit".connect("message_ready", self, "on_message_ready")
+	Network.connect("chat_message_received", self, "on_chat_message_received")
+	SteamLobby.connect("chat_message_received", self, "on_steam_chat_message_received")
+	if static_:
+		$"%ShowButton".hide()
+	SteamLobby.connect("user_joined", self, "_on_user_joined")
+	SteamLobby.connect("user_left", self, "_on_user_left")
+
 
 func on_resync_press():
 	Network.accept_softlock_fix()
@@ -199,7 +204,14 @@ func on_mh_chat_message_received(player_id: int, message: String, username: Stri
 func send_message(message):
 	if process_command(message):
 		return
-
+		
+	if Network.game == null:
+		SteamLobby.send_chat_message(message)
+		
+		if "[img" in message and "ui/unknown2.png" in message:
+			SteamHustle.unlock_achievement("ACH_JUMPSCARE")
+		return
+	
 	var steam_name = Steam.getFriendPersonaName(Steam.getSteamID())
 	
 	if "[img" in message and "ui/unknown2.png" in message:

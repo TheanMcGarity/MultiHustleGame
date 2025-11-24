@@ -2370,6 +2370,10 @@ func apply_hitboxes_objects(players:Array):
 			var hitbox = pair[0]
 			var target = pair[1]
 			var host = hitbox.host
+			if target.game_over:
+				continue
+			if (target.get_team() != 0 and target.get_team() == host.get_team()):
+				continue
 			if hitbox.throw || hitbox is ThrowBox:
 				if not _thrower_locked_out(host) and not _thrower_has_target(host, target):
 					MH_wrapped_hit(hitbox, target)

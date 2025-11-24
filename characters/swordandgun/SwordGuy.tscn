@@ -867,7 +867,8 @@ epic_horse_moment = ExtResource( 308 )
 [node name="Sprite" parent="Flip" index="0"]
 material = SubResource( 3 )
 frames = SubResource( 6 )
-animation = "TimeSplitter"
+animation = "ImpaleFollowup"
+frame = 29
 __meta__ = {
 "_edit_group_": true,
 "_edit_lock_": true
@@ -2856,10 +2857,10 @@ increment_combo = false
 [node name="Hitbox2" type="Node2D" parent="StateMachine/ImpaleFollowup" index="0"]
 z_index = 1000
 script = ExtResource( 83 )
-x = 31
+x = 26
 y = -12
-width = 202
-height = 82
+width = 55
+height = 25
 damage = 160
 damage_in_combo = 145
 minimum_damage = 60
@@ -2925,10 +2926,10 @@ increment_combo = false
 [node name="Hitbox2" type="Node2D" parent="StateMachine/ImpaleFollowupCombo" index="0"]
 z_index = 1000
 script = ExtResource( 83 )
-x = 31
+x = 26
 y = -12
-width = 202
-height = 82
+width = 55
+height = 25
 damage = 145
 minimum_damage = 60
 victim_hitlag = 4
