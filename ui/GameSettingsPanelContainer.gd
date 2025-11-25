@@ -44,6 +44,9 @@ onready var settings_nodes = {
 	"boost_move_allowed": $"%BoostMoveEnabled",
 	"rescue_move_allowed": $"%RescueMoveEnabled",
 	"heal_move_allowed": $"%HealMoveEnabled",
+	"collide_team": $"%TeamCollisionsEnabled",
+	"damage_team": $"%TeamDamagingCollisionsEnabled",
+	"collide_dead": $"%DeadCollisionsEnabled",
 }
 
 var float_to_string = [

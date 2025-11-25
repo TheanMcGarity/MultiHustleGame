@@ -33,7 +33,7 @@ scroll_horizontal_enabled = false
 [node name="GameSettingsContainer" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
 unique_name_in_owner = true
 margin_right = 152.0
-margin_bottom = 421.0
+margin_bottom = 447.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -113,8 +113,9 @@ value = 3600.0
 
 [node name="Separator" type="PanelContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 visible = false
-margin_right = 158.0
-margin_bottom = 4.0
+margin_top = 49.0
+margin_right = 152.0
+margin_bottom = 53.0
 rect_min_size = Vector2( 0, 4 )
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
@@ -476,7 +477,7 @@ unique_name_in_owner = true
 margin_top = 201.0
 margin_right = 152.0
 margin_bottom = 213.0
-hint_tooltip = "Player 2 will not be prompted for input."
+hint_tooltip = "Every player that isn't player 1 will not be prompted for input."
 size_flags_horizontal = 15
 text = "Only P1 Input"
 expand_icon = true
@@ -662,6 +663,40 @@ hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to
 size_flags_horizontal = 15
 pressed = true
 text = "Allow Team Heal Super"
+expand_icon = true
+
+[node name="DeadCollisionsEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 422.0
+margin_right = 152.0
+margin_bottom = 434.0
+rect_pivot_offset = Vector2( -291, -340 )
+hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to be throw others out of the way during the other person's hitstun"
+size_flags_horizontal = 15
+text = "Collide With Dead Players"
+expand_icon = true
+
+[node name="TeamCollisionsEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 435.0
+margin_right = 152.0
+margin_bottom = 447.0
+rect_pivot_offset = Vector2( -291, -340 )
+hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to be throw others out of the way during the other person's hitstun"
+size_flags_horizontal = 15
+text = "Collide With Teammates"
+expand_icon = true
+
+[node name="TeamDamagingCollisionsEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 448.0
+margin_right = 152.0
+margin_bottom = 460.0
+rect_pivot_offset = Vector2( -291, -340 )
+hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to be throw others out of the way during the other person's hitstun"
+size_flags_horizontal = 15
+text = "Damage Teammates"
 expand_icon = true
 
 [node name="FrameByFrame" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]

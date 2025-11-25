@@ -1220,7 +1220,9 @@ func hit_by(hitbox, force_hit=false):
 	
 	var from_name = obj_from_name(hitbox.host)
 	
-	var hb_team = from_name.get_team()
+	var hb_team = 0
+	if from_name:
+		hb_team = from_name.get_team()
 	
 	#Network.log("hit_by -> self_team="+str(self_team)+", hb_team="+str(hb_team))
 	

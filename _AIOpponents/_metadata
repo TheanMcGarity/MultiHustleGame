@@ -1,0 +1,15 @@
+{
+  "author": "AxNoodle",
+  "client_side": true,
+  "description": "General AI Opponent",
+  "friendly_name": "AI Opponent",
+  "id": "12345",
+  "link": "",
+  "name": "AI Opponent",
+  "overwrites": false,
+  "priority": -10000,
+  "requires": [
+    ""
+  ],
+  "version": "1.1.1"
+}

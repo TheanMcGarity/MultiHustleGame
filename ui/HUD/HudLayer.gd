@@ -19,6 +19,8 @@ onready var active_p2_super_meter = $"%ActiveP2SuperMeter"
 
 onready var p1_num_supers = $"%P1NumSupers"
 onready var p2_num_supers = $"%P2NumSupers"
+onready var p1_num_supers_active = $"%ActiveP1NumSupers"
+onready var p2_num_supers_active = $"%ActiveP2NumSupers"
 
 onready var p1_combo_counter = $"%P1ComboCounter"
 onready var p2_combo_counter = $"%P2ComboCounter"
@@ -101,8 +103,14 @@ func init(game):
 	p1_super_meter.max_value = p1.MAX_SUPER_METER
 	p2_super_meter.max_value = p2.MAX_SUPER_METER
 	
+	
 	active_p1_super_meter.max_value = p1.MAX_SUPER_METER
 	active_p2_super_meter.max_value = p2.MAX_SUPER_METER
+	
+	p1_super_meter.value = p1.super_meter
+	p2_super_meter.value = p2.super_meter
+	active_p1_super_meter.value = p1.super_meter
+	active_p2_super_meter.value = p2.super_meter
 	
 	p1_burst_meter.fighter = p1
 	p2_burst_meter.fighter = p2
@@ -356,10 +364,19 @@ func _physics_process(_delta):
 			else:
 				hp_trails[index] = plr.trail_hp
 		
+		p1_super_meter.value = p1.super_meter
+		p2_super_meter.value = p2.super_meter
+		active_p1_super_meter.value = p1.super_meter
+		active_p2_super_meter.value = p2.super_meter
 		mh_p1_healthbar.value = max(p1.hp, 0)
 		mh_p2_healthbar.value = max(p2.hp, 0)
 		mh_p1_health_bar_trail.value = hp_trails[p1index]
 		mh_p2_health_bar_trail.value = hp_trails[p2index]
+		
+		p1_num_supers.texture.current_frame = clamp(p1.supers_available, 0, 9)
+		p2_num_supers.texture.current_frame = clamp(p2.supers_available, 0, 9)
+		p1_num_supers_active.texture.current_frame = clamp(p1.supers_available, 0, 9)
+		p2_num_supers_active.texture.current_frame = clamp(p2.supers_available, 0, 9)
 		
 		p1_health_label.text = "%d/%d" % [p1.hp, p1.MAX_HEALTH]
 		p2_health_label.text = "%d/%d" % [p2.hp, p2.MAX_HEALTH]
@@ -389,5 +406,5 @@ func _physics_process(_delta):
 			mh_p1_ghost_health_bar_trail.value = 0
 			mh_p2_ghost_health_bar_trail.value = 0
 		
-		$"%P1SuperTexture".visible = game.player_supers[p1index]
-		$"%P2SuperTexture".visible = game.player_supers[p2index]
+		#$"%P1SuperTexture".visible = game.player_supers[p1index]
+		#$"%P2SuperTexture".visible = game.player_supers[p2index]

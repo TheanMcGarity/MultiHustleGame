@@ -1,0 +1,72 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://ui/ActionSelector/ActionUIData/ActionUIData.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/XYPlot/XYPlot.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ui/HorizSlider/HorizSlider.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/8Way/8Way.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/CountOption/CountOption.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/ActionSelector/ActionUIData/ActionUIDataOptionButton.gd" type="Script" id=6]
+[ext_resource path="res://ui/ActionSelector/ActionUIData/ActionUIDataCheckButton.gd" type="Script" id=7]
+
+[node name="ActionUIData" instance=ExtResource( 1 )]
+margin_right = 50.0
+margin_bottom = 62.0
+
+[node name="XYPlot" parent="." index="0" instance=ExtResource( 2 )]
+unique_name_in_owner = true
+anchor_right = 0.0
+anchor_bottom = 0.0
+panel_type = 2
+bottom_half = true
+left_quarter = false
+min_length = 0.5
+limit_angle = true
+limit_range_degrees = 70.0
+limit_center_degrees = 45.0
+limit_symmetrical = false
+default_value = Vector2( 0.707107, -0.707107 )
+
+[node name="8Way" parent="." index="1" instance=ExtResource( 4 )]
+margin_left = 61.0
+margin_right = 111.0
+margin_bottom = 66.0
+NW = false
+N = false
+NE = false
+Neutral = false
+SW = false
+S = false
+SE = false
+
+[node name="Slider" parent="." index="2" instance=ExtResource( 3 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 112.0
+margin_right = 172.0
+margin_bottom = 66.0
+centered = false
+
+[node name="CountOption" parent="." index="3" instance=ExtResource( 5 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 173.0
+margin_top = 15.0
+margin_right = 233.0
+margin_bottom = 51.0
+
+[node name="OptionButton" type="OptionButton" parent="." index="4"]
+margin_left = 234.0
+margin_right = 295.0
+margin_bottom = 66.0
+text = "No Attack"
+items = [ "No Attack", null, false, 0, null, "Punch", null, false, 1, null, "Kick", null, false, 2, null, "NunChuk", null, false, 3, null ]
+selected = 0
+script = ExtResource( 6 )
+
+[node name="CheckButton" type="CheckButton" parent="." index="5"]
+margin_left = 296.0
+margin_right = 343.0
+margin_bottom = 66.0
+pressed = true
+text = "Jump"
+script = ExtResource( 7 )

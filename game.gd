@@ -171,6 +171,9 @@ var players_getting_throwed:Dictionary = {}
 var quitters:Array = []
 var is_team_win := false
 
+var dead_collisions := false
+var team_collisions := false
+
 #var has_ghost_frozen_yet = false
 
 func get_ticks_left():
@@ -385,6 +388,11 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 	set_vanilla_game_started(true)
 
 	#print(match_data)
+	
+	if match_data.has("collide_team"):
+		team_collisions = match_data["collide_team"]
+	if match_data.has("collide_dead"):
+		dead_collisions = match_data["collide_dead"]
 	
 	if match_data.has("teams"):
 		var team_dict = match_data["teams"]
@@ -959,7 +967,17 @@ func resolve_collisions_vanilla(p1, p2, step=0):
 		edge_distance = int_abs(p1_right_edge - p2_left_edge)
 
 	
-	if (p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box)) and not (p1.team == p2.team and not (p1.team == 0)):
+	var team_collide = p1.team != p2.team
+	if team_collisions and not team_collide:
+		team_collide = true
+	if p1.team == 0:
+		team_collide = true
+		
+	var dead_collide = not (p1.game_over or p2.game_over)
+	if dead_collisions and not dead_collide:
+		dead_collide = true
+	
+	if (p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box)) and team_collide and dead_collide:
 		var push_p1_left = (p1.get_facing_int() == 1)
 		if p1.reverse_state:
 			push_p1_left = !push_p1_left
@@ -1029,7 +1047,7 @@ func resolve_collisions_vanilla(p1, p2, step=0):
 			p2.update_data()
 			return resolve_collisions(p1, p2, step+1)
 		
-		if (p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box)) and not (p1.team == p2.team and not (p1.team == 0)):
+		if (p1.is_colliding_with_opponent() and p2.is_colliding_with_opponent() and p1.collision_box.overlaps(p2.collision_box)) and team_collide and dead_collide:
 			p1.update_data()
 			p2.update_data()
 			return resolve_collisions(p1, p2, step+1)

@@ -617,7 +617,7 @@ func init(ngame, pid):
 
 func re_init(pid):
 	id = pid
-	Network.log_to_file("Re-Init called for action buttons! ID: " + str(pid))
+	#Network.log_to_file("Re-Init called for action buttons! ID: " + str(pid))
 
 	reset()
 	fighter = game.get_player(pid)
