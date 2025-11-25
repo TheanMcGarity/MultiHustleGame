@@ -228,11 +228,11 @@ func _on_playback_controls_button_toggled(on):
 
 func _on_open_prediction_settings_pressed():
 	$"%PredictionSettingsOpenButton".hide()
-	$"%OptionsBar".show()
+	$"%OptionsBarContainer".show()
 
 func _on_close_prediction_settings_pressed():
 	$"%PredictionSettingsOpenButton".show()
-	$"%OptionsBar".hide()
+	$"%OptionsBarContainer".hide()
 
 func toggle_help_screen():
 	$"%HelpScreen".visible = !$"%HelpScreen".visible

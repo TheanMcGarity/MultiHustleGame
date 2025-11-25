@@ -122,7 +122,7 @@ func _physics_process(delta):
 			visible = false
 
 func _process(delta):
-	rect_position.y = 57
+	#rect_position.y = 57
 	$"%DI".set_flash(false)
 	if active and is_instance_valid(fighter):
 		if fighter.will_forfeit:

@@ -15,7 +15,7 @@ const RUMBLE_MODIFIER = 4.0
 const MAX_RUMBLE = 10
 const MIN_VELOCITY = "0.0001"
 
-export var id = 1
+export var id = 1 setget set__id
 export var dummy = false
 export var _c_MovementAttributes = 0
 export var gravity: String = "0.8"
@@ -59,6 +59,8 @@ var current_tick = 0
 var game_tick = 0
 
 var hitlag_ticks = 0# setget set__hitlag_ticks
+
+
 func set__hitlag_ticks(new):
 	hitlag_ticks = new
 	if (Global.current_game.is_global_hitlag_activated_now):
@@ -66,6 +68,11 @@ func set__hitlag_ticks(new):
 		Global.current_game.is_global_hitlag_activated_now = false
 		for player in Global.current_game.player:
 			player.hitlag_ticks = new
+
+func set__id(new):
+	#if not is_ghost:
+	#	push_warning("Set id for %s to %d from %d" % [name, new, id])
+	id = new
 
 var combo_count = 0
 
@@ -210,6 +217,8 @@ func init(pos=null):
 	if initialized:
 		return
 	chara.id = id
+	if (not is_ghost):
+		print("Obj init for %d" % id)
 	chara.set_gravity(gravity)
 	chara.set_ground_friction(ground_friction)
 	chara.set_air_friction(air_friction)

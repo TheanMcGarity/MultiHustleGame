@@ -21,8 +21,8 @@ func _on_action_buttons_visibility_changed():
 		$"%PredictionSettingsOpenButton".hide()
 
 	else:
-		$"%OptionsBarContainer".show()
-		if !$"%OptionsBar".visible:
+		$"%OptionsBar".show()
+		if !$"%OptionsBarContainer".visible:
 			$"%PredictionSettingsOpenButton".show()
 		else:
 			$"%PredictionSettingsOpenButton".hide()

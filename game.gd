@@ -464,6 +464,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player.id = index
 		player.is_ghost = self.is_ghost
 		player.set_gravity_modifier(self.global_gravity_modifier)
+#		print("Player %s assigned with id %d with index %d, ghost=%s" % [player.name, player.id, index, player.is_ghost])
 	if not self.is_ghost:
 		Global.current_game = self
 	for value in match_data:

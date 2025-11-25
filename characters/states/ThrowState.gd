@@ -467,7 +467,7 @@ func _restore_original_opponent():
 func _copy_to(state):
 	._copy_to(state)
 	state.grabbed_ids = grabbed_ids.duplicate()
-	if grabbed_ids.size() > 0:
+	if grabbed_ids.size() > 0 and get("grabbed_ids"):
 		if state.data == null:
 			state.data = {}
 		state.data["grabbed_ids"] = grabbed_ids.duplicate()
