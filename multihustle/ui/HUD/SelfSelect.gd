@@ -1,6 +1,6 @@
 extends "res://multihustle/ui/HUD/CharacterSelect.gd"
 
-#class_name SelfCharacterSelect
+class_name SelfCharacterSelect
 
 onready var opponentSelect
 

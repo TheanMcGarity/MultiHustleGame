@@ -46,11 +46,11 @@ func _init():
 	#This script has to be installed before the mods or else it doesn't get extended
 	_loadMods()
 	print("----------------mods------loaded--------------------")
-	installScriptExtension("res://_AIOpponents/ModOptions.gd")
 	
 	_initMods()
 	print("----------------mods initialized--------------------")
 	
+	installScriptExtension("res://_AIOpponents/ModOptions.gd")
 	installScriptExtension("res://modloader/ModHashCheck.gd")
 	call_deferred("append_hash")
 

@@ -81,6 +81,8 @@ func _frame_0():
 	var vec = xy_to_dir(data["x"], data["y"], "1")
 	var game = _get_host_game()
 	for team_member in Network.teams[host.team]:
+		if not game.players.has(team_member):
+			continue
 		var chara = game.players[team_member]
 		if chara.id != host.id:
 			if (overlaps(hitbox, chara.collision_box) and is_char_hitstun_allowed(chara)):

@@ -118,26 +118,31 @@ func debug_print(message):
 func _start_decision_thread():
 	print("_start_decision_thread")
 	if multihustle:
-		for player in range(id, id + mh_ai_count + 1):	
+		print("MH AI: Starting ID=%d, Ending ID=%d" % [id + 1, id + mh_ai_count + 1])
+		for player in range(id + 1, id + mh_ai_count + 1):
+			print("AI: MH Decision for id %d" % player)
 			_start_decision_thread_internal(player)
+			#target_player.on_action_selected(queued_action,queued_data,queued_extra)
 	else:
 		_start_decision_thread_internal(id)
 	
 
 func _start_decision_thread_internal(pid):
-	if !target_player:
-		target_player = get_parent().get_player(pid)
-		if target_player:
+	#if !target_player:
+	target_player = get_parent().get_player(pid)
+	if target_player:
+		if not target_player.is_connected("action_selected", self, "_edit_queue"):
 			target_player.connect("action_selected", self, "_edit_queue")
-			print("AI: Controller ready!")
-			make_move()
-		else:
-			pass
+		print("AI: Controller ready!")
+		
+		make_move()
+	else:
+		pass
 #			print("AI: Disabled")
 #			get_parent().disconnect("player_actionable", self, "_start_decision_thread")
 #			self.queue_free()
-	else:
-		make_move()
+	#else:
+	#	make_move()
 
 func _edit_queue(_action, _data, _extra):
 	target_player.queued_action = queued_action
@@ -146,7 +151,17 @@ func _edit_queue(_action, _data, _extra):
 	
 # Decicion making code. Calls ActionSelected
 func make_move():
+	if multihustle:
+		var ui_layer = main.ui_layer
+		var selector:SelfCharacterSelect = ui_layer.multiHustle_UISelectors.selects[2][0]
+		selector.select(target_player.id - 1)
+		selector._item_selected(target_player.id - 1)
+		selector.disabled = true
+		ui_layer.multiHustle_UISelectors.selects[2][1].disabled = true
 	
+		var selector_self:SelfCharacterSelect = ui_layer.multiHustle_UISelectors.selects[1][0]
+		selector_self.set_item_disabled(target_player.id - 1, true)
+		
 	ReplayManager.resimulating = true # Not strictly necessary but stops Godot errors
 	debug_print("============================================================")
 	
@@ -164,6 +179,9 @@ func make_move():
 			if player != self:
 				var opponent_dist = sqrt(pow(player.get_pos().x - target_player.get_pos().x, 2) + pow(player.get_pos().y - target_player.get_pos().y, 2))
 				if opponent_dist < closest_dist:
+					if (player.team == target_player.team) and not target_player.team == 0:
+						continue
+					
 					closest_opponent = player
 					closest_dist = opponent_dist
 		target_player.opponent = closest_opponent
@@ -217,10 +235,17 @@ func make_move():
 	queued_action = choice.action
 	queued_data = choice.data
 	queued_extra = {"DI":di, "feint":choice.feint if target_player.feints > 0 else false, "prediction":-1, "reverse":false}
+	if multihustle:
+		main.ui_layer.p2_action_buttons.lock_in_pressed = true
+		main.ui_layer.p2_action_buttons.locked_in = true
 	debug_print("Extra is " + str(queued_extra))
 	
 
-
+	target_player.on_action_selected(queued_action, queued_data, queued_extra)
+	
+	game.turns_taken[target_player.id] = true
+	Network.turns_ready[target_player.id] = true
+	print(queued_action)
 	main.call_deferred("_start_ghost")
 
 
@@ -597,13 +622,16 @@ func get_best_move(extra:Dictionary, id:int, leeway_percentage:float, allow_leew
 	var best_score = -999999
 	
 	#if multihustle:
-	#	Network.multihustle_action_button_manager.set_active_buttons(id, 2-id%2==2)
+	#	var mh_selectors:SelfCharacterSelect = main.ui_layer.multiHustle_UISelectors.selects[2][0]
+	#	mh_selectors.select_char(target_player)
+	#	main.ui_layer.setup_action_buttons()
 	var action_buttons = main.find_node("P"+str(2-id%2)+"ActionButtons")
 	
 	var evaluee = game.get_player(id)
 	var opponent = game.get_player(evaluee.opponent.id) 
 	
 	var dist = sqrt(pow(opponent.get_pos().x - evaluee.get_pos().x, 2) + pow(opponent.get_pos().y - evaluee.get_pos().y, 2))
+	
 	
 	for button in action_buttons.buttons:
 		# Check if the button is a move we're bothering to check.

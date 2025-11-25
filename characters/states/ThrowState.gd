@@ -518,7 +518,7 @@ func _register_target_with_game(target):
 	_log_registered_targets(game, "register_target_game_post")
 
 func _log_grabbed_targets(context: String, focus_target, newly_added: bool):
-	#return
+	return
 	var target_name = focus_target.name if focus_target and focus_target.get("name") else "[unknown]"
 	var names = []
 	for entry in grabbed_targets:

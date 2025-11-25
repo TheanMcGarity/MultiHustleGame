@@ -373,6 +373,14 @@ func _physics_process(_delta):
 		mh_p1_health_bar_trail.value = hp_trails[p1index]
 		mh_p2_health_bar_trail.value = hp_trails[p2index]
 		
+		p1_healthbar.max_value = p1.MAX_HEALTH
+		p2_healthbar.max_value = p2.MAX_HEALTH
+		
+		mh_p1_healthbar.max_value = p1.MAX_HEALTH
+		mh_p2_healthbar.max_value = p2.MAX_HEALTH
+		
+		
+		
 		p1_num_supers.texture.current_frame = clamp(p1.supers_available, 0, 9)
 		p2_num_supers.texture.current_frame = clamp(p2.supers_available, 0, 9)
 		p1_num_supers_active.texture.current_frame = clamp(p1.supers_available, 0, 9)

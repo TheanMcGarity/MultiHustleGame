@@ -800,6 +800,8 @@ func _on_turn_timer_timeout(player_id):
 	timer.paused = true
 
 func GetRealID(player_id):
+	if player_id == null:
+		return 1
 	var id =  multiHustle_UISelectors.selects[player_id][0].active_char_index
 	if id == 0:
 		return player_id

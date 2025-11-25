@@ -571,7 +571,8 @@ func init(ngame, pid):
 	$"%DI".visible = fighter.di_enabled
 	fighter_extra = fighter.player_extra_params_scene.instance()
 	fighter_extra.connect("data_changed", self, "extra_updated")
-	game.connect("forfeit_started", self, "_on_forfeit_started")
+	if not game.is_connected("forfeit_started", self, "_on_forfeit_started"):
+		game.connect("forfeit_started", self, "_on_forfeit_started")
 	fighter_extra.set_fighter(fighter)
 	turbo_mode = fighter.turbo_mode
 	Network.action_button_panels[player_id] = self
