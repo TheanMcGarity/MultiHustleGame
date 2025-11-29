@@ -1,8 +1,23 @@
 extends VBoxContainer
 
+onready var debug_1 = $"%P1ActionButtonsContainer"
+onready var debug_2 = $"%ActionButtons"
 onready var ui_layer = $"%UILayer"
 onready var active_player_info_container = $"%ActivePlayerInfoContainer"
 onready var main = $"../../.."
+
+var debug_1_y := 0
+var debug_2_y := 0
+
+func _process(delta):
+	var dbg_1_y = $"%P1ActionButtonsContainer".rect_position.y
+	var dbg_2_y = $"%ActionButtons".rect_position.y
+	if (debug_1_y != dbg_1_y):
+		print("DEBUG1 - %d - %d" % [dbg_1_y, debug_1_y])
+	if (debug_2_y != dbg_2_y):
+		print("DEBUG2 - %d - %d" % [dbg_2_y, debug_2_y])
+	debug_1_y = dbg_1_y
+	debug_2_y = dbg_2_y
 
 func _ready():
 	$"%P1ActionButtons".connect("visibility_changed", self, "_on_action_buttons_visibility_changed", [], CONNECT_DEFERRED)

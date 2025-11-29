@@ -1224,19 +1224,20 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
+[node name="P1ActionButtonsContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
+unique_name_in_owner = true
 margin_right = 320.0
 margin_bottom = 152.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 2
 
-[node name="Control" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer"]
+[node name="Control" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
 margin_top = 47.0
 margin_right = 320.0
 margin_bottom = 47.0
 
-[node name="P1InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer"]
+[node name="P1InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
 unique_name_in_owner = true
 margin_top = 48.0
 margin_right = 320.0
@@ -1244,19 +1245,19 @@ margin_bottom = 68.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="P1SuperContainer" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer/P1InfoContainer"]
+[node name="P1SuperContainer" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer/P1InfoContainer"]
 unique_name_in_owner = true
 margin_right = 320.0
 margin_bottom = 20.0
 mouse_filter = 2
 
-[node name="Padding" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer/P1InfoContainer/P1SuperContainer"]
+[node name="Padding" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer/P1InfoContainer/P1SuperContainer"]
 margin_right = 20.0
 margin_bottom = 20.0
 rect_min_size = Vector2( 20, 0 )
 mouse_filter = 2
 
-[node name="P1SuperMeter" type="TextureProgress" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer/P1InfoContainer/P1SuperContainer"]
+[node name="P1SuperMeter" type="TextureProgress" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer/P1InfoContainer/P1SuperContainer"]
 unique_name_in_owner = true
 margin_left = 21.0
 margin_right = 121.0
@@ -1269,7 +1270,7 @@ max_value = 1000.0
 texture_over = ExtResource( 31 )
 texture_progress = ExtResource( 32 )
 
-[node name="P1NumSupers" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer/P1InfoContainer/P1SuperContainer/P1SuperMeter"]
+[node name="P1NumSupers" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer/P1InfoContainer/P1SuperContainer/P1SuperMeter"]
 unique_name_in_owner = true
 anchor_left = 1.0
 anchor_top = 0.5
@@ -1285,7 +1286,7 @@ texture = SubResource( 17 )
 expand = true
 stretch_mode = 4
 
-[node name="Level" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer/P1InfoContainer/P1SuperContainer/P1SuperMeter"]
+[node name="Level" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer/P1InfoContainer/P1SuperContainer/P1SuperMeter"]
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -1297,7 +1298,7 @@ margin_bottom = 1.0
 mouse_filter = 2
 texture = ExtResource( 35 )
 
-[node name="P1ActionButtons" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer" instance=ExtResource( 3 )]
+[node name="P1ActionButtons" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -1306,9 +1307,10 @@ margin_right = 320.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
 size_flags_horizontal = 3
-opponent_action_buttons_path = NodePath("../../VBoxContainer2/P2ActionButtons")
+opponent_action_buttons_path = NodePath("../../P2ActionButtonsContainer/P2ActionButtons")
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
+[node name="P2ActionButtonsContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons"]
+unique_name_in_owner = true
 margin_left = 321.0
 margin_right = 641.0
 margin_bottom = 152.0
@@ -1317,7 +1319,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 2
 
-[node name="P2InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2"]
+[node name="P2InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer"]
 unique_name_in_owner = true
 margin_top = 48.0
 margin_right = 320.0
@@ -1325,14 +1327,14 @@ margin_bottom = 68.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="P2SuperContainer" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2/P2InfoContainer"]
+[node name="P2SuperContainer" type="HBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer/P2InfoContainer"]
 unique_name_in_owner = true
 margin_right = 320.0
 margin_bottom = 20.0
 mouse_filter = 2
 alignment = 2
 
-[node name="P2SuperMeter" type="TextureProgress" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2/P2InfoContainer/P2SuperContainer"]
+[node name="P2SuperMeter" type="TextureProgress" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer/P2InfoContainer/P2SuperContainer"]
 unique_name_in_owner = true
 margin_left = 199.0
 margin_right = 299.0
@@ -1346,7 +1348,7 @@ texture_over = ExtResource( 33 )
 texture_progress = ExtResource( 34 )
 fill_mode = 1
 
-[node name="P2NumSupers" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2/P2InfoContainer/P2SuperContainer/P2SuperMeter"]
+[node name="P2NumSupers" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer/P2InfoContainer/P2SuperContainer/P2SuperMeter"]
 unique_name_in_owner = true
 margin_left = -8.0
 margin_top = -5.0
@@ -1358,7 +1360,7 @@ texture = SubResource( 16 )
 expand = true
 stretch_mode = 4
 
-[node name="Level" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2/P2InfoContainer/P2SuperContainer/P2SuperMeter"]
+[node name="Level" type="TextureRect" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer/P2InfoContainer/P2SuperContainer/P2SuperMeter"]
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -1370,14 +1372,14 @@ margin_bottom = 1.0
 mouse_filter = 2
 texture = ExtResource( 35 )
 
-[node name="Padding" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2/P2InfoContainer/P2SuperContainer"]
+[node name="Padding" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer/P2InfoContainer/P2SuperContainer"]
 margin_left = 300.0
 margin_right = 320.0
 margin_bottom = 20.0
 rect_min_size = Vector2( 20, 0 )
 mouse_filter = 2
 
-[node name="P2ActionButtons" parent="UILayer/GameUI/BottomBar/ActionButtons/VBoxContainer2" instance=ExtResource( 3 )]
+[node name="P2ActionButtons" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -1387,7 +1389,7 @@ margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
 size_flags_horizontal = 3
 player_id = 2
-opponent_action_buttons_path = NodePath("../../VBoxContainer/P1ActionButtons")
+opponent_action_buttons_path = NodePath("../../P1ActionButtonsContainer/P1ActionButtons")
 
 [node name="OptionsBarContainer" type="MarginContainer" parent="UILayer/GameUI/BottomBar"]
 unique_name_in_owner = true
@@ -2004,7 +2006,6 @@ margin_bottom = 23.0
 
 [node name="MainMenu" type="Control" parent="UILayer"]
 unique_name_in_owner = true
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 1
@@ -2307,14 +2308,6 @@ focus_mode = 2
 custom_colors/font_color = Color( 1, 0.2, 0.239216, 1 )
 text = "BUY THE FULL VERSION ON STEAM!!"
 underline = 1
-
-[node name="MultiHustleLabel" type="Label" parent="UILayer/MainMenu/Title"]
-margin_left = 34.0
-margin_top = 33.0
-margin_right = 64.0
-margin_bottom = 44.0
-custom_colors/font_color = Color( 0.145098, 1, 0.729412, 1 )
-text = "(Multi)"
 
 [node name="SocialLinks" type="HBoxContainer" parent="UILayer/MainMenu"]
 margin_top = 335.0

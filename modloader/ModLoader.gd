@@ -50,7 +50,7 @@ func _init():
 	_initMods()
 	print("----------------mods initialized--------------------")
 	
-	installScriptExtension("res://_AIOpponents/ModOptions.gd")
+	#installScriptExtension("res://_AIOpponents/ModOptions.gd")
 	installScriptExtension("res://modloader/ModHashCheck.gd")
 	call_deferred("append_hash")
 
