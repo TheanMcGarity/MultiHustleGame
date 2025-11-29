@@ -742,11 +742,15 @@ func tick():
 							self.camera.reset_shake()
 	else :
 		ReplayManager.frames.finished = true
-	if should_game_end():
+	var game_end_data = should_game_end()
+	if game_end_data.end:
 		if self.started_multiplayer:
 			if not ReplayManager.playback:
 				Network.autosave_match_replay(match_data, player_usernames[1], player_usernames[2])
-		end_game()
+		if game_end_data.team_win:
+			end_game_team(game_end_data.winning_team)
+		else:
+			end_game_ffa(game_end_data.winning_player)
 	for player in players.values():
 		if player.hp <= 0:
 			if not(player.game_over):
@@ -893,33 +897,56 @@ func int_clamp(n: int, min_: int, max_: int):
 	if n >= max_:
 		return max_
 
-func should_game_end():
+func should_game_end() -> Dictionary:
+	var result = {
+		"end": false,
+		"team_win": false,
+		"winning_team": 0,
+		"winning_player": 0
+	}
 	set_vanilla_game_started(true)
-	
+	var red_living = calc_team_is_living(1)
+	var blu_living = calc_team_is_living(2)
+	var yel_living = calc_team_is_living(3)
+	var grn_living = calc_team_is_living(4)
 	var alive_teams := 4
-	alive_teams -= int(calc_team_is_living(1))
-	alive_teams -= int(calc_team_is_living(2))
-	alive_teams -= int(calc_team_is_living(3))
-	alive_teams -= int(calc_team_is_living(4))
+	alive_teams -= int(red_living)
+	alive_teams -= int(blu_living)
+	alive_teams -= int(yel_living)
+	alive_teams -= int(grn_living)
 	
 	
-	is_team_win = alive_teams <= 1
+	result.team_win = alive_teams <= 1
 	var ffa_living = calc_team_living_count(0)
 	var ffa_alive := calc_team_living_count(0) > 0
 
 	#print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
 
 	if (ffa_alive):
-		is_team_win = false
-
-		var liveCount = len(players)
-		for player in players.values():
-			liveCount -= int(player.game_over)
-			
-		return (self.current_tick > self.time or liveCount <= 1)
-	
-
-	return alive_teams <= 1
+		result.team_win = false
+		var living_player := 0
+		if ffa_living <= 1:
+			for player in Network.teams[0].keys():
+				if not players[player].game_over:
+					living_player = player
+			result.winning_player = living_player
+			result.end = true
+		#return (self.current_tick > self.time or liveCount <= 1)
+	else:
+		if result.team_win:
+			var winning_team := 0
+			if red_living:
+				winning_team = 1
+			elif blu_living:
+				winning_team = 2
+			elif yel_living:
+				winning_team = 3
+			elif grn_living:
+				winning_team = 4
+			result.winning_team = winning_team
+			result.end = true
+	return result
+	#return alive_teams <= 1
 
 func print_should_game_end_data():
 	set_vanilla_game_started(true)
@@ -1179,7 +1206,8 @@ func start_playback():
 #	ReplayManager.resimulating = true
 	emit_signal("playback_requested")
 
-func end_game():
+func end_game_ffa(player):
+	print("Ending game with winner: player %d" % player)
 	set_vanilla_game_started(true)
 
 	if self.game_finished:
@@ -1194,7 +1222,7 @@ func end_game():
 			if not Network.multiplayer_active and not SteamLobby.SPECTATING:
 				SteamHustle.unlock_achievement("ACH_CHESS")
 		ReplayManager.play_full = true
-	var winner = 0
+	var winner = player
 	var losers = []
 	var highestHealth = 0
 	var lowestHealth = 9223372036854775807
@@ -1202,14 +1230,8 @@ func end_game():
 	# TODO - Figure out better logic for losers
 	if not is_team_win:
 		for index in players.keys():
-			var player = players[index]
-			if player.hp > highestHealth:
-				winner = index
-				highestHealth = player.hp
-			if player.hp < lowestHealth:
+			if index != winner:
 				losers.append(index)
-				if (player.hp < lowestHealth):
-					lowestHealth = player.hp
 				
 		for loser in losers:
 			if get_player(loser).had_sadness:
@@ -1219,17 +1241,31 @@ func end_game():
 
 		emit_signal("game_won", winner)
 
-	else:
-		for index in Network.teams.keys():
-			var count = calc_team_living_count(index)
-			if count > 0:
-				winner = index
-				break
-		emit_signal("game_ended")
-
-		emit_signal("team_game_won", winner)
-
 	
+func end_game_team(team):
+	print("Ending game with winner: team %d" % team)
+	set_vanilla_game_started(true)
+
+	if self.game_finished:
+		return
+	self.game_end_tick = self.current_tick
+	self.game_finished = true
+	for player in players.values():
+		player.game_over = true
+
+	if not self.is_ghost:
+		if not ReplayManager.playback and not ReplayManager.replaying_ingame and not self.is_in_replay:
+			if not Network.multiplayer_active and not SteamLobby.SPECTATING:
+				SteamHustle.unlock_achievement("ACH_CHESS")
+		ReplayManager.play_full = true
+	var winner = team
+	var highestHealth = 0
+	var lowestHealth = 9223372036854775807
+	
+	emit_signal("game_ended")
+
+	emit_signal("team_game_won", winner)
+
 
 
 func negative_on_hit(player):
