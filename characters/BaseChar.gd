@@ -694,6 +694,8 @@ func copy_to(f):
 	f.set_facing(facing, true)
 #	f.set_grounded(is_grounded())
 	f.update_data()
+	f.emote(last_emote)
+	f.emote_live_counter = emote_live_counter
 
 func gain_burst():
 	if bursts_available < MAX_BURSTS:
@@ -821,17 +823,25 @@ func update_data():
 		"combo count": combo_count,
 	}
 
+
+var emote_live_counter := 0
+const EMOTE_TIME := 180
+var last_emote := ""
+
 func emote(message):
-	ReplayManager.emote(message, id, current_tick)
+	last_emote = message
+	emote_live_counter = 0
+	if not is_ghost:
+		ReplayManager.emote(message, id, current_tick)
 	if !Global.enable_emotes:
 		return
 	if is_instance_valid(emote_tween):
 		emote_tween.kill()
-	emote_tween = create_tween()
+	#emote_tween = create_tween()
 	$EmoteLabel.clear()
 	$EmoteLabel.append_bbcode("[center]" + ProfanityFilter.filter(message))
 	$EmoteLabel.show()
-	emote_tween.tween_method(self, "set_emote_visible", 1.0, 0.0, 3.0)
+	#emote_tween.tween_method(self, "set_emote_visible", 1.0, 0.0, 3.0)
 
 func set_emote_visible(amount: float):
 	if amount <= 0.001:
@@ -2385,6 +2395,11 @@ func set_name_text(txt):
 
 # Vanilla function but with opponent select sync
 func tick_before():
+	emote_live_counter += 1
+	
+	if emote_live_counter > EMOTE_TIME:
+		set_emote_visible(0)
+	
 	if queued_action == "Forfeit":
 		if forfeit:
 			queued_action = "Continue"
@@ -2398,7 +2413,6 @@ func tick_before():
 	dummy_interruptable = false
 	clean_parried_hitboxes()
 	busy_interrupt = false
-
 	update_grounded()
 	if ReplayManager.playback:
 		var input = get_playback_input()

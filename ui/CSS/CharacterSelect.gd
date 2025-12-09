@@ -84,6 +84,7 @@ var loaded_mods = false
 var pageLabel
 var searchBar
 
+var selected_team := 0
 
 #func _reset_match_data():
 	
@@ -421,6 +422,7 @@ func go():
 		network_match_data["selected_characters"] = selected_characters
 		emit_signal("match_ready", network_match_data)
 	else:
+		#selected_characters.erase(current_player_real)
 		emit_signal("match_ready", get_match_data())
 	hide()
 
@@ -715,7 +717,7 @@ func buffer_select(button):
 	current_player_real = current_player_real + 1
 	if current_player_real > 2:
 		var color = get_saturated_color(current_player_real)
-		print("COLOR = " + str(color))
+		#print("COLOR = " + str(color))
 		$"%SelectingLabel".modulate = color
 	set_display_color(0)
 	post_button_edit(button)
@@ -1269,7 +1271,7 @@ func on_team_button_pressed(button):
 	
 	var steam_id = Steam.getSteamID()
 	var username = Steam.getFriendPersonaName(steam_id)
-	
+	selected_team = button.team_id
 	Network.rpc_("on_team_change", [button.team_id, username, Network.player_id])
 
 func set_display_color(team):
@@ -1304,6 +1306,8 @@ func _on_style_selected(style, pidx):
 		real_selected_styles[current_player_real] = style
 
 func _on_button_pressed(button):
+	Network.rpc_("on_team_change", [selected_team, "player%d" % current_player_real, current_player_real])
+	selected_team = 0
 	if singleplayer:
 		Network.player_character_names[current_player_real] = button.text
 		if Network.player_character_uses.has(button.text):
@@ -1316,6 +1320,7 @@ func _on_button_pressed(button):
 			current_player_real = current_player_real + 1
 			set_display_color(0)
 			post_button_edit(button)
+		
 	else:
 		_on_button_pressed_vanilla(button)
 
@@ -1325,7 +1330,6 @@ func post_button_edit(button):
 	var pid = current_player_real
 	if Network.multiplayer_active:
 		pid = Network.player_id
-	Network.team_init(pid)
 
 	if singleplayer:
 		current_player = current_player_real
@@ -1382,8 +1386,8 @@ func get_saturated_color(id: int):
 	var hue = fmod(rng.randf() * 2.58913, 1)
 	var saturation = 0.4 + rng.randf() * 0.6
 	var value = 0.7 + rng.randf() * 0.3
-	print(hue)
-	print(saturation)
-	print(value)
-	print(Color.from_hsv(hue, saturation, value, 1))
+	#print(hue)
+	#print(saturation)
+	#print(value)
+	#print(Color.from_hsv(hue, saturation, value, 1))
 	return Color.from_hsv(hue, saturation, value)

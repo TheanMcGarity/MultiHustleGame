@@ -431,13 +431,6 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player.connect("clashed", self, "on_clash")
 		player.connect("predicted", self, "on_prediction", [player])
 	
-	if not Network.multiplayer_active and not match_data.has("replay"):
-		var team0_last = Network.teams[0][Network.teams[0].keys()[-1]]
-		if not players.has(team0_last):
-			var team_dict = Network.teams[0]
-			if team_dict.has(team0_last):
-				Network.team_living[0] -= 1
-				team_dict.erase(team0_last)
 		
 	self.stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)
 	if match_data.has("game_length"):
@@ -916,16 +909,18 @@ func should_game_end() -> Dictionary:
 	alive_teams -= int(grn_living)
 	
 	
-	result.team_win = alive_teams <= 1
 	var ffa_living = calc_team_living_count(0)
-	var ffa_alive := calc_team_living_count(0) > 0
-
+	var ffa_alive := calc_team_is_living(0)
+	
+	
+	result.team_win = alive_teams == 1 and not ffa_alive
+	
 	#print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
 
 	if (ffa_alive):
 		result.team_win = false
 		var living_player := 0
-		if ffa_living <= 1:
+		if ffa_living == 1:
 			for player in Network.teams[0].keys():
 				if not players[player].game_over:
 					living_player = player

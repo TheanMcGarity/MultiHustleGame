@@ -1,0 +1,1296 @@
+[gd_scene load_steps=46 format=2]
+
+[ext_resource path="res://characters/swordandgun/sprites/down_cleave3.png" type="Texture" id=1]
+[ext_resource path="res://multihustle/trailer/TrailerAnimation.tres" type="Animation" id=2]
+[ext_resource path="res://multihustle/trailer/TrailerScript.gd" type="Script" id=3]
+[ext_resource path="res://fx/parry4.png" type="Texture" id=4]
+[ext_resource path="res://multihustle/trailer/p4.png" type="Texture" id=5]
+[ext_resource path="res://characters/BaseChar.gdshader" type="Shader" id=6]
+[ext_resource path="res://characters/mutant/sprites/parry_high.png" type="Texture" id=7]
+[ext_resource path="res://fx/parry3.png" type="Texture" id=8]
+[ext_resource path="res://fx/parry2.png" type="Texture" id=9]
+[ext_resource path="res://fx/parry1.png" type="Texture" id=10]
+[ext_resource path="res://characters/mutant/sprites/swipe2.png" type="Texture" id=11]
+[ext_resource path="res://characters/mutant/sprites/slash3.png" type="Texture" id=12]
+[ext_resource path="res://ui/title2.png" type="Texture" id=13]
+[ext_resource path="res://characters/swordandgun/sprites/pistol_whip3.png" type="Texture" id=14]
+[ext_resource path="res://characters/mutant/sprites/roll2.png" type="Texture" id=15]
+[ext_resource path="res://characters/mutant/sprites/roll1.png" type="Texture" id=16]
+[ext_resource path="res://characters/mutant/sprites/roll3.png" type="Texture" id=17]
+[ext_resource path="res://characters/mutant/sprites/roll4.png" type="Texture" id=18]
+[ext_resource path="res://characters/mutant/sprites/forward_dash.png" type="Texture" id=19]
+[ext_resource path="res://characters/swordandgun/sprites/pistol_whip2.png" type="Texture" id=20]
+[ext_resource path="res://theme.tres" type="Theme" id=21]
+[ext_resource path="res://characters/mutant/sprites/anti_air_up5.png" type="Texture" id=22]
+
+[sub_resource type="Animation" id=1]
+length = 6.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("CowboyDownSlashTransition/CowboySliceTransition:rect_position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -2092, -2000 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("CowboyDownSlashTransition:rect_position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -1378, -896 ) ]
+}
+tracks/2/type = "bezier"
+tracks/2/path = NodePath("CowboyDownSlashTransition:rect_rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"points": PoolRealArray( 0, -0.25, 0, 0.25, 0 ),
+"times": PoolRealArray( 0 )
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("CowboyDownSlashTransition/CowboySliceTransition/P4Label:rect_rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("TitleReveal/Cowboy:rect_position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -48, 187 ) ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("TitleReveal/Cowboy/Sprite2:visible")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ true ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("TitleReveal/Cowboy/Sprite1:visible")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ true ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("MutantChaseTransition:rect_position")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 1250, 0 ) ]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Viewports/NametagAnnounceText/announce:percent_visible")
+tracks/8/interp = 2
+tracks/8/loop_wrap = true
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/keys = {
+"times": PoolRealArray( 0.448387, 1.24839 ),
+"transitions": PoolRealArray( 2.73208, 2.73208 ),
+"update": 0,
+"values": [ 0.0, 1.0 ]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Viewports/NametagAnnounceText2/name:text")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/keys = {
+"times": PoolRealArray( 0.448387, 3.04839, 4.64839 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ " PinkTarr", " p3", " Nooooooah820" ]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Viewports/NametagAnnounceText2/name:percent_visible")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/keys = {
+"times": PoolRealArray( 0.448387, 1.84839, 2.24839, 2.84839, 3.03322, 3.07532, 3.24839, 4.24839, 4.63107, 4.67399, 5.04839, 5.84839, 6.24839 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0 ]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Viewports/NametagAnnounceText3/color_announce:percent_visible")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/keys = {
+"times": PoolRealArray( 0.448387, 1.24839, 1.84839 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 0.0, 1.0 ]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Viewports/NametagAnnounceText2/name:modulate")
+tracks/12/interp = 0
+tracks/12/loop_wrap = true
+tracks/12/imported = false
+tracks/12/enabled = true
+tracks/12/keys = {
+"times": PoolRealArray( 1.84839, 3.04839, 4.64839 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 0.164706, 0.788235, 0.117647, 1 ), Color( 0.988235, 0.776471, 0.0117647, 1 ), Color( 1, 0.2, 0.239216, 1 ) ]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("NametagAnnounce/NoahCharacter:rect_position")
+tracks/13/interp = 2
+tracks/13/loop_wrap = true
+tracks/13/imported = false
+tracks/13/enabled = true
+tracks/13/keys = {
+"times": PoolRealArray( 0.448387, 5.25407, 6.05947 ),
+"transitions": PoolRealArray( 1, 2.46229, 0.353553 ),
+"update": 0,
+"values": [ Vector2( -611, -975 ), Vector2( -611, -975 ), Vector2( -430, -208 ) ]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("NametagAnnounce/TarrCharacter:rect_position")
+tracks/14/interp = 2
+tracks/14/loop_wrap = true
+tracks/14/imported = false
+tracks/14/enabled = true
+tracks/14/keys = {
+"times": PoolRealArray( 0.53097, 2.14295, 2.91376 ),
+"transitions": PoolRealArray( 0.63728, 0.63728, 0.63728 ),
+"update": 0,
+"values": [ Vector2( -522, -139 ), Vector2( -522, -139 ), Vector2( -226, -823 ) ]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Viewports/NametagAnnounceText2/name2:percent_visible")
+tracks/15/interp = 1
+tracks/15/loop_wrap = true
+tracks/15/imported = false
+tracks/15/enabled = true
+tracks/15/keys = {
+"times": PoolRealArray( 4.65164, 5.04207, 5.85954, 6.24839 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 1.0, 1.0, 0.0 ]
+}
+
+[sub_resource type="ViewportTexture" id=15]
+viewport_path = NodePath("Viewports/TeamComboText")
+
+[sub_resource type="ShaderMaterial" id=8]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.67451, 0.635294, 1, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="AnimatedTexture" id=9]
+frames = 4
+fps = 11.7
+frame_0/texture = ExtResource( 16 )
+frame_1/texture = ExtResource( 15 )
+frame_1/delay_sec = 0.0
+frame_2/texture = ExtResource( 17 )
+frame_2/delay_sec = 0.0
+frame_3/texture = ExtResource( 18 )
+frame_3/delay_sec = 0.0
+
+[sub_resource type="ShaderMaterial" id=10]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 1, 0.478431, 0.505882, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="AnimatedTexture" id=11]
+frames = 4
+fps = 11.7
+frame_0/texture = ExtResource( 18 )
+frame_1/texture = ExtResource( 16 )
+frame_1/delay_sec = 0.0
+frame_2/texture = ExtResource( 15 )
+frame_2/delay_sec = 0.0
+frame_3/texture = ExtResource( 17 )
+frame_3/delay_sec = 0.0
+
+[sub_resource type="ViewportTexture" id=16]
+viewport_path = NodePath("Viewports/P2Text")
+
+[sub_resource type="ShaderMaterial" id=12]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.866667, 1, 0.556863, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="AnimatedTexture" id=13]
+frames = 4
+fps = 11.7
+frame_0/texture = ExtResource( 16 )
+frame_1/texture = ExtResource( 17 )
+frame_1/delay_sec = 0.0
+frame_2/texture = ExtResource( 15 )
+frame_2/delay_sec = 0.0
+frame_3/texture = ExtResource( 18 )
+frame_3/delay_sec = 0.0
+
+[sub_resource type="ViewportTexture" id=19]
+viewport_path = NodePath("Viewports/P4Text")
+
+[sub_resource type="ShaderMaterial" id=14]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.556863, 1, 0.913725, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="ViewportTexture" id=18]
+viewport_path = NodePath("Viewports/P3Text")
+
+[sub_resource type="ShaderMaterial" id=2]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.866667, 1, 0.556863, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="ShaderMaterial" id=3]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.67451, 0.635294, 1, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="ShaderMaterial" id=4]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 1, 0.478431, 0.505882, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="Gradient" id=5]
+colors = PoolColorArray( 0, 0, 0, 0, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture2D" id=6]
+gradient = SubResource( 5 )
+width = 2
+height = 1
+
+[sub_resource type="AnimatedTexture" id=7]
+frames = 5
+fps = 7.8
+frame_0/texture = ExtResource( 10 )
+frame_1/texture = ExtResource( 9 )
+frame_1/delay_sec = 0.0
+frame_2/texture = ExtResource( 8 )
+frame_2/delay_sec = 0.0
+frame_3/texture = ExtResource( 4 )
+frame_3/delay_sec = 0.0
+frame_4/texture = SubResource( 6 )
+frame_4/delay_sec = 2.17
+
+[sub_resource type="ShaderMaterial" id=23]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0, 0, 0, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = true
+shader_param/outline_color = Color( 1, 0, 0, 1 )
+
+[sub_resource type="ShaderMaterial" id=24]
+resource_local_to_scene = true
+shader = ExtResource( 6 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.0117647, 0.521569, 0, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = true
+shader_param/outline_color = Color( 0.698039, 0.996078, 0.415686, 1 )
+
+[sub_resource type="ViewportTexture" id=20]
+viewport_path = NodePath("Viewports/NametagAnnounceText")
+
+[sub_resource type="ViewportTexture" id=22]
+viewport_path = NodePath("Viewports/NametagAnnounceText3")
+
+[sub_resource type="ViewportTexture" id=21]
+viewport_path = NodePath("Viewports/NametagAnnounceText2")
+
+[node name="Trailer" type="AnimationPlayer"]
+root_node = NodePath(".")
+anims/RESET = SubResource( 1 )
+anims/TrailerAnimation = ExtResource( 2 )
+script = ExtResource( 3 )
+
+[node name="Viewports" type="Node" parent="."]
+
+[node name="P4Text" type="Viewport" parent="Viewports"]
+size = Vector2( 13, 13 )
+transparent_bg = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Viewports/P4Text"]
+margin_left = -2.0
+margin_top = -1.0
+margin_right = 38.0
+margin_bottom = 39.0
+theme = ExtResource( 21 )
+text = " p4
+"
+
+[node name="NametagAnnounceText" type="Viewport" parent="Viewports"]
+size = Vector2( 105, 15 )
+transparent_bg = true
+
+[node name="announce" type="RichTextLabel" parent="Viewports/NametagAnnounceText"]
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 16.0
+theme = ExtResource( 21 )
+visible_characters = 1
+percent_visible = 0.0725612
+text = " Now with nametags!"
+
+[node name="TeamComboText" type="Viewport" parent="Viewports"]
+size = Vector2( 105, 15 )
+transparent_bg = true
+
+[node name="announce" type="RichTextLabel" parent="Viewports/TeamComboText"]
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 16.0
+theme = ExtResource( 21 )
+text = "Team Combos! "
+
+[node name="NametagAnnounceText2" type="Viewport" parent="Viewports"]
+size = Vector2( 105, 29 )
+transparent_bg = true
+
+[node name="name" type="RichTextLabel" parent="Viewports/NametagAnnounceText2"]
+modulate = Color( 0.164706, 0.788235, 0.117647, 1 )
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 16.0
+theme = ExtResource( 21 )
+visible_characters = 0
+percent_visible = 0.0
+text = " PinkTarr"
+scroll_active = false
+
+[node name="name2" type="RichTextLabel" parent="Viewports/NametagAnnounceText2"]
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_top = 16.0
+margin_right = 120.0
+margin_bottom = 29.0
+theme = ExtResource( 21 )
+visible_characters = 0
+percent_visible = 0.0
+text = " Emotive_Drink4"
+scroll_active = false
+
+[node name="NametagAnnounceText3" type="Viewport" parent="Viewports"]
+size = Vector2( 105, 15 )
+transparent_bg = true
+
+[node name="color_announce" type="RichTextLabel" parent="Viewports/NametagAnnounceText3"]
+margin_top = 3.0
+margin_right = 120.0
+margin_bottom = 16.0
+theme = ExtResource( 21 )
+bbcode_enabled = true
+bbcode_text = "Includes team [color=#ff00cc]color[/color]"
+visible_characters = 0
+percent_visible = 0.0
+text = "Includes team color"
+
+[node name="P3Text" type="Viewport" parent="Viewports"]
+size = Vector2( 13, 12 )
+transparent_bg = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Viewports/P3Text"]
+margin_left = -2.0
+margin_top = -1.0
+margin_right = 38.0
+margin_bottom = 39.0
+theme = ExtResource( 21 )
+text = " p3
+
+"
+
+[node name="P2Text" type="Viewport" parent="Viewports"]
+size = Vector2( 13, 12 )
+transparent_bg = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Viewports/P2Text"]
+margin_left = -2.0
+margin_top = -1.0
+margin_right = 38.0
+margin_bottom = 39.0
+theme = ExtResource( 21 )
+text = " p2
+"
+
+[node name="P1Text" type="Viewport" parent="Viewports"]
+size = Vector2( 13, 12 )
+transparent_bg = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Viewports/P1Text"]
+margin_left = -2.0
+margin_top = -1.0
+margin_right = 38.0
+margin_bottom = 39.0
+theme = ExtResource( 21 )
+text = " p1
+"
+
+[node name="GreenScreen" type="ColorRect" parent="."]
+margin_right = 640.0
+margin_bottom = 360.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="BlackScreen" type="ColorRect" parent="."]
+visible = false
+margin_top = 1.0
+margin_right = 640.0
+margin_bottom = 361.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="BlueScreen" type="ColorRect" parent="."]
+visible = false
+margin_right = 640.0
+margin_bottom = 360.0
+color = Color( 0, 0, 1, 1 )
+
+[node name="TeamCombos" type="TextureRect" parent="."]
+visible = false
+margin_left = 22.0
+margin_top = -52.0
+margin_right = 309.0
+margin_bottom = 131.0
+texture = SubResource( 15 )
+expand = true
+stretch_mode = 6
+flip_v = true
+
+[node name="MutantChaseTransition" type="ColorRect" parent="."]
+visible = false
+margin_left = 1250.0
+margin_right = 2125.0
+margin_bottom = 360.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="SubScreens" type="Control" parent="MutantChaseTransition"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="GreenScreen2" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -119.0
+margin_top = 213.0
+margin_right = 579.0
+margin_bottom = 360.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen3" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -125.0
+margin_top = 331.0
+margin_right = 579.0
+margin_bottom = 360.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen4" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -124.0
+margin_top = 274.0
+margin_right = 580.0
+margin_bottom = 305.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen5" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -78.0
+margin_top = 97.0
+margin_right = 610.0
+margin_bottom = 240.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen11" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -68.0
+margin_top = 93.0
+margin_right = 610.0
+margin_bottom = 240.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen6" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -94.0
+margin_top = 211.0
+margin_right = 610.0
+margin_bottom = 240.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen7" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -93.0
+margin_top = 154.0
+margin_right = 611.0
+margin_bottom = 185.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen8" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -51.0
+margin_top = -26.0
+margin_right = 647.0
+margin_bottom = 121.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen9" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+visible = false
+margin_left = -104.25
+margin_top = 129.0
+margin_right = 599.75
+margin_bottom = 158.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="GreenScreen10" type="ColorRect" parent="MutantChaseTransition/SubScreens"]
+margin_left = -56.0
+margin_top = 35.0
+margin_right = 648.0
+margin_bottom = 66.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="P1Chaser" type="TextureRect" parent="MutantChaseTransition"]
+material = SubResource( 8 )
+margin_left = -498.25
+margin_top = -85.0
+margin_right = 251.75
+margin_bottom = 665.0
+texture = SubResource( 9 )
+expand = true
+flip_h = true
+
+[node name="Name" type="TextureRect" parent="MutantChaseTransition/P1Chaser"]
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_left = 487.0
+margin_top = 365.0
+margin_right = 537.0
+margin_bottom = 415.0
+texture = SubResource( 15 )
+expand = true
+flip_v = true
+
+[node name="P2Chaser" type="TextureRect" parent="MutantChaseTransition"]
+material = SubResource( 10 )
+margin_left = -467.25
+margin_top = -205.0
+margin_right = 282.75
+margin_bottom = 545.0
+texture = SubResource( 11 )
+expand = true
+flip_h = true
+
+[node name="Name" type="TextureRect" parent="MutantChaseTransition/P2Chaser"]
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_left = 490.0
+margin_top = 359.0
+margin_right = 540.0
+margin_bottom = 409.0
+texture = SubResource( 16 )
+expand = true
+flip_v = true
+
+[node name="P4Chaser" type="TextureRect" parent="MutantChaseTransition"]
+material = SubResource( 12 )
+margin_left = -424.5
+margin_top = -338.0
+margin_right = 325.5
+margin_bottom = 412.0
+texture = SubResource( 13 )
+expand = true
+flip_h = true
+
+[node name="Name" type="TextureRect" parent="MutantChaseTransition/P4Chaser"]
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_left = 472.0
+margin_top = 367.0
+margin_right = 522.0
+margin_bottom = 417.0
+texture = SubResource( 19 )
+expand = true
+flip_v = true
+
+[node name="P3Runner" type="TextureRect" parent="MutantChaseTransition"]
+visible = false
+material = SubResource( 14 )
+margin_left = -743.25
+margin_top = -229.0
+margin_right = 6.75
+margin_bottom = 521.0
+texture = ExtResource( 19 )
+expand = true
+flip_h = true
+
+[node name="Name" type="TextureRect" parent="MutantChaseTransition/P3Runner"]
+modulate = Color( 0.113725, 0.552941, 0.960784, 1 )
+margin_left = 275.0
+margin_top = 311.0
+margin_right = 325.0
+margin_bottom = 361.0
+texture = SubResource( 18 )
+expand = true
+flip_v = true
+
+[node name="CowboyDownSlashTransition" type="ColorRect" parent="."]
+visible = false
+margin_left = -1378.0
+margin_top = -896.0
+margin_right = 1120.0
+margin_bottom = 880.026
+color = Color( 0, 0, 0, 1 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="Fade2" type="ColorRect" parent="CowboyDownSlashTransition"]
+visible = false
+margin_left = 851.0
+margin_top = -88.0
+margin_right = 877.7
+margin_bottom = 1864.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Fade3" type="ColorRect" parent="CowboyDownSlashTransition"]
+margin_left = 375.0
+margin_top = -40.0
+margin_right = 489.0
+margin_bottom = 727.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Fade4" type="ColorRect" parent="CowboyDownSlashTransition"]
+margin_left = 177.0
+margin_top = -73.0
+margin_right = 348.0
+margin_bottom = 727.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="CowboySliceTransition" type="TextureRect" parent="CowboyDownSlashTransition"]
+material = SubResource( 2 )
+anchor_left = 0.5
+anchor_top = -0.901
+anchor_right = 0.5
+anchor_bottom = -0.901
+margin_left = -3341.0
+margin_top = -399.8
+margin_right = -1341.0
+margin_bottom = 1600.2
+rect_pivot_offset = Vector2( 3134, 2322 )
+texture = ExtResource( 1 )
+expand = true
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="P4Label" type="TextureRect" parent="CowboyDownSlashTransition/CowboySliceTransition"]
+margin_left = 1081.0
+margin_top = 853.0
+margin_right = 1131.0
+margin_bottom = 903.0
+texture = ExtResource( 5 )
+expand = true
+
+[node name="TripleMutantParryTransition" type="Control" parent="."]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="PreTransition" type="ColorRect" parent="TripleMutantParryTransition"]
+margin_right = 640.0
+margin_bottom = 360.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="TextureRect" type="TextureRect" parent="TripleMutantParryTransition"]
+material = SubResource( 3 )
+margin_left = -67.0
+margin_top = -757.0
+margin_right = 1133.0
+margin_bottom = 443.0
+texture = ExtResource( 7 )
+expand = true
+
+[node name="TextureRect2" type="TextureRect" parent="TripleMutantParryTransition"]
+material = SubResource( 4 )
+margin_left = 526.0
+margin_top = -390.0
+margin_right = 1726.0
+margin_bottom = 810.0
+texture = ExtResource( 11 )
+expand = true
+flip_h = true
+
+[node name="TextureRect3" type="TextureRect" parent="TripleMutantParryTransition"]
+material = SubResource( 4 )
+margin_left = -1048.0
+margin_top = -414.0
+margin_right = 152.0
+margin_bottom = 786.0
+texture = ExtResource( 12 )
+expand = true
+
+[node name="TextureRect4" type="TextureRect" parent="TripleMutantParryTransition"]
+material = SubResource( 4 )
+margin_left = -318.0
+margin_top = -440.0
+margin_right = 882.0
+margin_bottom = 760.0
+texture = SubResource( 7 )
+expand = true
+
+[node name="TitleReveal" type="Control" parent="."]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="TextureRect" type="TextureRect" parent="TitleReveal"]
+margin_right = 640.0
+margin_bottom = 360.0
+texture = ExtResource( 13 )
+expand = true
+stretch_mode = 6
+
+[node name="Cover_multi" type="ColorRect" parent="TitleReveal"]
+margin_left = 23.0
+margin_top = 182.0
+margin_right = 120.0
+margin_bottom = 245.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover" type="ColorRect" parent="TitleReveal/Cover_multi"]
+margin_left = 19.0
+margin_top = 13.0
+margin_right = 168.0
+margin_bottom = 76.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover2" type="ColorRect" parent="TitleReveal/Cover_multi"]
+margin_left = 155.0
+margin_top = 9.0
+margin_right = 168.0
+margin_bottom = 26.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Cover_HUSTLE" type="ColorRect" parent="TitleReveal"]
+margin_left = 194.0
+margin_top = 199.0
+margin_right = 552.0
+margin_bottom = 273.0
+color = Color( 0, 1, 0, 0 )
+
+[node name="U" type="ColorRect" parent="TitleReveal/Cover_HUSTLE"]
+margin_left = 66.0
+margin_top = -27.0
+margin_right = 125.0
+margin_bottom = 62.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="L" type="ColorRect" parent="TitleReveal/Cover_HUSTLE"]
+margin_left = 231.0
+margin_top = 24.0
+margin_right = 284.0
+margin_bottom = 46.0
+rect_pivot_offset = Vector2( -70.1563, -73.9015 )
+color = Color( 0, 1, 0, 1 )
+
+[node name="L4" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/L"]
+margin_left = 44.0
+margin_top = -2.0
+margin_right = 54.0
+margin_bottom = 6.0
+rect_pivot_offset = Vector2( -70.1563, -73.9015 )
+color = Color( 0, 1, 0, 1 )
+
+[node name="L2" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/L"]
+anchor_left = 0.226
+anchor_top = 0.79
+anchor_right = 0.226
+anchor_bottom = 0.79
+margin_left = 8.022
+margin_top = -59.38
+margin_right = 29.022
+margin_bottom = 7.62
+rect_rotation = 15.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="L3" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/L"]
+anchor_left = 0.226
+anchor_top = 0.79
+anchor_right = 0.226
+anchor_bottom = 0.79
+margin_left = -1.978
+margin_top = -45.38
+margin_right = 24.022
+margin_bottom = -4.37999
+rect_rotation = 15.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T" type="ColorRect" parent="TitleReveal/Cover_HUSTLE"]
+margin_left = 200.0
+margin_top = -17.0
+margin_right = 225.0
+margin_bottom = 49.0
+rect_rotation = -5.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T2" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/T"]
+margin_left = 41.0
+margin_top = -2.0
+margin_right = 64.0
+margin_bottom = 60.0
+rect_rotation = 84.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T3" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/T"]
+margin_left = 44.0
+margin_top = 1.0
+margin_right = 61.0
+margin_bottom = 10.0
+rect_rotation = 84.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T4" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/T"]
+margin_left = 47.8174
+margin_top = 4.18347
+margin_right = 56.8174
+margin_bottom = 13.1835
+rect_rotation = 84.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T5" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/T"]
+margin_left = 45.9993
+margin_top = 2.01678
+margin_right = 54.9993
+margin_bottom = 11.0168
+rect_rotation = 84.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T6" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/T"]
+margin_left = -10.3106
+margin_top = 3.11325
+margin_right = 12.6894
+margin_bottom = 17.1133
+rect_rotation = 70.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T7" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/T"]
+margin_left = -14.644
+margin_top = 6.74939
+margin_right = 3.35599
+margin_bottom = 20.7494
+rect_rotation = 70.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="T8" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/T"]
+margin_left = -22.0
+margin_top = 12.0
+margin_right = -9.0
+margin_bottom = 22.0
+rect_rotation = 70.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="S" type="ColorRect" parent="TitleReveal/Cover_HUSTLE"]
+margin_left = 126.0
+margin_top = -12.0
+margin_right = 172.0
+margin_bottom = 51.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="S2" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/S"]
+margin_left = 36.0
+margin_top = 1.0
+margin_right = 51.313
+margin_bottom = 8.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="S3" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/S"]
+margin_left = 33.0
+margin_top = 4.0
+margin_right = 48.313
+margin_bottom = 11.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="S4" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/S"]
+margin_left = 34.0
+margin_top = 22.0
+margin_right = 73.0
+margin_bottom = 60.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="H" type="ColorRect" parent="TitleReveal/Cover_HUSTLE"]
+margin_left = -22.0449
+margin_top = 36.4517
+margin_right = 49.9551
+margin_bottom = 105.452
+rect_rotation = -20.0
+rect_pivot_offset = Vector2( -70.1563, -73.9015 )
+color = Color( 0, 1, 0, 1 )
+
+[node name="H2" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/H"]
+anchor_left = 0.226
+anchor_top = 0.79
+anchor_right = 0.226
+anchor_bottom = 0.79
+margin_left = 5.41348
+margin_top = -2.98589
+margin_right = 24.4695
+margin_bottom = 61.9891
+rect_rotation = 182.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="H3" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/H"]
+anchor_left = 0.226
+anchor_top = 0.79
+anchor_right = 0.226
+anchor_bottom = 0.79
+margin_left = 56.728
+margin_top = -7.51
+margin_right = 75.728
+margin_bottom = 57.49
+rect_rotation = 180.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="E" type="ColorRect" parent="TitleReveal/Cover_HUSTLE"]
+margin_left = 287.0
+margin_top = -11.0
+margin_right = 356.0
+margin_bottom = 52.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="E2" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/E"]
+margin_left = 34.0
+margin_top = -6.0
+margin_right = 70.0
+margin_bottom = 6.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="E3" type="ColorRect" parent="TitleReveal/Cover_HUSTLE/E"]
+margin_left = -3.0
+margin_top = 42.0
+margin_right = 33.0
+margin_bottom = 54.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Cover_Your" type="ColorRect" parent="TitleReveal"]
+margin_left = 91.0
+margin_top = 70.0
+margin_right = 248.0
+margin_bottom = 170.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover" type="ColorRect" parent="TitleReveal/Cover_Your"]
+margin_left = 153.0
+margin_top = 80.0
+margin_right = 169.0
+margin_bottom = 91.0
+rect_rotation = 33.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover2" type="ColorRect" parent="TitleReveal/Cover_Your"]
+margin_left = 77.0
+margin_top = 97.0
+margin_right = 149.0
+margin_bottom = 118.087
+rect_rotation = 1.5
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover3" type="ColorRect" parent="TitleReveal/Cover_Your"]
+margin_left = 33.0
+margin_top = 89.0
+margin_right = 86.0
+margin_bottom = 123.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Cover_Only" type="ColorRect" parent="TitleReveal"]
+margin_left = 240.0
+margin_top = 68.0
+margin_right = 397.0
+margin_bottom = 152.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover" type="ColorRect" parent="TitleReveal/Cover_Only"]
+margin_left = 22.0
+margin_top = 15.0
+margin_right = 150.0
+margin_bottom = 104.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover2" type="ColorRect" parent="TitleReveal/Cover_Only"]
+margin_left = 78.0
+margin_top = 99.0
+margin_right = 150.0
+margin_bottom = 119.29
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover3" type="ColorRect" parent="TitleReveal/Cover_Only"]
+margin_left = 17.0
+margin_top = 75.0
+margin_right = 38.0
+margin_bottom = 87.0
+rect_rotation = 45.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Cover_Move" type="ColorRect" parent="TitleReveal"]
+margin_left = 391.0
+margin_top = 97.0
+margin_right = 548.0
+margin_bottom = 180.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover" type="ColorRect" parent="TitleReveal/Cover_Move"]
+margin_left = 50.0
+margin_top = -1.0
+margin_right = 146.0
+margin_bottom = 86.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover2" type="ColorRect" parent="TitleReveal/Cover_Move"]
+margin_left = 53.0
+margin_top = 82.0
+margin_right = 125.0
+margin_bottom = 89.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Subcover3" type="ColorRect" parent="TitleReveal/Cover_Move"]
+margin_left = 96.0
+margin_top = 82.0
+margin_right = 112.0
+margin_bottom = 94.0
+color = Color( 0, 1, 0, 1 )
+
+[node name="Cover_Is" type="ColorRect" parent="TitleReveal"]
+margin_left = 549.0
+margin_top = 135.0
+margin_right = 615.302
+margin_bottom = 219.0
+rect_rotation = 0.4
+rect_scale = Vector2( 0.986, 1 )
+color = Color( 0, 1, 0, 1 )
+
+[node name="Cowboy" type="Control" parent="TitleReveal"]
+margin_left = -48.0
+margin_top = 187.0
+margin_right = -8.0
+margin_bottom = 227.0
+
+[node name="P4Label" type="TextureRect" parent="TitleReveal/Cowboy"]
+margin_left = -68.0
+margin_top = -95.0
+margin_right = -28.0
+margin_bottom = -55.0
+texture = ExtResource( 5 )
+expand = true
+
+[node name="Sprite1" type="TextureRect" parent="TitleReveal/Cowboy"]
+material = SubResource( 2 )
+anchor_left = 0.5
+anchor_top = -0.901
+anchor_right = 0.5
+anchor_bottom = -0.901
+margin_left = -402.0
+margin_top = -332.96
+margin_right = 348.0
+margin_bottom = 417.04
+rect_pivot_offset = Vector2( 3134, 2322 )
+texture = ExtResource( 14 )
+expand = true
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="Sprite2" type="TextureRect" parent="TitleReveal/Cowboy"]
+material = SubResource( 2 )
+anchor_left = 0.5
+anchor_top = -0.901
+anchor_right = 0.5
+anchor_bottom = -0.901
+margin_left = -402.0
+margin_top = -332.96
+margin_right = 348.0
+margin_bottom = 417.04
+rect_pivot_offset = Vector2( 3134, 2322 )
+texture = ExtResource( 20 )
+expand = true
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="NametagAnnounce" type="Control" parent="."]
+visible = false
+margin_right = 648.0
+margin_bottom = 368.0
+
+[node name="NoahCharacter" type="TextureRect" parent="NametagAnnounce"]
+material = SubResource( 23 )
+anchor_left = 0.5
+anchor_top = -0.901
+anchor_right = 0.5
+anchor_bottom = -0.901
+margin_left = -935.55
+margin_top = -645.761
+margin_right = 564.45
+margin_bottom = 854.239
+rect_pivot_offset = Vector2( 3134, 2322 )
+texture = ExtResource( 1 )
+expand = true
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="TarrCharacter" type="TextureRect" parent="NametagAnnounce"]
+material = SubResource( 24 )
+anchor_left = 0.5
+anchor_top = -0.901
+anchor_right = 0.5
+anchor_bottom = -0.901
+margin_left = -854.252
+margin_top = 211.636
+margin_right = 645.748
+margin_bottom = 1711.64
+rect_pivot_offset = Vector2( 3134, 2322 )
+texture = ExtResource( 22 )
+expand = true
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="NametagAnnouceLabel" type="TextureRect" parent="NametagAnnounce"]
+margin_left = 19.0
+margin_top = 5.0
+margin_right = 218.0
+margin_bottom = 63.0
+texture = SubResource( 20 )
+expand = true
+stretch_mode = 6
+flip_v = true
+
+[node name="NametagAnnouceLabel2" type="TextureRect" parent="NametagAnnounce"]
+margin_left = 116.0
+margin_top = 29.0
+margin_right = 315.0
+margin_bottom = 87.0
+texture = SubResource( 22 )
+expand = true
+stretch_mode = 6
+flip_v = true
+
+[node name="NametagExample" type="TextureRect" parent="NametagAnnounce"]
+margin_left = 190.0
+margin_top = 81.0
+margin_right = 643.0
+margin_bottom = 331.0
+texture = SubResource( 21 )
+expand = true
+stretch_mode = 5
+flip_v = true

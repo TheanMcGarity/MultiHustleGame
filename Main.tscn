@@ -207,12 +207,24 @@ unique_name_in_owner = true
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color( 0.0431373, 0.0470588, 0.0588235, 1 )
+color = Color( 0.0431373, 0, 0, 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Bluescreen" type="ColorRect" parent="BGLayer"]
+unique_name_in_owner = true
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color( 0, 0, 1, 1 )
 __meta__ = {
 "_edit_lock_": true
 }
 
 [node name="SpeedLinesLayer" type="CanvasLayer" parent="."]
+visible = false
 
 [node name="SpeedLines" type="Control" parent="SpeedLinesLayer"]
 unique_name_in_owner = true
@@ -1233,15 +1245,15 @@ size_flags_vertical = 3
 alignment = 2
 
 [node name="Control" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
-margin_top = 47.0
+margin_top = 43.0
 margin_right = 320.0
-margin_bottom = 47.0
+margin_bottom = 43.0
 
 [node name="P1InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
 unique_name_in_owner = true
-margin_top = 48.0
+margin_top = 44.0
 margin_right = 320.0
-margin_bottom = 68.0
+margin_bottom = 64.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1302,7 +1314,7 @@ texture = ExtResource( 35 )
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 69.0
+margin_top = 65.0
 margin_right = 320.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
@@ -1321,9 +1333,9 @@ alignment = 2
 
 [node name="P2InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer"]
 unique_name_in_owner = true
-margin_top = 48.0
+margin_top = 44.0
 margin_right = 320.0
-margin_bottom = 68.0
+margin_bottom = 64.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1383,7 +1395,7 @@ mouse_filter = 2
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 69.0
+margin_top = 65.0
 margin_right = 320.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
@@ -2467,8 +2479,7 @@ rect_min_size = Vector2( 160, 345 )
 text = "Known Bugs:
 - Some throw moves that hit multiple players don't do the same damage to everybody
 - Joining another game without restarting the game first causes a crash
-- Player Extras sometimes just dont work in replays, which will desync them.
-- Facing direction is sometimes wrong"
+- Player Extras sometimes just dont work in replays, which will desync them."
 autowrap = true
 
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
