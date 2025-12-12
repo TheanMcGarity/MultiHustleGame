@@ -61,7 +61,8 @@ func Init(main):
 	opp_target_label.text = "OPP TARGET: %s" % selects[2][0].get_char_name(selects[2][1].active_char_index)
 
 func reinit(main):
-	return
+	pass
+	"""
 	opp_target_label = get_child(1).get_child(4)
 	self.main = main
 	for id in selects.keys():
@@ -101,6 +102,7 @@ func reinit(main):
 		selects[2][1].visible = false
 		opp_target_label.visible = true
 
+	"""
 func DeactivateOther(selfId:int, charId:int):
 	match(selfId):
 		1:

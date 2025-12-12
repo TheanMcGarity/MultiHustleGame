@@ -2068,7 +2068,7 @@ func apply_hitboxes_internal(playerhitboxpair:Array):
 	if px1.game_over or px2.game_over:
 		return
 		
-	if px1.team == px2.team and not (p1.team == 0):
+	if px1.team == px2.team and not (px1.team == 0):
 		return
 
 	var p1_hitboxes = pair1[1]
@@ -2157,7 +2157,12 @@ func apply_hitboxes_internal(playerhitboxpair:Array):
 					clash_position = p2_hitbox.get_overlap_center_float(p1_hitbox)
 
 					break
-
+	
+	if p2_hit and px1.state_hit_cancellable:
+		px1.state_interruptable = true
+	if p1_hit and px2.state_hit_cancellable:
+		px2.state_interruptable = true
+	
 	if clashed:
 		px1.clash()
 		px2.clash()

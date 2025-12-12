@@ -31,5 +31,5 @@ func _item_selected(index):
 
 func on_parent_changed():
 	reactivate_all_alive()
-	select_index(get_game().current_opponent_indicies[parent.active_char_index])
+	select_index(get_game().players[parent.active_char_index].opponent.id)
 	deactivate_char(parent.active_char_index)
