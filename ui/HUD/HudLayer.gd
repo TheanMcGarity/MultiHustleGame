@@ -352,7 +352,9 @@ var ghost_hp_trails = {}
 var hp_trails = {}
 
 func _physics_process(_delta):
+
 	if is_instance_valid(game):
+		$"%Timer".text = str(game.get_ticks_left())
 		# Process all HP trails here first
 		for index in game.players.keys():
 			var plr = game.players[index]

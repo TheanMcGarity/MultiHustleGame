@@ -121,6 +121,7 @@ func _process(delta):
 				continue
 			if !entry.visible && main.game.game_paused:
 				entry.clear_game_over()
+				
 			entry.visible = main.game.game_paused
 
 func GetAllActiveChars():

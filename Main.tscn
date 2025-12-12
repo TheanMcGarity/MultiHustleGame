@@ -1,4 +1,4 @@
-[gd_scene load_steps=94 format=2]
+[gd_scene load_steps=95 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -81,6 +81,7 @@
 [ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
 [ext_resource path="res://ui/mh.png" type="Texture" id=80]
 [ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
+[ext_resource path="res://TitleSecret.gd" type="Script" id=82]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -208,7 +209,7 @@ unique_name_in_owner = true
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color( 0.0431373, 0, 0, 1 )
+color = Color( 0.00784314, 0.0156863, 0.0627451, 1 )
 __meta__ = {
 "_edit_lock_": true
 }
@@ -2301,6 +2302,7 @@ mouse_filter = 2
 texture = ExtResource( 15 )
 expand = true
 stretch_mode = 6
+script = ExtResource( 82 )
 
 [node name="IvySlyLinkButton" type="LinkButton" parent="UILayer/MainMenu/Title"]
 unique_name_in_owner = true

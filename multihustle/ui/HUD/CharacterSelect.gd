@@ -83,6 +83,14 @@ func clear_game_over():
 		if game.players[index].game_over:
 			set_item_disabled(index-1, true)
 
+func disable_locked_in():
+	
+	var game:Game = get_game()
+	for index in game.players.keys():
+		
+		if game.turns_taken[index]:
+			set_item_disabled(index-1, true)
+
 func _item_selected(index):
 	active_char_index = index+1
 
