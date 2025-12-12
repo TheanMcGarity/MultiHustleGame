@@ -214,6 +214,7 @@ const testedVersion = "1.9.20-steam"
 const incompat_list = [
 	"platform_library",
 	"MultiHustle",
+	"IntermezzoPlayblack"
 	#"ReplayPlus",
 	#"qol",
 	#"AdvancedStyleMenu"
@@ -224,6 +225,7 @@ const incompat_reasons = {
 	"ReplayPlus": "Crashes when opening timeline.\nA multihustle version of the timeline will be made soon",
 	"AdvancedStyleMenu": "Breaks throw mechanics. (including Robot)\nCrashes game when selecting ninja.\nSorry to everyone who needs this mod! Cannot be avoided at this moment.",
 	"MultiHustle": "You have the original pre-rewrite MH Installed! This will break stuff.",
+	"IntermezzoPlayblack": "This mod freezes the match after a few turns.",
 	}
 
 func MH_addWarningMessage():

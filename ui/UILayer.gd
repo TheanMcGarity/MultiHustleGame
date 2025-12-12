@@ -104,6 +104,7 @@ func _ready():
 	$"%SingleplayerButton".connect("pressed", self, "_on_singleplayer_pressed")
 	$"%MultiplayerButton".connect("pressed", self, "_on_multiplayer_pressed")
 	$"%SteamMultiplayerButton".connect("pressed", self, "_on_steam_multiplayer_pressed")
+	$"%TournamentsMenuButton".connect("pressed", self, "_on_tournament_multiplayer_pressed")
 	$"%CustomizeButton".connect("pressed", self, "_on_customize_pressed")
 	$"%DirectConnectButton".connect("pressed", self, "_on_direct_connect_button_pressed")
 	$"%RematchButton".connect("pressed", self, "_on_rematch_button_pressed")
@@ -126,6 +127,12 @@ func _ready():
 	$"%TikTokButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [TIKTOK_URL])
 	$"%ItchButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [ITCH_URL])
 	$"%ResetZoomButton".connect("pressed", self, "_on_reset_zoom_pressed")
+	
+	if Global.tournament_mode:
+		$"%SteamMultiplayerButton".hide()
+	else:
+		$"%TournamentsMenuButton".hide()
+	
 	Network.connect("player_turns_synced", self, "on_player_actionable")
 	Network.connect("player_turn_ready", self, "_on_player_turn_ready")
 	Network.connect("turn_ready", self, "_on_turn_ready")
@@ -152,6 +159,8 @@ func _ready():
 #	$"%LightModeButton".connect("toggled", self, "_on_light_mode_toggled")
 	$"%FullscreenButton".set_pressed_no_signal(Global.fullscreen)
 	$"%FullscreenButton".connect("toggled", self, "_on_fullscreen_button_toggled")
+	$"%TournamentModeButton".set_pressed_no_signal(Global.tournament_mode)
+	$"%TournamentModeButton".connect("toggled", self, "_on_tournament_mode_button_toggled")
 	$"%HitboxesButton".set_pressed_no_signal(Global.show_hitboxes)
 	$"%HitboxesButton".connect("toggled", self, "_on_hitboxes_button_toggled")
 	$"%PlaybackControls".set_pressed_no_signal(Global.show_playback_controls)
@@ -219,6 +228,11 @@ func _on_music_button_toggled(on):
 
 func _on_fullscreen_button_toggled(on):
 	Global.set_fullscreen(on)
+	
+func _on_tournament_mode_button_toggled(on):
+	Global.tournament_mode = on
+	Global.save_options()
+	_on_quit_program_button_pressed()
 
 func _on_hitboxes_button_toggled(on):
 	Global.set_hitboxes(on)
@@ -458,6 +472,9 @@ func _on_multiplayer_pressed():
 func _on_steam_multiplayer_pressed():
 	$"%SteamLobbyList".show()
 	hide_main_menu()
+func _on_tournament_multiplayer_pressed():
+	$"%TournamentLobbyList".show()
+	hide_main_menu()
 	
 
 func _on_turn_ready():
@@ -548,7 +565,6 @@ func _process(delta):
 
 	if $"%VersionLabel".visible:
 		$"%VersionLabel".text = "version " + Global.VERSION
-
 	var you_id = 1
 	var opponent_id = 2
 	if Network.multiplayer_active:

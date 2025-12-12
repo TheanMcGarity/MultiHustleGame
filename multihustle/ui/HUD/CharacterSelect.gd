@@ -43,9 +43,9 @@ func init(main, id:int):
 func reinit(main, id:int):
 	self.main = main
 	self.id = id
-	var game = get_game()
-	for index in game.players.keys():
-		set_item_text(index-1,  get_char_name(index))
+	#var game = get_game()
+	#for index in game.players.keys():
+	#	set_item_text(index-1,  get_char_name(index))
 
 func pre_connect():
 	pass

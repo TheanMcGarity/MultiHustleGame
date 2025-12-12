@@ -3,9 +3,11 @@ extends Node
 signal nag_window()
 
 var VERSION = "1.9.20-steam-mh_0.8.3"
+var TOURNAMENT_VERSION = "1.9.20-steam-mh_tournaments_0.8.3"
 const RESOLUTION = Vector2(640, 360)
 
 var audio_player
+var tournament_mode = false
 var music_enabled = true
 var freeze_ghost_prediction = true
 var freeze_ghost_sound = true
@@ -114,6 +116,10 @@ func _enter_tree():
 	var data = get_player_data()
 	for key in data.options:
 		set(key, data.options[key])
+	
+	if tournament_mode:
+		VERSION = TOURNAMENT_VERSION
+	
 #	music_enabled = data.options.music_enabled
 #	freeze_ghost_prediction = data.options.freeze_ghost_prediction
 #	ghost_afterimages = data.options.ghost_afterimages
@@ -145,6 +151,7 @@ func set_music_enabled(on):
 		play_random_song()
 		audio_player.connect("finished", self, "play_random_song")
 	else:
+		audio_player.disconnect("finished", self, "play_random_song")
 		audio_player.stop()
 		#audio_player.disconnect("finished", self)
 
@@ -210,9 +217,11 @@ func set_light_mode(on):
 	light_mode = on
 	save_options()
 
+
 func save_options():
 	save_player_data({
 		"options": {
+			"tournament_mode": tournament_mode,
 			"music_enabled": music_enabled,
 			"freeze_ghost_prediction": freeze_ghost_prediction,
 			"freeze_ghost_sound": freeze_ghost_sound,
@@ -248,6 +257,7 @@ func get_default_player_data():
 		"username": "",
 		"last_style": "",
 		"options" : {
+			"tournament_mode": false,
 			"music_enabled": true,
 			"freeze_ghost_prediction": true,
 			"freeze_ghost_sound": true,

@@ -188,7 +188,6 @@ func _on_LobbySize_value_changed(value):
 	$"%LobbySizeLabelCount".text = str(value)
 	pass # Replace with function body.
 
-
 func _on_LobbySettingsChangeWindowButton_pressed():
 	$"%LobbySettingsChangedWindow".hide()
 	pass # Replace with function body.

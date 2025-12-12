@@ -375,6 +375,7 @@ width = 2
 height = 1
 
 [sub_resource type="AnimatedTexture" id=7]
+flags = 7
 frames = 5
 fps = 7.8
 frame_0/texture = ExtResource( 10 )

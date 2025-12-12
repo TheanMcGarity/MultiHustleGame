@@ -1,4 +1,4 @@
-[gd_scene load_steps=93 format=2]
+[gd_scene load_steps=94 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -80,6 +80,7 @@
 [ext_resource path="res://RoadmapListContainer.gd" type="Script" id=78]
 [ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
 [ext_resource path="res://ui/mh.png" type="Texture" id=80]
+[ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -1121,6 +1122,9 @@ script = ExtResource( 72 )
 unique_name_in_owner = true
 script = ExtResource( 1 )
 
+[node name="TournamentLobbyList" parent="UILayer" instance=ExtResource( 81 )]
+visible = false
+
 [node name="BgCircle" type="Control" parent="UILayer"]
 material = SubResource( 22 )
 anchor_left = 0.5
@@ -2104,11 +2108,23 @@ custom_colors/font_color_pressed = Color( 0.262745, 0.74902, 1, 1 )
 text = "Singleplayer"
 flat = true
 
-[node name="SteamMultiplayerButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
+[node name="TournamentsMenuButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 margin_top = 20.0
 margin_right = 144.0
 margin_bottom = 40.0
+rect_min_size = Vector2( 0, 20 )
+mouse_default_cursor_shape = 2
+custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
+custom_colors/font_color_pressed = Color( 0.262745, 0.74902, 1, 1 )
+text = "Tournaments"
+flat = true
+
+[node name="SteamMultiplayerButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
+unique_name_in_owner = true
+margin_top = 40.0
+margin_right = 144.0
+margin_bottom = 60.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
@@ -2144,9 +2160,9 @@ flat = true
 
 [node name="CustomizeButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 40.0
+margin_top = 60.0
 margin_right = 144.0
-margin_bottom = 60.0
+margin_bottom = 80.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
@@ -2156,9 +2172,9 @@ flat = true
 
 [node name="ReplayButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 60.0
+margin_top = 80.0
 margin_right = 144.0
-margin_bottom = 80.0
+margin_bottom = 100.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
@@ -2168,9 +2184,9 @@ flat = true
 
 [node name="OptionsButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 80.0
+margin_top = 100.0
 margin_right = 144.0
-margin_bottom = 100.0
+margin_bottom = 120.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
@@ -2180,9 +2196,9 @@ flat = true
 
 [node name="CreditsButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 100.0
+margin_top = 120.0
 margin_right = 144.0
-margin_bottom = 120.0
+margin_bottom = 140.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( 42, -27 )
 mouse_default_cursor_shape = 2
@@ -2207,9 +2223,9 @@ flat = true
 
 [node name="MHDiscordLink" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 120.0
+margin_top = 140.0
 margin_right = 144.0
-margin_bottom = 140.0
+margin_bottom = 160.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( 42, -27 )
 mouse_default_cursor_shape = 2
@@ -2220,9 +2236,9 @@ flat = true
 
 [node name="SupportMHButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 140.0
+margin_top = 160.0
 margin_right = 144.0
-margin_bottom = 160.0
+margin_bottom = 180.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( -87, -115 )
 mouse_default_cursor_shape = 2
@@ -2236,9 +2252,9 @@ transition_time = 0.7
 
 [node name="QuitProgramButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 160.0
+margin_top = 180.0
 margin_right = 144.0
-margin_bottom = 180.0
+margin_bottom = 200.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( -87, -115 )
 mouse_default_cursor_shape = 2
@@ -2277,16 +2293,14 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -20.0
-margin_top = -20.0
-margin_right = 20.0
-margin_bottom = 20.0
+margin_left = -131.0
+margin_top = -145.0
+margin_right = 153.0
+margin_bottom = 139.0
+mouse_filter = 2
 texture = ExtResource( 15 )
 expand = true
-stretch_mode = 4
-__meta__ = {
-"_edit_lock_": true
-}
+stretch_mode = 6
 
 [node name="IvySlyLinkButton" type="LinkButton" parent="UILayer/MainMenu/Title"]
 unique_name_in_owner = true
@@ -2294,10 +2308,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = 62.0
-margin_top = 26.0
-margin_right = 114.0
-margin_bottom = 37.0
+margin_left = 149.0
+margin_top = 9.0
+margin_right = 201.0
+margin_bottom = 20.0
 grow_horizontal = 2
 rect_pivot_offset = Vector2( -324, 59.5 )
 custom_colors/font_color = Color( 0.113725, 0.552941, 0.960784, 1 )
@@ -2598,7 +2612,7 @@ scroll_horizontal_enabled = false
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer"]
 margin_right = 157.0
-margin_bottom = 305.0
+margin_bottom = 318.0
 size_flags_vertical = 3
 alignment = 1
 
@@ -2773,23 +2787,31 @@ margin_bottom = 282.0
 pressed = true
 text = "show character hp"
 
-[node name="HSeparator4" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="TournamentModeButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
 margin_top = 283.0
 margin_right = 157.0
-margin_bottom = 287.0
+margin_bottom = 295.0
+text = "Tourament Mode"
+
+[node name="HSeparator4" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+margin_top = 296.0
+margin_right = 157.0
+margin_bottom = 300.0
 rect_pivot_offset = Vector2( -375.5, -172 )
 
 [node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-margin_top = 288.0
+margin_top = 301.0
 margin_right = 157.0
-margin_bottom = 292.0
+margin_bottom = 305.0
 rect_pivot_offset = Vector2( -375.5, -172 )
 
 [node name="ModToggle" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 293.0
+margin_top = 306.0
 margin_right = 157.0
-margin_bottom = 305.0
+margin_bottom = 318.0
 custom_colors/font_color = Color( 0.396078, 0.901961, 1, 1 )
 text = "enable mods (must restart)"
 
