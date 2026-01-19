@@ -1,4 +1,4 @@
-[gd_scene load_steps=204 format=2]
+[gd_scene load_steps=205 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -410,6 +410,9 @@ animations = [ {
 "name": "WallSlam",
 "speed": 5.0
 } ]
+
+[sub_resource type="ViewportTexture" id=2]
+viewport_path = NodePath("Viewport")
 
 [node name="BaseChar" groups=["Fighter"] instance=ExtResource( 3 )]
 script = ExtResource( 1 )
@@ -1982,8 +1985,8 @@ hitstun_requirement = "allow_only"
 z_index = 1000
 script = ExtResource( 7 )
 y = -16
-width = 42
-height = 42
+width = 60
+height = 60
 activated = false
 hitbox_type = 6
 scale_combo = false
@@ -2041,8 +2044,8 @@ hitstun_requirement = "disallow"
 z_index = 1000
 script = ExtResource( 7 )
 y = -16
-width = 55
-height = 55
+width = 75
+height = 75
 activated = false
 hitbox_type = 6
 scale_combo = false
@@ -2076,7 +2079,6 @@ spawn_particle_on_enter = true
 enter_sfx = ExtResource( 141 )
 
 [node name="YouLabel" type="Label" parent="." index="5"]
-visible = false
 margin_left = -20.0
 margin_top = -50.0
 margin_right = 20.0
@@ -2167,7 +2169,24 @@ custom_constants/line_spacing = -2
 text = "hit @ xf "
 align = 1
 
-[node name="EmoteLabel" type="RichTextLabel" parent="." index="12"]
+[node name="TextureRect" type="TextureRect" parent="." index="12"]
+margin_left = -141.0
+margin_top = -60.0
+margin_right = -101.0
+margin_bottom = -20.0
+texture = SubResource( 2 )
+flip_h = true
+
+[node name="TextureRect2" type="TextureRect" parent="." index="13"]
+visible = false
+margin_left = -141.0
+margin_top = -60.0
+margin_right = -101.0
+margin_bottom = -20.0
+texture = SubResource( 2 )
+flip_v = true
+
+[node name="EmoteLabel" type="RichTextLabel" parent="." index="14"]
 margin_left = -141.0
 margin_top = -60.0
 margin_right = 141.0
@@ -2183,7 +2202,7 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="VelocityLabelContainer" type="Node2D" parent="." index="13"]
+[node name="VelocityLabelContainer" type="Node2D" parent="." index="15"]
 visible = false
 z_index = 1024
 
@@ -2196,7 +2215,7 @@ theme = ExtResource( 47 )
 scroll_active = false
 script = ExtResource( 187 )
 
-[node name="GroundedIndicator" type="Sprite" parent="." index="14"]
+[node name="GroundedIndicator" type="Sprite" parent="." index="16"]
 visible = false
 position = Vector2( 0, 8 )
 z_index = 1000
@@ -2214,7 +2233,7 @@ theme = ExtResource( 47 )
 text = "Grounded"
 align = 1
 
-[node name="HPLabel" type="RichTextLabel" parent="." index="15"]
+[node name="HPLabel" type="RichTextLabel" parent="." index="17"]
 unique_name_in_owner = true
 visible = false
 modulate = Color( 1, 1, 1, 0.784314 )
@@ -2238,5 +2257,26 @@ __meta__ = {
 "_editor_description_": ""
 }
 text_format = "[center][color=#%s]%d[/color] / %d[/center]"
+
+[node name="EmoteView" type="Viewport" parent="." index="18"]
+size = Vector2( 282, 282 )
+transparent_bg = true
+
+[node name="EmoteLabelReal" type="RichTextLabel" parent="EmoteView" index="0"]
+margin_left = 282.0
+margin_top = 282.0
+margin_right = 564.0
+margin_bottom = 426.0
+grow_horizontal = 2
+grow_vertical = 0
+rect_rotation = 180.0
+rect_clip_content = false
+theme = ExtResource( 47 )
+bbcode_enabled = true
+fit_content_height = true
+scroll_active = false
+__meta__ = {
+"_edit_lock_": true
+}
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

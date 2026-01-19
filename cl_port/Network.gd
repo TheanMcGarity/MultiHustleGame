@@ -34,6 +34,10 @@ var diff = ""
 
 var steam_isHost = false
 
+func _ready():
+	._ready()
+	connect("multiplayer_stopped", self, "on_mh_stop")
+
 remotesync func register_player(new_player_name, id, mods, isSteam = false):
 	# failsafe in case you connect to a non-modded player, it'll show up as having no mods
 	if (typeof(mods) != TYPE_DICTIONARY):
@@ -350,8 +354,6 @@ remote func player_disconnected(id):
 	pass
 
 	
-
-# Teams
 
 # username just is for printing to log.
 remotesync func on_team_change(team:int, username:String, player:int):
@@ -671,3 +673,27 @@ signal steam_lobby_sync_confirmed(steam_id, opps)
 
 remotesync func net_sync_confirm(steam_id, opps):
 	emit_signal("steam_lobby_sync_confirmed", steam_id, opps)
+
+func on_stop_mh():
+	sync_unlocks = {}
+	turns_ready = {}
+	ticks = {}
+	teams = { 
+		1: {},
+		2: {},
+		3: {},
+		4: {},
+		0: {}
+	}
+	team_living = {
+		1:0,
+		2:0,
+		3:0,
+		4:0,
+		0:0
+	}
+
+	pass
+signal on_player_loaded_others()
+remotesync func on_loaded_chars():
+	emit_signal("on_player_loaded_others")

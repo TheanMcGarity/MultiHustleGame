@@ -27,7 +27,9 @@ func _item_selected(index):
 	InitUI(realIndex)
 	parent.DeactivateOther(id, realIndex)
 	opponentSelect.on_parent_changed()
-	parent.opp_target_label.text = "OPP TARGET: %s" % get_char_name(opponentSelect.active_char_index)
+	
+	parent.opp_target_label.text = "OPP TARGET: %s" % get_char_name(Global.current_game.players[parent.selects[2][0].active_char_index].opponent.id)
+#	parent.opp_target_label.text = "OPP TARGET: %s" % get_char_name(opponentSelect.active_char_index)
 
 func InitUI(index:int):
 	InitHUD(index)

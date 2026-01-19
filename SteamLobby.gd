@@ -445,7 +445,7 @@ func _read_P2P_Packet():
 					emit_signal("quit_on_rematch")
 					Steam.setLobbyMemberData(LOBBY_ID, "status", "busy")
 				if not is_instance_valid(Global.current_game):
-					get_tree().reload_current_scene()
+					Global.reload()
 				Steam.setLobbyMemberData(LOBBY_ID, "opponent_id", "")
 				Steam.setLobbyMemberData(LOBBY_ID, "character", "")
 				Steam.setLobbyMemberData(LOBBY_ID, "player_id", "")

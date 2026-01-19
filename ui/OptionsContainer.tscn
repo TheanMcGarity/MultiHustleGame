@@ -5,7 +5,6 @@
 [node name="OptionsContainer" instance=ExtResource( 1 )]
 margin_left = -75.0
 margin_right = 75.0
-margin_bottom = 105.0
 
 [node name="VBoxContainer" parent="." index="0"]
 margin_right = 149.0

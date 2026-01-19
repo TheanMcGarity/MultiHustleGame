@@ -33,7 +33,7 @@ scroll_horizontal_enabled = false
 [node name="GameSettingsContainer" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
 unique_name_in_owner = true
 margin_right = 152.0
-margin_bottom = 447.0
+margin_bottom = 460.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -685,6 +685,18 @@ rect_pivot_offset = Vector2( -291, -340 )
 hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to be throw others out of the way during the other person's hitstun"
 size_flags_horizontal = 15
 text = "Collide With Teammates"
+expand_icon = true
+
+[node name="AllowUIReload" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 448.0
+margin_right = 152.0
+margin_bottom = 460.0
+rect_pivot_offset = Vector2( -291, -340 )
+hint_tooltip = "Enables teams to use the \"Rescue\" Move, allowing teammates  to be throw others out of the way during the other person's hitstun"
+size_flags_horizontal = 15
+pressed = true
+text = "UI Reload Button"
 expand_icon = true
 
 [node name="TeamDamagingCollisionsEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]

@@ -86,12 +86,47 @@ var searchBar
 
 var selected_team := 0
 
-#func _reset_match_data():
-	
+func _reset_state():
+	loaded_counter = 0
+	network_match_data = {}
+	enable_online_go = false
+	buffer_go = false
+	currentlyLoading = false
+	updatedNetworkLists = false
+	current_player = 1
+	current_player_real = 1
+	viewing_character = 1
+	selected_team = 0
+	selected_characters = {}
+	selected_styles = {
+		1: null,
+		2: null
+	}
+	hovered_characters = {}
+	real_selected_styles = {}
+	selected_display_data = {}
+	go_button.disabled = true
+	go_button.hide()
+	prev_char_button.hide()
+	next_char_button.hide()
+	selecting_label.text = "SELECT YOUR CHARACTER"
+	selecting_label.modulate = Color.white
+	for btn in buttons:
+		btn.disabled = false
+		btn.set_pressed_no_signal(false)
+	pressed_button = null
+	btt_disableTimer = 0
+	loadingText = ""
+	loadingLabel_stop()
+	if has_node("%P1Display"):
+		$"%P1Display".init()
+	if has_node("%P2Display"):
+		$"%P2Display".init()
+	set_display_color(0)
+	if Network.multiplayer_active:
+		Network.multiplayer_active = false
 
-func _ready():
-	#Network,connect("multiplayer_stopped", self, "_reset_match_data")
-	
+func _ready():	
 	bttContainer.hide()
 	loading_text.show()
 	go_button.hide()
@@ -99,8 +134,12 @@ func _ready():
 	$"%GoButton".connect("pressed", self, "go")
 #	$"%ShowSettingsButton".connect("toggled", self, "_on_show_settings_toggled")
 	$"%QuitButton".connect("pressed", self, "quit")
+	
 	Network.connect("character_selected", self, "_on_network_character_selected")
 	Network.connect("match_locked_in", self, "_on_network_match_locked_in")
+	Network.connect("multiplayer_stopped", self, "_reset_state")
+	Network.connect("on_player_loaded_others", self, "_on_player_loaded_others")
+	
 	var dir = Directory.new()
 
 	searchBar = load("res://cl_port/searchbar.tscn").instance()
@@ -416,6 +455,7 @@ func quit():
 #	if SteamLobby.LOBBY_ID != 0:
 	SteamLobby.quit_match()
 	Global.reload()
+	_reset_state()
 
 func go():
 	if !singleplayer:
@@ -699,6 +739,11 @@ func buffer_select(button):
 	var data = get_character_data(button)
 	var display_data = get_display_data(button)
 	display_character(current_player, display_data)
+	
+	if (data.name == null):
+		print("NULLed Character!")
+		return
+	
 	selected_characters[current_player] = data
 	
 	if singleplayer and current_player == 1:
@@ -835,7 +880,7 @@ func _add_to_num_list_string(string:String, num:int, total_count:int, curr_count
 	var new := string
 	var diff = total_count - curr_count
 	
-	if diff == 1:
+	if diff == 0:
 		new += ", and %d" % num
 	elif curr_count == 1:
 		new += "%d" % num
@@ -845,10 +890,17 @@ func _add_to_num_list_string(string:String, num:int, total_count:int, curr_count
 	return new
 
 var enable_online_go = false
+
 func net_async_loadOtherChar():
 	var string := "Player(s) "
 	var curr = 0
-	var total = selected_characters.size()
+	var total = 0
+	
+	for pre_id in selected_characters.keys():
+		var c = selected_characters[pre_id]
+		if (c != null):
+			total += int(isCustomChar(c.name))
+			
 	loadingLabel_start()
 	for id in selected_characters.keys():
 		curr += 1
@@ -856,29 +908,35 @@ func net_async_loadOtherChar():
 		if (c != null):
 			if (isCustomChar(c.name)):
 				loadListChar(name_to_index[c.name], true, id)
+				currentlyLoading = false
+				
 				#loadingLabel_vanish()
 				
-				_add_to_num_list_string(string, id, total, curr)
+				string = _add_to_num_list_string(string, id, total, curr)
 	
 	string += " Character(s) Loaded"
 	
+	loadingText = string
+	
 	loadingLabel_vanish()
 	
+	Network.rpc_("on_loaded_chars")
 	
-	currentlyLoading = false
 
-	print("Unlock GO?")
-	
-	if !Network.multiplayer_host:
-		net_sendPacket("go_button_activate")
-		#Network.rpc_("go_button_activate")
-	else:
-		$"%GoButton".show()
-		$"%GoButton".connect("pressed", self, "net_startMatch")
-		if enable_online_go:
+
+var loaded_counter = 0
+
+func _on_player_loaded_others():
+	loaded_counter += 1
+	print("Current loaded players: " + str(loaded_counter))	
+	if (loaded_counter == selected_characters.size()):
+		if Network.multiplayer_host:
+			print("Unlock GO?")
+			
+			$"%GoButton".show()
 			$"%GoButton".disabled = false
-			enable_online_go = false
-
+			$"%GoButton".connect("pressed", self, "net_startMatch")
+			
 func net_startMatch():
 	
 	buffer_go = true
@@ -993,50 +1051,91 @@ func save_stex(image, save_path):
 	stexf.store_string("PNG ")
 	stexf.store_buffer(pngdata)
 	stexf.close()
-func load_wav_data(path):
-	var f = File.new()
-	if f.open(path, File.READ) != OK:
-		return null
-	if f.get_buffer(4).get_string_from_ascii() != "RIFF":
-		return null
-	f.get_32()  
-	if f.get_buffer(4).get_string_from_ascii() != "WAVE":
-		return null
 
-	var channels = 1
-	var sample_rate = 44100
-	var pcm_data = PoolByteArray()
-	while not f.eof_reached():
-		var chunk_id = f.get_buffer(4).get_string_from_ascii()
-		var chunk_size = f.get_32()
-
-		if chunk_id == "fmt ":
-			var audio_format = f.get_16()
-			channels = f.get_16()
-			sample_rate = f.get_32()
-			f.seek(f.get_position() + 6)  
-			f.seek(f.get_position() + (chunk_size - 16))
-		elif chunk_id == "data":
-			pcm_data = f.get_buffer(chunk_size)
-			break
-		else:
-			f.seek(f.get_position() + chunk_size)
-
-	f.close()
-
-	return {
-		"channels": channels,
-		"sample_rate": sample_rate,
-		"pcm": pcm_data
-	}
 # save sample function made specifically for char loader
 func save_sample(og_file, dest_file):
-	var s = AudioStreamSample.new()
-	s.format = AudioStreamSample.FORMAT_16_BITS
-	s.mix_rate = og_file.sample_rate
-	s.stereo = og_file.channels == 2
-	s.data = og_file.pcm_bytes
-	ResourceSaver.save(dest_file, s)
+
+	## READING ##
+	var f = File.new()
+	f.open(og_file, File.READ)
+
+	# read channel number and sample rate
+	f.seek(0x00000016)
+	var channels = f.get_8()
+	f.seek(0x00000018)
+	var sRate = f.get_32()
+	
+	# get to the data header position (some files have text before the data header)
+	var ind = 40
+	f.seek(ind - 4)
+	var data32 = f.get_32()
+	while data32 != 1635017060: # this number is the word "data" spelled in hex
+		ind += 1
+		f.seek(ind - 4)
+		data32 = f.get_32()
+
+	# get data chunk size
+	f.seek(ind)
+	var leng = f.get_32()
+	
+	# read the data
+	f.seek(ind + 4)
+	var fullWav = f.get_buffer(leng)
+
+	leng = leng * 2 # this will be needed for later, some wav files only work when having a duplicate ammount of data (maybe it has to do with an odd number?)
+	
+	f.close()
+
+	## WRITING ##
+	f.open(dest_file, File.WRITE)
+
+	# header
+	f.store_buffer(sample_header)
+
+	# MAGIC NUMBER TIME (I honestly have no idea why this needs to exist but without it the thing breaks so)
+	# 02 -> is a mono file with 44100 sample rate
+	# 03 -> is a stereo file with 44100 sample rate / is a mono file with a sample rate that isn't 44100
+	# 04 -> is a stereo file with a sample rate that isn't 44100
+	var numb = channels + 1
+	if (sRate != 44100):
+		numb += 1
+	
+	# store it on file
+	writeHex(f, [0x00, numb, 0x00, 0x00], 8)
+	
+	# something idk
+	writeHex(f, [34084860461568])
+	f.store_8(0)
+	
+	# store the actual data
+	f.store_32(leng)
+	f.store_buffer(fullWav)
+
+	# filling the whole duplicate chunk of data with 0x00
+	var wrote = 0
+	var zeroChunk = 8 # doing loops in chunks of 8 bytes to do less loops
+	for i in floor(leng/2 / zeroChunk): 
+		writeHex(f, [0x00], 8 * zeroChunk)
+		wrote += 8
+	for i in leng/2 - wrote: # fill in the rest of the 0s
+		writeHex(f, [0x00], 8)
+	
+	# standard bottomer(?)
+	writeHex(f, [0x03, 0x00, 0x00, 0x00], 8)
+	writeHex(f, [0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00], 8)
+	
+	# storing some identifiers and their values, idk why they're so specific.
+	if (sRate != 44100):
+		writeHex(f, [0x07, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00], 8)
+		f.store_32(sRate)
+	
+	if (channels == 2):
+		writeHex(f, [0x08, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00], 8)
+		writeHex(f, [0x01, 0x00, 0x00, 0x00], 8)
+	
+	# CLOSE!
+	f.store_string("RSRC")
+	f.close()
 
 # save oggstr function by Supersonic#2382
 func save_oggstr(og_file, dest_file):
@@ -1193,7 +1292,7 @@ func _createImportFiles(folder, _charName, _charPath): # returns an array of mis
 				elif (dest.ends_with(".oggstr")):
 					save_oggstr(assets[i], tmpFile)
 				else:
-					save_sample(load_wav_data(assets[i]), tmpFile)
+					save_sample(assets[i], tmpFile)
 				
 				# add it to the package
 				p.add_file(dest, tmpFile)
@@ -1256,10 +1355,11 @@ func _on_network_character_selected(player_id, character, style = null):
 	
 	if Network.is_host():
 		Network.rpc_("send_match_data", get_match_data())
-	net_async_loadOtherChar() # Load all player characters
 		
-		
-
+	if (loadThread != null):
+		loadThread.wait_to_finish()
+	loadThread = Thread.new()
+	loadThread.start(self, "net_async_loadOtherChar")
 
 func on_team_button_pressed(button):
 	print("Team button pressed! - "+button.name)

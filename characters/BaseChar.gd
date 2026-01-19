@@ -973,10 +973,11 @@ func _get_helth_label_color() -> Color:
 		return Color(1, 0.5, 0).linear_interpolate(Color(1, 0, 0), 1 - t)
 	
 func _process(delta):
-	hp_label.text_variables.hp = hp
-	hp_label.text_variables.max_hp = MAX_HEALTH
-	hp_label.text_variables.hp_color = _get_helth_label_color().to_html(false)
-	hp_label.is_ghost = is_ghost
+	if (is_instance_valid(hp_label) and hp_label.text_variables != null):
+		hp_label.text_variables.hp = hp
+		hp_label.text_variables.max_hp = MAX_HEALTH
+		hp_label.text_variables.hp_color = _get_helth_label_color().to_html(false)
+		hp_label.is_ghost = is_ghost
 	
 	if ivy_effect and !is_ghost:
 		sprite.get_material().set_shader_param("color", Color.from_hsv(ivy_effect_t, 0.8, 1))

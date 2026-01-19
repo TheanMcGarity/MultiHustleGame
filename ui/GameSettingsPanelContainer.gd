@@ -47,6 +47,7 @@ onready var settings_nodes = {
 	"collide_team": $"%TeamCollisionsEnabled",
 	"damage_team": $"%TeamDamagingCollisionsEnabled",
 	"collide_dead": $"%DeadCollisionsEnabled",
+	"ui_reload": $"%AllowUIReload",
 }
 
 var float_to_string = [

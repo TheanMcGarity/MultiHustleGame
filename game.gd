@@ -174,6 +174,8 @@ var is_team_win := false
 var dead_collisions := false
 var team_collisions := false
 
+var reload_ui_allowed := false
+
 #var has_ghost_frozen_yet = false
 
 func get_ticks_left():
@@ -412,6 +414,9 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 
 	if match_data.has("selector_char_names"):
 		Network.player_character_names = match_data["selector_char_names"]
+		
+	if match_data.has("ui_reload"):
+		 reload_ui_allowed = match_data["ui_reload"]
 
 	self.match_data = match_data
 	color_rng.seed = match_data.seed

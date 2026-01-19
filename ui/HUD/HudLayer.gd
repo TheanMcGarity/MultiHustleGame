@@ -56,6 +56,8 @@ onready var p2_action_buttons = $"%P2ActionButtons"
 onready var p1_air_movement_label = $"%P1AirMovementLabel"
 onready var p2_air_movement_label = $"%P2AirMovementLabel"
 
+onready var reload_ui_button = $"%UISoftlockButton"
+
 
 const TRAIL_DRAIN_RATE = 25
 
@@ -184,6 +186,8 @@ var p2_health_label
 func _ready():
 	$"%P1ShowStyle".connect("toggled", self, "_on_show_style_toggled", [1])
 	$"%P2ShowStyle".connect("toggled", self, "_on_show_style_toggled", [2])
+	
+	reload_ui_button.connect("pressed", self, "_on_UISoftlockButton_pressed")
 	
 	mh_p1_healthbar = p1_healthbar.duplicate()
 	mh_p1_healthbar.name = "MH_P1HealthBar"
@@ -390,6 +394,9 @@ func _physics_process(_delta):
 		
 		p1_health_label.text = "%d/%d" % [p1.hp, p1.MAX_HEALTH]
 		p2_health_label.text = "%d/%d" % [p2.hp, p2.MAX_HEALTH]
+		
+		reload_ui_button.visible = game.reload_ui_allowed and game.game_paused
+		
 		if is_instance_valid(game.ghost_game):
 			# Process all ghost HP trails here first
 			for index in game.players.keys():
@@ -418,3 +425,9 @@ func _physics_process(_delta):
 		
 		#$"%P1SuperTexture".visible = game.player_supers[p1index]
 		#$"%P2SuperTexture".visible = game.player_supers[p2index]
+		
+func _on_UISoftlockButton_pressed():
+	Network.main.ui_layer.p1_action_buttons.re_init(Network.main.ui_layer.GetRealID(1))
+	Network.main.ui_layer.p2_action_buttons.re_init(Network.main.ui_layer.GetRealID(2))
+	initp1(Network.main.ui_layer.GetRealID(1))
+	initp2(Network.main.ui_layer.GetRealID(2))

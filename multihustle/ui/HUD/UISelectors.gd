@@ -58,9 +58,15 @@ func Init(main):
 	selects[1][0].deactivate_char(assigned_ids[1])
 	selects[2][0].deactivate_char(assigned_ids[0])
 
-	opp_target_label.text = "OPP TARGET: %s" % selects[2][0].get_char_name(selects[2][1].active_char_index)
+	opp_target_label.text = "OPP TARGET: %s" % selects[2][0].get_char_name(Global.current_game.players[selects[2][0].active_char_index].opponent.id)
+#	opp_target_label.text = "OPP TARGET: %s" % selects[2][0].get_char_name(selects[2][1].active_char_index)
 
 func reinit(main):
+	
+	for id in selects.keys():
+		selects[id][0].reinit()
+		selects[id][1].reinit()
+		
 	pass
 	"""
 	opp_target_label = get_child(1).get_child(4)
@@ -115,6 +121,14 @@ func _process(delta):
 		self.visible = false
 		return
 	self.visible = true
+	
+	selects[1][0].visible = Global.current_game.singleplayer and main.game.game_paused
+	selects[1][1].visible = main.game.game_paused
+	selects[2][0].visible = main.game.game_paused
+	selects[2][1].visible = Global.current_game.singleplayer and main.game.game_paused
+	opp_target_label.visible = !Global.current_game.singleplayer and main.game.game_paused
+	
+	"""
 	for pair in selects.values():
 		for entry in pair:
 			if Network.multiplayer_active && entry == local_char_select:
@@ -123,7 +137,7 @@ func _process(delta):
 				entry.clear_game_over()
 				
 			entry.visible = main.game.game_paused
-
+	"""
 func GetAllActiveChars():
 	var active_chars = []
 	for pair in selects.values():

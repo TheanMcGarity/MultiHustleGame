@@ -214,14 +214,12 @@ const testedVersion = "1.9.20-steam"
 const incompat_list = [
 	"platform_library",
 	"MultiHustle",
-	"IntermezzoPlayblack"
-	#"ReplayPlus",
-	#"qol",
-	#"AdvancedStyleMenu"
+	"IntermezzoPlayblack",
+	"qol"
 ]
 
 const incompat_reasons = {
-	"qol": "Causes desync,\nand also breaks throw mechanics.",
+	"qol": "Causes problems with HUDLayer",
 	"ReplayPlus": "Crashes when opening timeline.\nA multihustle version of the timeline will be made soon",
 	"AdvancedStyleMenu": "Breaks throw mechanics. (including Robot)\nCrashes game when selecting ninja.\nSorry to everyone who needs this mod! Cannot be avoided at this moment.",
 	"MultiHustle": "You have the original pre-rewrite MH Installed! This will break stuff.",
