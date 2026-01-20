@@ -2,8 +2,8 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.20-steam-mh_0.8.3"
-var TOURNAMENT_VERSION = "1.9.20-steam-mh_tournaments_0.8.3"
+var VERSION = "1.9.20-steam-mh_0.8.4"
+var TOURNAMENT_VERSION = "1.9.20-steam-mh_tournaments_0.8.4"
 const RESOLUTION = Vector2(640, 360)
 
 var audio_player
