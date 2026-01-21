@@ -219,7 +219,7 @@ const incompat_list = [
 ]
 
 const incompat_reasons = {
-	"qol": "Causes problems with HUDLayer",
+	"qol": "Causes problems with HUDLayer\n(Ignore if you are a normal player!)",
 	"ReplayPlus": "Crashes when opening timeline.\nA multihustle version of the timeline will be made soon",
 	"AdvancedStyleMenu": "Breaks throw mechanics. (including Robot)\nCrashes game when selecting ninja.\nSorry to everyone who needs this mod! Cannot be avoided at this moment.",
 	"MultiHustle": "You have the original pre-rewrite MH Installed! This will break stuff.",
