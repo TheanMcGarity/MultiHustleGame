@@ -66,6 +66,7 @@ onready var quit_button = $"%QuitButton"
 
 var btt_disableTimer = 0 # this is a countdown, whenever it's greater than 0 all of the buttons are disabled
 
+var player_selected_team := false
 
 # Finder maps and functions #
 var name_to_folder = {}
@@ -87,6 +88,7 @@ var searchBar
 var selected_team := 0
 
 func _reset_state():
+	player_selected_team = false
 	loaded_counter = 0
 	network_match_data = {}
 	enable_online_go = false
@@ -125,6 +127,7 @@ func _reset_state():
 	set_display_color(0)
 	if Network.multiplayer_active:
 		Network.multiplayer_active = false
+	Network.on_stop_mh()
 
 func _ready():	
 	bttContainer.hide()
@@ -294,6 +297,11 @@ func init(singleplayer=true):
 	#Network.synced_chars = name_to_folder 
 	Network.rpc_("sync_chars", [name_to_folder, hash_to_folder, Network.player_id])
 	
+	if singleplayer:
+		Network.team_init(1)
+	else:
+		Network.team_init(Network.player_id)
+	
 	show()
 	emit_signal("opened")
 #	if Network.steam:
@@ -462,10 +470,17 @@ func quit():
 	_reset_state()
 
 func go():
+	
+	
 	if !singleplayer:
 		network_match_data["selected_characters"] = selected_characters
 		emit_signal("match_ready", network_match_data)
 	else:
+		
+		#if not player_selected_team:
+		#	Network.team_init(current_player_real)
+	
+		#player_selected_team = false
 		#selected_characters.erase(current_player_real)
 		emit_signal("match_ready", get_match_data())
 	hide()
@@ -762,6 +777,10 @@ func buffer_select(button):
 	if not singleplayer:
 		Network.select_character(data, $"%P1Display".selected_style if current_player == 1 else $"%P2Display".selected_style)
 		
+	if not player_selected_team:
+		Network.team_init(current_player_real)
+	
+	player_selected_team = false
 	
 	current_player_real = current_player_real + 1
 	if current_player_real > 2:
@@ -1330,6 +1349,8 @@ func on_team_button_pressed(button):
 		Network.singleplayer_on_team_change(button.team_id, ("p%d" % current_player), current_player)
 		set_display_color(button.team_id)
 		return
+	
+	player_selected_team = true
 	
 	var steam_id = Steam.getSteamID()
 	var username = Steam.getFriendPersonaName(steam_id)

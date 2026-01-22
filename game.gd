@@ -907,18 +907,21 @@ func should_game_end() -> Dictionary:
 	var blu_living = calc_team_is_living(2)
 	var yel_living = calc_team_is_living(3)
 	var grn_living = calc_team_is_living(4)
-	var alive_teams := 4
-	alive_teams -= int(red_living)
-	alive_teams -= int(blu_living)
-	alive_teams -= int(yel_living)
-	alive_teams -= int(grn_living)
+	var alive_teams := 0
+	alive_teams += int(red_living)
+	alive_teams += int(blu_living)
+	alive_teams += int(yel_living)
+	alive_teams += int(grn_living)
 	
 	
 	var ffa_living = calc_team_living_count(0)
 	var ffa_alive := calc_team_is_living(0)
 	
 	
+	
 	result.team_win = alive_teams == 1 and not ffa_alive
+
+	#print("ffa_living=%d,alive_teams=%d,team_win=%s,ffa_alive=%s" % [ffa_living, alive_teams, result.team_win, ffa_alive])
 	
 	#print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
 
@@ -952,10 +955,10 @@ func print_should_game_end_data():
 	set_vanilla_game_started(true)
 	
 	var alive_teams := 4
-	alive_teams -= int(calc_team_is_living(1))
-	alive_teams -= int(calc_team_is_living(2))
-	alive_teams -= int(calc_team_is_living(3))
-	alive_teams -= int(calc_team_is_living(4))
+	alive_teams -= int(!calc_team_is_living(1))
+	alive_teams -= int(!calc_team_is_living(2))
+	alive_teams -= int(!calc_team_is_living(3))
+	alive_teams -= int(!calc_team_is_living(4))
 	
 	
 	is_team_win = alive_teams <= 1
@@ -1917,7 +1920,7 @@ func process_player_positions():
 func calc_team_is_living(var team:int) -> bool:
 	var team_alive = Network.team_living[team]
 	
-	return team_alive < 1
+	return !(team_alive < 1)
 
 
 

@@ -599,8 +599,8 @@ var player_character_uses:Dictionary = {}
 
 func team_init(player:int):
 
-	if get_team(player) != 0:
-		return # Already on a team, no need to initialize.
+	#if get_team(player) != 0:
+	#	return # Already on a team, no need to initialize.
 	
 	print("Teams Initialized for player %d!" % player)
 
