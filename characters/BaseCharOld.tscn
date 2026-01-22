@@ -159,12 +159,12 @@ script = ExtResource( 39 )
 __meta__ = {
 "_editor_description_": ""
 }
+reset_momentum = true
 anim_length = 30
 force_dir_x = "0.5"
 force_dir_y = "-1"
 force_speed = "10.0"
 force_tick = 3
-reset_momentum = true
 title = "Uppercut"
 type = 3
 interrupt_from_string = "GroundedSpecial
@@ -213,8 +213,8 @@ interrupt_into_string = "Grounded"
 
 [node name="DashForward" type="Node" parent="StateMachine"]
 script = ExtResource( 6 )
-anim_length = 15
 reset_momentum = true
+anim_length = 15
 title = "Dash Forward"
 type = 1
 interrupt_frames = [ 7 ]
@@ -226,8 +226,8 @@ fric = "0.02"
 
 [node name="DashBackward" type="Node" parent="StateMachine"]
 script = ExtResource( 6 )
-anim_length = 18
 reset_momentum = true
+anim_length = 18
 title = "Dash Back"
 type = 1
 iasa_at = 7
@@ -239,9 +239,9 @@ dash_speed = 7
 
 [node name="Jump" type="Node" parent="StateMachine"]
 script = ExtResource( 8 )
+reset_momentum = true
 fallback_state = "Fall"
 anim_length = 1000
-reset_momentum = true
 title = "Jump"
 type = 1
 data_ui_scene = ExtResource( 9 )
@@ -253,11 +253,11 @@ speed = "8"
 
 [node name="DoubleJump" type="Node" parent="StateMachine"]
 script = ExtResource( 8 )
+reset_momentum = true
 fallback_state = "Fall"
 anim_length = 1000
 sprite_anim_length = 4
 loop_animation = true
-reset_momentum = true
 title = "Air Jump"
 type = 1
 data_ui_scene = ExtResource( 9 )
@@ -270,9 +270,9 @@ speed = "8"
 
 [node name="AirDash" type="Node" parent="StateMachine"]
 script = ExtResource( 5 )
+reset_momentum = true
 fallback_state = "Fall"
 anim_length = 15
-reset_momentum = true
 title = "Air Dash"
 type = 1
 data_ui_scene = ExtResource( 13 )
@@ -286,17 +286,17 @@ speed = "10.0"
 
 [node name="HurtGrounded" type="Node" parent="StateMachine"]
 script = ExtResource( 28 )
-anim_length = 100000
 reset_momentum = true
+anim_length = 100000
 title = "Hurt Grounded"
 type = 4
 interrupt_into_string = "Grounded"
 
 [node name="HurtAerial" type="Node" parent="StateMachine"]
 script = ExtResource( 27 )
+reset_momentum = true
 fallback_state = "Fall"
 anim_length = 100000
-reset_momentum = true
 title = "Hurt Aerial"
 type = 4
 interrupt_into_string = "Aerial"

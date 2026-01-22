@@ -296,7 +296,7 @@ var sadness_enabled = false
 var last_turn_block = false
 
 var trail_hp: int = MAX_HEALTH
-var hp: int = 0
+var hp: int = 0 setget set_hp
 var super_meter: int = 0
 var supers_available: int = 0
 var combo_proration: int = 0
@@ -436,6 +436,10 @@ var hitstun_decay_combo_count = 0
 
 var lowest_tick = 0
 var wakeup_throw_immunity_ticks = 0
+
+onready var fake_emote_label = $"%EmoteLabel"
+onready var real_emote_label = $"%EmoteLabelReal"
+onready var emote_display = $"%EmoteDisplay"
 
 class InputState:
 	var name
@@ -838,16 +842,16 @@ func emote(message):
 	if is_instance_valid(emote_tween):
 		emote_tween.kill()
 	#emote_tween = create_tween()
-	$EmoteLabel.clear()
-	$EmoteLabel.append_bbcode("[center]" + ProfanityFilter.filter(message))
-	$EmoteLabel.show()
+	real_emote_label.clear()
+	real_emote_label.append_bbcode("[center]" + ProfanityFilter.filter(message))
+	real_emote_label.show()
 	#emote_tween.tween_method(self, "set_emote_visible", 1.0, 0.0, 3.0)
 
 func set_emote_visible(amount: float):
 	if amount <= 0.001:
-		$EmoteLabel.visible = false
+		real_emote_label.visible = false
 		return
-	$EmoteLabel.visible = true
+	real_emote_label.visible = true
 
 func get_playback_input():
 	if ReplayManager.playback:
@@ -971,8 +975,21 @@ func _get_helth_label_color() -> Color:
 	else:
 		var t = ratio / 0.4
 		return Color(1, 0.5, 0).linear_interpolate(Color(1, 0, 0), 1 - t)
-	
+
+const EMOTE_DISPLAY_X = -141
+const EMOTE_DISPLAY_Y = -201
+const EMOTE_DISPLAY_SIZE = 282
+
 func _process(delta):
+	var zoom = Global.current_game.camera_zoom
+	emote_display.scale = Vector2.ONE * zoom
+	
+	#emote_display.rect_position.x = EMOTE_DISPLAY_X * (emote_display.rect_size.x / EMOTE_DISPLAY_SIZE)
+	#emote_display.rect_position.y = EMOTE_DISPLAY_Y * (emote_display.rect_size.y / EMOTE_DISPLAY_SIZE)
+	
+	#emote_display.rect_position = (Vector2(EMOTE_DISPLAY_X, EMOTE_DISPLAY_Y)) - (emote_display.rect_size / 2)
+	#real_emote_label.bbcode_text = fake_emote_label.bbcode_text
+	
 	if (is_instance_valid(hp_label) and hp_label.text_variables != null):
 		hp_label.text_variables.hp = hp
 		hp_label.text_variables.max_hp = MAX_HEALTH
@@ -2541,3 +2558,10 @@ func tick_before():
 func singleplayer_set_display_name():
 	Network.game.player_names_rich[id] = "[center][color=#"+Network.get_color(Network.get_team(id))+"]"+("p%d" % id)+"[/color][/center]"
 	Network.game.player_names[id] = ("p%d" % id)
+
+func set_hp(new):
+	var stack = get_stack()
+	if Global.is_allowed_caller("copy_to", stack):
+		return
+		
+	hp = new

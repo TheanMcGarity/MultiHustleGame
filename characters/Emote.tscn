@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="ViewportTexture" id=2]
+viewport_path = NodePath("EmoteView")
+
+[node name="Control" type="Control"]
+
+[node name="EmoteDisplay" type="TextureRect" parent="."]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -141.0
+margin_top = -201.0
+margin_right = 141.0
+margin_bottom = 81.0
+grow_horizontal = 2
+grow_vertical = 2
+rect_pivot_offset = Vector2( 141, 141 )
+mouse_filter = 2
+texture = SubResource( 2 )
+stretch_mode = 6
+flip_v = true

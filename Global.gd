@@ -332,3 +332,10 @@ func reload():
 	if character_select_node:
 		character_select_node.get_parent().remove_child(character_select_node)
 	get_tree().reload_current_scene()
+
+func is_allowed_caller(wanted, stack) -> bool:
+	if (stack.size() <= 1):
+		return true
+	var caller = stack[1]
+	var name = caller.function
+	return name == wanted
