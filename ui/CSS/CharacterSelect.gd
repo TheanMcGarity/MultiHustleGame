@@ -291,6 +291,9 @@ func reset():
 	hide()
 
 func init(singleplayer=true):
+	#Network.synced_chars = name_to_folder 
+	Network.rpc_("sync_chars", [name_to_folder, hash_to_folder, Network.player_id])
+	
 	show()
 	emit_signal("opened")
 #	if Network.steam:
@@ -364,6 +367,7 @@ func init(singleplayer=true):
 		$ButtonSoundPlayer.add_container($"%CharacterButtonContainer")
 		$ButtonSoundPlayer.setup()
 	_on_button_mouse_entered(buttons[0])
+	
 	
 	if singleplayer:
 		return
@@ -767,6 +771,7 @@ func buffer_select(button):
 	set_display_color(0)
 	post_button_edit(button)
 
+
 # as of update 3.3, this function gets called on _process. hopefully in the future this can be added onto another init function
 func createButtons():
 	# in case there's no custom characters installed
@@ -956,26 +961,14 @@ func net_updateModLists():
 				Network.normal_mods.append(mod[0])
 		i += 1
 
-# this function gets called on main.gd
 
+# this function gets called on main.gd
 func net_isCharacterAvailable(_charName):
 	var custom = isCustomChar(_charName)
 	if custom and !SteamLobby.LOBBY_CHARLOADER_ENABLED and SteamLobby.LOBBY_ID != 0:
 		return false 
-	if (!singleplayer and custom and (Network.player1_chars != [] or Network.player2_chars != [])):
-		var foundIt1 = false
-		var foundIt2 = false
-		for m in Network.player1_chars:
-			if (hash_to_folder.has(m)):
-				if (name_to_folder[_charName] == hash_to_folder[m]):
-					foundIt1 = true
-					break
-		for m in Network.player2_chars:
-			if (hash_to_folder.has(m)):
-				if (name_to_folder[_charName] == hash_to_folder[m]):
-					foundIt2 = true
-					break
-		if (!foundIt1 or !foundIt2):
+	if (!singleplayer and custom):
+		if (Network.get_is_missing(_charName)):
 			return false
 	return true
 

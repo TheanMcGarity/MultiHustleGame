@@ -44,6 +44,9 @@ remotesync func register_player(new_player_name, id, mods, isSteam = false):
 		mods = {"version" : mods, "active_mods":[]}
 
 	if (mods.has("normal_mods")):
+		
+		synced_chars += mods.char_mods
+		
 		if not second_register:
 			player1_hashes = mods.normal_mods
 			player1_chars = mods.char_mods
@@ -697,3 +700,21 @@ func on_stop_mh():
 signal on_player_loaded_others()
 remotesync func on_loaded_chars():
 	emit_signal("on_player_loaded_others")
+
+var synced_hash_to_folder := {} # {player_id: hash_to_folder}
+var synced_chars := {} # {player_id: chars}
+
+remotesync func sync_chars(chars:Dictionary, folders:Dictionary, from):
+	synced_hash_to_folder[from] = folders
+	synced_chars[from] = chars
+	
+func get_is_missing(chara:String) -> bool:
+	var players_missing = 0
+	for synced in synced_chars.keys():
+		var found = false
+		for synced_char in synced_chars[synced].keys():
+			if (chara == synced_char):
+				found = true
+		if (!found):
+			players_missing += 1
+	return players_missing > 0

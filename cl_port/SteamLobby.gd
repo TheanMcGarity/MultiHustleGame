@@ -75,13 +75,12 @@ func _receive_challenge(fromData, match_settings):
 func _setup_game_vs(steam_id):
 	_Global.isSteamGame = true
 
+	
 	print("registering players")
 	REMATCHING_ID = 0
 	OPPONENT_ID = steam_id
 	Network.register_player_steam(steam_id)
 	Network.register_player_steam(SteamHustle.STEAM_ID)
-	Network.player1_chars = Network.char_mods
-	Network.player2_chars = Network.steam_oppChars
 
 	Network.assign_players()
 	Steam.setLobbyMemberData(LOBBY_ID, "status", "fighting")
