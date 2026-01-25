@@ -732,12 +732,11 @@ func tick():
 				if self.current_tick > self.max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
 					ReplayManager.set_deferred("playback", false)
 			else :
-				if ReplayManager.resim_tick:
-					if self.current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else self.max_replay_tick - 2):
-						if not Network.multiplayer_active:
-							ReplayManager.playback = false
-							ReplayManager.resimulating = false
-							self.camera.reset_shake()
+				if self.current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else self.max_replay_tick - 2):
+					if not Network.multiplayer_active:
+						ReplayManager.playback = false
+					ReplayManager.resimulating = false
+					self.camera.reset_shake()
 	else :
 		ReplayManager.frames.finished = true
 	var game_end_data = should_game_end()

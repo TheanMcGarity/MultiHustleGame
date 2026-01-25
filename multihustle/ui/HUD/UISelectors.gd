@@ -64,8 +64,8 @@ func Init(main):
 func reinit(main):
 	
 	for id in selects.keys():
-		selects[id][0].reinit()
-		selects[id][1].reinit()
+		selects[id][0].reinit(Network.main, id)
+		selects[id][1].reinit(Network.main, id)
 		
 	pass
 	"""

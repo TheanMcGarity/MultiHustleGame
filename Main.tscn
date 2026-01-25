@@ -2469,7 +2469,8 @@ text = "Complete:
 - Replay+ Timeline Support
 - Throws
 - Team combo moves
-- - Boost"
+- - Boost
+- - Rescue"
 autowrap = true
 
 [node name="WIP" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
@@ -2480,8 +2481,8 @@ margin_bottom = 345.0
 rect_min_size = Vector2( 160, 345 )
 text = "In Development:
 - Team combo moves
-- - Heal
-- - Rescue"
+- - Gift
+- - Life Transfer"
 autowrap = true
 
 [node name="Incomplete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
@@ -2504,7 +2505,8 @@ margin_bottom = 345.0
 rect_min_size = Vector2( 160, 345 )
 text = "Known Bugs:
 - Some throw moves that hit multiple players don't do the same damage to everybody
-- Player Extras sometimes just dont work in replays, which will desync them."
+- Player Extras sometimes just dont work in replays, which will desync them.
+- Resync re-broke itself..."
 autowrap = true
 
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]

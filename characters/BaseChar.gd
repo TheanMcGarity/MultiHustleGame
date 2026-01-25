@@ -2561,7 +2561,7 @@ func singleplayer_set_display_name():
 
 func set_hp(new):
 	var stack = get_stack()
-	if Global.is_allowed_caller("copy_to", stack):
+	if !Global.is_allowed_caller("copy_to", stack):
 		return
 		
 	hp = new

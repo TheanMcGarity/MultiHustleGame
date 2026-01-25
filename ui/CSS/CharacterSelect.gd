@@ -777,7 +777,7 @@ func buffer_select(button):
 	if not singleplayer:
 		Network.select_character(data, $"%P1Display".selected_style if current_player == 1 else $"%P2Display".selected_style)
 		
-	if not player_selected_team:
+	if singleplayer and not player_selected_team:
 		Network.team_init(current_player_real)
 	
 	player_selected_team = false
@@ -1345,9 +1345,10 @@ func _on_network_character_selected(player_id, character, style = null):
 func on_team_button_pressed(button):
 	print("Team button pressed! - "+button.name)
 	
+	set_display_color(button.team_id)
+	
 	if singleplayer:
 		Network.singleplayer_on_team_change(button.team_id, ("p%d" % current_player), current_player)
-		set_display_color(button.team_id)
 		return
 	
 	player_selected_team = true
@@ -1358,7 +1359,11 @@ func on_team_button_pressed(button):
 	Network.rpc_("on_team_change", [button.team_id, username, Network.player_id])
 
 func set_display_color(team):
-	var right:bool = current_player_real != 1
+	var right:bool
+	if singleplayer:
+		right = current_player_real != 1
+	else:
+		right = Network.player_id != 1
 
 	var label:Label = $"%P1Display".get_node("PlayerLabel")
 	if right:

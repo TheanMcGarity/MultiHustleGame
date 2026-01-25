@@ -269,7 +269,7 @@ func MH_modmissing_closebutton_pressed():
 	$"%MainMenu".get_node("MHModIncompatibleContainer").queue_free()
 
 func on_resync(player):
-	Network.log_to_file("Checking if resync is ready.")
+	print("Checking if resync is ready.")
 	if Network.resync_counter >= Network.game.players.size() - Network.quitter_count and Network.player_id == Network.resync_request_player_id:
 		Network.rpc_("mh_resim", [ReplayManager.frames])
 		Network.log_to_file("Rsyncing.")

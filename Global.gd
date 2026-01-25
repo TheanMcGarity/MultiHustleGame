@@ -335,7 +335,10 @@ func reload():
 
 func is_allowed_caller(wanted, stack) -> bool:
 	if (stack.size() <= 1):
+		push_warning("result=%s,name=%s,wanted=%s,size=%d" % [true, "", wanted, stack.size()])
 		return true
 	var caller = stack[1]
 	var name = caller.function
-	return name == wanted
+	var result = name == wanted
+	push_warning("result=%s,name=%s,wanted=%s,size=%d" % [result, name, wanted, stack.size()])
+	return result 

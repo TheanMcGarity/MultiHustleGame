@@ -532,7 +532,7 @@ remotesync func accept_mh_resim(player_id:int):
 	# todo: make better
 	resync_counter += 1
 
-	log_to_file("ACCEPT_MH_RESIM()->%d,%d)" % players.size, resync_counter)
+	log_to_file("ACCEPT_MH_RESIM()->%d,%d)" % [players.size(), resync_counter])
 
 	if (self.player_id == player_id):
 		var team = Network.get_team(Network.player_id)
@@ -558,24 +558,25 @@ func accept_softlock_fix():
 remotesync func mh_resim(frames):
 	if player_id != resync_request_player_id:
 		ReplayManager.frames = frames
-	log_to_file("MH Resync from %s" % game.player_names[resync_request_player_id])
+	print("MH Resync from %s" % game.player_names[resync_request_player_id])
 	undo = true
 	auto = true
 
 	if is_instance_valid(game):
 		game.undo(false)
 
-	log_to_file("MH_RESIM()")
+	print("MH_RESIM()1")
 
 	var ui = main.ui_layer
 	for player in game.players:
-		var real_id = ui.GetRealID(player)
-		var timer = ui.turn_timers[real_id]
+		var timer = ui.turn_timers[player]
 		if timer:
 			timer.start(ui.turn_time)
 			timer.paused = false
+	print("MH_RESIM()2")
 
 	resync_request_player_id = 0
+	print("MH_RESIM()3")
 
 remotesync func select_opp(my_id, opp_id):
 	game.players[my_id].opponent = game.players[opp_id]
