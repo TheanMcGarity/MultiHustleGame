@@ -437,6 +437,8 @@ var hitstun_decay_combo_count = 0
 var lowest_tick = 0
 var wakeup_throw_immunity_ticks = 0
 
+var hidden_sprite := false
+
 onready var fake_emote_label = $"%EmoteLabel"
 onready var real_emote_label = $"%EmoteLabelReal"
 onready var emote_display = $"%EmoteDisplay"
@@ -471,13 +473,13 @@ func init(pos=null):
 	if (get("charname")):
 		self.charname = null
 	.init(pos)
+	game_over = false
 	if !is_ghost:
 		Network.player_objects[id] = self
 	feints = num_feints
 	if one_hit_ko:
 		MAX_HEALTH = 1
 	hp = MAX_HEALTH
-	game_over = false
 	if fixed.lt(max_di_scaling, min_di_scaling):
 		max_di_scaling = min_di_scaling
 	show_you_label()
@@ -700,6 +702,8 @@ func copy_to(f):
 	f.update_data()
 	f.emote(last_emote)
 	f.emote_live_counter = emote_live_counter
+	f.game_over = game_over
+	f.hidden_sprite = hidden_sprite
 
 func gain_burst():
 	if bursts_available < MAX_BURSTS:
@@ -991,6 +995,7 @@ func _process(delta):
 	#real_emote_label.bbcode_text = fake_emote_label.bbcode_text
 	
 	if (is_instance_valid(hp_label) and hp_label.text_variables != null):
+		hp_label.hide = hidden_sprite
 		hp_label.text_variables.hp = hp
 		hp_label.text_variables.max_hp = MAX_HEALTH
 		hp_label.text_variables.hp_color = _get_helth_label_color().to_html(false)
@@ -1935,6 +1940,11 @@ func can_be_thrown():
 	return .can_be_thrown() and blockstun_ticks <= 0
 
 func tick():
+	if forfeit:
+		hidden_sprite = true
+	
+	flip.visible = not hidden_sprite
+	
 	if is_ghost and !is_grounded():
 		ghost_was_in_air = true
 	if hitlag_ticks > 0:
@@ -2085,6 +2095,13 @@ func tick():
 #	lowest_tick = null
 	if forfeit:
 		forfeit_ticks += 1
+
+	if hp <= 0:
+		if (not game_over) and (not is_ghost):
+			Network.team_living[team] -= 1
+		game_over = true
+	else:
+		game_over = false
 
 	if forfeit and forfeit_ticks > 2:
 		change_state("ForfeitExplosion")

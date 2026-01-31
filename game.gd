@@ -748,15 +748,6 @@ func tick():
 			end_game_team(game_end_data.winning_team)
 		else:
 			end_game_ffa(game_end_data.winning_player)
-	for player in players.values():
-		if player.hp <= 0:
-			if not(player.game_over):
-				Network.team_living[player.team] -= 1
-				print("player death:" + str(player.team)+", team_living[]: "+str(Network.team_living))
-			
-			player.game_over = true
-		else:
-			player.game_over = false
 	
 	if not is_ghost:
 		var opp = Network.main.uiselectors.selects[2][0].active_char_index
