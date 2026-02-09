@@ -412,7 +412,7 @@ animations = [ {
 } ]
 
 [sub_resource type="ViewportTexture" id=2]
-viewport_path = NodePath("EmoteView")
+viewport_path = NodePath("Viewport")
 
 [sub_resource type="ViewportTexture" id=3]
 viewport_path = NodePath("EmoteView")

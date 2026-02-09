@@ -51,6 +51,7 @@ func copy_to(box: CollisionBox):
 	box.width = width
 	box.height = height
 
+
 func get_overlap(box: CollisionBox):
 	var overlap = {
 	}
@@ -119,6 +120,10 @@ func box_draw():
 		var color = Color.red
 		if "CollisionBox" in name:
 			color = Color.teal
+		if "SolidBox" in name:
+			color = Color.darkgreen
+		if "DeathBox" in name:
+			color = Color.black
 		elif "Hurtbox" in name:
 			color = Color.yellow
 			if parent.is_in_group("BaseObj"):

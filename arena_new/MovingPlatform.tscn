@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://arena_new/MovingPlatform.gd" type="Script" id=1]
+[ext_resource path="res://arena_new/PlatformTest.tscn" type="PackedScene" id=2]
+
+[node name="BaseGround" instance=ExtResource( 2 )]
+script = ExtResource( 1 )
+time_to_move = 0.0
+
+[node name="ColorRect" parent="Flip" index="2"]
+color = Color( 0.552941, 0.427451, 0.427451, 1 )

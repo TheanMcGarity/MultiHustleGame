@@ -26,7 +26,7 @@ func _tick():
 	if host.is_grounded():
 		var vel = host.get_vel()
 #		host.set_vel(vel.x, vel.y)
-		host.set_pos(host.get_pos().x, 0)
+		#shost.set_pos(host.get_pos().x, 0)
 		host.apply_x_fric(HurtGrounded.GROUND_FRIC)
 	else:
 		host.apply_x_fric(HurtAerial.AIR_FRIC)

@@ -13,8 +13,8 @@ var move_velocity = 0
 func _enter():
 	host.sprite.modulate.a = 0
 
-func _frame_0():
-	host.set_pos(host.get_pos().x, 0)
+#func _frame_0():
+	#host.set_pos(host.get_pos().x, 0)
 #	host.play_sound("Beep")
 
 func _tick():

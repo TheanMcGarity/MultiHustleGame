@@ -825,11 +825,12 @@ func combo_stale_meter(meter: int):
 func update_data():
 	data = get_data()
 	obj_data = data["object_data"]
-	data["state_data"] = {
-		"state": current_state().state_name,
-		"frame": current_state().current_tick,
-		"combo count": combo_count,
-	}
+	if (initialized):
+		data["state_data"] = {
+			"state": current_state().state_name,
+			"frame": current_state().current_tick,
+			"combo count": combo_count,
+		}
 
 
 var emote_live_counter := 0
@@ -1902,6 +1903,15 @@ func touching_which_wall():
 	var vel = get_vel()
 	var bounce = 0
 
+	var platform_collision = _colliding_with_wall#colliding_with_wall()
+	if (platform_collision != 0):
+		match platform_collision:
+			1:
+				bounce = 1
+			2:
+				bounce = -1
+		return bounce
+
 	if (col_box.x1 <= -stage_width and fixed.le(vel.x, "0")):
 		bounce = -1
 	elif (col_box.x2 >= stage_width and fixed.ge(vel.x, "0")):
@@ -2084,6 +2094,8 @@ func tick():
 		touching_wall = true
 	if (col_box.x2 >= stage_width and fixed.gt(vel.x, "0")):
 		touching_wall = true
+	if (_colliding_with_wall != 0):
+		touching_wall = true
 	if !is_grounded():
 		last_aerial_vel = last_vel
 	if !(previous_state() is ParryState) or !(current_state() is ParryState):
@@ -2255,12 +2267,14 @@ func set_facing(facing: int, force=false):
 	.set_facing(facing)
 
 func update_facing():
+	if initialized:
+		update_data()
+	else:
+		return
 	if obj_data.position_x < opponent.obj_data.position_x:
 		set_facing(1)
 	elif obj_data.position_x > opponent.obj_data.position_x:
 		set_facing(-1)
-	if initialized:
-		update_data()
 
 func on_state_interruptable(state=null):
 	if !dummy:

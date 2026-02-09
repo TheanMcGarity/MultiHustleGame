@@ -60,6 +60,10 @@ var game_tick = 0
 
 var hitlag_ticks = 0# setget set__hitlag_ticks
 
+var _is_grounded := false
+var grounded_solid
+var _colliding_with_wall := 0
+var wall_solid
 
 func set__hitlag_ticks(new):
 	hitlag_ticks = new
@@ -219,6 +223,7 @@ func init(pos=null):
 	chara.id = id
 	if (not is_ghost):
 		print("Obj init for %d" % id)
+	update_data()
 	chara.set_gravity(gravity)
 	chara.set_ground_friction(ground_friction)
 	chara.set_air_friction(air_friction)
@@ -324,7 +329,7 @@ func copy_to(o: BaseObj):
 #	o.current_tick = current_tick
 #	if o.has_method("clean_parried_hitboxes"):
 #		o.clean_parried_hitboxes()
-	o.chara.update_grounded()
+	o.update_grounded()
 #	o.set_pos(get_pos().x, get_pos().y)
 #	o.set_facing(get_facing_int())
 	o.update_data()
@@ -653,6 +658,7 @@ func set_pos(x, y):
 	chara.set_position_str(x, y)
 
 
+
 func set_snap_to_ground(snap: bool):
 	chara.set_snap_to_ground(snap)
 
@@ -698,15 +704,29 @@ func set_gravity_modifier(modifier: String):
 	chara.set_gravity_modifier(modifier)
 
 func apply_grav_custom(grav: String, fall_speed: String):
-	if gravity_enabled:
+	if gravity_enabled and !is_grounded():
 		chara.apply_grav_custom(grav, fall_speed)
 
 func apply_grav():
-	if gravity_enabled:
+	if gravity_enabled and !is_grounded():
 		chara.apply_grav()
 
+# Reacreation of the c++ friction code for yomi
 func apply_fric():
-	chara.apply_fric()
+	if _is_grounded:
+		apply_ground_fric()
+	else:
+		apply_air_fric()
+func apply_ground_fric():
+	var y_vel = float(get_vel().y)
+	var x_vel = float(get_vel().x)
+	var x_vel_new = x_vel - (abs(x_vel) / float(max_ground_speed)) * float(ground_friction) * sign(x_vel)
+	set_vel(x_vel_new, y_vel)
+func apply_air_fric():
+	var y_vel = float(get_vel().y)
+	var x_vel = float(get_vel().x)
+	var x_vel_new = x_vel - (abs(x_vel) / float(max_air_speed)) * float(air_friction) * sign(x_vel)
+	set_vel(x_vel_new, y_vel)
 
 func apply_x_fric(fric):
 	chara.apply_x_fric(fric)
@@ -785,8 +805,8 @@ func reset_momentum():
 
 func is_grounded():
 	if !use_platforms:
-		return chara.is_grounded()
-	var grounded = chara.is_grounded() or current_state().name=="_LedgeGrab"
+		return _is_grounded
+	var grounded = _is_grounded or current_state().name=="_LedgeGrab"
 	if(!grounded and !(current_state().name=="HurtAerial" and float(get_vel().y)<=0)):
 		var platforms = get_tree().get_nodes_in_group("Platform")
 		for p in platforms:
@@ -797,7 +817,7 @@ func is_grounded():
 	return grounded
 
 func set_grounded(on):
-	chara.set_grounded(on)
+	_is_grounded = on
 
 func add_pushback(pushback):
 	chara.add_pushback(pushback)
@@ -805,8 +825,50 @@ func add_pushback(pushback):
 func reset_pushback():
 	chara.reset_pushback()
 
+func get_game():
+	if is_ghost:
+		return Global.current_game.ghost_game
+	else:
+		return Global.current_game
+
 func update_grounded():
-	chara.update_grounded()
+	if (is_instance_valid(grounded_solid)):
+		grounded_solid.colliding.erase(self)
+	colliding_with_wall()
+	move_away_from_wall(wall_solid, _colliding_with_wall)
+	
+	#chara.update_grounded()
+	var game = get_game()
+	if not is_instance_valid(game):
+		return
+	var solids = game.solids#get_tree().get_nodes_in_group("Solids")
+	for solid in solids:
+		if not is_instance_valid(solid):
+			continue
+		#var solid = Global.current_game.get_node(solid_path)
+		var col:SolidBox = solid.get_node("SolidBox")
+		
+		if not is_instance_valid(col):
+			continue
+			
+		if (_colliding_with_wall != 0):
+			continue
+		
+		var pos = position
+		pos.x = pos.x - (collision_box.width / 2)
+		pos.y = pos.y + 2
+		
+		if col.overlaps_on_point(pos):
+			_is_grounded = true
+			grounded_solid = solid
+			set_vel(str(get_vel().x), str(0))
+			#set_pos(str(get_pos().x), str(col.get_aabb().y1))
+			
+			grounded_solid.colliding.append(self)
+			return
+	
+	grounded_solid = null
+	_is_grounded = position.y >= 0
 
 func on_got_parried():
 	hitlag_ticks += current_state().extra_parry_hitlag
@@ -879,6 +941,10 @@ func distance_to(object: BaseObj):
 	return fixed.vec_dist(str(p1.x), str(p1.y), str(p2.x), str(p2.y))
 
 func tick():
+	#if (_is_grounded):
+	#	set_vel(get_vel().x, 0)
+	#	chara.set_position(get_pos().x, grounded_solid.y)
+	#	print("test")
 	if current_tick <= 0:
 		update_data()
 
@@ -892,6 +958,7 @@ func tick():
 	can_update_sprite = true
 	update_collision_boxes()
 	update_data()
+	
 
 func on_hit_ceiling():
 	pass
@@ -966,8 +1033,10 @@ func previous_state():
 func normal_tick():
 	state_tick()
 	update_data()
+	
 	current_tick += 1
 	game_tick += 1
+	
 	update_grounded()
 
 func get_knockback_force(hitbox):
@@ -1001,3 +1070,45 @@ func get_team() -> int:
 	if creator == null:
 		return 0
 	return creator.get_team()
+
+func colliding_with_wall():
+	var game = get_game()
+	if not is_instance_valid(game):
+		return
+	var solids = game.solids#get_tree().get_nodes_in_group("Solids")
+	for solid in solids:
+		if not is_instance_valid(solid):
+			continue
+		#var solid = Global.current_game.get_node(solid_path)
+		var col = solid.get_node("SolidBox")
+		if not is_instance_valid(col):
+			continue
+		if col.overlaps(collision_box):
+			print("woagh")
+			var center = col.get_overlap_center(collision_box)
+			var wall_side = col.pos_to_x_side(6, center)
+			_colliding_with_wall = wall_side
+			wall_solid = col
+			return wall_side
+	
+	_colliding_with_wall = 0
+	wall_solid = null
+	return 0
+
+func move_away_from_wall(wall_col, dir):
+	if (not is_instance_valid(wall_col)):
+		return
+	var wall = wall_col.get_parent()
+	match dir:
+		1:
+			print("1")
+			var x_vel = float(get_vel().x) / 5
+			x_vel += wall.movement_velocity.x * wall.bounciness
+			set_pos(str(wall_col.get_aabb().x1 - collision_box.width), str(get_pos().y))
+			set_vel(str(-abs(x_vel)), str(get_vel().y))
+		2:
+			print("2")
+			var x_vel = float(get_vel().x) / 5
+			x_vel += wall.movement_velocity.x * wall.bounciness
+			set_pos(str(wall_col.get_aabb().x2 + collision_box.width), str(get_pos().y))
+			set_vel(str(abs(x_vel)), str(get_vel().y))

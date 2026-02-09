@@ -7,6 +7,7 @@ var has_tag = false
 
 var tag_nodes = {}
 var node_tags = {}
+var visibility := 0
 
 var initialized = false
 
@@ -15,7 +16,10 @@ func init():
 	dir.make_dir_recursive(get_dir())
 #
 	for button in $"%TagsContainer".get_children():
-		button.connect("pressed", self, "update_has_tags")
+		if (button is CheckBox):
+			button.connect("pressed", self, "update_has_tags")
+	
+	$"%Visibility".connect("item_selected", self, "_on_visibility_changed")
 	
 	node_tags = {
 		$"%Character": "Character",
@@ -53,6 +57,10 @@ func update_workshop_button():
 func is_valid_workshop_item():
 	return image_valid and zip_path != "" and has_name and has_tag
 
+func set_visibility(value):
+	var vis:OptionButton = $"%Visibility"
+	vis.select(vis.get_item_index(value))
+
 func refresh(load_save_data=true):
 	if load_save_data:
 		var file = File.new()
@@ -65,6 +73,8 @@ func refresh(load_save_data=true):
 				$"%ModName".text = data.name
 				$"%ModDesc".text = data.desc
 				set_tags(data.tags)
+				if (data.has("visibility")):
+					set_visibility(data.visibility)
 			file.close()
 
 	zip_path = ""
@@ -125,6 +135,7 @@ func get_mod_data():
 		"desc": get_mod_desc(),
 		"id": get_mod_id(),
 		"tags": get_tags(),
+		"visibility": visibility,
 	}
 
 func get_mod_name():
@@ -198,6 +209,9 @@ func update_has_tags():
 	$"%TagsLabel".modulate = Color.white
 	$"%TagsMissingLabel".hide()
 	for child in $"%TagsContainer".get_children():
+		if not child is CheckBox:
+			continue
+		
 		if child.pressed:
 			has_tag = true
 			update_workshop_button()
@@ -215,7 +229,7 @@ func update_item(item: UGCItem, new=true):
 	item.set_description(data.desc)
 	item.set_content(get_dir())
 	item.set_preview(get_image_path())
-	item.set_visibility(0)
+	item.set_visibility(data.visibility)
 	item.update($"%ModUpdateNotes".text)
 
 func _on_item_created(p_file_id):
@@ -236,3 +250,6 @@ func _on_WorkshopItemLink_meta_clicked(meta):
 func _on_VisitWorkshopButton_pressed():
 	Steam.activateGameOverlayToWebPage("https://steamcommunity.com/app/2212330/workshop/")
 	pass # Replace with function body.
+
+func _on_visibility_changed(index):
+	visibility = $"%Visibility".get_item_id(index)

@@ -1,10 +1,14 @@
 extends Window
 
+
+
 const MAX_LINES = 300
 
 export var force_mute_on_hide = false
 
 var showing = false
+
+export var commands := {}
 
 func _on_user_joined(user):
 	god_message(user + " joined.")
@@ -87,32 +91,6 @@ func on_message_ready(message):
 		send_message(message)
 		$"%LineEdit".clear()
 
-func process_command_vanilla(message: String):
-	if Network.multiplayer_active and !SteamLobby.SPECTATING:
-		if message.begins_with("/em "):
-			Network.rpc_("player_emote", [Network.player_id, message])
-			return true
-	else:
-		if message.begins_with("/em "):
-			if is_instance_valid(Global.current_game):
-				var player = Global.current_game.get_player(1)
-				if player:
-					player.emote(message.split("/em ")[-1])
-			return true
-		if message.begins_with("/em1 "):
-			if is_instance_valid(Global.current_game):
-				var player = Global.current_game.get_player(1)
-				if player:
-					player.emote(message.split("/em1 ")[-1])
-			return true
-		if message.begins_with("/em2 "):
-			if is_instance_valid(Global.current_game):
-				var player = Global.current_game.get_player(2)
-				if player:
-					player.emote(message.split("/em2 ")[-1])
-			return true
-	
-	return false
 
 func toggle():
 	visible = !visible
@@ -165,18 +143,24 @@ func show_resync(player_id:int):
 	pass
 
 func process_command(message:String):
-	var a = process_command_vanilla(message)
-	if a: return a
-	if not(Network.multiplayer_active and not SteamLobby.SPECTATING):
+	if Network.multiplayer_active and !SteamLobby.SPECTATING:
+		if message.begins_with("/em "):
+			Network.rpc_("player_emote", [Network.player_id, message])
+			return true
+	else:
 		if is_instance_valid(Global.current_game):
-			# Technically checks player 1 and 2 twice, but I'll leave it just in case
+			if message.begins_with("/em "):
+				var player = Global.current_game.get_player(1)
+				if player:
+					player.emote(message.split("/em ")[-1])
+					return true
 			for v in Global.current_game.players.keys():
-				if message.begins_with("/em" + str(v) + " "):
-					var player = Global.current_game.get_player(v)
-					if player:
-						player.emote(message.split("/em" + str(v) + " ")[ - 1])
-						return true
-	return a
+					if message.begins_with("/em" + str(v) + " "):
+						var player = Global.current_game.get_player(v)
+						if player:
+							player.emote(message.split("/em" + str(v) + " ")[ - 1])
+							return true
+	return false
 
 # Same as vanilla but with custom player name colors
 func on_mh_chat_message_received(player_id: int, message: String, username: String):

@@ -182,7 +182,7 @@ var lock_sync_unlocks = true
 var mh_file_path = "user://logs/mhlogs" + Time.get_time_string_from_unix_time(int(Time.get_unix_time_from_system()-(Time.get_ticks_msec()/1000))).replace(":", ".") + ".log"
 var net_file_path = "user://logs/netlogs" + Time.get_time_string_from_unix_time(int(Time.get_unix_time_from_system()-(Time.get_ticks_msec()/1000))).replace(":", ".") + ".log"
 
-const DISABLE_LOGS = false
+const DISABLE_LOGS = true
 
 # Util Functions
 

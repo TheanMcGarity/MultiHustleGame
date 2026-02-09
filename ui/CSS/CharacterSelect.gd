@@ -299,8 +299,10 @@ func init(singleplayer=true):
 	
 	if singleplayer:
 		Network.team_init(1)
+		player_selected_team = true
 	else:
 		Network.team_init(Network.player_id)
+		player_selected_team = true
 	
 	show()
 	emit_signal("opened")
@@ -313,7 +315,7 @@ func init(singleplayer=true):
 	$"%GoButton".disabled = true
 	$"%GoButton".show()
 	self.singleplayer = singleplayer
-	$"%GameSettingsPanelContainer".init(singleplayer)
+	$"%GameSettings".init(singleplayer)
 #	$"%GameSettingsPanelContainer".singleplayer = singleplayer
 #	$"%P2Display".set_enabled(singleplayer)
 	$"%SelectingLabel".text = "P1 SELECT YOUR CHARACTER" if singleplayer else "SELECT YOUR CHARACTER"
@@ -1349,6 +1351,7 @@ func on_team_button_pressed(button):
 	
 	if singleplayer:
 		Network.singleplayer_on_team_change(button.team_id, ("p%d" % current_player), current_player)
+		player_selected_team = true
 		return
 	
 	player_selected_team = true
@@ -1394,7 +1397,7 @@ func _on_style_selected(style, pidx):
 		real_selected_styles[current_player_real] = style
 
 func _on_button_pressed(button):
-	Network.rpc_("on_team_change", [selected_team, "player%d" % current_player_real, current_player_real])
+	#Network.rpc_("on_team_change", [selected_team, "player%d" % current_player_real, current_player_real])
 	selected_team = 0
 	if singleplayer:
 		Network.player_character_names[current_player_real] = button.text
@@ -1445,13 +1448,18 @@ func get_match_data():
 		"selected_characters":selected_characters,
 		"selected_styles":selected_styles,
 	}
+	
+	if singleplayer:
+		var game_type_node = $"%GameType"
+		data["gamemode"] = game_type_node.get_item_id(game_type_node.selected)
+	
 	if singleplayer or Network.is_host():
 		randomize()
 		data.merge({"seed":randi()})
 	if SteamLobby.LOBBY_ID != 0 and SteamLobby.MATCH_SETTINGS:
 		data.merge(SteamLobby.MATCH_SETTINGS)
 	else :
-		data.merge($"%GameSettingsPanelContainer".get_data())
+		data.merge($"%GameSettings".get_data())
 	return data
 
 # Character Loader Overrides

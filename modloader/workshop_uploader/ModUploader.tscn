@@ -320,21 +320,7 @@ margin_left = 372.0
 margin_right = 522.0
 margin_bottom = 280.0
 
-[node name="PanelContainer" type="PanelContainer" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox"]
-margin_right = 150.0
-margin_bottom = 13.0
-
-[node name="TagsLabel" type="Label" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/PanelContainer"]
-unique_name_in_owner = true
-margin_left = 1.0
-margin_top = 1.0
-margin_right = 149.0
-margin_bottom = 12.0
-text = "Tags"
-align = 1
-
 [node name="TagsScrollContainer" type="ScrollContainer" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox"]
-margin_top = 14.0
 margin_right = 150.0
 margin_bottom = 280.0
 rect_min_size = Vector2( 150, 0 )
@@ -345,89 +331,130 @@ scroll_horizontal_enabled = false
 [node name="TagsContainer" type="VBoxContainer" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer"]
 unique_name_in_owner = true
 margin_right = 150.0
-margin_bottom = 266.0
+margin_bottom = 280.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="PanelContainer" type="PanelContainer" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
+margin_right = 150.0
+margin_bottom = 13.0
+
+[node name="TagsLabel" type="Label" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer/PanelContainer"]
+unique_name_in_owner = true
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 149.0
+margin_bottom = 12.0
+text = "Tags"
+align = 1
+
 [node name="Character" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
+margin_top = 14.0
 margin_right = 150.0
-margin_bottom = 17.0
+margin_bottom = 31.0
 action_mode = 0
 text = "Character"
 flat = true
 
 [node name="TextureReplacement" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 18.0
+margin_top = 32.0
 margin_right = 150.0
-margin_bottom = 35.0
+margin_bottom = 49.0
 action_mode = 0
 text = "Texture Replacement"
 flat = true
 
 [node name="SoundReplacement" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 36.0
+margin_top = 50.0
 margin_right = 150.0
-margin_bottom = 53.0
+margin_bottom = 67.0
 action_mode = 0
 text = "Sound Replacement"
 flat = true
 
 [node name="Gamemode" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 54.0
+margin_top = 68.0
 margin_right = 150.0
-margin_bottom = 71.0
+margin_bottom = 85.0
 action_mode = 0
 text = "Gamemode"
 flat = true
 
 [node name="Stage" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 72.0
+margin_top = 86.0
 margin_right = 150.0
-margin_bottom = 89.0
+margin_bottom = 103.0
 action_mode = 0
 text = "Stage"
 flat = true
 
 [node name="Tweaks" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 90.0
+margin_top = 104.0
 margin_right = 150.0
-margin_bottom = 107.0
+margin_bottom = 121.0
 action_mode = 0
 text = "Tweaks"
 flat = true
 
 [node name="Tool" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 108.0
+margin_top = 122.0
 margin_right = 150.0
-margin_bottom = 125.0
+margin_bottom = 139.0
 action_mode = 0
 text = "Tool"
 flat = true
 
 [node name="Overhaul" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 126.0
+margin_top = 140.0
 margin_right = 150.0
-margin_bottom = 143.0
+margin_bottom = 157.0
 action_mode = 0
 text = "Overhaul"
 flat = true
 
 [node name="ClientSide" type="CheckBox" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
 unique_name_in_owner = true
-margin_top = 144.0
+margin_top = 158.0
 margin_right = 150.0
-margin_bottom = 161.0
+margin_bottom = 175.0
 action_mode = 0
 text = "Clientside"
 flat = true
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
+margin_top = 176.0
+margin_right = 150.0
+margin_bottom = 180.0
+
+[node name="PanelContainer2" type="PanelContainer" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
+margin_top = 181.0
+margin_right = 150.0
+margin_bottom = 194.0
+
+[node name="VisibiltyLabel" type="Label" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer/PanelContainer2"]
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 149.0
+margin_bottom = 12.0
+text = "Visibility"
+align = 1
+
+[node name="Visibility" type="OptionButton" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox/TagsScrollContainer/TagsContainer"]
+unique_name_in_owner = true
+margin_top = 195.0
+margin_right = 150.0
+margin_bottom = 207.0
+text = "Public"
+items = [ "Public", null, false, 0, null, "Unlisted", null, false, 3, null, "Friends Only", null, false, 1, null, "Private", null, false, 2, null ]
+selected = 0
 
 [node name="ModTagMissingLabel" type="Label" parent="PanelContainer/VBoxContainer/Panel2/HBoxContainer/TagsBox"]
 unique_name_in_owner = true

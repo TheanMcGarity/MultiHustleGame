@@ -160,7 +160,6 @@ var multiHustle_CharManager
 var turns_taken:Dictionary = {}
 var needs_refresh:bool = true
 var current_opponent_indicies:Dictionary = {}
-var player_colors:Dictionary = {}
 var color_rng:BetterRng = BetterRng.new()
 var throws_consumed:Dictionary = {}
 var players_hittable_dic:Dictionary = {}
@@ -176,6 +175,24 @@ var team_collisions := false
 
 var reload_ui_allowed := false
 
+
+var player_colors:Dictionary = {
+	1: Color("aca2ff"),
+	2: Color("ff7a81"),
+	3: Color("fff58c"),
+	4: Color("86c286"),
+	5: Color("c271f5"),
+	6: Color("f28e63"),
+	7: Color("6adeb2"),
+	8: Color("ed4596"),
+	#9: Color("4755ed"),
+	#10: Color("ed535b"),
+}
+
+export var solids := []
+var physics := []
+var spawners := {}
+var global_hitboxes := []
 #var has_ghost_frozen_yet = false
 
 func get_ticks_left():
@@ -275,6 +292,40 @@ func copy_to(game):
 				game.objs_map[str(game.objs_map.size() + 1)] = null
 	game.camera.limit_left = self.camera.limit_left
 	game.camera.limit_right = self.camera.limit_right
+	
+	#var solid_node = game.get_node("Solids")
+	#game.solids = []
+	#
+	#for solid in solid_node.get_children():
+	#	solid.free()
+	#for solid in solids:
+	#	var new_solid = solid.duplicate()
+	#	solid_node.add_child(new_solid)
+	#	if (new_solid is BaseObj):
+	#		new_solid.colliding = []
+	#		game.solids.append(new_solid)
+	var solid_node = game.get_node("Solids")
+	for solid in solid_node.get_children():
+		solid.free()
+	game.physics = []
+	game.solids = []
+	for solid in solids:
+		if (not is_instance_valid(solid)):
+			continue
+		var new_solid = solid.duplicate()
+		solid_node.add_child(new_solid)
+		if (new_solid is BaseObj):
+			new_solid.colliding = []
+			game.solids.append(new_solid)
+		
+	for physical in physics:
+		if (not is_instance_valid(physical)):
+			continue
+		var new_physical = physical.duplicate()
+		solid_node.add_child(new_physical)
+		physical.copy_to(new_physical)
+		
+	
 
 func _on_super_started(ticks, player):
 	set_vanilla_game_started(true)
@@ -388,6 +439,9 @@ func forfeit(id):
 
 func start_game(singleplayer:bool, match_data:Dictionary):
 	set_vanilla_game_started(true)
+
+	for spawner in Global.get_nodes_in_group_under(self, "spawner"):
+		spawners[spawner.player_id] = spawner
 
 	#print(match_data)
 	
@@ -582,6 +636,14 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		for index in players.keys():
 			var player = players[index]
 			player.gain_super_meter(meter_amount)
+	
+	
+	for box in Global.get_nodes_in_group_under(self, "global_box"):
+		global_hitboxes.append(box)
+	for solid in Global.get_nodes_in_group_under(self, "solid"):
+		solids.append(solid)
+	for physical in Global.get_nodes_in_group_under(self, "physics"):
+		physics.append(physical)
 
 func on_prediction(ticks=7, player=null):
 	_on_super_started(ticks, player)
@@ -621,6 +683,9 @@ func initialize_objects():
 	for object in objects:
 		if !object.initialized:
 			object.init()
+	for object in physics:
+		if !object.initialized:
+			object.init()
 
 func process_fx():
 	for fx in effects:
@@ -628,6 +693,7 @@ func process_fx():
 			fx.tick()
 
 func tick():
+	
 	set_vanilla_game_started(true)
 
 	if self.is_ghost and not self.prediction_enabled:
@@ -665,6 +731,21 @@ func tick():
 		if self.has_ceiling and pos.y <= - self.ceiling_height:
 			object.set_y( - self.ceiling_height)
 			object.on_hit_ceiling()
+	for object in self.physics:
+		if object.disabled:
+			continue
+		if not object.initialized:
+			object.init()
+
+		object.tick()
+		var pos = object.get_pos()
+		if pos.x < - self.stage_width:
+			object.set_pos( - self.stage_width, pos.y)
+		elif pos.x > self.stage_width:
+			object.set_pos(self.stage_width, pos.y)
+		if self.has_ceiling and pos.y <= - self.ceiling_height:
+			object.set_y( - self.ceiling_height)
+			object.on_hit_ceiling()
 
 	for fx in self.effects:
 		if is_instance_valid(fx):
@@ -685,12 +766,35 @@ func tick():
 	for player in playerPorts:
 		player.tick_before()
 
+	#if not is_ghost:
+	for solid in self.solids:
+		#var node = get_node(solid)
+		if not is_instance_valid(solid):
+			solids.erase(solid)
+			continue
+		if not solid is BaseGround:
+			solids.erase(solid)
+			continue
+		solid.calc_vel()
+		solid.solid_tick_before()
+		
 	for player in playerPorts:
 		player.update_advantage()
 	
 	for player in playerPorts:
 		player.tick()
 
+#	if not is_ghost:
+	for solid in self.solids:
+		#var node = get_node(solid)
+		if not is_instance_valid(solid):
+			solids.erase(solid)
+			continue
+		if not solid is BaseGround:
+			solids.erase(solid)
+			continue
+		solid.solid_tick()
+	
 	resolve_same_x_coordinate()
 	initialize_objects()
 	for index in players.keys():
@@ -1090,6 +1194,8 @@ func apply_hitboxes(players):
 	for hitboxpair in get_all_pairs(players_w_hitboxes):
 		apply_hitboxes_internal(hitboxpair)
 	apply_hitboxes_objects(players)
+	apply_hitboxes_solids(players)
+	apply_global_hitboxes(players)
 
 	"""
 	for obj in throws_consumed:
@@ -1108,6 +1214,8 @@ func apply_hitboxes(players):
 func get_colliding_hitbox(hitboxes, hurtbox) -> Hitbox:
 	var hit_by = null
 	for hitbox in hitboxes:
+		if (not is_instance_valid(hitbox)):
+			continue
 		if hitbox is Hitbox:
 			var host = hurtbox.get_parent()
 			if host is ObjectState:
@@ -1733,20 +1841,21 @@ func _debug_throw(event: String, payload := {}):
 func MultiHustle_get_color_by_index(index):
 	# TODO - Add more auto-colors
 	if !player_colors.has(index):
-		match index:
-			1:
-				player_colors[index] = Color("aca2ff")
-			2:
-				player_colors[index] = Color("ff7a81")
-			3:
-				player_colors[index] = Color("8effe9")
-			4:
-				player_colors[index] = Color("ddff8e")
-			_: # This SHOULD be deterministic, but I could see something going wrong.
-				player_colors[index] = Color(color_rng.randf(), color_rng.randf(), color_rng.randf())
+		var div = (index / 8) + 1
+		if (div >= 2):
+			var mod = index % 8 + 1
+			player_colors[index] = darken_color(index, player_colors[mod])
+			print(player_colors[index])
 	return player_colors[index]
 
-
+func darken_color(amount, color:Color):
+	var new_color = Color(color.r, color.g, color.b)
+	var amount_val = amount * 6
+	new_color.r8 -= amount_val
+	new_color.g8 -= amount_val
+	new_color.b8 -= amount_val
+	
+	return new_color
 
 func process_player_positions():
 	var height = 0
@@ -1761,9 +1870,18 @@ func process_player_positions():
 	if not is_ghost:
 		print("team_pos_data: "+str(team_pos_data))
 
+	for id in players.keys():
+		if (spawners.has(id)):
+			var pos = spawners[id].position
+			var player = players[id]
+			player.set_pos(str(pos.x), str(pos.y))
+			print(pos, player)
+			
 	match team_pos_data.size():
 		1:
 			for player in players.values():
+				if (spawners.has(player.id)):
+					continue
 				if alternation == false:
 					player.set_pos(-tempDistance, height)
 					alternation = true
@@ -1775,6 +1893,10 @@ func process_player_positions():
 				player.stage_width = self.stage_width
 		2:
 			for idx in team_pos_data[0]:
+		
+				if (spawners.has(idx)):
+					continue
+				
 				var player = players[idx]
 				
 				player.set_pos(tempDistance, height)
@@ -1785,6 +1907,8 @@ func process_player_positions():
 			tempDistance = self.char_distance
 
 			for idx in team_pos_data[1]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(-tempDistance, height)
@@ -1793,6 +1917,8 @@ func process_player_positions():
 				player.stage_width = self.stage_width
 		4:
 			for idx in team_pos_data[0]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(tempDistance, height)
@@ -1803,6 +1929,8 @@ func process_player_positions():
 			tempDistance = self.char_distance + tempDistance
 
 			for idx in team_pos_data[1]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(tempDistance, height)
@@ -1813,6 +1941,8 @@ func process_player_positions():
 			tempDistance = self.char_distance
 
 			for idx in team_pos_data[2]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(-tempDistance, height)
@@ -1823,6 +1953,8 @@ func process_player_positions():
 			tempDistance = self.char_distance + tempDistance
 			
 			for idx in team_pos_data[3]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(-tempDistance, height)
@@ -1831,6 +1963,8 @@ func process_player_positions():
 				player.stage_width = self.stage_width
 		3:
 			for idx in team_pos_data[0]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(tempDistance, height)
@@ -1841,6 +1975,8 @@ func process_player_positions():
 
 			tempDistance = self.char_distance + tempDistance
 			for idx in team_pos_data[1]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 
 				player.set_pos(tempDistance, height)
@@ -1852,6 +1988,8 @@ func process_player_positions():
 			tempDistance = self.char_distance
 
 			for idx in team_pos_data[2]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(-tempDistance, height)
@@ -1860,6 +1998,8 @@ func process_player_positions():
 				player.stage_width = self.stage_width
 		5:
 			for idx in team_pos_data[0]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(tempDistance, height)
@@ -1870,6 +2010,8 @@ func process_player_positions():
 			tempDistance = self.char_distance + tempDistance
 
 			for idx in team_pos_data[1]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(tempDistance, height)
@@ -1880,6 +2022,8 @@ func process_player_positions():
 			tempDistance = self.char_distance
 
 			for idx in team_pos_data[2]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 
 				player.set_pos(-tempDistance, height)
@@ -1887,6 +2031,8 @@ func process_player_positions():
 
 			tempDistance = self.char_distance + tempDistance
 			for idx in team_pos_data[3]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(-tempDistance, height)
@@ -1897,6 +2043,8 @@ func process_player_positions():
 			tempDistance = self.char_distance + tempDistance
 
 			for idx in team_pos_data[4]:
+				if (spawners.has(idx)):
+					continue
 				var player = players[idx]
 				
 				player.set_pos(-tempDistance, height)
@@ -2056,6 +2204,12 @@ func _thrower_has_target(thrower, target):
 
 # throws_consumed is handled by instance, but may be passed by reference in the future
 
+func apply_global_hitboxes(players:Array):
+	for player in players:
+		for hitbox in global_hitboxes:
+			var hit = get_colliding_hitbox([hitbox], player.hurtbox)
+			if (hit):
+				MH_wrapped_hit_no_host(hitbox, player)
 
 func apply_hitboxes_internal(playerhitboxpair:Array):
 	var pair1 = playerhitboxpair[0]
@@ -2343,6 +2497,29 @@ func apply_hitboxes_internal(playerhitboxpair:Array):
 
 
 
+func apply_hitboxes_solids(players:Array):
+	var physics_boxes_to_hit := []
+	var player_hit_physical := false
+	var physics_boxes := []
+	for physics_object in physics:
+		physics_boxes.append(physics_object.get_node("SolidBox"))
+	for player in players:
+		var hitboxes = player.get_active_hitboxes()
+		for physics_box in physics_boxes:
+			#var cbox = player.collision_box
+			#
+			#var cbox_overlap = physics_box.overlaps(cbox)
+			#if (cbox_overlap):
+			#	var cbox_overlap_normal = physics_box.get_overlap_normal(cbox)
+			#	var vel = player.get_vel()
+			#	var vel_vec = Vector2(vel.x,vel.y)
+			#	physics_box.get_parent().apply_force_vec((cbox_overlap_normal * 1.5) + (vel_vec * .66))
+
+			for hitbox in hitboxes:
+				var overlap = physics_box.overlaps(hitbox)
+				if (overlap):
+					var overlap_normal = physics_box.get_overlap_normal(hitbox)
+					physics_box.get_parent().apply_force_vec((overlap_normal * (float(hitbox.knockback) / 1.5)) + (Vector2(hitbox.dir_x, hitbox.dir_y) * 1.2))
 
 func apply_hitboxes_objects(players:Array):
 	# REVIEW - Literally everything here
@@ -2443,10 +2620,31 @@ func MH_wrapped_hit(hitbox, target):
 	var restore_opponent = !(hitbox.throw or hitbox is ThrowBox)
 	if not target.get("opponent") == null:
 		var opponentTemp = target.opponent
-		if host.is_in_group("Fighter"):
-			target.opponent = host
-		elif host.fighter_owner:
-			target.opponent = host.fighter_owner
+		if (is_instance_valid(host)):
+			if host.is_in_group("Fighter"):
+				target.opponent = host
+			elif host.fighter_owner:
+				target.opponent = host.fighter_owner
+		result = hitbox.hit(target)
+		if restore_opponent:
+			target.opponent = opponentTemp
+	else:
+		Network.log("Couldn't set opponent for hitbox")
+		result = hitbox.hit(target)
+	return result
+
+func MH_wrapped_hit_no_host(hitbox, target):
+	var host = target
+	hitbox.host = target
+	var result
+	var restore_opponent = !(hitbox.throw or hitbox is ThrowBox)
+	if not target.get("opponent") == null:
+		var opponentTemp = target.opponent
+		if (is_instance_valid(host)):
+			if host.is_in_group("Fighter"):
+				target.opponent = host
+			elif host.fighter_owner:
+				target.opponent = host.fighter_owner
 		result = hitbox.hit(target)
 		if restore_opponent:
 			target.opponent = opponentTemp

@@ -342,3 +342,15 @@ func is_allowed_caller(wanted, stack) -> bool:
 	var result = name == wanted
 	push_warning("result=%s,name=%s,wanted=%s,size=%d" % [result, name, wanted, stack.size()])
 	return result 
+
+func get_nodes_in_group_under(root: Node, group_name: String) -> Array:
+	var result = []
+	var stack = [root]
+
+	while stack.size() > 0:
+		var node = stack.pop_back()
+		if node.is_in_group(group_name):
+			result.append(node)
+		stack += node.get_children()
+
+	return result

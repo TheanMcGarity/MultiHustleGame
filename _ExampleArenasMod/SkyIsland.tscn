@@ -1,0 +1,116 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://addons/collision_box/CollisionBox.gd" type="Script" id=1]
+[ext_resource path="res://arena_new/PlayerSpawn.tscn" type="PackedScene" id=2]
+[ext_resource path="res://mechanics/Hitbox.gd" type="Script" id=3]
+[ext_resource path="res://arena_new/SolidBox.gd" type="Script" id=4]
+[ext_resource path="res://arena_new/BaseGround.gd" type="Script" id=5]
+[ext_resource path="res://framework/FiniteStateMachine/StateMachine.gd" type="Script" id=6]
+[ext_resource path="res://characters/BoxDraw.gd" type="Script" id=7]
+[ext_resource path="res://_ExampleArenasMod/island.png" type="Texture" id=8]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 8 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[node name="Solids" type="Node2D"]
+
+[node name="PlayerSpawn" parent="." instance=ExtResource( 2 )]
+position = Vector2( -108, -672 )
+player_id = 1
+
+[node name="PlayerSpawn2" parent="." instance=ExtResource( 2 )]
+position = Vector2( 118, -672 )
+player_id = 2
+
+[node name="PlayerSpawn3" parent="." instance=ExtResource( 2 )]
+position = Vector2( 188, -671 )
+player_id = 3
+
+[node name="PlayerSpawn4" parent="." instance=ExtResource( 2 )]
+position = Vector2( -185, -670 )
+player_id = 4
+
+[node name="PlayerSpawn5" parent="." instance=ExtResource( 2 )]
+position = Vector2( -249, -672 )
+player_id = 5
+
+[node name="PlayerSpawn6" parent="." instance=ExtResource( 2 )]
+position = Vector2( 241, -670 )
+player_id = 6
+
+[node name="PlayerSpawn7" parent="." instance=ExtResource( 2 )]
+position = Vector2( 610, -675 )
+player_id = 7
+
+[node name="PlayerSpawn8" parent="." instance=ExtResource( 2 )]
+position = Vector2( -548, -675 )
+player_id = 8
+
+[node name="PlayerSpawn9" parent="." instance=ExtResource( 2 )]
+position = Vector2( 0, -826 )
+player_id = 999
+
+[node name="DeathBox" type="Node2D" parent="." groups=["global_box"]]
+position = Vector2( 5, -47 )
+z_index = 1000
+script = ExtResource( 3 )
+width = 10000
+height = 55
+damage = 50000
+minimum_damage = 50000
+hitbox_type = 5
+hitstun_ticks = 9999999999
+di_modifier = "99"
+parriable = false
+block_cancel_allowed = false
+dir_x = "0"
+dir_y = "1"
+knockback = "99"
+knockdown = true
+hard_knockdown = true
+wall_slam = true
+active_ticks = 1
+always_on = true
+
+[node name="BaseGround" type="Node2D" parent="."]
+position = Vector2( -33, 79 )
+script = ExtResource( 5 )
+
+[node name="Flip" type="Node2D" parent="BaseGround"]
+
+[node name="Sprite" type="AnimatedSprite" parent="BaseGround/Flip"]
+position = Vector2( 0, -604 )
+rotation = -0.00698132
+scale = Vector2( 0.75, 0.75 )
+frames = SubResource( 1 )
+
+[node name="Particles" type="Node2D" parent="BaseGround/Flip"]
+
+[node name="Sounds" type="Node2D" parent="BaseGround"]
+
+[node name="SolidBox" type="Node2D" parent="BaseGround"]
+z_index = 1000
+script = ExtResource( 4 )
+x = 62
+y = -735
+width = 610
+height = 8
+
+[node name="Hurtbox" type="Node2D" parent="BaseGround"]
+z_index = 1000
+script = ExtResource( 1 )
+width = 0
+height = 0
+
+[node name="StateMachine" type="Node2D" parent="BaseGround"]
+script = ExtResource( 6 )
+
+[node name="BoxDraw" type="Node2D" parent="BaseGround"]
+visible = false
+z_index = 4096
+script = ExtResource( 7 )

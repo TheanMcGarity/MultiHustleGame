@@ -554,7 +554,10 @@ func time_convert(time_in_sec):
 	return "%02d:%02d" % [minutes, seconds]
 
 func _process(delta):
-	
+	if is_instance_valid(game):
+		$"%SingleplayerBar".visible = game.singleplayer
+	else:
+		$"%SingleplayerBar".visible = false
 	var p1_old_text = $"%P1TurnTimerLabel".text
 	$"%P1TurnTimerLabel".text = time_convert(int(floor(p1_turn_timer.time_left)))
 	var p1_different_text = p1_old_text != $"%P1TurnTimerLabel".text
@@ -701,6 +704,18 @@ func _on_ClearParticlesButton_pressed():
 		if game.get_player(2).aura_particle:
 			game.get_player(2).aura_particle.restart()
 	pass # Replace with function body.
+	
+func _on_DeletePredictionButton_pressed():
+	if is_instance_valid(game):
+		for player in Network.main.player_ghost_actions:
+			Network.main.player_ghost_actions[player] = "Continue"
+			Network.main.player_ghost_datas[player] = null
+			Network.main.player_ghost_extras[player] = null
+		
+		Network.main.ui_layer.p1_action_buttons.re_init(Network.main.ui_layer.GetRealID(1))
+		Network.main.ui_layer.p2_action_buttons.re_init(Network.main.ui_layer.GetRealID(2))
+		
+		Network.main._start_ghost()
 
 func _on_CalcEndMatch_pressed():
 	if is_instance_valid(game):
@@ -853,7 +868,7 @@ func ContinueAll():
 					submit_dummy_action(index, self.player_action_map[index].action, self.player_action_map[index].data, self.player_action_map[index].extra)
 					player_action_map.erase(index)
 				else:
-					submit_dummy_action(index)
+					submit_dummy_action(index) 
 
 func on_player_actionable():
 	Network.action_submitted = false

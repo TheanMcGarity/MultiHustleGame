@@ -1,0 +1,287 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://addons/collision_box/CollisionBox.gd" type="Script" id=1]
+[ext_resource path="res://arena_new/PlayerSpawn.tscn" type="PackedScene" id=2]
+[ext_resource path="res://arena_new/SolidBox.gd" type="Script" id=3]
+[ext_resource path="res://arena_new/BaseGround.gd" type="Script" id=4]
+[ext_resource path="res://framework/FiniteStateMachine/StateMachine.gd" type="Script" id=5]
+[ext_resource path="res://characters/BoxDraw.gd" type="Script" id=6]
+[ext_resource path="res://_ExampleArenasMod/simple-light-wood-dining-table-with-tapered-legs-isolated-on-transparent-background-png.png" type="Texture" id=7]
+[ext_resource path="res://_ExampleArenasMod/White_Bed_JE3_BE3.png" type="Texture" id=8]
+
+[node name="HouseArena" type="Node2D"]
+unique_name_in_owner = true
+
+[node name="BaseObj4" type="Node2D" parent="." groups=["solid"]]
+position = Vector2( 76, -155 )
+script = ExtResource( 4 )
+
+[node name="Flip" type="Node2D" parent="BaseObj4"]
+
+[node name="Sprite" type="AnimatedSprite" parent="BaseObj4/Flip"]
+visible = false
+
+[node name="Particles" type="Node2D" parent="BaseObj4/Flip"]
+
+[node name="ColorRect" type="ColorRect" parent="BaseObj4/Flip"]
+margin_left = 20.0
+margin_top = -50.0
+margin_right = 260.0
+margin_bottom = -35.0
+color = Color( 0.356863, 0.356863, 0.356863, 1 )
+
+[node name="Sounds" type="Node2D" parent="BaseObj4"]
+
+[node name="SolidBox" type="Node2D" parent="BaseObj4"]
+z_index = 1000
+script = ExtResource( 3 )
+x = 140
+y = -42
+width = 120
+height = 8
+
+[node name="Hurtbox" type="Node2D" parent="BaseObj4"]
+z_index = 1000
+script = ExtResource( 1 )
+width = 0
+height = 0
+
+[node name="StateMachine" type="Node2D" parent="BaseObj4"]
+script = ExtResource( 5 )
+
+[node name="BoxDraw" type="Node2D" parent="BaseObj4"]
+visible = false
+z_index = 4096
+script = ExtResource( 6 )
+
+[node name="BaseObj5" type="Node2D" parent="." groups=["solid"]]
+position = Vector2( 76, -161 )
+script = ExtResource( 4 )
+
+[node name="Flip" type="Node2D" parent="BaseObj5"]
+
+[node name="Sprite" type="AnimatedSprite" parent="BaseObj5/Flip"]
+visible = false
+
+[node name="Particles" type="Node2D" parent="BaseObj5/Flip"]
+
+[node name="ColorRect" type="ColorRect" parent="BaseObj5/Flip"]
+margin_left = 42.0
+margin_top = -59.0
+margin_right = 229.5
+margin_bottom = -44.0
+color = Color( 0.356863, 0.356863, 0.356863, 1 )
+
+[node name="Sounds" type="Node2D" parent="BaseObj5"]
+
+[node name="SolidBox" type="Node2D" parent="BaseObj5"]
+z_index = 1000
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_description_": ""
+}
+x = 136
+y = -51
+width = 94
+height = 8
+
+[node name="Hurtbox" type="Node2D" parent="BaseObj5"]
+z_index = 1000
+script = ExtResource( 1 )
+width = 0
+height = 0
+
+[node name="StateMachine" type="Node2D" parent="BaseObj5"]
+script = ExtResource( 5 )
+
+[node name="BoxDraw" type="Node2D" parent="BaseObj5"]
+visible = false
+z_index = 4096
+script = ExtResource( 6 )
+
+[node name="BaseObj6" type="Node2D" parent="." groups=["solid"]]
+position = Vector2( 76, -167 )
+script = ExtResource( 4 )
+
+[node name="Flip" type="Node2D" parent="BaseObj6"]
+
+[node name="Sprite" type="AnimatedSprite" parent="BaseObj6/Flip"]
+visible = false
+
+[node name="Particles" type="Node2D" parent="BaseObj6/Flip"]
+
+[node name="ColorRect" type="ColorRect" parent="BaseObj6/Flip"]
+margin_left = 57.0
+margin_top = -68.0
+margin_right = 214.5
+margin_bottom = -53.0
+color = Color( 0.356863, 0.356863, 0.356863, 1 )
+
+[node name="Sounds" type="Node2D" parent="BaseObj6"]
+
+[node name="SolidBox" type="Node2D" parent="BaseObj6"]
+z_index = 1000
+script = ExtResource( 3 )
+x = 136
+y = -60
+width = 79
+height = 8
+
+[node name="Hurtbox" type="Node2D" parent="BaseObj6"]
+z_index = 1000
+script = ExtResource( 1 )
+width = 0
+height = 0
+
+[node name="StateMachine" type="Node2D" parent="BaseObj6"]
+script = ExtResource( 5 )
+
+[node name="BoxDraw" type="Node2D" parent="BaseObj6"]
+visible = false
+z_index = 4096
+script = ExtResource( 6 )
+
+[node name="BaseObj2" type="Node2D" parent="." groups=["solid"]]
+position = Vector2( 155, -140 )
+script = ExtResource( 4 )
+
+[node name="Flip" type="Node2D" parent="BaseObj2"]
+
+[node name="Sprite" type="AnimatedSprite" parent="BaseObj2/Flip"]
+visible = false
+
+[node name="Particles" type="Node2D" parent="BaseObj2/Flip"]
+
+[node name="ColorRect" type="ColorRect" parent="BaseObj2/Flip"]
+margin_left = 130.0
+margin_top = -50.0
+margin_right = 145.0
+margin_bottom = 140.0
+color = Color( 0.356863, 0.356863, 0.356863, 1 )
+
+[node name="Sounds" type="Node2D" parent="BaseObj2"]
+
+[node name="SolidBox" type="Node2D" parent="BaseObj2"]
+z_index = 1000
+script = ExtResource( 3 )
+x = 138
+y = 45
+width = 7
+height = 95
+
+[node name="Hurtbox" type="Node2D" parent="BaseObj2"]
+z_index = 1000
+script = ExtResource( 1 )
+width = 0
+height = 0
+
+[node name="StateMachine" type="Node2D" parent="BaseObj2"]
+script = ExtResource( 5 )
+
+[node name="BoxDraw" type="Node2D" parent="BaseObj2"]
+visible = false
+z_index = 4096
+script = ExtResource( 6 )
+
+[node name="BaseObj3" type="Node2D" parent="." groups=["solid"]]
+position = Vector2( 86, -140 )
+script = ExtResource( 4 )
+
+[node name="Flip" type="Node2D" parent="BaseObj3"]
+
+[node name="Sprite" type="AnimatedSprite" parent="BaseObj3/Flip"]
+visible = false
+
+[node name="Particles" type="Node2D" parent="BaseObj3/Flip"]
+
+[node name="ColorRect" type="ColorRect" parent="BaseObj3/Flip"]
+margin_left = 38.0
+margin_top = -50.0
+margin_right = 53.0
+margin_bottom = 90.0
+color = Color( 0.356863, 0.356863, 0.356863, 1 )
+
+[node name="Sounds" type="Node2D" parent="BaseObj3"]
+
+[node name="SolidBox" type="Node2D" parent="BaseObj3"]
+z_index = 1000
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_description_": ""
+}
+x = 45
+y = 20
+width = 8
+height = 70
+
+[node name="Hurtbox" type="Node2D" parent="BaseObj3"]
+z_index = 1000
+script = ExtResource( 1 )
+width = 0
+height = 0
+
+[node name="StateMachine" type="Node2D" parent="BaseObj3"]
+script = ExtResource( 5 )
+
+[node name="BoxDraw" type="Node2D" parent="BaseObj3"]
+visible = false
+z_index = 4096
+script = ExtResource( 6 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+margin_left = 124.0
+margin_top = -50.0
+margin_right = 151.0
+rect_pivot_offset = Vector2( 103, 15 )
+color = Color( 0.262745, 0.262745, 0.262745, 1 )
+
+[node name="ColorRect2" type="ColorRect" parent="."]
+visible = false
+margin_left = 139.0
+margin_top = -190.0
+margin_right = 286.0
+rect_pivot_offset = Vector2( 103, 15 )
+color = Color( 0.262745, 0.262745, 0.262745, 1 )
+
+[node name="WhiteBedJe3Be3" type="Sprite" parent="."]
+position = Vector2( 260, -14 )
+scale = Vector2( 0.15, 0.09 )
+texture = ExtResource( 8 )
+
+[node name="Simple-light-wood-dining-table-with-tapered-legs-isolated-on-transparent-background-png" type="Sprite" parent="."]
+position = Vector2( 189, -13 )
+scale = Vector2( 0.15, 0.12 )
+texture = ExtResource( 7 )
+
+[node name="PlayerSpawn" parent="." instance=ExtResource( 2 )]
+position = Vector2( 247, 0 )
+player_id = 1
+
+[node name="PlayerSpawn2" parent="." instance=ExtResource( 2 )]
+position = Vector2( 196, 0 )
+player_id = 2
+
+[node name="PlayerSpawn3" parent="." instance=ExtResource( 2 )]
+position = Vector2( 7, 0 )
+player_id = 3
+
+[node name="PlayerSpawn4" parent="." instance=ExtResource( 2 )]
+position = Vector2( -51, 0 )
+player_id = 4
+
+[node name="PlayerSpawn5" parent="." instance=ExtResource( 2 )]
+position = Vector2( 146, -235 )
+player_id = 5
+
+[node name="PlayerSpawn6" parent="." instance=ExtResource( 2 )]
+position = Vector2( 194, -235 )
+player_id = 6
+
+[node name="PlayerSpawn7" parent="." instance=ExtResource( 2 )]
+position = Vector2( 236, -235 )
+player_id = 7
+
+[node name="PlayerSpawn8" parent="." instance=ExtResource( 2 )]
+position = Vector2( 281, -235 )
+player_id = 8

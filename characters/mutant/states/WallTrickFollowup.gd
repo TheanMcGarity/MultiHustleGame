@@ -36,7 +36,7 @@ func _tick():
 	if current_tick > 3:
 		host.set_vel(move_x, move_y)
 		if host.is_grounded() or host.get_pos().y > -2:
-			host.set_pos(host.get_pos().x, 0)
+			#host.set_pos(host.get_pos().x, 0)
 			return "Landing" if (hit_opponent or fixed.eq(move_x, "0")) else "PounceFailRoll"
 
 	if !hit_opponent and !fixed.eq(move_x, "0"):

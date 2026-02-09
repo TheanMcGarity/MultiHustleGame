@@ -13,6 +13,8 @@ func _process(delta):
 	var selected = eds.get_selected_nodes()
 	for object in selected:
 		if object is CollisionBox:
+			#if object is PhysicsBox:
+			#	continue
 			object.editor_selected = true
 	pass
 

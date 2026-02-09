@@ -43,6 +43,9 @@ func _init():
 	active = true
 #	Global.VERSION += " Modded" 
 	
+	#installScriptExtension("res://custom_stage_loader/CSLHook.gd")
+	#installScriptExtension("res://arena/CSLHook.gd")
+	
 	#This script has to be installed before the mods or else it doesn't get extended
 	_loadMods()
 	print("----------------mods------loaded--------------------")
@@ -52,6 +55,8 @@ func _init():
 	
 	#installScriptExtension("res://_AIOpponents/ModOptions.gd")
 	installScriptExtension("res://modloader/ModHashCheck.gd")
+	
+	
 	call_deferred("append_hash")
 
 func append_hash():

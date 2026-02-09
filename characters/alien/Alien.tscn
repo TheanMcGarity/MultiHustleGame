@@ -1,4 +1,4 @@
-[gd_scene load_steps=84 format=2]
+[gd_scene load_steps=85 format=2]
 
 [ext_resource path="res://characters/BaseChar.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/BaseChar.gdshader" type="Shader" id=2]
@@ -305,6 +305,9 @@ animations = [ {
 "speed": 5.0
 } ]
 
+[sub_resource type="ViewportTexture" id=3]
+viewport_path = NodePath("Viewport")
+
 [node name="Alien" instance=ExtResource( 1 )]
 character_portrait = ExtResource( 79 )
 damage_taken_modifier = "1.5"
@@ -317,3 +320,9 @@ extra_color_2 = Color( 0.258824, 0.321569, 0.360784, 1 )
 material = SubResource( 1 )
 frames = SubResource( 2 )
 offset = Vector2( 0, -16 )
+
+[node name="TextureRect" parent="." index="12"]
+texture = SubResource( 3 )
+
+[node name="TextureRect2" parent="." index="13"]
+texture = SubResource( 3 )
