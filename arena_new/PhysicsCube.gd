@@ -11,6 +11,7 @@ var accel:Vector2
 onready var gravity_f:float = float(gravity)
 
 var collision_centers := []
+var object_collisions := []
 
 func copy_to(o):
 	#.copy_to(o)
@@ -23,12 +24,17 @@ func tick():
 	.tick()
 	if not initialized:
 		return
-	is_touching_floor()
+	#is_touching_floor()
 	apply_grav()
 	apply_fric()
 	apply_forces()
-	apply_collisions()
+	detect_collisions()
 	#snap_to_floor()
+
+	if (position.y > 0):
+		position.y = 0
+	print(object_collisions)
+	handle_collisions()
 
 func snap_to_floor():
 	var game = get_game()
@@ -48,11 +54,8 @@ func snap_to_floor():
 		print(pos)
 		if (col.overlaps_on_point(pos)):
 			position.y = col.get_aabb().y1
-			print("snap")
-		else:
-			print("no ):")
 
-func apply_collisions():
+func detect_collisions():
 	var self_center = Vector2(
 		physics_col.x + physics_col.width / 2,
 		physics_col.y + physics_col.height / 2
@@ -60,7 +63,6 @@ func apply_collisions():
 	self_center += position
 	
 	for collision_data in collision_centers:
-		print("apply")
 		var collision = collision_data.collider
 		var half_w = physics_col.width / 2
 		var half_h = physics_col.height  / 2
@@ -78,6 +80,26 @@ func apply_collisions():
 				position.y += overlap_y * sign(diff.y)
 				vel.y = 0
 				_is_grounded = diff.y < 0
+	
+	object_collisions = []
+	var game = get_game()
+	if not is_instance_valid(game):
+		return
+	var solids = game.solids
+	for solid in solids:
+		if not is_instance_valid(solid):
+			continue
+		var col:SolidBox = solid.get_node("SolidBox")
+		
+		if not is_instance_valid(col):
+			continue
+			
+		if (col == physics_col):
+			continue
+		var overlap = physics_col.overlaps(col)
+		if (overlap):
+			object_collisions.append([col, _get_side_from_normal(physics_col.get_overlap_normal(col))])
+
 func is_touching_floor():
 	collision_centers = []
 	var game = get_game()
@@ -96,7 +118,6 @@ func is_touching_floor():
 			continue
 		
 		var overlap = physics_col.overlaps(col)
-		print(overlap)
 		if (physics_col.overlaps(col)):
 			collision_centers.append({
 				"collider": col,
@@ -141,7 +162,7 @@ func apply_forces() -> void:
 		if vel.y > float(max_fall_speed):
 			vel.y = float(max_fall_speed)
 
-	move_directly(vel.x,vel.y)
+	move_directly(str(vel.x),str(vel.y))
 	update_grounded()
 
 	if _is_grounded and vel.y > 0.0:
@@ -159,3 +180,37 @@ func apply_force_vec(vec):
 func move_directly(x, y):
 	.move_directly(x, y)
 	position += Vector2(float(x),float(y))
+
+func handle_collisions():
+	for col in object_collisions:
+		move_away_from_collision(col[0], col[1])
+
+func move_away_from_wall(wall_col, dir):
+	return
+
+func move_away_from_collision(wall_col, dir):
+	if (not is_instance_valid(wall_col)):
+		return
+	var wall = wall_col.get_parent()
+	match dir:
+		2:
+			print("1")
+			var x_vel = float(get_vel().x) / 2.5
+			x_vel += wall.movement_velocity.x
+			x_vel *= wall.bounciness
+			set_pos(str(wall_col.get_aabb().x1 - physics_col.width), str(get_pos().y))
+			set_vel(str(-abs(x_vel)), str(get_vel().y))
+		1:
+			print("2")
+			var x_vel = float(get_vel().x) / 2.5
+			x_vel += wall.movement_velocity.x
+			x_vel *= wall.bounciness
+			set_pos(str(wall_col.get_aabb().x2 + physics_col.width), str(get_pos().y))
+			set_vel(str(abs(x_vel)), str(get_vel().y))
+		4:
+			print("4")
+			var y_vel = float(get_vel().y) / 2.5
+			y_vel += wall.movement_velocity.y
+			y_vel *= wall.bounciness
+			set_pos(str(get_pos().x), str(wall_col.get_aabb().y2 + physics_col.height * 2))
+			set_vel(str(get_vel().x), str(abs(y_vel)))

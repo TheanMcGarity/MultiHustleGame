@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://arena_new/PhysicsCube.gd" type="Script" id=1]
+[ext_resource path="res://arena_new/BaseGround.gd" type="Script" id=2]
+[ext_resource path="res://arena_new/PhysicsCube.tscn" type="PackedScene" id=3]
+[ext_resource path="res://arena_new/PlatformTest.tscn" type="PackedScene" id=4]
+
+[node name="Solids" type="Node2D"]
+
+[node name="BaseGround" type="Node2D" parent="." groups=["solid"] instance=ExtResource( 4 )]
+position = Vector2( 103, -88 )
+script = ExtResource( 2 )
+
+[node name="PhysicsCube2" type="Node2D" parent="." groups=["physics", "solid"] instance=ExtResource( 3 )]
+position = Vector2( 239, -15 )
+script = ExtResource( 1 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="PhysicsCube3" type="Node2D" parent="." groups=["physics", "solid"] instance=ExtResource( 3 )]
+position = Vector2( 179, -99 )
+script = ExtResource( 1 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="PhysicsCube" type="Node2D" parent="." groups=["physics", "solid"] instance=ExtResource( 3 )]
+position = Vector2( 0, -14 )
+script = ExtResource( 1 )
+__meta__ = {
+"_editor_description_": ""
+}

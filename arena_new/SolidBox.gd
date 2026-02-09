@@ -37,3 +37,35 @@ func pos_to_x_side(max_dist, pos) -> int:
 		return 2
 	
 	return 0
+
+
+func get_overlap_normal(box:CollisionBox) -> Vector2:
+	return _overlap_normal(self.get_aabb(), box.get_aabb()) 
+func _overlap_normal(a, b) -> Vector2:
+	var left = b.x2 - a.x1
+	var right = a.x2 - b.x1
+	var top = b.y2 - a.y1
+	var bottom = a.y2 - b.y1
+	
+	#print([left, right, top, bottom])
+	var minimum = _min_array([left, right, top, bottom])
+	#print(minimum)
+	if (minimum == left):
+		return Vector2(-1,0)
+	if (minimum == right):
+		return Vector2(1,0)
+	if (minimum == top):
+		return Vector2(0,-1)
+	else:
+		return Vector2(0,1)
+
+func _min_array(numbers:Array):
+	var smallest = 9223372036854775807
+	for number in numbers:
+		if (number < smallest):
+			smallest = number
+	return smallest
+export var force_draw := false
+func can_draw_box():
+	
+	return force_draw and Engine.editor_hint

@@ -87,6 +87,8 @@ var searchBar
 
 var selected_team := 0
 
+export var arena_selector:NodePath
+
 func _reset_state():
 	player_selected_team = false
 	loaded_counter = 0

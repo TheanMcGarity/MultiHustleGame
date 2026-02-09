@@ -20,118 +20,82 @@ script = ExtResource( 2 )
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
-alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
-margin_top = 7.0
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
 margin_right = 276.0
-margin_bottom = 21.0
-rect_min_size = Vector2( 0, 14 )
-size_flags_horizontal = 3
-custom_constants/margin_right = 10
-custom_constants/margin_left = 10
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer"]
-margin_left = 10.0
-margin_right = 266.0
-margin_bottom = 14.0
-
-[node name="Control2" type="Control" parent="VBoxContainer/MarginContainer/HBoxContainer"]
-margin_right = 84.0
-margin_bottom = 14.0
+[node name="Control2" type="Control" parent="VBoxContainer/HBoxContainer"]
+margin_right = 276.0
 size_flags_horizontal = 3
 
-[node name="P1Username" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Control2"]
+[node name="Username" type="Label" parent="VBoxContainer/HBoxContainer/Control2"]
 unique_name_in_owner = true
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_right = 34.0
 size_flags_horizontal = 3
 size_flags_vertical = 6
-text = "USER1"
+text = "Username"
 
-[node name="Vs" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer"]
-modulate = Color( 1, 1, 1, 0.419608 )
-margin_left = 85.0
+[node name="Spacer" type="Control" parent="VBoxContainer"]
 margin_top = 1.0
-margin_right = 170.0
-margin_bottom = 12.0
-size_flags_horizontal = 3
-text = "vs"
-align = 1
-
-[node name="Control" type="Control" parent="VBoxContainer/MarginContainer/HBoxContainer"]
-margin_left = 171.0
-margin_right = 256.0
-margin_bottom = 14.0
-size_flags_horizontal = 3
-
-[node name="P2Username" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Control"]
-unique_name_in_owner = true
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = -36.0
-grow_horizontal = 0
-size_flags_horizontal = 3
-size_flags_vertical = 6
-text = "USER2"
-align = 2
-clip_text = true
-
-[node name="MarginContainer2" type="MarginContainer" parent="VBoxContainer"]
-margin_top = 22.0
 margin_right = 276.0
-margin_bottom = 33.0
+margin_bottom = 13.0
+rect_min_size = Vector2( 0, 12 )
 size_flags_horizontal = 3
-custom_constants/margin_right = 5
-custom_constants/margin_left = 5
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer2"]
-margin_left = 5.0
-margin_right = 271.0
-margin_bottom = 11.0
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer"]
+margin_top = 14.0
+margin_right = 276.0
+margin_bottom = 26.0
 
-[node name="P1Character" type="Label" parent="VBoxContainer/MarginContainer2/HBoxContainer"]
-unique_name_in_owner = true
-modulate = Color( 1, 1, 1, 0.317647 )
-margin_right = 88.0
+[node name="HandicapLabel" type="Label" parent="VBoxContainer/HBoxContainer2"]
+margin_right = 47.0
 margin_bottom = 11.0
 size_flags_horizontal = 3
 size_flags_vertical = 6
-text = "character"
-clip_text = true
+text = "Handicap:"
 
-[node name="Control" type="Control" parent="VBoxContainer/MarginContainer2/HBoxContainer"]
-margin_left = 89.0
-margin_right = 177.0
-margin_bottom = 11.0
+[node name="Handicap" type="SpinBox" parent="VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+margin_left = 48.0
+margin_right = 96.0
+margin_bottom = 12.0
+min_value = 0.1
+max_value = 5.0
+step = 0.1
+value = 0.1
+prefix = "x"
+
+[node name="Spacer" type="Control" parent="VBoxContainer/HBoxContainer2"]
+margin_left = 97.0
+margin_right = 144.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 30, 12 )
+rect_pivot_offset = Vector2( -275, -13 )
 size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="SpectateButton" type="Button" parent="VBoxContainer/MarginContainer2/HBoxContainer/Control"]
-unique_name_in_owner = true
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -30.5
-margin_top = -5.5
-margin_right = 30.5
-margin_bottom = 10.5
-rect_min_size = Vector2( 0, 16 )
-size_flags_horizontal = 0
-theme = ExtResource( 1 )
-theme_type_variation = "ChallengeButton"
-text = "spectate"
-
-[node name="P2Character" type="Label" parent="VBoxContainer/MarginContainer2/HBoxContainer"]
-unique_name_in_owner = true
-modulate = Color( 1, 1, 1, 0.317647 )
-margin_left = 178.0
-margin_right = 266.0
+[node name="TeamLabel" type="Label" parent="VBoxContainer/HBoxContainer2"]
+margin_left = 145.0
+margin_right = 192.0
 margin_bottom = 11.0
 size_flags_horizontal = 3
 size_flags_vertical = 6
-text = "character"
-align = 2
-clip_text = true
+text = "Team:"
+
+[node name="ForcedTeam" type="OptionButton" parent="VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+margin_left = 193.0
+margin_right = 225.0
+margin_bottom = 12.0
+text = "Any"
+items = [ "Any", null, false, -1, null, "FFA", null, false, 0, null, "Red", null, false, 1, null, "Blue", null, false, 2, null, "Yellow", null, false, 3, null, "Green", null, false, 4, null ]
+selected = 0
+
+[node name="Spacer2" type="Control" parent="VBoxContainer/HBoxContainer2"]
+margin_left = 226.0
+margin_right = 276.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 50, 12 )
+rect_pivot_offset = Vector2( -275, -13 )
+size_flags_horizontal = 3

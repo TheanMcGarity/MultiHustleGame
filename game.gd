@@ -324,7 +324,7 @@ func copy_to(game):
 		var new_physical = physical.duplicate()
 		solid_node.add_child(new_physical)
 		physical.copy_to(new_physical)
-		
+		game.physics.append(new_physical)
 	
 
 func _on_super_started(ticks, player):
@@ -2518,8 +2518,11 @@ func apply_hitboxes_solids(players:Array):
 			for hitbox in hitboxes:
 				var overlap = physics_box.overlaps(hitbox)
 				if (overlap):
-					var overlap_normal = physics_box.get_overlap_normal(hitbox)
-					physics_box.get_parent().apply_force_vec((overlap_normal * (float(hitbox.knockback) / 1.5)) + (Vector2(hitbox.dir_x, hitbox.dir_y) * 1.2))
+					var overlap_normal = physics_box.get_overlap_normal(hitbox) * -1
+					var facing := 1
+					if (is_instance_valid(hitbox.host)):
+						facing = hitbox.host.get_facing_int()
+					physics_box.get_parent().apply_force_vec((overlap_normal * (float(hitbox.knockback) / 1.6)) + (Vector2(float(hitbox.dir_x) * facing, float(hitbox.dir_y)) * 1.2))
 
 func apply_hitboxes_objects(players:Array):
 	# REVIEW - Literally everything here

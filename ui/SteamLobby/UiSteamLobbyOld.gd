@@ -150,12 +150,12 @@ func _on_retrieved_lobby_members(members):
 						"p2": p2,
 					}
 
-	for match_ in matches.values():
-		print("updating matches")
+	print("test")
+	for player in SteamLobby.LOBBY_MEMBERS:
 		var match_scene = preload("res://ui/SteamLobby/LobbyMatch.tscn").instance()
-		match_scene.connect("spectate_requested", self, "_on_spectate_requested")
 		$"%MatchList".add_child(match_scene)
-		match_scene.init(match_.p1, match_.p2)
+		match_scene.init(player)
+	$"%MatchList".show()
 	
 	for child in $"%UserList".get_children():
 		child.update_avatar()

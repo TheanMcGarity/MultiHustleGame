@@ -62,8 +62,7 @@ var hitlag_ticks = 0# setget set__hitlag_ticks
 
 var _is_grounded := false
 var grounded_solid
-var _colliding_with_wall := 0
-var wall_solid
+var wall_solids := []
 
 func set__hitlag_ticks(new):
 	hitlag_ticks = new
@@ -768,6 +767,9 @@ func move_directly(x, y):
 	if x is int:
 		chara.move_directly(x, y)
 		return
+	if x is float:
+		chara.move_directly_str(str(x),str(y))
+		return
 	chara.move_directly_str(x, y)
 
 func move_directly_relative(x, y):
@@ -835,7 +837,11 @@ func update_grounded():
 	if (is_instance_valid(grounded_solid)):
 		grounded_solid.colliding.erase(self)
 	colliding_with_wall()
-	move_away_from_wall(wall_solid, _colliding_with_wall)
+	for wall in wall_solids:
+		if not is_instance_valid(wall):
+			continue
+		var wall_side = _get_side_from_normal(wall.get_overlap_normal(collision_box))
+		move_away_from_wall(wall, wall_side)
 	
 	#chara.update_grounded()
 	var game = get_game()
@@ -849,9 +855,6 @@ func update_grounded():
 		var col:SolidBox = solid.get_node("SolidBox")
 		
 		if not is_instance_valid(col):
-			continue
-			
-		if (_colliding_with_wall != 0):
 			continue
 		
 		var pos = position
@@ -1075,24 +1078,36 @@ func colliding_with_wall():
 	var game = get_game()
 	if not is_instance_valid(game):
 		return
+	wall_solids = []
 	var solids = game.solids#get_tree().get_nodes_in_group("Solids")
 	for solid in solids:
 		if not is_instance_valid(solid):
+			continue
+		if (wall_solids.has(solid)):
 			continue
 		#var solid = Global.current_game.get_node(solid_path)
 		var col = solid.get_node("SolidBox")
 		if not is_instance_valid(col):
 			continue
 		if col.overlaps(collision_box):
-			print("woagh")
-			var center = col.get_overlap_center(collision_box)
-			var wall_side = col.pos_to_x_side(6, center)
-			_colliding_with_wall = wall_side
-			wall_solid = col
-			return wall_side
-	
-	_colliding_with_wall = 0
-	wall_solid = null
+			#print("woagh")
+			#var normal = col.get_overlap_normal(collision_box)
+			#var wall_side = col.pos_to_x_side(6, center)
+			#var wall_side = _get_side_from_normal(normal)
+			#_colliding_with_wall = wall_side
+			#print(normal)
+			wall_solids.append(col)
+			#print(wall_side)
+
+func _get_side_from_normal(normal:Vector2):
+	if (normal.x == 1):
+		return 2
+	if (normal.x == -1):
+		return 1
+	if (normal.y == -1):
+		return 3
+	if (normal.y == 1):
+		return 4
 	return 0
 
 func move_away_from_wall(wall_col, dir):
@@ -1103,12 +1118,21 @@ func move_away_from_wall(wall_col, dir):
 		1:
 			print("1")
 			var x_vel = float(get_vel().x) / 5
-			x_vel += wall.movement_velocity.x * wall.bounciness
+			x_vel += wall.movement_velocity.x
+			x_vel *= wall.bounciness
 			set_pos(str(wall_col.get_aabb().x1 - collision_box.width), str(get_pos().y))
 			set_vel(str(-abs(x_vel)), str(get_vel().y))
 		2:
 			print("2")
 			var x_vel = float(get_vel().x) / 5
-			x_vel += wall.movement_velocity.x * wall.bounciness
+			x_vel += wall.movement_velocity.x
+			x_vel *= wall.bounciness
 			set_pos(str(wall_col.get_aabb().x2 + collision_box.width), str(get_pos().y))
 			set_vel(str(abs(x_vel)), str(get_vel().y))
+		4:
+			print("4")
+			var y_vel = float(get_vel().y) / 5
+			y_vel += wall.movement_velocity.y
+			y_vel *= wall.bounciness
+			set_pos(str(get_pos().x), str(wall_col.get_aabb().y2 + collision_box.height * 2))
+			set_vel(str(get_vel().x), str(abs(y_vel)))

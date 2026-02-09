@@ -1903,14 +1903,14 @@ func touching_which_wall():
 	var vel = get_vel()
 	var bounce = 0
 
-	var platform_collision = _colliding_with_wall#colliding_with_wall()
-	if (platform_collision != 0):
-		match platform_collision:
+	for wall in wall_solids:
+		var wall_side = _get_side_from_normal(wall.get_overlap_normal(collision_box))
+		match wall_side:
 			1:
-				bounce = 1
+				return 1
 			2:
-				bounce = -1
-		return bounce
+				return -1
+	
 
 	if (col_box.x1 <= -stage_width and fixed.le(vel.x, "0")):
 		bounce = -1
@@ -2094,7 +2094,7 @@ func tick():
 		touching_wall = true
 	if (col_box.x2 >= stage_width and fixed.gt(vel.x, "0")):
 		touching_wall = true
-	if (_colliding_with_wall != 0):
+	if (wall_solids.size() > 0):
 		touching_wall = true
 	if !is_grounded():
 		last_aerial_vel = last_vel
