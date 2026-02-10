@@ -15,7 +15,6 @@ position = Vector2( 137, -50 )
 
 [node name="PhysicsCube" parent="." instance=ExtResource( 2 )]
 position = Vector2( 174, -66 )
-bounciness = 1
 
 [node name="FloorPhysics" type="Node2D" parent="."]
 script = ExtResource( 6 )
