@@ -10,10 +10,14 @@ func get_aabb():
 	var local = .get_aabb()
 	if (not get_parent().initialized):
 		return local
-	local.x1 = float(fixed.add(str(local.x1), str(get_parent().get_pos().x)))
-	local.x2 = float(fixed.add(str(local.x2), str(get_parent().get_pos().x)))
-	local.y1 = float(fixed.add(str(local.y1), str(get_parent().get_pos().y)))
-	local.y2 = float(fixed.add(str(local.y2), str(get_parent().get_pos().y)))
+	#local.x1 = float(fixed.add(str(local.x1), str(get_parent().get_pos().x)))
+	#local.x2 = float(fixed.add(str(local.x2), str(get_parent().get_pos().x)))
+	#local.y1 = float(fixed.add(str(local.y1), str(get_parent().get_pos().y)))
+	#local.y2 = float(fixed.add(str(local.y2), str(get_parent().get_pos().y)))
+	local.x1 = float(fixed.add(str(local.x1), str(get_parent().position.x)))
+	local.x2 = float(fixed.add(str(local.x2), str(get_parent().position.x)))
+	local.y1 = float(fixed.add(str(local.y1), str(get_parent().position.y)))
+	local.y2 = float(fixed.add(str(local.y2), str(get_parent().position.y)))
 	return local
 
 func overlaps_on_point(pos) -> bool:

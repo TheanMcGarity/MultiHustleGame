@@ -18,7 +18,12 @@ script = ExtResource( 4 )
 __meta__ = {
 "_editor_description_": ""
 }
+ground_friction = "3.45"
+air_friction = "0.375"
+_c_SolidObjectData = 0
 bounciness = 1.0
+interact_once_per_hit = true
+_c_PhysicsData = 0
 starting_velocity = Vector2( 0, 0 )
 
 [node name="Sprite" parent="Flip" index="0"]

@@ -327,6 +327,7 @@ func copy_to(game):
 		physical.copy_to(new_physical)
 		new_physical.is_ghost = true
 		game.physics.append(new_physical)
+		new_physical.init()
 	
 
 func _on_super_started(ticks, player):
@@ -389,6 +390,35 @@ func on_object_spawned(obj: BaseObj):
 	objs_map[obj.obj_name if obj.obj_name else obj.name] = obj
 	obj.objs_map = objs_map
 	obj.connect("tree_exited", self, "_on_obj_exit_tree", [obj])
+	obj.connect("hitbox_refreshed", self, "on_hitbox_refreshed")
+	obj.connect("global_hitlag", self, "on_global_hitlag")
+	obj.gravity_enabled = gravity_enabled
+	obj.set_gravity_modifier(global_gravity_modifier)
+	obj.fighter_owner = get_player(obj.id)
+	obj.update_data()
+	for particle in obj.particles.get_children():
+		effects.append(particle)
+	connect_signals(obj)
+
+func on_physical_spawned(obj: BaseObj, new := false):
+	if (new):
+		obj.objs_map = objs_map
+		obj._init_on_ready = true
+		physics.append(obj)
+		get_node("Solids").add_child(obj)
+	
+	obj.has_ceiling = has_ceiling
+	obj.ceiling_height = ceiling_height
+	obj.logic_rng = BetterRng.new()
+	obj.logic_rng_static = BetterRng.new()
+	var seed_ = hash(match_data.seed + (objs_map.size() + 1))
+	obj.logic_rng.seed = seed_
+	obj.logic_rng_seed = seed_
+	obj.logic_rng_static.seed = match_data.seed
+	obj.logic_rng_static_seed = match_data.seed
+	objs_map[obj.obj_name if obj.obj_name else obj.name] = obj
+	obj.objs_map = objs_map
+	#obj.connect("tree_exited", self, "_on_obj_exit_tree", [obj])
 	obj.connect("hitbox_refreshed", self, "on_hitbox_refreshed")
 	obj.connect("global_hitlag", self, "on_global_hitlag")
 	obj.gravity_enabled = gravity_enabled
@@ -644,8 +674,12 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		global_hitboxes.append(box)
 	for solid in Global.get_nodes_in_group_under(self, "solid"):
 		solids.append(solid)
+		objs_map[solid.name] = solid
 	for physical in Global.get_nodes_in_group_under(self, "physics"):
 		physics.append(physical)
+		on_physical_spawned(physical)
+		var vel = physical.starting_velocity
+		physical.set_vel(str(vel.x), str(vel.y))
 
 func on_prediction(ticks=7, player=null):
 	_on_super_started(ticks, player)
@@ -778,6 +812,7 @@ func tick():
 			solids.erase(solid)
 			continue
 		solid.calc_vel()
+		solid._solid_tick_internal()
 		solid.solid_tick_before()
 		
 	for player in playerPorts:
@@ -2505,6 +2540,13 @@ func apply_hitboxes_solids(players:Array):
 	var physics_boxes := []
 	for physics_object in physics:
 		physics_boxes.append(physics_object.get_node("SolidBox"))
+	var interact_boxes := []
+	for solid in solids:
+		if not is_instance_valid(solid):
+			continue
+		var interact_node = solid.get_node_or_null("InteractionBox")
+		if (is_instance_valid(interact_node)):
+			interact_boxes.append(interact_node)
 	for player in players:
 		var hitboxes = player.get_active_hitboxes()
 		for physics_box in physics_boxes:
@@ -2516,7 +2558,7 @@ func apply_hitboxes_solids(players:Array):
 			#	var vel = player.get_vel()
 			#	var vel_vec = Vector2(vel.x,vel.y)
 			#	physics_box.get_parent().apply_force_vec((cbox_overlap_normal * 1.5) + (vel_vec * .66))
-
+			var physical = physics_box.get_parent()
 			for hitbox in hitboxes:
 				var overlap = physics_box.overlaps(hitbox)
 				if (overlap):
@@ -2524,8 +2566,27 @@ func apply_hitboxes_solids(players:Array):
 					var facing := 1
 					if (is_instance_valid(hitbox.host)):
 						facing = hitbox.host.get_facing_int()
-					physics_box.get_parent().apply_force_vec((overlap_normal * (float(hitbox.knockback) / 1.6)) + (Vector2(float(hitbox.dir_x) * facing, float(hitbox.dir_y)) * 1.2))
-
+						
+					physical.apply_force_vec(
+						physical.vec_add2(
+							physical.vec_mul_n(overlap_normal, physical.div(hitbox.knockback, "1.6")),
+							physical.vec_mul(hitbox.dir_x, hitbox.dir_y, facing, 1.2)
+						)
+					)
+		for interact_box in interact_boxes:
+			var interactable = interact_box.get_parent()
+			for hitbox in hitboxes:
+				var overlap = interact_box.overlaps(hitbox)
+				if not is_ghost:
+					print("overlap? uhhh... so its ", overlap)
+				if (overlap):
+					interactable.interact(player)
+					if (interactable.interact_once_per_hit):
+						print("brekaing?")
+						break
+					
+					print("nah id win")
+			interactable.finish_interacting(player)
 func apply_hitboxes_objects(players:Array):
 	# REVIEW - Literally everything here
 	var objects_to_hit = []

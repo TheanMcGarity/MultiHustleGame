@@ -122,6 +122,8 @@ func box_draw():
 			color = Color.teal
 		if "SolidBox" in name:
 			color = Color.darkgreen
+		if "InteractionBox" in name:
+			color = Color.peru
 		if "DeathBox" in name:
 			color = Color.black
 		elif "Hurtbox" in name:
