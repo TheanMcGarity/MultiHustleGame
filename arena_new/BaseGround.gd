@@ -2,7 +2,7 @@ extends BaseObj
 
 class_name BaseGround
 
-export var bounciness := 1
+export var bounciness := 1.0
 
 var colliding := []
 

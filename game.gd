@@ -316,6 +316,7 @@ func copy_to(game):
 		solid_node.add_child(new_solid)
 		if (new_solid is BaseObj):
 			new_solid.colliding = []
+			new_solid.is_ghost = true
 			game.solids.append(new_solid)
 		
 	for physical in physics:
@@ -324,6 +325,7 @@ func copy_to(game):
 		var new_physical = physical.duplicate()
 		solid_node.add_child(new_physical)
 		physical.copy_to(new_physical)
+		new_physical.is_ghost = true
 		game.physics.append(new_physical)
 	
 
@@ -1044,7 +1046,7 @@ func should_game_end() -> Dictionary:
 			result.end = true
 	return result
 	#return alive_teams <= 1
-
+"""
 func print_should_game_end_data():
 	set_vanilla_game_started(true)
 	
@@ -1060,7 +1062,7 @@ func print_should_game_end_data():
 	var ffa_alive := calc_team_living_count(0) > 0
 
 	print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
-
+"""
 func resolve_same_x_coordinate():
 	set_vanilla_game_started(true)
 

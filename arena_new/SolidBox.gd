@@ -4,12 +4,16 @@ extends CollisionBox
 
 class_name SolidBox
 
+var fixed = FixedMath.new()
+
 func get_aabb():
 	var local = .get_aabb()
-	local.x1 += get_parent().position.x
-	local.x2 += get_parent().position.x
-	local.y1 += get_parent().position.y
-	local.y2 += get_parent().position.y
+	if (not get_parent().initialized):
+		return local
+	local.x1 = float(fixed.add(str(local.x1), str(get_parent().get_pos().x)))
+	local.x2 = float(fixed.add(str(local.x2), str(get_parent().get_pos().x)))
+	local.y1 = float(fixed.add(str(local.y1), str(get_parent().get_pos().y)))
+	local.y2 = float(fixed.add(str(local.y2), str(get_parent().get_pos().y)))
 	return local
 
 func overlaps_on_point(pos) -> bool:
@@ -42,10 +46,10 @@ func pos_to_x_side(max_dist, pos) -> int:
 func get_overlap_normal(box:CollisionBox) -> Vector2:
 	return _overlap_normal(self.get_aabb(), box.get_aabb()) 
 func _overlap_normal(a, b) -> Vector2:
-	var left = b.x2 - a.x1
-	var right = a.x2 - b.x1
-	var top = b.y2 - a.y1
-	var bottom = a.y2 - b.y1
+	var left = int(fixed.sub(str(b.x2),str(a.x1)))
+	var right = int(fixed.sub(str(a.x2),str(b.x1)))
+	var top = int(fixed.sub(str(b.y2),str(a.y1)))
+	var bottom = int(fixed.sub(str(a.y2),str(b.y1)))
 	
 	#print([left, right, top, bottom])
 	var minimum = _min_array([left, right, top, bottom])
@@ -67,5 +71,6 @@ func _min_array(numbers:Array):
 	return smallest
 export var force_draw := false
 func can_draw_box():
-	
-	return force_draw and Engine.editor_hint
+	if (force_draw and Engine.editor_hint):
+		return true
+	return .can_draw_box()

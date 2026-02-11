@@ -857,15 +857,16 @@ func update_grounded():
 		if not is_instance_valid(col):
 			continue
 		
-		var pos = position
-		pos.x = pos.x - (collision_box.width / 2)
-		pos.y = pos.y + 2
+		var pos = get_pos()
+		pos.x = float(fixed.add(str(pos.x), fixed.div(str(collision_box.width), "2")))
+		pos.y = float(fixed.add(str(pos.y), "0.1"))
 		
 		if col.overlaps_on_point(pos):
 			_is_grounded = true
 			grounded_solid = solid
+			#if (!is_ghost):
 			set_vel(str(get_vel().x), str(0))
-			#set_pos(str(get_pos().x), str(col.get_aabb().y1))
+			set_pos(str(get_pos().x), str(col.get_aabb().y1))
 			
 			grounded_solid.colliding.append(self)
 			return
@@ -1116,23 +1117,20 @@ func move_away_from_wall(wall_col, dir):
 	var wall = wall_col.get_parent()
 	match dir:
 		1:
-			print("1")
-			var x_vel = float(get_vel().x) / 5
-			x_vel += wall.movement_velocity.x
-			x_vel *= wall.bounciness
+			var x_vel = fixed.div(float(get_vel().x), 5)
+			x_vel = fixed.mul(x_vel, wall.movement_velocity.x)
+			x_vel = fixed.mul(x_vel, wall.bounciness)
 			set_pos(str(wall_col.get_aabb().x1 - collision_box.width), str(get_pos().y))
-			set_vel(str(-abs(x_vel)), str(get_vel().y))
+			set_vel(str(fixed.mul(fixed.abs(str(x_vel)), "-1")), str(get_vel().y))
 		2:
-			print("2")
 			var x_vel = float(get_vel().x) / 5
-			x_vel += wall.movement_velocity.x
-			x_vel *= wall.bounciness
+			x_vel = fixed.mul(x_vel, wall.movement_velocity.x)
+			x_vel = fixed.mul(x_vel, wall.bounciness)
 			set_pos(str(wall_col.get_aabb().x2 + collision_box.width), str(get_pos().y))
-			set_vel(str(abs(x_vel)), str(get_vel().y))
+			set_vel(str(fixed.abs(str(x_vel))), str(get_vel().y))
 		4:
-			print("4")
 			var y_vel = float(get_vel().y) / 5
-			y_vel += wall.movement_velocity.y
-			y_vel *= wall.bounciness
+			y_vel = fixed.mul(y_vel, wall.movement_velocity.y)
+			y_vel = fixed.mul(y_vel, wall.bounciness)
 			set_pos(str(get_pos().x), str(wall_col.get_aabb().y2 + collision_box.height * 2))
-			set_vel(str(get_vel().x), str(abs(y_vel)))
+			set_vel(str(get_vel().x), str(fixed.abs(str(y_vel))))
