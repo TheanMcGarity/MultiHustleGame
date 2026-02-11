@@ -1182,6 +1182,8 @@ func sign_f(num):
 	return str(fixed.sign(str(num)))
 func abs_f(num):
 	return fixed.abs(str(num))
+func neg_abs_f(num):
+	return mul(abs_f(num), -1)
 
 func vec_add2(a, b):
 	return fixed.vec_add(str(a.x),str(a.y),str(b.x),str(b.y))
