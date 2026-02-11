@@ -39,12 +39,6 @@ script = ExtResource( 5 )
 width = 0
 height = 0
 
-[node name="CollisionBox" type="Node2D" parent="."]
-z_index = 1000
-script = ExtResource( 5 )
-width = 0
-height = 0
-
 [node name="StateMachine" type="Node2D" parent="."]
 script = ExtResource( 2 )
 

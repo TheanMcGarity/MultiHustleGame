@@ -1,0 +1,15 @@
+{
+  "author": "Hazelpy#1204, Fleig#9673, Supersonic#2382, Snazzah#0371",
+  "client_side": true,
+  "description": "Adds custom stage functionality.",
+  "friendly_name": "Custom Stage Loader + API",
+  "id": "12345",
+  "link": "",
+  "name": "customStageLoader",
+  "overwrites": false,
+  "priority": -5000,
+  "requires": [
+    ""
+  ],
+  "version": "1.5.4"
+}

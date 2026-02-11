@@ -138,7 +138,6 @@ var logic_rng_static: BetterRng
 var logic_rng_seed = 0
 var logic_rng_static_seed = 0
 
-var _init_on_ready := false
 func _enter_tree():
 	if obj_name:
 		name = obj_name
@@ -153,8 +152,6 @@ func get_p2():
 func _ready():
 	state_machine.connect("state_exited", self, "_on_state_exited")
 	state_variables.append_array(Utils.split_lines(extra_state_variables))
-	if _init_on_ready:
-		init()
 	if creator_name:
 		creator = objs_map[creator_name]
 	if !obj_name:
@@ -491,33 +488,6 @@ func spawn_object(projectile: PackedScene, pos_x: int, pos_y: int, relative=true
 	obj.obj_name = str(objs_map.size() + 1)
 	emit_signal("object_spawned", obj)
 	return obj
-func spawn_physical(physical: PackedScene, pos_x: int, pos_y: int, relative=true, data=null, local=true):
-	var obj = physical.instance()
-	obj.creator_name = null
-#	obj.obj_name = str(objs_map.size() + 1)r
-	obj.objs_map = objs_map
-	obj.is_ghost = is_ghost
-	obj.obj_name = str(objs_map.size() + 1)
-	obj.spawn_data = data
-	obj.stage_width = stage_width
-#	add_child(obj)
-	var pos = get_pos()
-	var new_pos
-	if local:
-		new_pos = Vector2(float(pos.x + pos_x * (get_facing_int() if relative else 1)), float(pos.y + pos_y))
-		obj.set_pos(str(new_pos.x),str(new_pos.y))
-	else:
-		new_pos = Vector2(pos_x, pos_y)
-		obj.set_pos(pos_x, pos_y)
-	
-	obj.position = Vector2(float(new_pos.x), float(new_pos.y))
-	obj.set_facing(get_facing_int())
-	obj.id = id
-	
-#	remove_child(obj)
-	obj.obj_name = str(objs_map.size() + 1)
-	get_game().on_physical_spawned(obj, true)
-	return obj
 
 func get_hurtbox_center():
 	return hurtbox.get_center()
@@ -740,24 +710,22 @@ func apply_grav():
 	if gravity_enabled and !is_grounded():
 		chara.apply_grav()
 
-# Reacreation of the rust friction code for yomi
+# Reacreation of the c++ friction code for yomi
 func apply_fric():
-	chara.set_grounded(_is_grounded)
-	chara.apply_fric()
-	#if _is_grounded:
-	#	apply_ground_fric()
-	#else:
-	#	apply_air_fric()
+	if _is_grounded:
+		apply_ground_fric()
+	else:
+		apply_air_fric()
 func apply_ground_fric():
 	var y_vel = float(get_vel().y)
 	var x_vel = float(get_vel().x)
-	var x_vel_new = sub(x_vel, mul(mul(div(abs_f(x_vel), max_ground_speed), ground_friction), sign_f(x_vel)))
-	set_vel(str(x_vel_new), str(y_vel))
+	var x_vel_new = x_vel - (abs(x_vel) / float(max_ground_speed)) * float(ground_friction) * sign(x_vel)
+	set_vel(x_vel_new, y_vel)
 func apply_air_fric():
 	var y_vel = float(get_vel().y)
 	var x_vel = float(get_vel().x)
-	var x_vel_new = sub(x_vel, mul(mul(div(abs_f(x_vel), max_air_speed), air_friction), sign_f(x_vel)))
-	set_vel(str(x_vel_new), str(y_vel))
+	var x_vel_new = x_vel - (abs(x_vel) / float(max_air_speed)) * float(air_friction) * sign(x_vel)
+	set_vel(x_vel_new, y_vel)
 
 func apply_x_fric(fric):
 	chara.apply_x_fric(fric)
@@ -1122,9 +1090,8 @@ func colliding_with_wall():
 		var col = solid.get_node("SolidBox")
 		if not is_instance_valid(col):
 			continue
-		#print("WILL IT OVERLAP?")
 		if col.overlaps(collision_box):
-		#	print("wait no way")
+			#print("woagh")
 			#var normal = col.get_overlap_normal(collision_box)
 			#var wall_side = col.pos_to_x_side(6, center)
 			#var wall_side = _get_side_from_normal(normal)
@@ -1150,55 +1117,20 @@ func move_away_from_wall(wall_col, dir):
 	var wall = wall_col.get_parent()
 	match dir:
 		1:
-			var x_vel = div(get_vel().x, 5)
-			x_vel = mul(x_vel, wall.movement_velocity.x)
-			x_vel = mul(x_vel, wall.bounciness)
+			var x_vel = fixed.div(float(get_vel().x), 5)
+			x_vel = fixed.mul(x_vel, wall.movement_velocity.x)
+			x_vel = fixed.mul(x_vel, wall.bounciness)
 			set_pos(str(wall_col.get_aabb().x1 - collision_box.width), str(get_pos().y))
 			set_vel(str(fixed.mul(fixed.abs(str(x_vel)), "-1")), str(get_vel().y))
 		2:
-			var x_vel = div(get_vel().x, 5)
-			x_vel = mul(x_vel, wall.movement_velocity.x)
-			x_vel = mul(x_vel, wall.bounciness)
+			var x_vel = float(get_vel().x) / 5
+			x_vel = fixed.mul(x_vel, wall.movement_velocity.x)
+			x_vel = fixed.mul(x_vel, wall.bounciness)
 			set_pos(str(wall_col.get_aabb().x2 + collision_box.width), str(get_pos().y))
 			set_vel(str(fixed.abs(str(x_vel))), str(get_vel().y))
 		4:
-			var y_vel = div(get_vel().y, 5)
-			y_vel = mul(y_vel, wall.movement_velocity.y)
-			y_vel = mul(y_vel, wall.bounciness)
-			set_pos(str(get_pos().x), str(add(wall_col.get_aabb().y2, mul(collision_box.height,2))))
+			var y_vel = float(get_vel().y) / 5
+			y_vel = fixed.mul(y_vel, wall.movement_velocity.y)
+			y_vel = fixed.mul(y_vel, wall.bounciness)
+			set_pos(str(get_pos().x), str(wall_col.get_aabb().y2 + collision_box.height * 2))
 			set_vel(str(get_vel().x), str(fixed.abs(str(y_vel))))
-
-# Fixed Math but easier to use
-func add(a, b):
-	return fixed.add(str(a),str(b))
-func sub(a, b):
-	return fixed.sub(str(a),str(b))
-func mul(a, b):
-	return fixed.mul(str(a),str(b))
-func div(a, b):
-	return fixed.div(str(a),str(b))
-
-func sign_f(num):
-	return str(fixed.sign(str(num)))
-func abs_f(num):
-	return fixed.abs(str(num))
-
-func vec_add2(a, b):
-	return fixed.vec_add(str(a.x),str(a.y),str(b.x),str(b.y))
-func vec_add(ax, ay, bx, by):
-	return fixed.vec_add(str(ax),str(ay),str(bx),str(by))
-func vec_sub2(a, b):
-	return fixed.vec_sub(str(a.x),str(a.y),str(b.x),str(b.y))
-func vec_sub(ax, ay, bx, by):
-	return fixed.vec_sub(str(ax),str(ay),str(bx),str(by))
-func vec_mul2(a, b):
-	return Vector2(mul(a.x, b.x), mul(a.y,b.y))
-func vec_mul(ax, ay, bx, by):
-	return Vector2(mul(ax, bx), mul(ay,by))
-func vec_div2(a, b):
-	return fixed.vec_div(str(a.x),str(a.y),str(b.x),str(b.y))
-func vec_div(ax, ay, bx, by):
-	return fixed.vec_div(str(ax),str(ay),str(bx),str(by))
-
-func vec_mul_n(a, num):
-	return fixed.vec_mul(str(a.x),str(a.y),str(num))

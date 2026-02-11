@@ -419,13 +419,14 @@ func setup_game_deferred(singleplayer, data):
 			ui_layer.set_turn_time(data.turn_time, (data.has("chess_timer") and data.chess_timer))
 		else :
 			ui_layer.start_timers()
-	
+	print("1")
 	uiselectors = MultiHustle_AddData()
+	print("2")
 	ui_layer.init(self)
+	print("3")
 	hud_layer.init(game)
+	print("4")
 	Network.main = self
-	if game.players.size() < 3:
-		uiselectors.modulate = Color.transparent
 	#Dumb patchwork fix so that the ui accurately shows who's selected when in multiplayer.
 	for id in uiselectors.selects.keys():
 		var charSelect = uiselectors.selects[id][0]
