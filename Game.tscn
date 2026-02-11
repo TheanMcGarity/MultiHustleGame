@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://arena_new/PhysicsCube.tscn" type="PackedScene" id=1]
+[ext_resource path="res://arena_new/PlatformTest.tscn" type="PackedScene" id=2]
 [ext_resource path="res://framework/BetterCamera.gd" type="Script" id=3]
 [ext_resource path="res://game.gd" type="Script" id=4]
+[ext_resource path="res://arena_new/PlayerSpawn.tscn" type="PackedScene" id=5]
 
 [node name="Game" type="Node2D"]
 script = ExtResource( 4 )
@@ -31,6 +33,47 @@ one_shot = true
 
 [node name="Solids" type="Node2D" parent="."]
 
+[node name="PhysicsCube3" parent="Solids" instance=ExtResource( 1 )]
+position = Vector2( -228, -8 )
+
+[node name="BaseGround2" parent="Solids" instance=ExtResource( 2 )]
+position = Vector2( -49, -89 )
+
+[node name="BaseGround3" parent="Solids" instance=ExtResource( 2 )]
+position = Vector2( 92, -22 )
+
+[node name="BaseGround4" parent="Solids" instance=ExtResource( 2 )]
+position = Vector2( -193, -24 )
+
 [node name="PhysicsCube" parent="Solids" instance=ExtResource( 1 )]
-position = Vector2( 417, -301 )
-starting_velocity = Vector2( -0.5, -5 )
+position = Vector2( -282, -8 )
+
+[node name="BaseGround" parent="Solids" instance=ExtResource( 2 )]
+position = Vector2( -49, -151 )
+
+[node name="PhysicsCube2" parent="Solids" instance=ExtResource( 1 )]
+position = Vector2( -1, -93 )
+
+[node name="PlayerSpawn" parent="Solids" instance=ExtResource( 5 )]
+position = Vector2( -150, -25 )
+player_id = 1
+
+[node name="PlayerSpawn2" parent="Solids" instance=ExtResource( 5 )]
+position = Vector2( 142, -23 )
+player_id = 2
+
+[node name="PlayerSpawn3" parent="Solids" instance=ExtResource( 5 )]
+position = Vector2( 33, -152 )
+player_id = 3
+
+[node name="PlayerSpawn4" parent="Solids" instance=ExtResource( 5 )]
+position = Vector2( -25, 0 )
+player_id = 4
+
+[node name="PlayerSpawn5" parent="Solids" instance=ExtResource( 5 )]
+position = Vector2( 27, 0 )
+player_id = 5
+
+[node name="PlayerSpawn6" parent="Solids" instance=ExtResource( 5 )]
+position = Vector2( -38, -152 )
+player_id = 6

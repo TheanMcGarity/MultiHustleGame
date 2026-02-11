@@ -3,30 +3,22 @@ extends BaseGround
 const MIN_SPEED: float = 0.0001
 
 onready var physics_col:PhysicsBoxBasic = $SolidBox
-onready var gravity_f:float = float(gravity)
 
-export(Vector2) var starting_velocity = Vector2.ZERO
-
-var vel = Vector2.ZERO setget _set_vel, _get_vel
+var vel = Vector2.ZERO setget _set_vel, get_vel
 var gravity_modifier:float = 1
-var accel = {"x":"0","y":"0"}
+var accel:Vector2
+
+onready var gravity_f:float = float(gravity)
 
 var collision_centers := []
 var object_collisions := []
-var set_init_vel := false
+
 func copy_to(o):
 	#.copy_to(o)
-	#o.set_vel(get_vel())
+	o.vel = vel
 	o.gravity_modifier = gravity_modifier
-	o.set_init_vel = set_init_vel
-	#o.accel = accel
-	#o.gravity_f = gravity_f
-
-func init(pos = null):
-	.init(pos)
-	if (not set_init_vel):
-		set_vel(str(starting_velocity.x), str(starting_velocity.y))
-		set_init_vel = true
+	o.accel = accel
+	o.gravity_f = gravity_f
 
 func tick():
 	.tick()
@@ -39,6 +31,9 @@ func tick():
 	detect_collisions()
 	#snap_to_floor()
 
+	if (position.y > 0):
+		position.y = 0
+	print(object_collisions)
 	handle_collisions()
 
 func snap_to_floor():
@@ -62,28 +57,28 @@ func snap_to_floor():
 
 func detect_collisions():
 	var self_center = Vector2(
-		fixed.add(str(physics_col.x), fixed.div(str(physics_col.width), "2")),
-		fixed.add(str(physics_col.y), fixed.div(str(physics_col.height), "2"))
+		physics_col.x + physics_col.width / 2,
+		physics_col.y + physics_col.height / 2
 	)
-	self_center = fixed.vec_add(self_center, position)
+	self_center += position
 	
 	for collision_data in collision_centers:
 		var collision = collision_data.collider
-		var half_w = fixed.div(physics_col.width, 2)
-		var half_h = fixed.div(physics_col.height, 2)
-		var col_half_w = fixed.div(collision.width, 2)
-		var col_half_h = fixed.div(collision.height, 2)
+		var half_w = physics_col.width / 2
+		var half_h = physics_col.height  / 2
+		var col_half_w = collision.width
+		var col_half_h = collision.height / 2
 		
 		var diff = self_center - collision.position
-		var overlap_x = fixed.sub(fixed.add(half_w, col_half_w), fixed.abs(diff.x))
-		var overlap_y = fixed.sub(fixed.add(half_h, col_half_h), fixed.abs(diff.y))
+		var overlap_x = (half_w + col_half_w) - abs(diff.x)
+		var overlap_y = (half_h + col_half_h) - abs(diff.y)
 		
 		if overlap_x > 0 and overlap_y > 0:
 			if overlap_x < overlap_y:
-				position.x = fixed.add(position.x, fixed.mul(overlap_x, fixed.sign(diff.x)))
+				position.x += overlap_x * sign(diff.x)
 			else:
-				position.y = fixed.add(position.y, fixed.mul(overlap_y, fixed.sign(diff.y)))
-				set_vel(vel.x, str(0))
+				position.y += overlap_y * sign(diff.y)
+				vel.y = 0
 				_is_grounded = diff.y < 0
 	
 	object_collisions = []
@@ -139,62 +134,56 @@ func _set_gravity_modifier(modifier):
 func _set_vel(value):
 	chara.set_vel(str(value.x), str(value.y))
 	vel = value
-func _get_vel():
-	return get_vel()
+func get_vel():
+	return vel
+func set_vel(x,y):
+	vel = Vector2(x,y)
 
 func apply_grav() -> void:
-	if not _is_grounded and float(vel.y) < float(max_fall_speed):
-		apply_force("0.0", fixed.mul(gravity, str(gravity_modifier)))
+	if not _is_grounded and vel.y < float(max_fall_speed):
+		apply_force_vec(Vector2(0.0, gravity_f * gravity_modifier))
 
 
 func apply_grav_custom(gravity_val: String, fall_speed: String) -> void:
 	if not _is_grounded and vel.y < float(fall_speed):
-		apply_force("0.0", fixed.mul(gravity_f, gravity_modifier))
+		apply_force_vec(Vector2(0.0, float(gravity_val) * gravity_modifier))
 
 
 func apply_forces() -> void:
-	vel = fixed.vec_add(str(vel.x),str(vel.y),str(accel.x),str(accel.y))
+	vel += accel
 
 	if _is_grounded:
-		if float(fixed.abs(str(vel.x))) > float(max_ground_speed):
-			set_vel(fixed.mul(max_ground_speed, str(fixed.sign(str(vel.x)))), str(vel.y))
+		if abs(vel.x) > float(max_ground_speed):
+			vel.x = float(max_ground_speed) * sign(vel.x)
 	else:
-		if float(fixed.abs(str(vel.x))) > float(max_air_speed):
-			set_vel(fixed.mul(str(max_air_speed), str(fixed.sign(str(vel.x)))), str(vel.y))
+		if abs(vel.x) > float(max_air_speed):
+			vel.x = float(max_air_speed) * sign(vel.x)
 
-		if float(vel.y) > float(max_fall_speed):
-			set_vel(str(vel.x), max_fall_speed)
+		if vel.y > float(max_fall_speed):
+			vel.y = float(max_fall_speed)
 
-	move_directly(vel.x,vel.y)
+	move_directly(str(vel.x),str(vel.y))
 	update_grounded()
 
-	if _is_grounded and float(vel.y) > 0.0:
-		vel.y = "0.0"
+	if _is_grounded and vel.y > 0.0:
+		vel.y = 0.0
 
-	if float(fixed.vec_len(vel.x, vel.y)) < MIN_SPEED:
-		vel = {"x":"0","y":"0"}
+	if vel.length() < MIN_SPEED:
+		vel = Vector2.ZERO
 
-	accel = {"x":"0","y":"0"}
+	accel = Vector2.ZERO
 	
 func apply_force(x, y) -> void:
-	accel = fixed.vec_add(str(accel.x),str(accel.y),str(x),str(y))
+	apply_force_vec(Vector2(x,y))
 func apply_force_vec(vec):
-	accel = fixed.vec_add(str(accel.x),str(accel.y),str(vec.x),str(vec.y))
+	accel += vec
 func move_directly(x, y):
 	.move_directly(x, y)
-	#position += Vector2(float(x),float(y))
-	var pos = get_pos()
-	position = Vector2(float(pos.x), float(pos.y))
+	position += Vector2(float(x),float(y))
 
 func handle_collisions():
 	for col in object_collisions:
 		move_away_from_collision(col[0], col[1])
-	if (position.y < 0):
-		var y_vel = fixed.div(float(get_vel().y), "5")
-		y_vel = fixed.mul(str(y_vel), fixed.mul(str(bounciness), "1.5"))
-		set_pos(str(get_pos().x), "0")
-		set_vel(str(get_vel().x), str(fixed.mul("-1", fixed.abs(str(y_vel)))))
-
 
 func move_away_from_wall(wall_col, dir):
 	return
@@ -205,33 +194,23 @@ func move_away_from_collision(wall_col, dir):
 	var wall = wall_col.get_parent()
 	match dir:
 		2:
-			# probably overusing str() but dont want errors so ill keep it until this needs to be changed again
-			var x_vel = fixed.div(str(get_vel().x), "2.5")
-			x_vel = fixed.add(str(x_vel), str(movement_velocity.x))
-			x_vel = fixed.mul(str(x_vel), str(wall.bounciness))
-			x_vel = fixed.mul(str(x_vel), str(bounciness))
+			print("1")
+			var x_vel = float(get_vel().x) / 2.5
+			x_vel += wall.movement_velocity.x
+			x_vel *= wall.bounciness
 			set_pos(str(wall_col.get_aabb().x1 - physics_col.width), str(get_pos().y))
-			set_vel(str(fixed.mul(fixed.abs(str(x_vel)), "-1")), str(get_vel().y))
+			set_vel(str(-abs(x_vel)), str(get_vel().y))
 		1:
-			var x_vel = fixed.div(str(get_vel().x), "2.5")
-			x_vel = fixed.add(str(x_vel), str(movement_velocity.x))
-			x_vel = fixed.mul(str(x_vel), str(wall.bounciness))
-			x_vel = fixed.mul(str(x_vel), str(bounciness))
+			print("2")
+			var x_vel = float(get_vel().x) / 2.5
+			x_vel += wall.movement_velocity.x
+			x_vel *= wall.bounciness
 			set_pos(str(wall_col.get_aabb().x2 + physics_col.width), str(get_pos().y))
-			set_vel(str(fixed.abs(x_vel)), str(get_vel().y))
-		3:
-			var y_vel = fixed.div(str(get_vel().y), "2.5")
-			y_vel = fixed.add(str(y_vel), str(movement_velocity.y))
-			y_vel = fixed.mul(str(y_vel), str(wall.bounciness))
-			y_vel = fixed.mul(str(y_vel), str(bounciness))
-			set_pos(str(get_pos().x), fixed.sub(str(wall_col.get_aabb().y2), fixed.mul(str(physics_col.height), "2")))
-			set_vel(str(get_vel().x), str(fixed.abs(str(y_vel))))
+			set_vel(str(abs(x_vel)), str(get_vel().y))
 		4:
-			#if (not is_ghost):
-			#	print("on top of smth idk (%s on %s)" % [name, wall.name])
-			var y_vel = fixed.div(str(get_vel().y), "6")
-			y_vel = fixed.add(str(y_vel), str(movement_velocity.y))
-			y_vel = fixed.mul(str(y_vel), str(wall.bounciness))
-			y_vel = fixed.mul(str(y_vel), str(bounciness))
-			set_pos(str(get_pos().x), fixed.add(str(wall_col.get_aabb().y1), fixed.mul(str(physics_col.height), "2")))
-			set_vel(str(get_vel().x), str(fixed.mul(fixed.abs(str(y_vel))), "-1"))
+			print("4")
+			var y_vel = float(get_vel().y) / 2.5
+			y_vel += wall.movement_velocity.y
+			y_vel *= wall.bounciness
+			set_pos(str(get_pos().x), str(wall_col.get_aabb().y2 + physics_col.height * 2))
+			set_vel(str(get_vel().x), str(abs(y_vel)))
