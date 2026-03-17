@@ -439,6 +439,8 @@ var wakeup_throw_immunity_ticks = 0
 
 var hidden_sprite := false
 
+export var auto_set_opponent := false
+
 onready var fake_emote_label = $"%EmoteLabel"
 onready var real_emote_label = $"%EmoteLabelReal"
 onready var emote_display = $"%EmoteDisplay"
@@ -2440,10 +2442,54 @@ func set_name_text(txt):
 			main_player.display_name.bbcode_text = txt
 				
 	display_name.bbcode_text = txt
-
+onready var bv_ui_edits = [
+	get_node("/root/Main/%P1Portrait"),
+	get_node("/root/Main/%P2Portrait"),
+	get_node("/root/Main/%P1HealthBar"),
+	get_node("/root/Main/%P2HealthBar"),
+	get_node("/root/Main/%BottomBar"),
+	get_node("/root/Main/%ActivePlayer"),
+	get_node("/root/Main/HudLayer/HudLayer/AirMovementDisplay"),
+	get_node("/root/Main/HudLayer/HudLayer/FeintDisplay"),
+	get_node("/root/Main/HudLayer/HudLayer/TopBar2"),
+	get_node("/root/Main/HudLayer/HudLayer/HBoxContainer"),
+	get_node("/root/Main/HudLayer/HudLayer/UsernameBar"),
+	get_node("/root/Main/%Timer"),
+]
+func reset_ui_from_bv():
+	bv_ui_edits[0].rect_position.y = 0
+	bv_ui_edits[1].rect_position.y = 0
+	bv_ui_edits[2].rect_position.y = 0
+	bv_ui_edits[3].rect_position.y = 0
+	bv_ui_edits[4].rect_position.y = 204
+	bv_ui_edits[5].rect_position.y = 346
+	bv_ui_edits[6].rect_position.y = 27
+	bv_ui_edits[7].rect_position.y = 0
+	bv_ui_edits[8].rect_position.y = 36
+	bv_ui_edits[9].rect_position.y = 56
+	bv_ui_edits[10].rect_position.y = 6
+	bv_ui_edits[11].rect_position.y = 0
 
 # Vanilla function but with opponent select sync
 func tick_before():
+	if (get("Difficulty") != null):
+		if (self.Difficulty == ""):
+			self.Difficulty = "Standard"
+	if (has_method("UITweener") != null):
+		reset_ui_from_bv()
+	#if (auto_set_opponent):
+	#	var smallest_dist := INF
+	#	var closest_player
+	#	for player in get_game().players:
+	#		if not player.game_over:
+	#			var pos = get_pos()
+	#			var other_pos = player.get_pos()
+	#			var dist = fixed.vec_dist(str(pos.x), str(pos.y), str(other_pos.x), str(other_pos.y))
+	#			if float(dist) < smallest_dist:
+	#				smallest_dist = float(dist)
+	#				closest_player = player
+	##		opponent = player
+	
 	emote_live_counter += 1
 	
 	if emote_live_counter > EMOTE_TIME:

@@ -536,6 +536,9 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		var player = players[index]
 		$Players.add_child(player)
 		player.set_color(MultiHustle_get_color_by_index(index))
+		if (player.get("Difficulty") != null):
+			player.dummy = match_data.clone_army_ai
+			player.auto_set_opponent = true
 		player.init()
 	
 	if match_data.has("selected_styles"):
@@ -1605,6 +1608,8 @@ func _physics_process(_delta):
 			else:
 				for player in players.values():
 					if player.game_over:
+						continue
+					if player.auto_set_opponent: # temp thing
 						continue
 					
 					target += player.global_position

@@ -48,6 +48,7 @@ onready var settings_nodes = {
 	"damage_team": $"%TeamDamagingCollisionsEnabled",
 	"collide_dead": $"%DeadCollisionsEnabled",
 	"ui_reload": $"%AllowUIReload",
+	"clone_army_ai": $"%CloneAIEnable",
 }
 
 var float_to_string = [
@@ -128,8 +129,17 @@ func load_settings(settings):
 
 	$"%LineEdit".clear()
 	update_menu()
-
+func _get_mod_installed(name) -> bool:
+	for mod in ModLoader.active_mods:
+		if mod[1].has("name"):
+			if mod[1].name == name:
+				return true
+	return false
+	
 func update_menu():
+	if _get_mod_installed("Clone Army"):
+		$"%CloneAIEnable".show()
+		
 	if $"%ChessTimer".pressed:
 #		if $"%TurnLengthLabel".text != "Turn Clock (min)":
 #			$"%TurnLength".value = 30

@@ -37,6 +37,16 @@ margin_bottom = 460.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="CloneAIEnable" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+visible = false
+margin_right = 152.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+pressed = true
+text = "Clone Army Survival Mode"
+
 [node name="ChessTimer" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
 margin_right = 152.0

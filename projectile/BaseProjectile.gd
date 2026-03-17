@@ -28,21 +28,45 @@ func _ready():
 
 func get_opponent():
 	if creator:
+		if (creator.auto_set_opponent):
+			var smallest_dist := INF
+			var closest_player
+			for player in get_game().players.values():
+				if player.id == creator.id:
+					continue
+				if not player.game_over:
+					var pos = get_pos()
+					var other_pos = player.get_pos()
+					var dist = fixed.vec_dist(str(pos.x), str(pos.y), str(other_pos.x), str(other_pos.y))
+					if float(dist) < smallest_dist:
+						smallest_dist = float(dist)
+						closest_player = player
+				
+			return closest_player
+						
 		return creator.get_opponent()
 	else:
-		if id == 1:
-			return get_p2()
-		else:
-			return get_p1()
+		return obj_from_name("P%d" % id)
 
 func get_fighter():
 	if creator:
+		if (creator.auto_set_opponent):
+			var smallest_dist := INF
+			var closest_player
+			for player in get_game().players.values():
+				if player.id == creator.id:
+					continue
+				if not player.game_over:
+					var pos = get_pos()
+					var other_pos = player.get_pos()
+					var dist = fixed.vec_dist(str(pos.x), str(pos.y), str(other_pos.x), str(other_pos.y))
+					if float(dist) < smallest_dist:
+						smallest_dist = float(dist)
+						closest_player = player
+			creator.opponent = closest_player
 		return creator.get_fighter()
 	else:
-		if id == 1:
-			return get_p1()
-		else:
-			return get_p2()
+		return obj_from_name("P%d" % id)
 
 func disable():
 	sprite.hide()

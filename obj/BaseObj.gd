@@ -367,6 +367,12 @@ func copy_to(o: BaseObj):
 	
 	o.logic_rng.state = logic_rng.state
 	o.logic_rng_static.state = logic_rng_static.state
+	
+	if (get("Difficulty") != null):
+		if (self.Difficulty == ""):
+			o.Difficulty = "Standard"
+		else:
+			o.Difficulty = self.Difficulty
 
 	
 func get_frames():
@@ -575,6 +581,10 @@ func get_camera():
 	return cameras[0] if cameras.size() > 0 and !is_ghost else null
 
 func grab_camera_focus():
+	if Global.is_allowed_caller("tick", get_stack()): 
+		# prevent the stealing of cam focus by clone army or
+		# other mods that grab focus forever
+		return
 	var camera = get_camera()
 	if camera:
 		camera.focused_object = self
@@ -828,7 +838,7 @@ func reset_pushback():
 	chara.reset_pushback()
 
 func get_game():
-	if is_ghost:
+	if is_ghost and Global.current_game.ghost_game != null:
 		return Global.current_game.ghost_game
 	else:
 		return Global.current_game
