@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.28-steam-unstable"
+var VERSION = "1.9.29-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 var audio_player
@@ -29,7 +29,6 @@ var enable_emotes = true
 var enable_timer_sound = true
 var steam_demo_version = false
 var show_last_move_indicators = true
-var show_last_di_state = true
 var speed_lines_enabled = true
 var replay_extra_freeze_frames = true
 var seen_custom_character_nag = false
@@ -242,7 +241,6 @@ func save_options():
 			"fullscreen": fullscreen,
 			"show_hitboxes": show_hitboxes,
 			"show_last_move_indicators": show_last_move_indicators,
-			"show_last_di_state": show_last_di_state,
 			"show_playback_controls": show_playback_controls,
 			"show_projectile_owners": show_projectile_owners,
 			"enable_timer_sound": enable_timer_sound,
@@ -274,7 +272,6 @@ func get_default_player_data():
 			"ghost_speed": 2,
 			"show_hitboxes": false,
 			"show_last_move_indicators": true,
-			"show_last_di_state": true,
 			"show_playback_controls": false,
 			"default_dojo": 0,
 			"enable_timer_sound": true,

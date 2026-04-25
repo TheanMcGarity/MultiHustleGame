@@ -89,6 +89,7 @@ var match_data = null
 var simulated_once = false
 var started_multiplayer = false
 var prediction_enabled = true
+var show_last_di_state = true
 
 var p1 = null
 var p2 = null
@@ -365,6 +366,8 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 		ceiling_height = match_data["ceiling_height"]
 	if match_data.has("prediction_enabled"):
 		prediction_enabled = match_data["prediction_enabled"]
+	if match_data.has("show_last_di_state"):
+		show_last_di_state = match_data["show_last_di_state"]
 	p1.has_ceiling = has_ceiling
 	p2.has_ceiling = has_ceiling
 	p1.ceiling_height = ceiling_height

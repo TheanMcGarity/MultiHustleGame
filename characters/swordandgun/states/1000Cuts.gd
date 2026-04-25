@@ -28,4 +28,4 @@ func _frame_0_shared():
 func is_usable():
 	if end:
 		return host.cut_projectile != null
-	return host.has_super_meter() and host.cut_projectile == null
+	return host.supers_available >= super_level and host.cut_projectile == null

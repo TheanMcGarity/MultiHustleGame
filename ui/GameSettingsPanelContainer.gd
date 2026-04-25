@@ -41,6 +41,7 @@ onready var settings_nodes = {
 	"max_di_scaling": $"%MaxDIScalingMeter",
 	"di_combo_limit": $"%DIComboLimit",
 	"brace_enabled": $"%BraceEnabled",
+	"show_last_di_state": $"%ShowLastDIState",
 }
 
 var float_to_string = [

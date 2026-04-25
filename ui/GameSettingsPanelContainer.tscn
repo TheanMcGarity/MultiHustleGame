@@ -515,6 +515,17 @@ pressed = true
 text = "DI Enabled"
 expand_icon = true
 
+[node name="ShowLastDIState" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 253.0
+margin_right = 152.0
+margin_bottom = 265.0
+hint_tooltip = "Show your and your opponent's DI from the last turn on the DI wheel."
+size_flags_horizontal = 15
+pressed = true
+text = "Show Last DI State"
+expand_icon = true
+
 [node name="SadnessEnabled" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
 margin_top = 253.0

@@ -641,6 +641,8 @@ func update_select_button():
 		$"%SelectButton".disabled = game.spectating or locked_in
 
 func activate(refresh=true):
+	if is_instance_valid(fighter) and is_instance_valid(game) and game.show_last_di_state:
+		$"%DI".set_last_di(fighter.current_di)
 	if visible and refresh:
 		return
 #	print("activating")
@@ -651,7 +653,10 @@ func activate(refresh=true):
 #	_get_opposite_buttons().reset_prediction()
 	if is_instance_valid(fighter):
 		$"%DI".set_label("DI" + " x%.1f" % float(fighter.get_di_scaling(false)))
-		$"%DI".set_last_di(fighter.current_di)
+		if is_instance_valid(game) and game.show_last_di_state:
+			$"%DI".set_last_di(fighter.current_di)
+		else:
+			$"%DI".set_last_di(null)
 		var last_action_name = ReplayManager.get_last_action(fighter.id)
 
 		if last_action_name and fighter.state_machine.states_map.has(last_action_name.action):

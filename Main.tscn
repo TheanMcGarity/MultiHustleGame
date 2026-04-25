@@ -2439,14 +2439,6 @@ margin_bottom = 78.0
 pressed = true
 text = "show last moves played"
 
-[node name="LastDIStateButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/VBoxContainer"]
-unique_name_in_owner = true
-margin_top = 79.0
-margin_right = 158.0
-margin_bottom = 91.0
-pressed = true
-text = "show last DI state"
-
 [node name="ProjectileOwnersButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 margin_top = 92.0
