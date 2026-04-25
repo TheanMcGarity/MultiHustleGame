@@ -37,6 +37,7 @@ var up_juke_ticks = 0
 var juked_this_turn = false
 var started_up_juke_from_ground = false
 var can_air_dash = false
+var thorn_set = []
 
 func apply_grav():
 	if up_juke_ticks > 0:

@@ -70,6 +70,7 @@ onready var global_option_check_buttons = {
 	$"%EnableHitsparksButton": "enable_custom_hit_sparks",
 	$"%EnableEmotes": "enable_emotes",
 	$"%LastMoveIndicatorButton": "show_last_move_indicators",
+	$"%LastDIStateButton": "show_last_di_state",
 	$"%ProjectileOwnersButton": "show_projectile_owners",
 	$"%SpeedLinesButton": "speed_lines_enabled",
 	$"%AutoFCButton": "auto_fc",

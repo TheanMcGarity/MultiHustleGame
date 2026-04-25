@@ -390,7 +390,14 @@ func _ready():
 func _process(_delta):
 	if Engine.editor_hint: return
 	if not visible: return
-	
+
+	var game = Global.current_game
+	if is_instance_valid(game):
+		if was_game_paused and not game.game_paused:
+			_on_plot_mouse_exited()
+			mouse_clicked = false
+		was_game_paused = game.game_paused
+
 	if mouse_over and mouse_clicked:
 		update_value()
 
@@ -474,10 +481,12 @@ var mouse_over = false
 var mouse_clicked = false
 var buffer_changed = false
 var buffer_update = false
+var was_game_paused = false
 
 const PERCENT_MAX = 100
 
 var value_float = Vector2()
+var last_di_pos = null
 
 const SNAP_AMOUNT = 0.1
 
@@ -688,3 +697,16 @@ func as_percentage_int_vec(vec2: Vector2):
 
 func get_value_float():
 	return value_float
+
+func set_last_di(di):
+	var di_x = int(di.x) if di != null else 0
+	var di_y = int(di.y) if di != null else 0
+	if di_x == 0 and di_y == 0:
+		last_di_pos = null
+	else:
+		var mid = midpoint()
+		last_di_pos = mid + Vector2(
+			(di_x / float(PERCENT_MAX)) * panel_radius,
+			(di_y / float(PERCENT_MAX)) * panel_radius
+		).round()
+	update()

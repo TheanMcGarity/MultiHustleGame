@@ -25,7 +25,7 @@ func get_extra():
 	current_dir = $"%FlyDir".get_dir()
 	return {
 		"fly_dir": $"%FlyDir".get_data() if $"%FlyDir".is_visible_in_tree() else fighter.flying_dir,
-		"fly_enabled": $"%FlyEnabled".pressed,
+		"fly_enabled": $"%FlyEnabled".pressed if $"%FlyEnabled".is_visible_in_tree() else (fighter.flying_dir != null),
 		"armor_enabled": $"%ArmorEnabled".pressed,
 		"nade_activated": $"%NadeActive".pressed and $"%NadeActive".visible,
 		"pull_enabled": $"%PullEnabled".pressed and $"%PullEnabled".visible,

@@ -698,7 +698,8 @@ juke_dir_type
 juked_this_turn
 started_up_juke_from_ground
 can_air_dash
-bc_charge"
+bc_charge
+thorn_set"
 enable_extra_aesthetic_hitstop = true
 num_air_movements = 3
 character_portrait = ExtResource( 144 )
@@ -2806,18 +2807,6 @@ projectile_pos_x = 16
 projectile_pos_y = -24
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 160 ): {
-"x": 37,
-"y": -1
-},
-ExtResource( 173 ): {
-"x": 9,
-"y": -11
-},
-ExtResource( 169 ): {
-"x": 16,
-"y": -7
-},
 ExtResource( 166 ): {
 "x": -8,
 "y": -17
@@ -2825,6 +2814,18 @@ ExtResource( 166 ): {
 ExtResource( 171 ): {
 "x": 15,
 "y": -10
+},
+ExtResource( 160 ): {
+"x": 37,
+"y": -1
+},
+ExtResource( 169 ): {
+"x": 16,
+"y": -7
+},
+ExtResource( 173 ): {
+"x": 9,
+"y": -11
 }
 }
 interruptible_on_opponent_turn = true
@@ -3358,7 +3359,7 @@ hitlag_ticks = 7
 damage_proration = 1
 can_clash = false
 block_cancel_allowed = false
-plus_frames = 2
+plus_frames = 1
 whiff_sound = ExtResource( 31 )
 hit_sound = ExtResource( 20 )
 dir_y = "1.0"
@@ -3383,7 +3384,7 @@ hitlag_ticks = 7
 damage_proration = 1
 can_clash = false
 block_cancel_allowed = false
-plus_frames = 2
+plus_frames = 1
 whiff_sound = ExtResource( 31 )
 hit_sound = ExtResource( 20 )
 dir_y = "1.0"
@@ -3408,7 +3409,7 @@ hitlag_ticks = 7
 damage_proration = 1
 can_clash = false
 block_cancel_allowed = false
-plus_frames = 2
+plus_frames = 1
 whiff_sound = ExtResource( 31 )
 hit_sound = ExtResource( 20 )
 dir_y = "1.0"
@@ -3470,7 +3471,7 @@ hitlag_ticks = 7
 damage_proration = 1
 can_clash = false
 block_cancel_allowed = false
-plus_frames = 2
+plus_frames = 1
 whiff_sound = ExtResource( 31 )
 hit_sound = ExtResource( 20 )
 dir_y = "1.0"
@@ -3495,7 +3496,7 @@ hitlag_ticks = 7
 damage_proration = 1
 can_clash = false
 block_cancel_allowed = false
-plus_frames = 2
+plus_frames = 1
 whiff_sound = ExtResource( 31 )
 hit_sound = ExtResource( 20 )
 dir_y = "1.0"
@@ -3520,7 +3521,7 @@ hitlag_ticks = 7
 damage_proration = 1
 can_clash = false
 block_cancel_allowed = false
-plus_frames = 2
+plus_frames = 1
 whiff_sound = ExtResource( 31 )
 hit_sound = ExtResource( 20 )
 dir_y = "1.0"
@@ -3614,7 +3615,7 @@ hitlag_ticks = 7
 damage_proration = 1
 can_clash = false
 block_cancel_allowed = false
-plus_frames = 2
+plus_frames = 3
 whiff_sound = ExtResource( 31 )
 hit_sound = ExtResource( 20 )
 dir_x = "0.25"
@@ -4118,6 +4119,10 @@ enter_force_dir_x = "1.0"
 enter_force_dir_y = "-2.0"
 enter_force_speed = "4"
 throw_positions = {
+ExtResource( 82 ): {
+"x": -8,
+"y": -5
+},
 ExtResource( 79 ): {
 "x": 23,
 "y": 16
@@ -4125,10 +4130,6 @@ ExtResource( 79 ): {
 ExtResource( 81 ): {
 "x": -11,
 "y": -6
-},
-ExtResource( 82 ): {
-"x": -8,
-"y": -5
 }
 }
 land_cancel = true

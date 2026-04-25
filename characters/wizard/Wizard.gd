@@ -21,6 +21,7 @@ const SPARK_EXPLOSION_DASH_SPEED = 12
 const SPARK_SPEED_FRAMES = 70
 const SPARK_BOMB_SELF_DAMAGE = 31 
 const FLAME_WAVE_COOLDOWN = 30
+const ORB_DRAIN_INCREASE_FREQUENCY = 90
 
 var hover_left = 0
 var hover_drain_amount = 25
@@ -37,6 +38,8 @@ var tether_ticks = 0
 var geyser_charge = 0
 
 var orb_projectile = null
+var orb_duration = 0
+var orb_accumulator = 0
 var can_flame_wave = true
 var can_vile_clutch = true
 var current_orb_push = null
@@ -175,8 +178,10 @@ func tick():
 			spark_speed_frames -= 1
 		if spark_speed_frames <= 0:
 			$StateMachine/DashForward.dash_speed = default_dash_speed
-			chara.set_max_ground_speed(max_air_speed)
-			chara.set_max_air_speed(max_ground_speed)
+			chara.set_max_ground_speed(max_ground_speed)
+			chara.set_max_air_speed(max_air_speed)
+			chara.set_ground_friction(ground_friction)
+			chara.set_air_friction(air_friction)
 			$StateMachine/Jump.x_modifier = "1.0"
 			$StateMachine/DoubleJump.x_modifier = "1.0"
 			stop_sound("SparkSpeed")
@@ -219,9 +224,15 @@ func tick():
 		if hover_left > HOVER_AMOUNT:
 			hover_left = HOVER_AMOUNT
 	if orb_projectile:
-		use_super_meter(ORB_SUPER_DRAIN)
+		use_super_meter(ORB_SUPER_DRAIN + orb_accumulator)
 		if super_meter == 0 and supers_available == 0:
 			objs_map[orb_projectile].disable()
+		orb_duration += 1
+		if orb_duration > 0 and orb_duration % ORB_DRAIN_INCREASE_FREQUENCY == 0:
+			orb_accumulator += 1
+	else:
+		orb_duration = 0
+		orb_accumulator = 0
 	if current_orb_push != null:
 		if orb_projectile:
 			if !(current_orb_push.x == 0 and current_orb_push.y == 0):

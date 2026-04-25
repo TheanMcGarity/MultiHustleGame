@@ -86,6 +86,7 @@ script = ExtResource( 1 )
 width = 7
 height = 7
 damage = 60
+chip_damage_modifier = "0.5"
 hitstun_ticks = 15
 hitlag_ticks = 6
 victim_hitlag = 6

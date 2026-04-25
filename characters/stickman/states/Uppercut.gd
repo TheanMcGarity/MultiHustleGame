@@ -3,6 +3,7 @@ extends CharacterState
 onready var hitbox_2 = $Hitbox2
 
 func _frame_0():
+	pass
 #	if current_tick == 0:
 	if host.initiative and host.is_grounded():
 #		host.start_invulnerability()

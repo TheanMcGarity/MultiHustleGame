@@ -28,6 +28,7 @@ var current_momentum = "0"
 var boost_frames_left = 0
 var stackriken_out = false
 var can_divekick_hop = true
+var detach_delay = 0
 
 const RELEASE_MODIFIER = "1.175"
 const HOOK_DISABLE_DIST = "32"
@@ -67,7 +68,10 @@ func process_extra(extra):
 		pulling = extra.pull
 	if extra.has("detach"):
 		if extra.detach:
-			detach()
+			if pulling:
+				detach_delay = 5
+			else:
+				detach()
 
 	if extra.has("release"):
 		if extra.release:
@@ -168,6 +172,10 @@ func tick():
 				add_penalty(BACKWARD_PULL_PENALTY)
 	else:
 		pulling = false
+	if detach_delay > 0:
+		detach_delay -= 1
+		if detach_delay <= 0:
+			detach()
 	
 	if skull_shaker_bleed_ticks > 0:
 		skull_shaker_bleed_ticks -= 1

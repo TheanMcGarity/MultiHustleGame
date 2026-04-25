@@ -1514,7 +1514,6 @@ hitstun_ticks = 14
 combo_hitstun_ticks = 12
 hitlag_ticks = 6
 cancellable = false
-beats_grab = false
 plus_frames = 2
 screenshake_amount = 8
 whiff_sound = ExtResource( 238 )
@@ -2295,29 +2294,29 @@ enter_sfx = ExtResource( 208 )
 enter_sfx_volume = -8.0
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 203 ): {
-"x": -37,
-"y": -11
-},
-ExtResource( 200 ): {
-"x": 5,
-"y": -12
-},
 ExtResource( 202 ): {
 "x": -14,
 "y": -48
-},
-ExtResource( 201 ): {
-"x": -15,
-"y": 0
 },
 ExtResource( 204 ): {
 "x": 8,
 "y": -32
 },
+ExtResource( 200 ): {
+"x": 5,
+"y": -12
+},
 ExtResource( 205 ): {
 "x": -39,
 "y": -37
+},
+ExtResource( 203 ): {
+"x": -37,
+"y": -11
+},
+ExtResource( 201 ): {
+"x": -15,
+"y": 0
 }
 }
 update_facing_on_exit = false
@@ -2764,13 +2763,33 @@ sfx_tick = 7
 sfx_volume = -8.0
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 109 ): {
-"x": 70,
+ExtResource( 110 ): {
+"x": 65,
+"y": -12
+},
+ExtResource( 118 ): {
+"x": 67,
 "y": 15
+},
+ExtResource( 116 ): {
+"x": 33,
+"y": -38
 },
 ExtResource( 112 ): {
 "x": -40,
 "y": -44
+},
+ExtResource( 114 ): {
+"x": -20,
+"y": -58
+},
+ExtResource( 111 ): {
+"x": -31,
+"y": -55
+},
+ExtResource( 109 ): {
+"x": 70,
+"y": 15
 },
 ExtResource( 113 ): {
 "x": 62,
@@ -2780,29 +2799,9 @@ ExtResource( 108 ): {
 "x": -16,
 "y": -46
 },
-ExtResource( 110 ): {
-"x": 65,
-"y": -12
-},
-ExtResource( 111 ): {
-"x": -31,
-"y": -55
-},
 ExtResource( 117 ): {
 "x": 69,
 "y": 14
-},
-ExtResource( 114 ): {
-"x": -20,
-"y": -58
-},
-ExtResource( 118 ): {
-"x": 67,
-"y": 15
-},
-ExtResource( 116 ): {
-"x": 33,
-"y": -38
 },
 ExtResource( 115 ): {
 "x": -41,
@@ -2865,7 +2864,7 @@ enter_sfx = ExtResource( 155 )
 enter_sfx_volume = -10.0
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 264 ): {
+ExtResource( 263 ): {
 "x": 124,
 "y": -72
 },
@@ -2873,21 +2872,21 @@ ExtResource( 262 ): {
 "x": 40,
 "y": -33
 },
-ExtResource( 260 ): {
-"x": 40,
-"y": -34
-},
-ExtResource( 253 ): {
-"x": 116,
-"y": -66
+ExtResource( 264 ): {
+"x": 124,
+"y": -72
 },
 ExtResource( 258 ): {
 "x": 78,
 "y": -50
 },
-ExtResource( 263 ): {
-"x": 124,
-"y": -72
+ExtResource( 253 ): {
+"x": 116,
+"y": -66
+},
+ExtResource( 260 ): {
+"x": 40,
+"y": -34
 },
 ExtResource( 254 ): {
 "x": 124,
@@ -3205,13 +3204,33 @@ sfx_tick = 7
 sfx_volume = -8.0
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 109 ): {
-"x": 70,
+ExtResource( 110 ): {
+"x": 65,
+"y": -12
+},
+ExtResource( 118 ): {
+"x": 67,
 "y": 15
+},
+ExtResource( 116 ): {
+"x": 33,
+"y": -38
 },
 ExtResource( 112 ): {
 "x": -40,
 "y": -44
+},
+ExtResource( 114 ): {
+"x": -20,
+"y": -58
+},
+ExtResource( 111 ): {
+"x": -31,
+"y": -55
+},
+ExtResource( 109 ): {
+"x": 70,
+"y": 15
 },
 ExtResource( 113 ): {
 "x": 62,
@@ -3221,29 +3240,9 @@ ExtResource( 108 ): {
 "x": -16,
 "y": -46
 },
-ExtResource( 110 ): {
-"x": 65,
-"y": -12
-},
-ExtResource( 111 ): {
-"x": -31,
-"y": -55
-},
 ExtResource( 117 ): {
 "x": 69,
 "y": 14
-},
-ExtResource( 114 ): {
-"x": -20,
-"y": -58
-},
-ExtResource( 118 ): {
-"x": 67,
-"y": 15
-},
-ExtResource( 116 ): {
-"x": 33,
-"y": -38
 },
 ExtResource( 115 ): {
 "x": -41,
@@ -3835,7 +3834,6 @@ victim_hitlag = 5
 cancellable = false
 hits_otg = true
 followup_state = "EarthquakeThrow"
-beats_grab = false
 hit_height = 2
 priority = 2
 whiff_particle = ExtResource( 321 )
@@ -3949,6 +3947,10 @@ sfx_volume = -8.0
 flip_frame = 11
 force_same_direction_as_previous_state = true
 throw_positions = {
+ExtResource( 427 ): {
+"x": -19,
+"y": -12
+},
 ExtResource( 429 ): {
 "x": 36,
 "y": 13
@@ -3956,10 +3958,6 @@ ExtResource( 429 ): {
 ExtResource( 432 ): {
 "x": 44,
 "y": -7
-},
-ExtResource( 427 ): {
-"x": -19,
-"y": -12
 },
 ExtResource( 431 ): {
 "x": 33,
@@ -4594,17 +4592,17 @@ ExtResource( 373 ): {
 "x": 34,
 "y": -11
 },
-ExtResource( 372 ): {
-"x": -24,
-"y": -6
+ExtResource( 375 ): {
+"x": 31,
+"y": -8
 },
 ExtResource( 374 ): {
 "x": 14,
 "y": -7
 },
-ExtResource( 375 ): {
-"x": 31,
-"y": -8
+ExtResource( 372 ): {
+"x": -24,
+"y": -6
 }
 }
 iasa_at = 20
@@ -4931,18 +4929,6 @@ enter_force_speed = "10"
 enter_sfx = ExtResource( 459 )
 enter_sfx_volume = -10.0
 throw_positions = {
-ExtResource( 448 ): {
-"x": -16,
-"y": -2
-},
-ExtResource( 451 ): {
-"x": -13,
-"y": -24
-},
-ExtResource( 447 ): {
-"x": 52,
-"y": 49
-},
 ExtResource( 443 ): {
 "x": -12,
 "y": 21
@@ -4951,13 +4937,25 @@ ExtResource( 445 ): {
 "x": -17,
 "y": 18
 },
+ExtResource( 448 ): {
+"x": -16,
+"y": -2
+},
 ExtResource( 449 ): {
 "x": 7,
 "y": -22
 },
+ExtResource( 451 ): {
+"x": -13,
+"y": -24
+},
 ExtResource( 450 ): {
 "x": 15,
 "y": 21
+},
+ExtResource( 447 ): {
+"x": 52,
+"y": 49
 }
 }
 iasa_at = 40
@@ -5142,13 +5140,13 @@ sfx = ExtResource( 312 )
 sfx_tick = 18
 sfx_volume = -8.0
 throw_positions = {
-ExtResource( 62 ): {
-"x": 26,
-"y": -16
-},
 ExtResource( 308 ): {
 "x": -21,
 "y": -8
+},
+ExtResource( 62 ): {
+"x": 26,
+"y": -16
 },
 ExtResource( 304 ): {
 "x": 29,
@@ -5235,13 +5233,13 @@ sfx = ExtResource( 312 )
 sfx_tick = 18
 sfx_volume = -8.0
 throw_positions = {
-ExtResource( 62 ): {
-"x": 27,
-"y": -19
-},
 ExtResource( 308 ): {
 "x": -22,
 "y": -12
+},
+ExtResource( 62 ): {
+"x": 27,
+"y": -19
 },
 ExtResource( 304 ): {
 "x": 34,

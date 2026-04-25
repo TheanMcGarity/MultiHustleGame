@@ -1,4 +1,4 @@
-[gd_scene load_steps=348 format=2]
+[gd_scene load_steps=349 format=2]
 
 [ext_resource path="res://characters/BaseChar.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/wizard/Wizard.gd" type="Script" id=2]
@@ -335,6 +335,7 @@
 [ext_resource path="res://characters/wizard/sprites/water_jet4.png" type="Texture" id=333]
 [ext_resource path="res://fx/ParticleEffect.tscn" type="PackedScene" id=334]
 [ext_resource path="res://characters/wizard/sprites/actionbuttons/redirect.png" type="Texture" id=335]
+[ext_resource path="res://characters/wizard/OrbTeleportNeutral.gd" type="Script" id=336]
 
 [sub_resource type="ShaderMaterial" id=5]
 resource_local_to_scene = true
@@ -618,9 +619,14 @@ animations = [ {
 "name": "Orb",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 137 ) ],
+"frames": [ ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 137 ) ],
 "loop": true,
 "name": "OrbTeleport",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 134 ), ExtResource( 137 ) ],
+"loop": true,
+"name": "OrbTeleportCombo",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 261 ) ],
@@ -857,13 +863,17 @@ default_dash_speed
 boulder_projectile"
 damages_own_team = true
 throw_positions = {
-ExtResource( 326 ): {
-"x": 40,
-"y": -10
-},
 ExtResource( 320 ): {
 "x": 62,
 "y": -126
+},
+ExtResource( 325 ): {
+"x": 58,
+"y": -78
+},
+ExtResource( 322 ): {
+"x": 40,
+"y": -28
 },
 ExtResource( 321 ): {
 "x": 60,
@@ -873,13 +883,9 @@ ExtResource( 323 ): {
 "x": 62,
 "y": -128
 },
-ExtResource( 322 ): {
+ExtResource( 326 ): {
 "x": 40,
-"y": -28
-},
-ExtResource( 325 ): {
-"x": 58,
-"y": -78
+"y": -10
 }
 }
 enable_extra_aesthetic_hitstop = true
@@ -895,8 +901,7 @@ extra_color_2 = Color( 0.580392, 0.894118, 1, 1 )
 [node name="Sprite" parent="Flip" index="0"]
 material = SubResource( 3 )
 frames = SubResource( 13 )
-animation = "Telekinesis"
-frame = 6
+animation = "OrbTeleport"
 __meta__ = {
 "_edit_group_": true,
 "_edit_lock_": true
@@ -1955,13 +1960,17 @@ anim_length = 70
 sfx = ExtResource( 217 )
 sfx_tick = 10
 throw_positions = {
-ExtResource( 326 ): {
-"x": 40,
-"y": -10
-},
 ExtResource( 320 ): {
 "x": 62,
 "y": -126
+},
+ExtResource( 325 ): {
+"x": 58,
+"y": -78
+},
+ExtResource( 322 ): {
+"x": 40,
+"y": -28
 },
 ExtResource( 321 ): {
 "x": 60,
@@ -1971,13 +1980,9 @@ ExtResource( 323 ): {
 "x": 62,
 "y": -128
 },
-ExtResource( 322 ): {
+ExtResource( 326 ): {
 "x": 40,
-"y": -28
-},
-ExtResource( 325 ): {
-"x": 58,
-"y": -78
+"y": -10
 }
 }
 type = 1
@@ -2016,11 +2021,14 @@ start_tick = 32
 active_ticks = 2
 
 [node name="OrbTeleport" type="Node2D" parent="StateMachine" index="32"]
-script = ExtResource( 135 )
+script = ExtResource( 336 )
+__meta__ = {
+"_editor_description_": ""
+}
 apply_forces = true
 apply_fric = true
 reset_momentum = true
-anim_length = 10
+anim_length = 15
 particle_scene = ExtResource( 136 )
 particle_position = Vector2( 0, -16 )
 spawn_particle_on_enter = true
@@ -2041,9 +2049,40 @@ Aerial"
 hit_cancel_into_string = "Grounded
 Aerial"
 super_level = 0
+super_freeze_ticks = 2
 scale_combo_meter = false
 
-[node name="ConjureWeapon" type="Node2D" parent="StateMachine" index="33"]
+[node name="OrbTeleportCombo" type="Node2D" parent="StateMachine" index="33"]
+script = ExtResource( 135 )
+apply_forces = true
+apply_fric = true
+reset_momentum = true
+anim_length = 10
+particle_scene = ExtResource( 136 )
+particle_position = Vector2( 0, -16 )
+spawn_particle_on_enter = true
+sfx = ExtResource( 153 )
+sfx_tick = 2
+sfx_volume = -10.0
+title = "Orb Portal"
+type = 3
+button_texture = ExtResource( 165 )
+air_type = 2
+combo_only = true
+can_feint_if_possible = false
+selectable = false
+interrupt_from_string = "AerialSuper
+GroundedSuper
+Grounded
+Aerial"
+interrupt_into_string = "Grounded
+Aerial"
+hit_cancel_into_string = "Grounded
+Aerial"
+super_level = 0
+scale_combo_meter = false
+
+[node name="ConjureWeapon" type="Node2D" parent="StateMachine" index="34"]
 script = ExtResource( 260 )
 apply_forces = true
 apply_fric = true
@@ -2115,7 +2154,7 @@ height = 14
 start_tick = 10
 active_ticks = 3
 
-[node name="ConjureStorm" type="Node2D" parent="StateMachine" index="34"]
+[node name="ConjureStorm" type="Node2D" parent="StateMachine" index="35"]
 script = ExtResource( 181 )
 apply_forces = true
 apply_fric = true
@@ -2219,7 +2258,7 @@ knockback = "8.0"
 start_tick = 19
 active_ticks = 3
 
-[node name="VileClutch" type="Node2D" parent="StateMachine" index="35"]
+[node name="VileClutch" type="Node2D" parent="StateMachine" index="36"]
 script = ExtResource( 197 )
 apply_forces = true
 apply_fric = true
@@ -2246,7 +2285,7 @@ Aerial"
 trigger_orb_type = "OrbDart"
 trigger_orb_delay = 60
 
-[node name="ConfusingTouch" type="Node2D" parent="StateMachine" index="36"]
+[node name="ConfusingTouch" type="Node2D" parent="StateMachine" index="37"]
 script = ExtResource( 248 )
 apply_forces = true
 apply_fric = true
@@ -2325,7 +2364,7 @@ block_pushback_modifier = "0.0"
 start_tick = 3
 active_ticks = 3
 
-[node name="DrawMoisture" type="Node2D" parent="StateMachine" index="37"]
+[node name="DrawMoisture" type="Node2D" parent="StateMachine" index="38"]
 script = ExtResource( 285 )
 apply_forces = true
 apply_fric = true
@@ -2348,7 +2387,7 @@ interrupt_into_string = "Grounded
 Aerial"
 trigger_orb_attack = false
 
-[node name="Geyser" type="Node2D" parent="StateMachine" index="38"]
+[node name="Geyser" type="Node2D" parent="StateMachine" index="39"]
 script = ExtResource( 270 )
 apply_forces = true
 apply_fric = true
@@ -2448,7 +2487,7 @@ start_tick = 11
 active_ticks = 2
 misc_data = "IgnoreCaltrops"
 
-[node name="ConfusingTouch2" type="Node2D" parent="StateMachine" index="39"]
+[node name="ConfusingTouch2" type="Node2D" parent="StateMachine" index="40"]
 script = ExtResource( 91 )
 sprite_animation = "Grab2"
 anim_length = 24
@@ -2501,7 +2540,7 @@ dir_y = ""
 start_tick = 3
 active_ticks = 2
 
-[node name="BoltOfMagma" type="Node2D" parent="StateMachine" index="40"]
+[node name="BoltOfMagma" type="Node2D" parent="StateMachine" index="41"]
 script = ExtResource( 218 )
 apply_forces = true
 apply_fric = true
@@ -2513,6 +2552,7 @@ title = "Bolt of Magma"
 type = 1
 button_texture = ExtResource( 225 )
 iasa_at = 12
+self_hit_cancellable = false
 interrupt_from_string = "Grounded
 GroundedAttack"
 interrupt_into_string = "Grounded"
@@ -2596,54 +2636,54 @@ knockback = "4.0"
 start_tick = 6
 active_ticks = 2
 
-[node name="SuperFallStartup" parent="StateMachine" index="52"]
+[node name="SuperFallStartup" parent="StateMachine" index="53"]
 selectable = false
 
-[node name="Landing" parent="StateMachine" index="54"]
+[node name="Landing" parent="StateMachine" index="55"]
 __meta__ = {
 "_editor_description_": ""
 }
 
-[node name="TechRoll" parent="StateMachine" index="58"]
+[node name="TechRoll" parent="StateMachine" index="59"]
 sprite_anim_length = -1
 ticks_per_frame = 2
 loop_animation = false
 
-[node name="DashForward" parent="StateMachine" index="60"]
+[node name="DashForward" parent="StateMachine" index="61"]
 dash_speed = 8
 
-[node name="ChargeDashForward" parent="StateMachine" index="61"]
+[node name="ChargeDashForward" parent="StateMachine" index="62"]
 dash_speed = 8
 
-[node name="DashBackward" parent="StateMachine" index="62"]
+[node name="DashBackward" parent="StateMachine" index="63"]
 stop_frame = 9
 
-[node name="Jump" parent="StateMachine" index="65"]
+[node name="Jump" parent="StateMachine" index="66"]
 speed = "8"
 y_modifier = "1.2"
 
-[node name="DoubleJump" parent="StateMachine" index="68"]
+[node name="DoubleJump" parent="StateMachine" index="69"]
 data_ui_scene = ExtResource( 126 )
 speed = "8"
 y_modifier = "1.1"
 
-[node name="AirDash" parent="StateMachine" index="69"]
+[node name="AirDash" parent="StateMachine" index="70"]
 interrupt_from_string = ""
 speed = "8"
 
-[node name="Hold" parent="StateMachine" index="77"]
+[node name="Hold" parent="StateMachine" index="78"]
 start_throw_pos_x = 21
 start_throw_pos_y = -5
 release_throw_pos_x = 21
 release_throw_pos_y = -5
 
-[node name="AirHold" parent="StateMachine" index="78"]
+[node name="AirHold" parent="StateMachine" index="79"]
 start_throw_pos_x = 21
 start_throw_pos_y = -5
 release_throw_pos_x = 21
 release_throw_pos_y = -5
 
-[node name="ForwardThrow" parent="StateMachine" index="82"]
+[node name="ForwardThrow" parent="StateMachine" index="83"]
 anim_length = 24
 sfx_tick = 8
 sfx_volume = -8.0
@@ -2657,7 +2697,7 @@ dir_y = "-0.10"
 screenshake_amount = 4
 release_sfx = ExtResource( 141 )
 
-[node name="BackThrow" parent="StateMachine" index="83"]
+[node name="BackThrow" parent="StateMachine" index="84"]
 anim_length = 24
 sfx_tick = 8
 sfx_volume = -8.0
@@ -2671,7 +2711,7 @@ dir_y = "-0.10"
 screenshake_amount = 4
 release_sfx = ExtResource( 141 )
 
-[node name="AirForwardThrow" parent="StateMachine" index="84"]
+[node name="AirForwardThrow" parent="StateMachine" index="85"]
 anim_length = 28
 sfx_tick = 8
 sfx_volume = -8.0
@@ -2683,7 +2723,7 @@ knockback = "20.0"
 screenshake_amount = 4
 release_sfx = ExtResource( 141 )
 
-[node name="AirBackThrow" parent="StateMachine" index="85"]
+[node name="AirBackThrow" parent="StateMachine" index="86"]
 anim_length = 28
 sfx_tick = 8
 sfx_volume = -8.0
@@ -2695,7 +2735,7 @@ knockback = "20.0"
 screenshake_amount = 4
 release_sfx = ExtResource( 141 )
 
-[node name="AirDownThrow" parent="StateMachine" index="86"]
+[node name="AirDownThrow" parent="StateMachine" index="87"]
 anim_length = 24
 sfx_tick = 8
 sfx_volume = -8.0
@@ -2706,11 +2746,11 @@ release_throw_pos_y = -5
 screenshake_amount = 4
 release_sfx = ExtResource( 141 )
 
-[node name="ThrowTech" parent="StateMachine" index="87"]
+[node name="ThrowTech" parent="StateMachine" index="88"]
 particle_scene = ExtResource( 136 )
 particle_position = Vector2( 0, -16 )
 spawn_particle_on_enter = true
 
-[node name="Taunt" parent="StateMachine" index="88"]
+[node name="Taunt" parent="StateMachine" index="89"]
 script = ExtResource( 257 )
 apply_fric = false

@@ -19,7 +19,9 @@ func _frame_0():
 		obj.last_hit_by = host.get_fighter().obj_name
 		obj.reset_line()
 		obj.reset_speed()
-		obj.current_state().bounce_full_control(true)
+		var st = obj.current_state()
+		if st:
+			st.bounce_full_control(true)
 		obj.no_draw_ticks = 1
 
 func sort_bullets(a, b):

@@ -39,6 +39,7 @@ var buttonsToLoad = [] # will hold the same data as charList, but is used only t
 
 var charPortrait = {} # will hold the portrait textures to be shown on unloaded characters
 var errorMessage = {} # will hold a list of missing files for any characters that don't load correctly
+var charExColors = {} # will hold the dictionaries containing the extra colors of unloaded characters
 
 var loadThread # a thread that will be used to load characters so the game doesn't get completely stuck
 var loadThread2
@@ -104,6 +105,7 @@ func _ready():
 	if (dir.file_exists("res://characters/PlayerInfo.tscn") && !dir.file_exists("res://ui/PlayerInfo.tscn")):
 		var pi_scene = load("res://characters/PlayerInfo.tscn").instance()
 		ModLoader.saveScene(pi_scene, "res://ui/PlayerInfo.tscn")
+		pi_scene.queue_free()
 
 	#get headers
 	var h = File.new()
@@ -212,6 +214,9 @@ func reset():
 func init(singleplayer=true):
 	show()
 	emit_signal("opened")
+	loadingLabel_vanish()
+	loadingLabel.text = ""
+	currentlyLoading = false
 #	if Network.steam:
 #		$"%QuitButton".hide()
 	for button in buttons:
@@ -307,10 +312,23 @@ func get_display_data(button):
 		var scene = button.character_scene.instance()
 		data["name"] = scene.name
 		data["portrait"] = scene.character_portrait
+		if scene.use_extra_color_1:
+			data["use_extra_color_1"] = scene.use_extra_color_1
+			data["extra_color_1"] = scene.extra_color_1
+		if scene.use_extra_color_2:
+			data["use_extra_color_2"] = scene.use_extra_color_2
+			data["extra_color_2"] = scene.extra_color_2
 		scene.free()
 	else:
 		data["name"] = button.name
 		data["portrait"] = charPortrait[button.name]
+		if isCustomChar(button.name) and button.name in charExColors:
+			if charExColors[button.name].get("use_extra_color_1") == true:
+				data["use_extra_color_1"] = true
+				data["extra_color_1"] = charExColors[button.name].get("extra_color_1")
+			if charExColors[button.name].get("use_extra_color_2") == true:
+				data["use_extra_color_2"] = true
+				data["extra_color_2"] = charExColors[button.name].get("extra_color_2")
 
 		if (button.name in errorMessage.keys()):
 			data["name"] = errorMessage[button.name]
@@ -619,6 +637,9 @@ func loadListChar(index, hideName = false): # hide name parameter is for online,
 			errorMessage[curFighter] += "\n" + f
 	
 	ModLoader.saveScene(char_scene, _charPath)
+
+	if miss == []:
+		char_scene.queue_free()
 
 	# update the button's character scene
 	bttContainer.get_node(curFighter).character_scene = load(_charPath)
@@ -1045,25 +1066,40 @@ func save_oggstr(og_file, dest_file):
 	f.close()
 	
 
-# this function finds the portrait image path inside a .tscn file
+# this function finds the portrait image path inside a .tscn file, as well as the extra colors
 func _importHolderPortrait(folder, scenePath, charName):
 	var sc
 
 	var f = File.new()
 	f.open(scenePath, File.READ)
 	var portPath = "res://characters/stickman/sprites/idle.png"
+	var usesEx1 = false
+	var usesEx2 = false
+	var ex1Color = Color(0,0,0,1)
+	var ex2Color = Color(0,0,0,1)
 	var content = f.get_as_text()
 	var portSource = 0
 	var portSourceInd = content.find("character_portrait = ExtResource")
 
+	var usesEx1SourceInd = content.find("use_extra_color_1 = true")
+	var usesEx2SourceInd = content.find("use_extra_color_2 = true")
+
+	var ex1SourceInd = content.find("\nextra_color_1 = Color")
+	var ex2SourceInd = content.find("\nextra_color_2 = Color")
+
+	if (usesEx1SourceInd != -1):
+		usesEx1 = true
+	if (usesEx2SourceInd != -1):
+		usesEx2 = true
+
 	if (portSourceInd != -1):
 		var startNumInd = portSourceInd + 33
 		portSource = int(content.substr(startNumInd, content.find(" )", portSourceInd) - startNumInd))
-	
+
 		f.seek(0)
 		var ids = ""
 		var line = ""
-		
+
 
 		while ids != str(portSource) + "]":
 			line = f.get_line().replace("\n", "").replace("\r", "")
@@ -1075,14 +1111,34 @@ func _importHolderPortrait(folder, scenePath, charName):
 				sc = load("res://characters/BaseChar.tscn").instance()
 				sc.name = "Error\ncharacter scene must be unedited"
 				ModLoader.saveScene(sc, scenePath)
+				sc.queue_free()
 
 				return scenePath
 				break
-	
+
 		portPath = line.split("=")[1].split(" typ")[0].replace("\"", "")
+
+	if (ex1SourceInd != -1):
+		var startNumInd = ex1SourceInd + 24
+		var ex1Source = content.substr(startNumInd, content.find(" )", ex1SourceInd) - startNumInd)
+		var split = ex1Source.split(', ')
+		ex1Color = Color(split[0].strip_edges(), split[1].strip_edges(), split[2].strip_edges(), split[3].strip_edges())
+
+	if (ex2SourceInd != -1):
+		var startNumInd = ex2SourceInd + 24
+		var ex2Source = content.substr(startNumInd, content.find(" )", ex2SourceInd) - startNumInd)
+		var split = ex2Source.split(', ')
+		ex2Color = Color(split[0].strip_edges(), split[1].strip_edges(), split[2].strip_edges(), split[3].strip_edges())
 
 	f.close()
 	charPortrait[charName] = textureGet(portPath)
+	charExColors[charName] = {}
+	if usesEx1:
+		charExColors[charName]["use_extra_color_1"] = true
+		charExColors[charName]["extra_color_1"] = ex1Color
+	if usesEx2:
+		charExColors[charName]["use_extra_color_2"] = true
+		charExColors[charName]["extra_color_2"] = ex2Color
 
 # iterates through all paths listed in a .tscn file and checks if they exist
 func _validateScene(scenePath, _modFolder):

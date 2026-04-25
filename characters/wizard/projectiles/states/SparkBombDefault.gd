@@ -17,6 +17,12 @@ func _tick():
 	if current_tick > arming_time and !armed:
 		return "Armed"
 	if armed:
+		if host.delay_ticks > 0:
+			host.delay_ticks -= 1
+			if host.delay_ticks == 0:
+				if host.exploded:
+					host.explode()
+					return
 		var pos = host.get_pos()
 		var obj = host.creator.opponent
 		var center = obj.get_hurtbox_center()
@@ -25,11 +31,6 @@ func _tick():
 			if host.delay_ticks <= 0:
 				host.explode()
 			return
-		if host.delay_ticks > 0:
-			host.delay_ticks -= 1
-			if host.delay_ticks == 0:
-				if host.exploded:
-					host.explode()
 
 	for obj_name in host.objs_map:
 		var obj = host.objs_map[obj_name]

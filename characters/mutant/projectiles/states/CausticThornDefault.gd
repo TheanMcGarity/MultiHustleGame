@@ -26,5 +26,15 @@ func _enter():
 	swept_hitbox.to_x = fixed.round(fixed.mul(data.dir.x, "-10"))
 	swept_hitbox.to_y = fixed.round(fixed.mul(data.dir.y, "-10"))
 
+func _on_hit_something(obj, hitbox):
+	._on_hit_something(obj, hitbox)
+	if obj.is_in_group("Fighter") and host.creator:
+		for sibling_name in host.creator.thorn_set:
+			if sibling_name == host.obj_name:
+				continue
+			var sibling = host.objs_map.get(sibling_name)
+			if sibling:
+				sibling.combo_scaling_disabled = true
+
 func move():
 	host.move_directly(move_x_string, move_y_string)

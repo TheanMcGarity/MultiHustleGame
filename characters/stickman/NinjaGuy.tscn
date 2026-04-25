@@ -634,7 +634,8 @@ released_this_turn
 current_momentum
 boosted_during_combo
 stackriken_out
-can_divekick_hop"
+can_divekick_hop
+detach_delay"
 character_portrait2 = ExtResource( 245 )
 player_info_scene = ExtResource( 243 )
 player_extra_params_scene = ExtResource( 63 )
@@ -3349,6 +3350,7 @@ enter_sfx_volume = -10.0
 title = "Slide Kick"
 type = 1
 button_texture = ExtResource( 192 )
+reversible = false
 interrupt_from_string = "Grounded
 GroundedAttack
 "
@@ -3689,6 +3691,10 @@ anim_length = 33
 enter_force_dir_x = "1.0"
 enter_force_speed = "7.0"
 throw_positions = {
+ExtResource( 218 ): {
+"x": 24,
+"y": 2
+},
 ExtResource( 219 ): {
 "x": 24,
 "y": 3
@@ -3696,10 +3702,6 @@ ExtResource( 219 ): {
 ExtResource( 221 ): {
 "x": 27,
 "y": 1
-},
-ExtResource( 218 ): {
-"x": 24,
-"y": 2
 },
 ExtResource( 222 ): {
 "x": 23,
@@ -3928,21 +3930,21 @@ force_tick = 10
 enter_force_dir_x = "1.0"
 enter_force_speed = "4.0"
 throw_positions = {
-ExtResource( 208 ): {
-"x": 14,
-"y": -11
+ExtResource( 206 ): {
+"x": 13,
+"y": -10
 },
 ExtResource( 207 ): {
 "x": 13,
 "y": -10
 },
+ExtResource( 208 ): {
+"x": 14,
+"y": -11
+},
 ExtResource( 209 ): {
 "x": 32,
 "y": -6
-},
-ExtResource( 206 ): {
-"x": 13,
-"y": -10
 }
 }
 burst_cancellable = false
@@ -3985,25 +3987,25 @@ active_ticks = 1
 sprite_animation = "GroundedThrow"
 anim_length = 19
 throw_positions = {
-ExtResource( 208 ): {
-"x": 13,
-"y": -12
+ExtResource( 206 ): {
+"x": 12,
+"y": -10
 },
 ExtResource( 207 ): {
 "x": 14,
 "y": -9
 },
-ExtResource( 210 ): {
-"x": 37,
-"y": -7
+ExtResource( 208 ): {
+"x": 13,
+"y": -12
 },
 ExtResource( 209 ): {
 "x": 32,
 "y": -5
 },
-ExtResource( 206 ): {
-"x": 12,
-"y": -10
+ExtResource( 210 ): {
+"x": 37,
+"y": -7
 }
 }
 burst_cancellable = false
@@ -4063,6 +4065,3 @@ knockback = "14"
 script = ExtResource( 201 )
 iasa_at = 12
 change_stance_to = "NunChuk"
-
-[node name="ForfeitExplosion" parent="StateMachine" index="110"]
-endless = true
