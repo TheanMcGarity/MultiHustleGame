@@ -863,9 +863,9 @@ default_dash_speed
 boulder_projectile"
 damages_own_team = true
 throw_positions = {
-ExtResource( 320 ): {
-"x": 62,
-"y": -126
+ExtResource( 326 ): {
+"x": 40,
+"y": -10
 },
 ExtResource( 325 ): {
 "x": 58,
@@ -875,17 +875,17 @@ ExtResource( 322 ): {
 "x": 40,
 "y": -28
 },
-ExtResource( 321 ): {
-"x": 60,
-"y": -124
-},
 ExtResource( 323 ): {
 "x": 62,
 "y": -128
 },
-ExtResource( 326 ): {
-"x": 40,
-"y": -10
+ExtResource( 321 ): {
+"x": 60,
+"y": -124
+},
+ExtResource( 320 ): {
+"x": 62,
+"y": -126
 }
 }
 enable_extra_aesthetic_hitstop = true
@@ -1624,7 +1624,7 @@ trigger_orb_delay = 30
 script = ExtResource( 132 )
 apply_fric = true
 apply_grav = true
-anim_length = 22
+anim_length = 60
 title = "Missile Form"
 type = 2
 data_ui_scene = ExtResource( 133 )
@@ -1643,7 +1643,6 @@ Grounded"
 hit_cancel_into_string = "Grounded
 Aerial"
 velocity_forward_meter_gain_multiplier = "0.5"
-trigger_orb_type = "OrbDart"
 trigger_orb_delay = 18
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/Liftoff" index="0"]
@@ -1960,9 +1959,9 @@ anim_length = 70
 sfx = ExtResource( 217 )
 sfx_tick = 10
 throw_positions = {
-ExtResource( 320 ): {
-"x": 62,
-"y": -126
+ExtResource( 326 ): {
+"x": 40,
+"y": -10
 },
 ExtResource( 325 ): {
 "x": 58,
@@ -1972,17 +1971,17 @@ ExtResource( 322 ): {
 "x": 40,
 "y": -28
 },
-ExtResource( 321 ): {
-"x": 60,
-"y": -124
-},
 ExtResource( 323 ): {
 "x": 62,
 "y": -128
 },
-ExtResource( 326 ): {
-"x": 40,
-"y": -10
+ExtResource( 321 ): {
+"x": 60,
+"y": -124
+},
+ExtResource( 320 ): {
+"x": 62,
+"y": -126
 }
 }
 type = 1
@@ -2274,7 +2273,7 @@ type = 2
 data_ui_scene = ExtResource( 291 )
 button_texture = ExtResource( 199 )
 air_type = 2
-iasa_at = 11
+iasa_at = 13
 interrupt_from_string = "Grounded
 Aerial
 GroundedSpecial

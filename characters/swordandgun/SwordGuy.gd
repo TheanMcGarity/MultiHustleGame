@@ -159,11 +159,13 @@ func tick():
 		var proj = objs_map[cut_projectile]
 		if proj == null or proj.disabled:
 			cut_projectile = null
-#		else:
-#			if current_tick % 2 == 0:
-#				use_super_meter(CUTS_METER_DRAIN_1)
-#			else:
-#				use_super_meter(CUTS_METER_DRAIN_2)
+		else:
+			if current_tick % 2 == 0:
+				use_super_meter(CUTS_METER_DRAIN_1)
+			else:
+				use_super_meter(CUTS_METER_DRAIN_2)
+			if super_meter == 0 and supers_available == 0:
+				proj.disable()
 	if is_grounded():
 		if used_aerial_h_slash:
 			used_aerial_h_slash = false

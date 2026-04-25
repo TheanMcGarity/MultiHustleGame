@@ -63,9 +63,10 @@ func _frame_0():
 	
 	if super_level > 0:
 		host.ex_effect(0)
-		var obj = host.obj_from_name(host.cut_projectile)
-		if obj:
-			obj.disable()
+		if host.combo_count <= 0:
+			var obj = host.obj_from_name(host.cut_projectile)
+			if obj:
+				obj.disable()
 
 		
 	if foresight:

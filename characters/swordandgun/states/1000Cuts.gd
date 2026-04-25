@@ -19,5 +19,13 @@ func _frame_2():
 	host.start_1k_cuts_buff()
 
 
+func _frame_0_shared():
+	if !end:
+		host.super_effect(super_freeze_ticks)
+	else:
+		._frame_0_shared()
+
 func is_usable():
-	return .is_usable() and (host.cut_projectile == null) if !end else (host.cut_projectile != null)
+	if end:
+		return host.cut_projectile != null
+	return host.has_super_meter() and host.cut_projectile == null
