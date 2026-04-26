@@ -9,7 +9,7 @@ export var charge = false
 func _frame_1():
 	if charge:
 		current_tick = 28
-		host.add_juke_pips(host.JUKE_PIPS_PER_USE*3)
+		host.add_juke_pips(host.JUKE_PIPS_PER_USE)
 		host.play_sound("Howl")
 		host.play_sound("Howl2")
 #		host.play_sound("HitBass")

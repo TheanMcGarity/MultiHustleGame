@@ -3999,13 +3999,13 @@ ExtResource( 208 ): {
 "x": 13,
 "y": -12
 },
-ExtResource( 209 ): {
-"x": 32,
-"y": -5
-},
 ExtResource( 210 ): {
 "x": 37,
 "y": -7
+},
+ExtResource( 209 ): {
+"x": 32,
+"y": -5
 }
 }
 burst_cancellable = false

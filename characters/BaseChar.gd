@@ -406,6 +406,7 @@ var busy = false
 
 var initiative = false
 var aura_particle = null
+var aura_particle_2 = null
 
 var in_blockstring = false
 var brace_enabled = false
@@ -529,16 +530,28 @@ func apply_style(style):
 		else:
 			sprite.get_material().set_shader_param("use_extra_color_1", false)
 			sprite.get_material().set_shader_param("use_extra_color_2", false)
-		if Global.enable_custom_particles and !is_ghost and style.show_aura and style.has("aura_settings"):
+		if Global.enable_custom_particles and !is_ghost:
 			reset_aura()
-			is_aura_active = true
-			aura_particle = preload("res://fx/CustomTrailParticle.tscn").instance()
-			particles.add_child(aura_particle)
-			aura_particle.load_settings(style.aura_settings)
-			aura_particle.position = hurtbox_pos_float()
-			aura_particle.start_emitting()
-			if aura_particle.show_behind_parent:
-				aura_particle.z_index = -1
+			if style.show_aura and style.has("aura_settings") and style.aura_settings:
+				is_aura_active = true
+				aura_particle = preload("res://fx/CustomTrailParticle.tscn").instance()
+				particles.add_child(aura_particle)
+				aura_particle.load_settings(style.aura_settings)
+				aura_particle.position = hurtbox_pos_float()
+				aura_particle.facing = get_facing_int()
+				aura_particle.start_emitting()
+				if aura_particle.show_behind_parent:
+					aura_particle.z_index = -1
+			if style.get("show_aura_2") and style.has("aura_settings_2") and style.aura_settings_2:
+				is_aura_active = true
+				aura_particle_2 = preload("res://fx/CustomTrailParticle.tscn").instance()
+				particles.add_child(aura_particle_2)
+				aura_particle_2.load_settings(style.aura_settings_2)
+				aura_particle_2.position = hurtbox_pos_float()
+				aura_particle_2.facing = get_facing_int()
+				aura_particle_2.start_emitting()
+				if aura_particle_2.show_behind_parent:
+					aura_particle_2.z_index = -1
 		if style.has("hitspark"):
 			if Custom.hitsparks.has(style.hitspark):
 				custom_hitspark = load(Custom.hitsparks[style.hitspark])
@@ -556,6 +569,9 @@ func reset_aura():
 	if is_instance_valid(aura_particle):
 		aura_particle.queue_free()
 	aura_particle = null
+	if is_instance_valid(aura_particle_2):
+		aura_particle_2.queue_free()
+	aura_particle_2 = null
 
 func reset_style():
 	reset_color()
@@ -933,6 +949,10 @@ func _process(delta):
 		aura_particle.visible = Global.enable_custom_particles
 		aura_particle.position = hurtbox_pos_float()
 		aura_particle.facing = get_facing_int()
+	if is_instance_valid(aura_particle_2):
+		aura_particle_2.visible = Global.enable_custom_particles
+		aura_particle_2.position = hurtbox_pos_float()
+		aura_particle_2.facing = get_facing_int()
 	
 	if is_style_active:
 		if applied_style and !is_color_active and Global.enable_custom_colors:
@@ -1326,8 +1346,8 @@ func block_hitbox(hitbox, force_parry=false, force_block=false, ignore_guard_bre
 				current_state().endless = opponent.current_state().endless
 				current_state().iasa_at = opponent.current_state().iasa_at
 				current_state().current_tick = 0
-				opponent.current_state().was_blocked = true
 				opponent.on_attack_blocked()
+				opponent.current_state().character_state_was_blocked = true
 				opponent.blockstun_ticks += block_hitlag
 				opponent.add_penalty(-10)
 				if opponent.feints < opponent.num_feints:
@@ -1508,6 +1528,8 @@ func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling
 	add_penalty(-25)
 	if hp < 0:
 		hp = 0
+	if hp <= 0 and (has_armor() or has_autoblock_armor()):
+		hp = 1
 	if current_state().get("IS_NEW_PARRY") and current_state().push:
 		if hp <= 0:
 			hp = 1

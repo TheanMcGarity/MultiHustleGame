@@ -16,7 +16,7 @@ const IS_COWBOY = true # lol
 const RIFT_PROJECTILE = preload("res://characters/swordandgun/projectiles/AfterImageExplosion.tscn")
 const AFTER_IMAGE_MAX_DIST = "410"
 const MAX_AIR_SPEED_1KCUTS = "12"
-const CUTS_METER_DRAIN_1 = 2
+const CUTS_METER_DRAIN_1 = 3
 const DRIFT_JUMP_TIMER = 4
 const CUTS_METER_DRAIN_2 = 3
 const DRIFT_SUPERS = 1
@@ -95,6 +95,11 @@ func shift():
 			set_vel(get_vel().x, "0")
 		if combo_count <= 0:
 			add_penalty(15)
+
+func gain_super_meter(amount, stale_amount = "1.0"):
+	if cut_projectile:
+		amount = fixed.round(fixed.mul(str(amount), "0.5"))
+	.gain_super_meter(amount, stale_amount)
 
 func start_1k_cuts_buff():
 	max_air_speed = MAX_AIR_SPEED_1KCUTS

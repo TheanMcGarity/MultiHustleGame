@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.29-steam-unstable"
+var VERSION = "1.9.32-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 var audio_player
@@ -24,7 +24,7 @@ var css_open = false
 var has_supporter_pack_file = false
 var enable_custom_colors = true
 var enable_custom_particles = true
-var enable_custom_hit_sparks = true
+var enable_custom_hit_sparks = true	
 var enable_emotes = true
 var enable_timer_sound = true
 var steam_demo_version = false

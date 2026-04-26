@@ -2,6 +2,7 @@ extends BaseProjectile
 
 const KNOCKBACK_MULTIPLIER = "2.0"
 const MAX_SPEED = "10.0"
+var no_juke_pips = false
 
 func hit_by(hitbox):
 	.hit_by(hitbox)

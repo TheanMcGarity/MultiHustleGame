@@ -34,6 +34,7 @@ var custom_set = {
 	"y_offset": "set_y_offset",
 	"lifetime": "set_lifetime",
 	"angle": "set_angle",
+	"flip_with_character": "set_flip_with_character",
 }
 
 static func get_shapes():
@@ -56,7 +57,7 @@ static func get_shapes():
 	}
 
 static func get_default():
-	{
+	return {
 		"in_front": false,
 		"shape": "circle",
 		"amount": 16,
@@ -199,10 +200,17 @@ func _physics_process(_delta):
 		if enabled:
 			set_enabled(false)
 
+var flip_with_character = true
+
 func tick():
 	.tick()
-	particles.gravity.x = default_gravity_x * facing
-	particles.angle = 360 - default_angle if facing == -1 else default_angle
+	if flip_with_character:
+		particles.gravity.x = default_gravity_x * facing
+		particles.angle = 360 - default_angle if facing == -1 else default_angle
+	else:
+		particles.gravity.x = default_gravity_x
+		particles.angle = default_angle
+		scale.x = facing
 
 func set_start_alpha(a):
 #	particles.self_modulate.a = a
@@ -267,6 +275,9 @@ func set_lifetime(lifetime):
 func set_angle(angle):
 	default_angle = angle
 	particles.angle = angle
+
+func set_flip_with_character(on):
+	flip_with_character = on
 
 func set_parameter(param, value):
 	var max_value = get_setting_max(param)

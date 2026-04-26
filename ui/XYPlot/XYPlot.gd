@@ -585,7 +585,7 @@ func update_value(p = null, set_buffer_update = true):
 			point = point.normalized() * length
 			angle = point.angle()
 	
-	if snap:
+	if snap and !Input.is_key_pressed(KEY_SHIFT):
 		if snap_radius > 0.0:
 			if abs(point.length() / panel_radius - snap_radius) < SNAP_AMOUNT:
 				point = point.normalized() * snap_radius * panel_radius

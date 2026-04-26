@@ -21,11 +21,13 @@ func _frame_2():
 
 func _frame_0_shared():
 	if !end:
+		if scale_combo_meter:
+			host.combo_supers += 1
 		host.super_effect(super_freeze_ticks)
 	else:
 		._frame_0_shared()
 
 func is_usable():
 	if end:
-		return host.cut_projectile != null
+		return host.cut_projectile != null and host.supers_available >= super_level
 	return host.supers_available >= super_level and host.cut_projectile == null

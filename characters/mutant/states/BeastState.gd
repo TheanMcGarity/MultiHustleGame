@@ -5,6 +5,8 @@ class_name BeastState
 export var moving_up_only = false
 export var moving_down_only = false
 export var force_air_juke = false
+export var juke_on_block = false
+export var juke_pip_max_blocks = 0
 
 func _enter_shared():
 	._enter_shared()

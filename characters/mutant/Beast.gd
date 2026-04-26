@@ -3,7 +3,7 @@ extends Fighter
 class_name Mutant
 
 const INSTALL_TICKS = 120
-const JUKE_PIPS = 10
+const JUKE_PIPS = 6
 const JUKE_PIPS_PER_USE = 2
 const JUKE_TICKS = 3
 const UP_JUKE_TICKS = 10
@@ -28,7 +28,7 @@ var spike_projectile = null
 var bc_charge = false
 
 var juke_startup_ticks = 0
-var juke_pips = JUKE_PIPS_PER_USE * 2
+var juke_pips = 2
 var juke_dir_x = "0"
 var juke_dir_y = "0"
 var juke_ticks = 0
@@ -38,6 +38,7 @@ var juked_this_turn = false
 var started_up_juke_from_ground = false
 var can_air_dash = false
 var thorn_set = []
+var gas_bomb_projectile = null
 
 func apply_grav():
 	if up_juke_ticks > 0:
@@ -75,7 +76,7 @@ func process_extra(extra):
 			if !extra.spike_enabled:
 				obj.disable()
 	var juke_dir = extra.get("juke_dir")
-	juke_ticks = 0
+#	juke_ticks = 0
 	if juke_dir != null:
 		juke_dir = fixed.normalized_vec(str(juke_dir.x), str(juke_dir.y))
 	var invalid_juke_states = ["DashBackward"]
@@ -88,7 +89,7 @@ func process_extra(extra):
 			create_speed_after_image_from_style()
 
 			if fixed.gt(juke_dir_y, "0"):
-#					juke_dir_type = "Down" 
+#					juke_dir_type = "Down"
 				pass
 			if fixed.lt(juke_dir_y, "0"):
 #					juke_dir_type = "Up"
@@ -99,13 +100,19 @@ func process_extra(extra):
 					use_air_movement()
 				apply_force("0", UP_JUKE_DOWN_FORCE)
 				started_up_juke_from_ground = is_grounded()
-			if fixed.eq(juke_dir_y, "0") and fixed.eq(juke_dir.x, "0"):
+			if fixed.eq(juke_dir_y, "0") and fixed.eq(juke_dir_x, "0"):
 				juke_ticks = NEUTRAL_JUKE_TICKS
+				add_juke_pips(-1)
 			elif fixed.gt(juke_dir_x, "0"):
 					juke_ticks = SIDE_JUKE_TICKS
+					add_juke_pips(-2)
 			elif fixed.lt(juke_dir_x, "0"):
 					juke_ticks = SIDE_JUKE_TICKS
-			add_juke_pips(-JUKE_PIPS_PER_USE)
+					add_juke_pips(-2)
+			else:
+				add_juke_pips(-2)
+			if extra.get("back_juke") and combo_count <= 0:
+				add_juke_pips(-1)
 #			create_speed_after_image_from_style()
 			juked_this_turn = true
 			play_sound("Juke")
@@ -123,17 +130,24 @@ func _on_hit_something(obj, hitbox):
 #	if !juked_this_turn:
 	if obj.is_in_group("Fighter"):
 		start_projectile_invulnerability()
-	add_juke_pips(1)
-	bc_charge = true
+	if obj.id != id or (obj.id == id and !obj.get("no_juke_pips")):
+		add_juke_pips(1)
+		bc_charge = true
 
 
 func on_parried():
 	add_juke_pips(JUKE_PIPS_PER_USE)
 
 func on_got_blocked():
+	var state = current_state()
+	var type = state.type
+	var max_blocks = 0
+	if state.get("juke_pip_max_blocks"):
+		max_blocks = state.get("juke_pip_max_blocks")
+	if state.number_of_hits_blocked <= max_blocks:
+		if type == CharacterState.ActionType.Special:
+			add_juke_pips(1)
 	.on_got_blocked()
-#	if !juked_this_turn:
-	add_juke_pips(1)
 
 func on_blocked_melee_attack():
 	.on_blocked_melee_attack()
@@ -184,6 +198,10 @@ func tick():
 		
 		if combo_count > 0:
 			juke_speed = fixed.mul(juke_speed, JUKE_COMBO_MODIFIER)
+		else:
+			juke_speed = fixed.mul(juke_speed, "0.7")
+			if current_state().state_name == "DashForward":
+				juke_speed = fixed.mul(juke_speed, "1.4")
 
 		if up_juke_ticks > 0:
 			up_juke_ticks -= 1
@@ -229,12 +247,12 @@ func on_got_parried():
 		up_juke_ticks = 0
 		hitlag_ticks += 5
 
-func passive_sadness_gain():
-	.passive_sadness_gain()
-	var dir = fixed.sign(last_vel.x)
-	var opp_dir = get_opponent_dir()
-	if dir != 0 and dir != opp_dir and current_tick % 6 == 0:
-		add_penalty(1)
+#func passive_sadness_gain():
+#	.passive_sadness_gain()
+#	var dir = fixed.sign(last_vel.x)
+#	var opp_dir = get_opponent_dir()
+#	if dir != 0 and dir != opp_dir and current_tick % 6 == 0:
+#		add_penalty(1)
 
 func on_got_push_blocked():
 	if is_neutral_juke():

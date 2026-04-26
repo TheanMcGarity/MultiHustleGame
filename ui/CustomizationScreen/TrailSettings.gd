@@ -42,6 +42,7 @@ onready var settings_map = {
 	$"%Y Offset": "y_offset",
 	$"%Angle": "angle",
 	$"%Angle Randomness": "angle_random",
+	$"%FlipWithCharacter": "flip_with_character",
 }
 
 var nodes_map = {}

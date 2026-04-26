@@ -499,7 +499,7 @@ func process_extra(extra):
 		elif extra.has("fly_enabled") and !extra.fly_enabled:
 			flying_dir = null
 	
-	if extra.has("loic_dir"):
+	if extra.has("loic_dir") and !busy_interrupt:
 #		var obj = obj_from_name(orbital_strike_projectile)
 #		var can_change = true
 #		if obj:

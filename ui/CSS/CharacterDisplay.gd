@@ -6,6 +6,7 @@ signal style_selected(style)
 
 var selected_style = null
 var aura_particle = null
+var aura_particle_2 = null
 onready var load_style_button = $"%LoadStyleButton"
 
 func _ready():
@@ -19,6 +20,9 @@ func _on_style_selected(style):
 	if aura_particle:
 		aura_particle.queue_free()
 		aura_particle = null
+	if aura_particle_2:
+		aura_particle_2.queue_free()
+		aura_particle_2 = null
 	var material = $"%CharacterPortrait".get_material()
 	material.set_shader_param("color", Color.white)
 	material.set_shader_param("use_outline", false)
@@ -27,15 +31,24 @@ func _on_style_selected(style):
 	if style:
 		Custom.apply_style_to_material(style, $"%CharacterPortrait".get_material(), true)
 
-		if style.show_aura:
+		if style.show_aura and style.get("aura_settings"):
 			var particle = preload("res://fx/CustomTrailParticle.tscn").instance()
 			$"%CharacterPortrait".add_child(particle)
 			particle.load_settings(style.aura_settings)
 			particle.position = $"%CharacterPortrait".rect_size / 2
-			particle.scale.x = -1 if player_id == 2 else 1
+			if particle.flip_with_character or player_id == 1:
+				particle.scale.x = -1 if player_id == 2 else 1
 			particle.facing = -1 if player_id == 2 else 1
 			aura_particle = particle
-			pass
+		if style.get("show_aura_2") and style.get("aura_settings_2"):
+			var particle = preload("res://fx/CustomTrailParticle.tscn").instance()
+			$"%CharacterPortrait".add_child(particle)
+			particle.load_settings(style.aura_settings_2)
+			particle.position = $"%CharacterPortrait".rect_size / 2
+			if particle.flip_with_character or player_id == 1:
+				particle.scale.x = -1 if player_id == 2 else 1
+			particle.facing = -1 if player_id == 2 else 1
+			aura_particle_2 = particle
 
 func load_last_style():
 	$"%LoadStyleButton".load_last_style()

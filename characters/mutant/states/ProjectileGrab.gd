@@ -13,6 +13,10 @@ func _enter():
 func _frame_5():
 	host.start_projectile_invulnerability()
 
+func _frame_14():
+	if host.is_grounded() and !started_in_air:
+		queue_state_change("Landing")
+
 func _frame_16():
 	host.end_projectile_invulnerability()
 

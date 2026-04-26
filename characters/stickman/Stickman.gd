@@ -64,7 +64,7 @@ func process_extra(extra):
 	if extra.has("explode"):
 		if extra["explode"]:
 			explode_sticky_bomb()
-	if extra.has("pull"):
+	if extra.has("pull") and !busy_interrupt:
 		pulling = extra.pull
 	if extra.has("detach"):
 		if extra.detach:

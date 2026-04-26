@@ -41,7 +41,7 @@ func _enter():
 	if jump_grab:
 		host.apply_force_relative(DASH_SPEED, JUMP_HEIGHT)
 
-func _frame_1():
+func _frame_0():
 	throw_techable = true
 
 func _frame_9():

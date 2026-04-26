@@ -55,7 +55,6 @@ gravity = "0.2"
 max_air_speed = "20"
 extra_state_variables = "can_stack"
 fizzle_on_ceiling = true
-free_cancel_on_hit = false
 apply_hitlag_when_hit_by_melee = false
 
 [node name="Sprite" parent="Flip" index="0"]

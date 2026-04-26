@@ -63,6 +63,15 @@ margin_bottom = 12.0
 size_flags_horizontal = 0
 text = "local"
 
+[node name="FlipWithCharacter" type="CheckButton" parent="HFlowContainer"]
+unique_name_in_owner = true
+margin_left = 110.0
+margin_right = 175.0
+margin_bottom = 12.0
+size_flags_horizontal = 0
+pressed = true
+text = "flip with character"
+
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 margin_top = 137.0
 margin_right = 212.0

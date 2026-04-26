@@ -35,7 +35,7 @@ func is_invalid_state(state):
 
 func update_selected_move(move_state):
 	.update_selected_move(move_state)
-	juke_button.disabled = fighter.juke_pips < fighter.JUKE_PIPS_PER_USE
+	juke_button.disabled = fighter.juke_pips < 1
 	if move_state is CharacterState:
 		if is_invalid_state(move_state):
 			juke_button.set_pressed_no_signal(false)
@@ -55,9 +55,39 @@ func update_selected_move(move_state):
 	juke_dir.set_NW((!fighter.is_grounded() and fighter.air_movements_left > 0) or air_juke)
 	juke_dir.call_deferred("try_hide_sections")
 	
-	juke_button.visible = fighter.juke_pips >= fighter.JUKE_PIPS_PER_USE and fighter.opponent.combo_count <= 0
-	juke_dir.visible = fighter.juke_pips >= fighter.JUKE_PIPS_PER_USE and fighter.opponent.combo_count <= 0
-	
+	juke_button.visible = fighter.juke_pips >= 1 and fighter.opponent.combo_count <= 0
+	juke_dir.visible = fighter.juke_pips >= 1 and fighter.opponent.combo_count <= 0
+
+	var can_afford_side = fighter.juke_pips >= 2
+	var back_cost = 2 if fighter.combo_count > 0 else 3
+	var can_afford_back = fighter.juke_pips >= back_cost
+	var facing_right = fighter.get_facing_int() > 0
+	if facing_right:
+		juke_dir.set_E(can_afford_side)
+		juke_dir.set_W(can_afford_back)
+	else:
+		juke_dir.set_W(can_afford_side)
+		juke_dir.set_E(can_afford_back)
+	if !can_afford_side:
+		juke_dir.set_N(false)
+		juke_dir.set_S(false)
+		if facing_right:
+			juke_dir.set_NE(false)
+			juke_dir.set_SE(false)
+		else:
+			juke_dir.set_NW(false)
+			juke_dir.set_SW(false)
+	if !can_afford_back:
+		if facing_right:
+			juke_dir.set_NW(false)
+			juke_dir.set_SW(false)
+		else:
+			juke_dir.set_NE(false)
+			juke_dir.set_SE(false)
+
+	if juke_dir.pressed_button and juke_dir.pressed_button.disabled:
+		juke_dir.set_sensible_default(juke_dir.pressed_button.name, false)
+
 	if fighter.current_state().get("disable_aerial_movement"):
 		juke_button.hide()
 		juke_dir.hide()
@@ -73,9 +103,18 @@ func update_selected_move(move_state):
 		$"%JukeButton".set_pressed_no_signal(false)
 
 func get_extra():
+	var juke_data = juke_dir.get_data() if juke_button.pressed and juke_button.is_visible_in_tree() else null
+	var is_back_juke = false
+	if juke_data and juke_dir.pressed_button:
+		var btn = juke_dir.pressed_button.name
+		if fighter.get_facing_int() > 0:
+			is_back_juke = "W" in btn
+		else:
+			is_back_juke = "E" in btn
 	var extra = {
 		"spike_enabled": spike_button.pressed,
-		"juke_dir": juke_dir.get_data() if juke_button.pressed and juke_button.is_visible_in_tree() else null
+		"juke_dir": juke_data,
+		"back_juke": is_back_juke
 	}
 	return extra
 

@@ -81,7 +81,7 @@ func update_selected_move(move_state):
 	if (move_state and move_state is ParryState) or (move_state == null and fighter.current_state() is ParryState):
 		pull_button.set_pressed_no_signal(false)
 		pull_button.disabled = true
-	if move_state and move_state.name == "Uppercut":
+	if move_state and move_state.name in ["Uppercut", "UppercutAir"]:
 		pull_button.set_pressed_no_signal(false)
 		pull_button.disabled = true
 

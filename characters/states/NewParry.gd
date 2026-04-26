@@ -75,7 +75,7 @@ func start():
 func _frame_0():
 	start()
 #	host.whiffed_block = get_whiffed_block()
-	if !(_previous_state() and _previous_state().get("IS_NEW_PARRY")) or _previous_state() == null:
+	if !(_previous_state() and _previous_state().get("IS_NEW_PARRY") and !_previous_state().push) or _previous_state() == null:
 		punishable = false
 
 func is_usable():

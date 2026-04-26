@@ -798,7 +798,11 @@ func get_state(state_name):
 	return state_machine.get_state(state_name)
 
 func on_got_blocked():
-	current_state().on_got_blocked()
+	var state = current_state()
+	state.on_got_blocked()
+	state.was_blocked = true
+	if state.get("number_of_hits_blocked") != null:
+		state.number_of_hits_blocked += 1
 
 func on_got_parried_by(who):
 	current_state().on_got_perfect_parried_by(who)

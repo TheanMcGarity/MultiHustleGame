@@ -17,7 +17,13 @@ var workshop_preview_image: Image = null
 
 var hitspark_scene = null
 
+var current_aura_slot = 0
+var aura_show = [false, false]
+var aura_settings_cache = [null, null]
+var aura_slot_button: Button = null
+
 func get_style_data():
+	save_current_aura_slot()
 	return {
 		"style_name": Utils.filter_filename($"%StyleName".text.strip_edges()) if $"%StyleName".text.strip_edges() else "untitled" + str(int(Time.get_unix_time_from_system())),
 		"character_color": character_color,
@@ -26,10 +32,28 @@ func get_style_data():
 		"use_outline": $"%ShowOutline".pressed,
 		"outline_color": outline_color if $"%ShowOutline".pressed else null,
 		"hitspark": "bash" if selected_hitspark == null else selected_hitspark,
-		"show_aura": $"%ShowAura".pressed,
-		"aura_settings": $"%TrailSettings".get_settings() if $"%ShowAura".pressed else null,
+		"show_aura": aura_show[0],
+		"aura_settings": aura_settings_cache[0],
+		"show_aura_2": aura_show[1],
+		"aura_settings_2": aura_settings_cache[1],
 		"ivy_effect": false,
 	}
+
+func save_current_aura_slot():
+	aura_show[current_aura_slot] = $"%ShowAura".pressed
+	if $"%ShowAura".pressed:
+		aura_settings_cache[current_aura_slot] = $"%TrailSettings".get_settings()
+
+func switch_aura_slot(slot):
+	save_current_aura_slot()
+	current_aura_slot = slot
+	$"%ShowAura".pressed = aura_show[slot]
+	if aura_settings_cache[slot]:
+		$"%TrailSettings".load_settings(aura_settings_cache[slot])
+	else:
+		$"%TrailSettings".load_settings(CustomTrailParticle.get_default())
+	aura_slot_button.text = "Aura " + str(slot + 1)
+	create_all_auras()
 
 func init():
 	for name in Global.name_paths:
@@ -66,8 +90,11 @@ func init():
 		button.rect_min_size = Vector2(50, 20)
 		$"%HitsparkButtonContainer".add_child(button)
 	$"%TrailSettings".connect("settings_changed", self, "_on_trail_settings_changed")
-	$"%ShowAura".connect("pressed", $"%TrailSettings", "_setting_value_changed")
-#	$"%ShowAura".connect("toggled", $"%TrailSettings", "_show_aura_toggled")
+	$"%ShowAura".connect("pressed", self, "_on_show_aura_pressed")
+	aura_slot_button = Button.new()
+	aura_slot_button.text = "Aura 1"
+	aura_slot_button.connect("pressed", self, "_on_aura_slot_button_pressed")
+	$"%ShowAura".get_parent().add_child(aura_slot_button)
 	$"%SaveButton".connect("pressed", self, "save_style")
 	$"%LoadStyleButton".connect("style_selected", self, "load_style")
 	if !SteamHustle.WORKSHOP_ENABLED:
@@ -102,8 +129,15 @@ func update_warning():
 
 func load_style(style):
 	if style:
-		if style.show_aura:
-			$"%TrailSettings".load_settings(style.aura_settings)
+		aura_show[0] = style.show_aura
+		aura_settings_cache[0] = style.aura_settings if style.show_aura else null
+		aura_show[1] = style.get("show_aura_2", false)
+		aura_settings_cache[1] = style.get("aura_settings_2")
+		current_aura_slot = 0
+		aura_slot_button.text = "Aura 1"
+		$"%ShowAura".pressed = aura_show[0]
+		if aura_settings_cache[0]:
+			$"%TrailSettings".load_settings(aura_settings_cache[0])
 		$"%StyleName".text = style.style_name
 		$"%ShowOutline".pressed = style.use_outline
 		if style.use_outline:
@@ -112,9 +146,7 @@ func load_style(style):
 			$"%Extra1".set_color(style.extra_color_1)
 		if style.get("extra_color_2"):
 			$"%Extra2".set_color(style.extra_color_2)
-	
-		$"%ShowAura".pressed = style.show_aura
-		call_deferred("create_aura", style.aura_settings)
+		call_deferred("create_all_auras")
 		if style.character_color != null:
 			$"%Character".set_color(style.character_color)
 		for child in $"%HitsparkButtonContainer".get_children():
@@ -148,21 +180,30 @@ func _physics_process(delta):
 #			particle.tick()
 
 func _on_trail_settings_changed(settings):
-	call_deferred("create_aura", settings)
+	save_current_aura_slot()
+	call_deferred("create_all_auras")
 	update_warning()
 
-func create_aura(trail_settings):
+func _on_show_aura_pressed():
+	save_current_aura_slot()
+	call_deferred("create_all_auras")
+	update_warning()
+
+func _on_aura_slot_button_pressed():
+	switch_aura_slot(1 - current_aura_slot)
+
+func create_all_auras():
 	for particle in custom_particles:
 		if is_instance_valid(particle):
 			particle.queue_free()
 	custom_particles.clear()
-	if !$"%ShowAura".pressed:
-		return
-	for node in [$"%MovingSprite", $"%StaticSprite"]:
-		var particle = preload("res://fx/CustomTrailParticle.tscn").instance()
-		node.add_child(particle)
-		custom_particles.append(particle)
-		particle.load_settings(trail_settings)
+	for slot in range(2):
+		if aura_show[slot] and aura_settings_cache[slot]:
+			for node in [$"%MovingSprite", $"%StaticSprite"]:
+				var particle = preload("res://fx/CustomTrailParticle.tscn").instance()
+				node.add_child(particle)
+				custom_particles.append(particle)
+				particle.load_settings(aura_settings_cache[slot])
 
 func _on_back_button_pressed():
 	Global.reload()

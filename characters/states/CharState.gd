@@ -143,9 +143,10 @@ var started_in_air = false
 var entered_in_air = false
 var hit_yet = false
 var hit_anything = false
-var was_blocked = false
+var character_state_was_blocked = false
 var hit_cancelled = false
 var started_during_combo = false
+
 
 var hit_hit_cancellable_projectile = false
 var hit_fighter = false
@@ -305,9 +306,10 @@ func _enter_shared():
 	land_cancelled = false
 	hit_anything = false
 	hit_fighter = false
+
 	hit_hit_cancellable_projectile = false
 	entered_in_air = !host.is_grounded()
-	was_blocked = false
+	character_state_was_blocked = false
 	started_in_air = false
 	host.update_grounded()
 	if change_stance_to:
@@ -525,7 +527,7 @@ func can_feint():
 	return (has_hitboxes or force_feintable) and (host.feints > 0 or host.get_total_super_meter() >= host.MAX_SUPER_METER) and can_feint_if_possible
 
 func can_interrupt():
-	return current_tick == iasa_at or current_tick in interrupt_frames or current_tick == anim_length - 1 or ((hit_fighter or hit_hit_cancellable_projectile) and current_tick == iasa_on_hit) or (was_blocked and iasa_on_hit_on_block and current_tick == iasa_on_hit)
+	return current_tick == iasa_at or current_tick in interrupt_frames or current_tick == anim_length - 1 or ((hit_fighter or hit_hit_cancellable_projectile) and current_tick == iasa_on_hit) or (character_state_was_blocked and iasa_on_hit_on_block and current_tick == iasa_on_hit)
 
 func on_got_hit():
 	pass

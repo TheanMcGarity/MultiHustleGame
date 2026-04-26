@@ -1656,9 +1656,7 @@ AerialSuper
 Aerial"
 interrupt_into_string = "Grounded
 Aerial"
-super_level = 0
 super_effect = false
-scale_combo_meter = false
 end = true
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/1000CutsEnd" index="0"]
@@ -1674,7 +1672,6 @@ hitstun_ticks = 25
 hitlag_ticks = 14
 victim_hitlag = 16
 cancellable = false
-plus_frames = -2
 whiff_sound = ExtResource( 337 )
 hit_sound = ExtResource( 148 )
 dir_y = "-0.2"

@@ -115,6 +115,10 @@ var current_real_tick = -1
 var start_tick = -1
 var last_facing = 1
 var fixed
+
+var was_blocked = false
+var number_of_hits_blocked = 0
+
 var native
 
 var anim_name
@@ -585,6 +589,9 @@ func _enter_shared():
 		var vel = host.get_vel()
 		host.set_vel(vel.x, "0")
 
+	was_blocked = false
+	number_of_hits_blocked = 0
+	
 	current_tick = -1
 	current_real_tick = -1
 	start_tick = host.current_tick
