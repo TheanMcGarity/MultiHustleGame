@@ -20,3 +20,7 @@ func _tick():
 		host.set_pos(host.get_pos().x, -5)
 		var vel = host.get_vel()
 		host.set_vel(vel.x, fixed.mul(fixed.abs(vel.y), "-0.25"))
+
+
+	if host.get_fighter().is_in_hurt_state(false) and !host.get_opponent().current_state().get("IS_BURST"):
+		queue_state_change("Pop")

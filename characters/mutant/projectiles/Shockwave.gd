@@ -5,6 +5,7 @@ func disable():
 	creator.shockwave_projectile = null
 
 func on_got_blocked():
+	.on_got_blocked()
 	disable()
 	
 func hit_by(hitbox):

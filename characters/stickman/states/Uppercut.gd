@@ -22,6 +22,7 @@ func _frame_0():
 	hitbox_2.block_punishable = false
 
 func on_got_blocked():
+	.on_got_blocked()
 	hitbox_2.block_punishable = true
 
 func _tick():

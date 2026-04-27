@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/SteamLobby/LobbyUser.gd" type="Script" id=2]
 [ext_resource path="res://ui/SteamLobby/king_icon.png" type="Texture" id=3]
+[ext_resource path="res://ui/SteamLobby/replay.png" type="Texture" id=4]
 
 [sub_resource type="StyleBoxFlat" id=2]
 bg_color = Color( 0.580392, 0.894118, 1, 0.258824 )
@@ -86,7 +87,7 @@ expand = true
 unique_name_in_owner = true
 margin_left = 1.0
 margin_top = 16.0
-margin_right = 73.0
+margin_right = 81.0
 margin_bottom = 29.0
 mouse_default_cursor_shape = 2
 size_flags_horizontal = 3
@@ -97,7 +98,7 @@ clip_text = true
 
 [node name="ReplayChallengeButton" type="Button" parent="."]
 unique_name_in_owner = true
-margin_left = 74.0
+margin_left = 82.0
 margin_top = 16.0
 margin_right = 97.0
 margin_bottom = 29.0
@@ -105,8 +106,9 @@ hint_tooltip = "Challenge with a saved replay."
 mouse_default_cursor_shape = 2
 theme = ExtResource( 1 )
 theme_type_variation = "SelectButton"
-text = "rpl"
+icon = ExtResource( 4 )
 clip_text = true
+icon_align = 1
 
 [node name="OwnerActions" type="MenuButton" parent="."]
 visible = false

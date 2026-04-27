@@ -124,6 +124,7 @@ func refresh():
 	change_state(current_state().state_name)
 	
 func on_got_blocked():
+	.on_got_blocked()
 	var vel = get_vel()
 	if active:
 		ticks_left = Utils.int_min(ticks_left, ARM_TIME_ON_OPPONENT_HIT)

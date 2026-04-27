@@ -575,6 +575,9 @@ func flip_allowed():
 
 func on_interrupt():
 	pass
+	
+func on_got_blocked():
+	.on_got_blocked()
 
 func update_sprite_frame():
 #	if host.blockstun_ticks > 0 and !force:

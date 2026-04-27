@@ -22,4 +22,5 @@ func tick():
 	limit_speed(MAX_SPEED)
 
 func on_got_blocked():
+	.on_got_blocked()
 	change_state("Pop")

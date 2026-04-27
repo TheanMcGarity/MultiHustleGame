@@ -37,6 +37,7 @@ func move():
 		host.apply_force(force.x, force.y)
 
 func on_got_blocked():
+	.on_got_blocked()
 	block_hits -= 1
 	if block_hits == 0:
 		fizzle()

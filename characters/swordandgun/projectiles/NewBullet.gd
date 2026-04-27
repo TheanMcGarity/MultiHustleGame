@@ -53,6 +53,7 @@ func _on_hit_something(obj, hitbox):
 		emit_signal("bullet_made_contact")
 
 func on_got_blocked():
+	.on_got_blocked()
 	emit_signal("bullet_made_contact")
 
 func on_got_push_blocked():

@@ -56,9 +56,6 @@ custom_y_fric = "0.02"
 fallback_state = "Pop"
 anim_length = 60
 endless = false
-sfx_pitch_variation = 0.1
-override_same_sfx = true
-override_same_wav = false
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/Default" index="0"]
 z_index = 1000

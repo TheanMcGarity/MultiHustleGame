@@ -347,7 +347,7 @@ func process_extra(extra):
 #				play_sound("Telekinesis")
 
 func can_fast_fall():
-	return !is_grounded() and  can_hover()
+	return get_pos().y < 0 and can_hover()
 
 func can_hover():
 #	return !is_grounded() and hover_left > HOVER_MIN_AMOUNT
