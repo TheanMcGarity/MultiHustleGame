@@ -31,6 +31,7 @@ margin_right = 71.0
 margin_bottom = 17.0
 size_flags_horizontal = 0
 custom_constants/hseparation = 1
+pressed = true
 text = "holster"
 icon = ExtResource( 6 )
 script = ExtResource( 5 )
