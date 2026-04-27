@@ -29,7 +29,7 @@ func get_extra():
 		"armor_enabled": $"%ArmorEnabled".pressed,
 		"nade_activated": $"%NadeActive".pressed and $"%NadeActive".visible,
 		"pull_enabled": $"%PullEnabled".pressed and $"%PullEnabled".visible,
-		"loic_dir": loic.get_data(),
+		"loic_dir": loic.get_data() if loic.is_visible_in_tree() else {"x": fighter.loic_dir, "y": 0},
 		"drive_cancel": drive_pressed() if fighter.stance != "Drive" else !drive_pressed(),
 		"bounce": bounce.get_data()
 	}
@@ -133,6 +133,7 @@ func reset():
 		$"%FlyEnabled".set_pressed_no_signal(true)
 	else:
 		$"%FlyEnabled".set_pressed_no_signal(false)
+	loic.set_dir_from_data({"x": fighter.loic_dir, "y": 0})
 	$"%ArmorEnabled".set_pressed_no_signal(false)
 	$"%NadeActive".set_pressed_no_signal(false)
 	$"%PullEnabled".set_pressed_no_signal(false)

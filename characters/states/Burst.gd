@@ -2,6 +2,8 @@ extends CharacterState
 
 export var defensive = false
 
+const IS_BURST = true
+
 var started_falling = false
 
 func _enter():

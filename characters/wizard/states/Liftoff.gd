@@ -15,7 +15,8 @@ var early_interrupt = false
 
 func _frame_0():
 	land_cancel = false
-	early_interrupt = true
+#	if host.combo_count > 0:
+	early_interrupt = false
 	if host.fast_falling:
 		host.hover_left -= FAST_FALL_REDUCTION
 	hitbox2.plus_frames = 2

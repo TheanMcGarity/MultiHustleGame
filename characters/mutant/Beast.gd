@@ -39,6 +39,7 @@ var started_up_juke_from_ground = false
 var can_air_dash = false
 var thorn_set = []
 var gas_bomb_projectile = null
+var poison_projectile = null
 
 func apply_grav():
 	if up_juke_ticks > 0:
@@ -203,8 +204,8 @@ func tick():
 			if current_state().state_name == "DashForward":
 				juke_speed = fixed.mul(juke_speed, "1.4")
 			if !fixed.eq(juke_dir_x, "0"):
-				var facing = get_facing_int()
-				if (fixed.lt(juke_dir_x, "0") and facing == -1) or (fixed.gt(juke_dir_x, "0") and facing == 1):
+				var opp_dir = get_opponent_dir()
+				if (fixed.lt(juke_dir_x, "0") and opp_dir == -1) or (fixed.gt(juke_dir_x, "0") and opp_dir == 1):
 					juke_speed = fixed.mul(juke_speed, "1.4")
 		
 		if current_state().state_name == "AirDash":

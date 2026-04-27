@@ -12,4 +12,3 @@ func hit_by(hitbox):
 	var obj = obj_from_name(hitbox.host)
 	if obj == get_opponent() and current_state().state_name == "Default" and !hitbox.throw:
 		change_state("FizzleOut")
-	

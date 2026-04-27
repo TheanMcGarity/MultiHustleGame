@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.33-steam-unstable"
+var VERSION = "1.9.36-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 var audio_player
@@ -44,6 +44,8 @@ var auto_fc = true
 var ghost_speed = 2
 
 var winws_detected = false
+
+var active_sfx_overrides = {}
 
 var mods_loaded = false
 var loading_character = ""

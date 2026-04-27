@@ -21,6 +21,7 @@ var current_aura_slot = 0
 var aura_show = [false, false]
 var aura_settings_cache = [null, null]
 var aura_slot_button: Button = null
+var loading_aura_slot = false
 
 func get_style_data():
 	save_current_aura_slot()
@@ -40,18 +41,21 @@ func get_style_data():
 	}
 
 func save_current_aura_slot():
+	if loading_aura_slot:
+		return
 	aura_show[current_aura_slot] = $"%ShowAura".pressed
-	if $"%ShowAura".pressed:
-		aura_settings_cache[current_aura_slot] = $"%TrailSettings".get_settings()
+	aura_settings_cache[current_aura_slot] = $"%TrailSettings".get_settings()
 
 func switch_aura_slot(slot):
 	save_current_aura_slot()
 	current_aura_slot = slot
+	loading_aura_slot = true
 	$"%ShowAura".pressed = aura_show[slot]
 	if aura_settings_cache[slot]:
 		$"%TrailSettings".load_settings(aura_settings_cache[slot])
 	else:
 		$"%TrailSettings".load_settings(CustomTrailParticle.get_default())
+	loading_aura_slot = false
 	aura_slot_button.text = "Aura " + str(slot + 1)
 	create_all_auras()
 
@@ -129,8 +133,9 @@ func update_warning():
 
 func load_style(style):
 	if style:
+		loading_aura_slot = true
 		aura_show[0] = style.show_aura
-		aura_settings_cache[0] = style.aura_settings if style.show_aura else null
+		aura_settings_cache[0] = style.aura_settings
 		aura_show[1] = style.get("show_aura_2", false)
 		aura_settings_cache[1] = style.get("aura_settings_2")
 		current_aura_slot = 0
@@ -138,6 +143,7 @@ func load_style(style):
 		$"%ShowAura".pressed = aura_show[0]
 		if aura_settings_cache[0]:
 			$"%TrailSettings".load_settings(aura_settings_cache[0])
+		loading_aura_slot = false
 		$"%StyleName".text = style.style_name
 		$"%ShowOutline".pressed = style.use_outline
 		if style.use_outline:

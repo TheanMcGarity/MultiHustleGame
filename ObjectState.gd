@@ -78,6 +78,9 @@ export var enter_sfx_volume = -15.0
 export(AudioStream) var sfx = null
 export var sfx_tick = 1
 export var sfx_volume = -15.0
+export var sfx_pitch_variation = 0.1
+export var override_same_sfx = true
+export var override_same_wav = false
 
 export var _c_Projectiles = 0
 export(PackedScene) var projectile_scene
@@ -478,19 +481,24 @@ func play_enter_sfx():
 	enter_sfx_player.play()
 
 func setup_audio():
+	if host and host.is_ghost:
+		return
 	if enter_sfx:
-		enter_sfx_player = VariableSound2D.new()
-		add_child(enter_sfx_player)
-		enter_sfx_player.bus = "Fx"
-		enter_sfx_player.stream = enter_sfx
-		enter_sfx_player.volume_db = enter_sfx_volume
+		enter_sfx_player = _make_sfx_player(enter_sfx, enter_sfx_volume)
 
 	if sfx:
-		sfx_player = VariableSound2D.new()
-		add_child(sfx_player)
-		sfx_player.bus = "Fx"
-		sfx_player.stream = sfx
-		sfx_player.volume_db = sfx_volume
+		sfx_player = _make_sfx_player(sfx, sfx_volume)
+
+func _make_sfx_player(stream: AudioStream, volume: float) -> VariableSound2D:
+	var player = VariableSound2D.new()
+	player.bus = "Fx"
+	player.stream = stream
+	player.volume_db = volume
+	player.pitch_variation = sfx_pitch_variation
+	player.override_same_sfx = override_same_sfx
+	player.override_same_wav = override_same_wav
+	add_child(player)
+	return player
 
 func setup_hitboxes():
 	all_hitbox_nodes = []

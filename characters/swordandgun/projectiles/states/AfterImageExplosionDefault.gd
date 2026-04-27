@@ -11,7 +11,7 @@ func _frame_0():
 			if obj.id == host.id:
 				bullets.append(obj)
 	bullets.sort_custom(self, "sort_bullets")
-	
+
 	if bullets:
 		var obj = bullets[0]
 		var pos = host.get_pos()
@@ -19,9 +19,9 @@ func _frame_0():
 		obj.last_hit_by = host.get_fighter().obj_name
 		obj.reset_line()
 		obj.reset_speed()
-		var st = obj.current_state()
-		if st:
-			st.bounce_full_control(true)
+		if obj.current_state() == null and not obj.initialized:
+			obj.init()
+		obj.current_state().bounce_full_control(true)
 		obj.no_draw_ticks = 1
 
 func sort_bullets(a, b):

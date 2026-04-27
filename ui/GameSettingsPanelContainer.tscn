@@ -361,6 +361,38 @@ rect_min_size = Vector2( 20, 0 )
 text = "1"
 align = 1
 
+[node name="ParryComboScalingContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 162.0
+margin_right = 155.0
+margin_bottom = 174.0
+
+[node name="ParryComboScalingLabel" type="Label" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/ParryComboScalingContainer"]
+margin_right = 79.0
+margin_bottom = 11.0
+text = "Parry Damage"
+
+[node name="ParryComboScalingMeter" type="HSlider" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/ParryComboScalingContainer"]
+unique_name_in_owner = true
+margin_left = 80.0
+margin_right = 134.0
+margin_bottom = 12.0
+hint_tooltip = "Damage modifier applied to combos after landing a parry. 0 = no damage, 1 = full damage, 2 = double damage."
+size_flags_horizontal = 3
+max_value = 2.0
+step = 0.05
+value = 0.85
+scrollable = false
+
+[node name="ParryComboScalingValueLabel" type="Label" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/ParryComboScalingContainer"]
+unique_name_in_owner = true
+margin_left = 135.0
+margin_right = 155.0
+margin_bottom = 11.0
+rect_min_size = Vector2( 20, 0 )
+text = "0.85"
+align = 1
+
 [node name="StartingMeterContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
 margin_top = 162.0
@@ -831,6 +863,7 @@ text = "save"
 [connection signal="value_changed" from="VBoxContainer/ScrollContainer/GameSettingsContainer/HitstunModifierContainer/HitstunModifier" to="." method="_on_HitstunModifier_value_changed"]
 [connection signal="value_changed" from="VBoxContainer/ScrollContainer/GameSettingsContainer/HitstopModifierContainer/HitstopModifier" to="." method="_on_HitstopModifier_value_changed"]
 [connection signal="value_changed" from="VBoxContainer/ScrollContainer/GameSettingsContainer/GravityModifierContainer/GravityModifier" to="." method="_on_GravityModifier_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/ScrollContainer/GameSettingsContainer/ParryComboScalingContainer/ParryComboScalingMeter" to="." method="_on_ParryComboScalingMeter_value_changed"]
 [connection signal="value_changed" from="VBoxContainer/ScrollContainer/GameSettingsContainer/StartingMeterContainer/StartingMeter" to="." method="_on_StartingMeter_value_changed"]
 [connection signal="value_changed" from="VBoxContainer/ScrollContainer/GameSettingsContainer/MinDIScalingContainer/MinDIScalingMeter" to="." method="_on_MinDIScalingMeter_value_changed"]
 [connection signal="value_changed" from="VBoxContainer/ScrollContainer/GameSettingsContainer/MaxDIScalingContainer/MaxDIScalingMeter" to="." method="_on_MaxDIScalingMeter_value_changed"]

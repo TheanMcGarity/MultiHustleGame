@@ -115,6 +115,9 @@ export var whiff_sound_volume = -8.0
 export var hit_sound_volume = -5.0
 export var bass_sound_volume = -5.0
 export var bass_on_whiff = false
+export var override_same_sfx = true
+export var override_same_wav = false
+export var sfx_pitch_variation = 0.1
 
 export var _c_Knockback = 0
 export var dir_x: String = "1.0"
@@ -186,25 +189,24 @@ func is_projectile():
 func setup_audio():
 	if !host.is_ghost:
 		if whiff_sound:
-			whiff_sound_player = VariableSound2D.new()
-			call_deferred("add_child", whiff_sound_player)
-			whiff_sound_player.bus = "Fx"
-			whiff_sound_player.stream = whiff_sound
-			whiff_sound_player.volume_db = whiff_sound_volume
+			whiff_sound_player = _make_sfx_player(whiff_sound, whiff_sound_volume)
 
 		if hit_sound:
-			hit_sound_player = VariableSound2D.new()
-			call_deferred("add_child", hit_sound_player)
-			hit_sound_player.bus = "Fx"
-			hit_sound_player.stream = hit_sound
-			hit_sound_player.volume_db = hit_sound_volume
-			
+			hit_sound_player = _make_sfx_player(hit_sound, hit_sound_volume)
+
 		if hit_bass_sound:
-			hit_bass_sound_player = VariableSound2D.new()
-			call_deferred("add_child", hit_bass_sound_player)
-			hit_bass_sound_player.bus = "Fx"
-			hit_bass_sound_player.stream = hit_bass_sound
-			hit_bass_sound_player.volume_db = bass_sound_volume
+			hit_bass_sound_player = _make_sfx_player(hit_bass_sound, bass_sound_volume)
+
+func _make_sfx_player(stream: AudioStream, volume: float) -> VariableSound2D:
+	var player = VariableSound2D.new()
+	call_deferred("add_child", player)
+	player.bus = "Fx"
+	player.stream = stream
+	player.volume_db = volume
+	player.pitch_variation = sfx_pitch_variation
+	player.override_same_sfx = override_same_sfx
+	player.override_same_wav = override_same_wav
+	return player
 
 func play_whiff_sound():
 	if ReplayManager.resimulating or host.is_ghost:

@@ -7,6 +7,7 @@ onready var holster = $Holster
 func fighter_update():
 	di_label.rect_position.x = abs(di_label.rect_position.x) * -1 if fighter.id == 1 else 1
 	activate_temporal.visible = fighter.obj_from_name(fighter.temporal_round) != null
+	holster.set_pressed_no_signal(false)
 
 func get_data():
 	return {

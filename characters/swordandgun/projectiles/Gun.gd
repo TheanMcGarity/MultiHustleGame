@@ -14,6 +14,15 @@ func init(pos=null):
 	.init(pos)
 	can_be_picked_up = false
 
+
+func copy_to(o):
+	.copy_to(o)
+
+	o.can_be_picked_up = can_be_picked_up
+	o.shot = shot
+	o.lassoed = lassoed
+	o.reeled = reeled
+
 func shoot(fighter: Fighter):
 	var bullet_location = fighter.get_hurtbox_center()
 	var bullet_location_local = obj_local_center(fighter)

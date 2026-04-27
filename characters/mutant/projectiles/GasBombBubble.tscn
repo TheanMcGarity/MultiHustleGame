@@ -70,7 +70,6 @@ sdi_modifier = "0.1"
 allowed_to_hit_own_team = false
 hit_sound = ExtResource( 9 )
 hit_sound_volume = -8.0
-bass_sound_volume = -8.0
 knockback = "7.0"
 grounded_hit_state = "HurtAerial"
 minimum_grounded_frames = 10

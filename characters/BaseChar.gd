@@ -63,6 +63,7 @@ const PUSH_BLOCK_CHIP_MODIFIER = "0.33"
 const PARRY_KNOCKBACK_DIVISOR = "3"
 
 const PARRY_COMBO_SCALING = "0.85"
+var parry_combo_scaling = PARRY_COMBO_SCALING
 const PARRY_GROUNDED_KNOCKBACK_DIVISOR = "1.5"
 const PUSH_BLOCK_FORCE = "-10"
 const PUSH_BLOCK_DIST = "220"
@@ -491,12 +492,11 @@ func init(pos=null):
 
 
 func is_ivy():
-	if !Network.multiplayer_active and !SteamLobby.SPECTATING:
+	if SteamLobby.SPECTATING or !Network.multiplayer_active:
 		var username = Network.pid_to_username(id)
 		return username in SteamHustle.FX_NAMES
-	else:
-		if id in Network.network_ids:
-			return Network.network_ids[id] in SteamHustle.FX_IDS
+	if id in Network.network_ids:
+		return Network.network_ids[id] in SteamHustle.FX_IDS
 	return false
 
 #func prediction_correct():
@@ -1516,7 +1516,7 @@ func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling
 	damage = Utils.int_max(damage, minimum)
 	damage = Utils.int_max(guts_stale_damage(damage), 1)
 	if opponent.parry_combo:
-		damage = fixed.round(fixed.mul(str(damage), PARRY_COMBO_SCALING))
+		damage = fixed.round(fixed.mul(str(damage), parry_combo_scaling))
 	damage = fixed.round(fixed.mul(str(damage), get_penalty_damage_modifier()))
 	var meter_gain = fixed.round(fixed.mul(str(damage / DAMAGE_SUPER_GAIN_DIVISOR), meter_gain_modifier))
 

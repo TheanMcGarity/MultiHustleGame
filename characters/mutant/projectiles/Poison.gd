@@ -31,7 +31,7 @@ func tick():
 		spawn_acid_bubble_startup = 36
 		
 	.tick()
-	if get_fighter().opponent.combo_count > 0 and !("Burst") in get_opponent().current_state().state_name:
+	if get_fighter().opponent.combo_count > 0 and !get_opponent().current_state().get("IS_BURST"):
 		disable()
 		return
 

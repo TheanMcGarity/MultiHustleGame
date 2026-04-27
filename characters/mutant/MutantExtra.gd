@@ -68,8 +68,8 @@ func update_selected_move(move_state):
 	var can_afford_side = fighter.juke_pips >= 2
 	var back_cost = 2 if fighter.combo_count > 0 else 3
 	var can_afford_back = fighter.juke_pips >= back_cost
-	var facing_right = fighter.get_facing_int() > 0
-	if facing_right:
+	var opponent_right = fighter.get_opponent_dir() > 0
+	if opponent_right:
 		juke_dir.set_E(can_afford_side)
 		juke_dir.set_W(can_afford_back)
 	else:
@@ -78,14 +78,14 @@ func update_selected_move(move_state):
 	if !can_afford_side:
 		juke_dir.set_N(false)
 		juke_dir.set_S(false)
-		if facing_right:
+		if opponent_right:
 			juke_dir.set_NE(false)
 			juke_dir.set_SE(false)
 		else:
 			juke_dir.set_NW(false)
 			juke_dir.set_SW(false)
 	if !can_afford_back:
-		if facing_right:
+		if opponent_right:
 			juke_dir.set_NW(false)
 			juke_dir.set_SW(false)
 		else:
@@ -114,7 +114,7 @@ func get_extra():
 	var is_back_juke = false
 	if juke_data and juke_dir.pressed_button:
 		var btn = juke_dir.pressed_button.name
-		if fighter.get_facing_int() > 0:
+		if fighter.get_opponent_dir() > 0:
 			is_back_juke = "W" in btn
 		else:
 			is_back_juke = "E" in btn
