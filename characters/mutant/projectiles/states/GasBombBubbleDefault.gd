@@ -7,5 +7,5 @@ func _on_hit_something(obj, hitbox):
 	# don't call parent — prevents granting juke pips to mutant
 
 func _tick():
-	if host.get_fighter().is_in_hurt_state() and !host.get_opponent().current_state().get("IS_BURST"):
+	if host.get_fighter().is_in_hurt_state(false) and !host.get_opponent().current_state().get("IS_BURST"):
 		queue_state_change("Pop")

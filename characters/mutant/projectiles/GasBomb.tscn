@@ -59,3 +59,6 @@ script = ExtResource( 5 )
 apply_forces = true
 apply_fric = true
 apply_grav = true
+sfx_pitch_variation = 0.1
+override_same_sfx = true
+override_same_wav = false

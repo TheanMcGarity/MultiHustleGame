@@ -28,7 +28,7 @@ func _tick():
 	if !fixed.eq(vel.x, "0"):
 		last_x_vel = vel.x
 
-	if host.get_fighter().is_in_hurt_state() and !host.get_opponent().current_state().get("IS_BURST"):
+	if host.get_fighter().is_in_hurt_state(false) and !host.get_opponent().current_state().get("IS_BURST"):
 		host.disable()
 		return
 
