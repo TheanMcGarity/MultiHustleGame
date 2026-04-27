@@ -52,6 +52,8 @@ func _on_visibility_changed():
 
 func any_buttons_visible():
 	for button in $"%ButtonContainer".get_children():
+		if button.has_meta("is_filler"):
+			continue
 		if button.visible:
 			return true
 	return false
@@ -59,6 +61,8 @@ func any_buttons_visible():
 func get_num_available_moves():
 	var count = 0
 	for button in $"%ButtonContainer".get_children():
+		if button.has_meta("is_filler"):
+			continue
 		if button.visible:
 			count += 1
 	return count
@@ -102,6 +106,7 @@ func _process(_delta):
 	elif mouse_over  and can_update and !Utils.is_mouse_in_control(self):
 		update_mouse_over()
 
+	update_button_layout()
 	call_deferred("set_pos_y", -$"%ScrollContainer".rect_min_size.y + BOX_SIZE)
 	$"%TooManyMoves".visible = get_num_available_moves() > 9
 	if mouse_over:
@@ -136,6 +141,39 @@ func add_button(button):
 	$"%ButtonContainer".add_child(button)
 	button.connect("mouse_entered", self, "on_button_mouse_entered", [button])
 	button.connect("mouse_exited", self, "on_button_mouse_exited")
+	update_button_layout()
+
+func update_button_layout():
+	var bc = $"%ButtonContainer"
+	var cols = bc.columns
+	var visible_count = 0
+	var fillers = []
+	for child in bc.get_children():
+		if child.has_meta("is_filler"):
+			fillers.append(child)
+		elif child.visible:
+			visible_count += 1
+
+	var needed = 0
+	if visible_count > 9:
+		needed = (cols - (visible_count % cols)) % cols
+	if fillers.size() == needed:
+		return
+
+	while fillers.size() > needed:
+		var f = fillers.pop_back()
+		bc.remove_child(f)
+		f.queue_free()
+
+	while fillers.size() < needed:
+		var f = Control.new()
+		f.set_meta("is_filler", true)
+		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bc.add_child(f)
+		fillers.append(f)
+
+	for i in range(needed):
+		bc.move_child(fillers[i], i)
 
 
 func get_prediction():
@@ -154,6 +192,8 @@ func refresh():
 	initiative_label.hide()
 	var initiative = fighter.check_initiative()
 	for button in $"%ButtonContainer".get_children():
+		if button.has_meta("is_filler"):
+			continue
 		if button.is_pressed():
 			on_button_mouse_entered(button)
 			$"%Label".modulate = Color.cyan

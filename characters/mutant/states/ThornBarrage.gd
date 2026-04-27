@@ -11,7 +11,6 @@ var projectiles_left = 0
 
 export var air = false
 
-
 func _frame_5():
 	projectiles_left = NUM_PROJECTILES
 	host.thorn_set = []

@@ -1,5 +1,7 @@
 extends Node
 
+const MAX_BACKUPS = 10
+
 var frames = {
 	1: {},
 	2: {},
@@ -92,9 +94,9 @@ func save_replay_mp(match_data, p1, p2):
 
 func save_replay(match_data: Dictionary, file_name="", autosave=false):
 	if file_name == "":
-		file_name = generate_replay_name() 
-	file_name = Utils.filter_filename(file_name) 
-	
+		file_name = generate_replay_name()
+	file_name = Utils.filter_filename(file_name)
+
 	var data = match_data.duplicate(true)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
@@ -112,7 +114,49 @@ func save_replay(match_data: Dictionary, file_name="", autosave=false):
 	file.close()
 	return file_name + ".replay"
 
-func load_replays(autosave=true):
+const BACKUP_PREFIX = "backup_"
+
+func save_replay_backup(match_data: Dictionary):
+	var dir = Directory.new()
+	if !dir.dir_exists("user://replay"):
+		dir.make_dir("user://replay")
+	if !dir.dir_exists("user://replay/backup"):
+		dir.make_dir("user://replay/backup")
+	var data = match_data.duplicate(true)
+	data["frames"] = frames
+	data["version"] = Global.VERSION
+	var file_name = BACKUP_PREFIX + generate_replay_name()
+	var file = File.new()
+	file.open("user://replay/backup/" + file_name + ".replay", File.WRITE)
+	file.store_var(data, true)
+	file.close()
+	_rotate_backups()
+	return file_name + ".replay"
+
+func _rotate_backups():
+	var dir = Directory.new()
+	if !dir.dir_exists("user://replay/backup"):
+		return
+	var files = []
+	var _directories = []
+	dir.open("user://replay/backup")
+	dir.list_dir_begin(false, true)
+	Global.add_dir_contents(dir, files, _directories, false, ".replay")
+	if files.size() <= MAX_BACKUPS:
+		return
+	var with_time = []
+	var f = File.new()
+	for path in files:
+		with_time.append({"path": path, "modified": f.get_modified_time(path)})
+	with_time.sort_custom(self, "_sort_by_modified_asc")
+	var to_remove = with_time.size() - MAX_BACKUPS
+	for i in range(to_remove):
+		dir.remove(with_time[i].path)
+
+func _sort_by_modified_asc(a, b):
+	return a.modified < b.modified
+
+func load_replays(autosave=true, backups=true):
 	var dir = Directory.new()
 	var files = []
 	var _directories = []
@@ -120,20 +164,26 @@ func load_replays(autosave=true):
 		dir.make_dir("user://replay")
 	if !dir.dir_exists("user://replay/autosave"):
 		dir.make_dir("user://replay/autosave")
+	if !dir.dir_exists("user://replay/backup"):
+		dir.make_dir("user://replay/backup")
 	dir.open("user://replay")
 	dir.list_dir_begin(false, true)
-#	print(dir.get_current_dir())
-	Global.add_dir_contents(dir, files, _directories, autosave)
+	Global.add_dir_contents(dir, files, _directories, false)
+	if autosave:
+		dir.open("user://replay/autosave")
+		dir.list_dir_begin(false, true)
+		Global.add_dir_contents(dir, files, _directories, false)
+	if backups:
+		dir.open("user://replay/backup")
+		dir.list_dir_begin(false, true)
+		Global.add_dir_contents(dir, files, _directories, false)
 	var replay_paths = {}
 	for path in files:
 		var replay_file = File.new()
-#		replay_file.open(path, File.READ)
-#		var match_data = replay_file.get_var()
 		var modified = replay_file.get_modified_time(path)
 		var data = {
 			"path": path,
 			"modified": modified,
-#			"version": match_data.version if match_data.has("version") else null
 		}
 		if ".replay" in path:
 			replay_paths[path.get_file().get_basename()] = data

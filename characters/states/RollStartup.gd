@@ -46,10 +46,10 @@ func _enter():
 		anim_length = 19
 		iasa_at = 19
 	host.apply_force(force.x, str(0))
-	host.start_throw_invulnerability()
-	host.start_projectile_invulnerability()
 
 func _frame_0():
+	host.start_throw_invulnerability()
+	host.start_projectile_invulnerability()
 	if tech:
 		if !data.get("no_invuln"):
 			host.start_invulnerability()

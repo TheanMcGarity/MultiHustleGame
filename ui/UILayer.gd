@@ -6,7 +6,10 @@ onready var p2_action_buttons = $"%P2ActionButtons"
 signal singleplayer_started()
 signal multiplayer_started()
 signal loaded_replay(match_data)
+signal replay_picked_for_challenge(match_data, path)
 signal received_synced_time()
+
+var replay_picker_for_challenge = false
 #
 #const dark_mode_color = Color("0b0c0f")
 #const light_mode_color = Color("33394b")
@@ -76,6 +79,8 @@ onready var global_option_check_buttons = {
 	$"%ExtraInfoButton": "show_extra_info",
 	$"%TimerSoundButton": "enable_timer_sound",
 	$"%ExtraFreezeFrames": "replay_extra_freeze_frames",
+	$"%EnableReplayBackups": "enable_replay_backups",
+	$"%XYPlotInvertSnapButton": "xyplot_invert_snap",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 
@@ -115,6 +120,7 @@ func _ready():
 	$"%P1ActionButtons".connect("turn_ended", self, "end_turn_for", [1])
 	$"%P2ActionButtons".connect("turn_ended", self, "end_turn_for", [2])
 	$"%ShowAutosavedReplays".connect("pressed", self, "_on_view_replays_button_pressed")
+	$"%ShowBackupReplays".connect("pressed", self, "_on_view_replays_button_pressed")
 	$"%DiscordButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [DISCORD_URL])
 	$"%IvySlyLinkButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [IVY_SLY_URL])
 	$"%WishlistButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [STEAM_URL])
@@ -144,12 +150,26 @@ func _ready():
 	$"%PauseOptionsButton".connect("pressed", $"%OptionsContainer", "show")
 	$"%MusicButton".set_pressed_no_signal(Global.music_enabled)
 	$"%MusicButton".connect("toggled", self, "_on_music_button_toggled")
+	$"%MasterSlider".set_value(Global.master_value)
+	AudioServer.set_bus_volume_db(0, linear2db(Global.master_value))
+	$"%MasterSlider".connect("value_changed", self, "_on_master_slider_changed")
+	$"%FXSlider".set_value(Global.fx_value)
+	AudioServer.set_bus_volume_db(1, linear2db(Global.fx_value))
+	$"%FXSlider".connect("value_changed", self, "_on_fx_slider_changed")
+	$"%UISlider".set_value(Global.ui_value)
+	AudioServer.set_bus_volume_db(2, linear2db(Global.ui_value))
+	$"%UISlider".connect("value_changed", self, "_on_ui_slider_changed")
+	$"%MusicSlider".set_value(Global.music_value)
+	AudioServer.set_bus_volume_db(3, linear2db(Global.music_value))
+	$"%MusicSlider".connect("value_changed", self, "_on_music_slider_changed")
 #	$"%LightModeButton".set_pressed_no_signal(Global.light_mode)
 #	$"%LightModeButton".connect("toggled", self, "_on_light_mode_toggled")
 	$"%FullscreenButton".set_pressed_no_signal(Global.fullscreen)
 	$"%FullscreenButton".connect("toggled", self, "_on_fullscreen_button_toggled")
 	$"%HitboxesButton".set_pressed_no_signal(Global.show_hitboxes)
 	$"%HitboxesButton".connect("toggled", self, "_on_hitboxes_button_toggled")
+	$"%CapFramerateButton".set_pressed_no_signal(Global.cap_framerate)
+	$"%CapFramerateButton".connect("toggled", self, "_on_cap_framerate_button_toggled")
 	$"%PlaybackControls".set_pressed_no_signal(Global.show_playback_controls)
 	$"%PlaybackControls".connect("toggled", self, "_on_playback_controls_button_toggled")
 	$"%PredictionSettingsOpenButton".connect("pressed", self, "_on_open_prediction_settings_pressed")
@@ -210,11 +230,50 @@ func _on_music_button_toggled(on):
 	Global.set_music_enabled(on)
 	Global.save_options()
 
+func _on_master_slider_changed(value):
+	AudioServer.set_bus_volume_db(0, linear2db(value))
+	$"%OptionsSoundPlayer".bus = "Master"
+	$"%OptionsSoundPlayer".pitch_variation = 0
+	$"%OptionsSoundPlayer".streams = [load("res://sound/ui/button_hover3.wav")]
+	$"%OptionsSoundPlayer".play()
+	Global.master_value = value
+	Global.save_options()
+
+func _on_fx_slider_changed(value):
+	AudioServer.set_bus_volume_db(1, linear2db(value))
+	$"%OptionsSoundPlayer".bus = "Fx"
+	$"%OptionsSoundPlayer".pitch_variation = 0.1
+	$"%OptionsSoundPlayer".streams = [load("res://sound/common/explosion2.wav")]
+	$"%OptionsSoundPlayer".play()
+	Global.fx_value = value
+	Global.save_options()
+
+func _on_ui_slider_changed(value):
+	AudioServer.set_bus_volume_db(2, linear2db(value))
+	$"%OptionsSoundPlayer".bus = "UI"
+	$"%OptionsSoundPlayer".pitch_variation = 0
+	$"%OptionsSoundPlayer".streams = [load("res://sound/ui/button_hover3.wav")]
+	$"%OptionsSoundPlayer".play()
+	Global.ui_value = value
+	Global.save_options()
+
+func _on_music_slider_changed(value):
+	AudioServer.set_bus_volume_db(3, linear2db(value))
+	$"%OptionsSoundPlayer".bus = "UI"
+	$"%OptionsSoundPlayer".pitch_variation = 0
+	$"%OptionsSoundPlayer".streams = [load("res://sound/ui/button_hover3.wav")]
+	$"%OptionsSoundPlayer".play()
+	Global.music_value = value
+	Global.save_options()
+
 func _on_fullscreen_button_toggled(on):
 	Global.set_fullscreen(on)
 
 func _on_hitboxes_button_toggled(on):
 	Global.set_hitboxes(on)
+
+func _on_cap_framerate_button_toggled(on):
+	Global.set_cap_framerate(on)
 
 func _on_playback_controls_button_toggled(on):
 	Global.set_playback_controls(on)
@@ -280,7 +339,7 @@ func load_replays():
 	$"%ReplayWindow".show()
 	for child in $"%ReplayContainer".get_children():
 		child.free()
-	var replay_map = ReplayManager.load_replays($"%ShowAutosavedReplays".pressed)
+	var replay_map = ReplayManager.load_replays($"%ShowAutosavedReplays".pressed, $"%ShowBackupReplays".pressed)
 	var buttons = []
 	for key in replay_map:
 		var button = preload("res://ui/ReplayWindow/ReplayButton.tscn").instance()
@@ -321,11 +380,33 @@ func sort_replays(a, b):
 
 func _on_replay_button_pressed(path):
 	var match_data = ReplayManager.load_replay(path)
-	emit_signal("loaded_replay", match_data)
 	$"%ReplayWindow".hide()
+	if replay_picker_for_challenge:
+		replay_picker_for_challenge = false
+		$"%ReplayChallengeTitle".hide()
+		$"%SteamLobby".show()
+		emit_signal("replay_picked_for_challenge", match_data, path)
+		return
+	emit_signal("loaded_replay", match_data)
 
 func _on_replay_cancel_pressed():
+	if replay_picker_for_challenge:
+		replay_picker_for_challenge = false
+		$"%ReplayWindow".hide()
+		$"%ReplayChallengeTitle".hide()
+		$"%SteamLobby".show()
+		return
 	Global.reload()
+
+func open_replay_picker_for_challenge(opponent_name=""):
+	replay_picker_for_challenge = true
+	if opponent_name == "":
+		$"%ReplayChallengeTitle".text = "Select a replay to resume with"
+	else:
+		$"%ReplayChallengeTitle".text = "Select a replay to resume with " + opponent_name
+	$"%ReplayChallengeTitle".show()
+	$"%SteamLobby".hide()
+	load_replays()
 
 #func _notification(what):
 #	if (what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST):
@@ -508,6 +589,8 @@ func end_turn_for(player_id):
 		$"%P2TurnTimerBar".hide()
 #		p2_turn_timer.stop()
 		p2_turn_timer.paused = true
+	if Network.rematch_menu:
+		hide_rematch_menu()
 
 func setup_action_buttons():
 	$"%P1ActionButtons".init(game, 1)
@@ -647,6 +730,15 @@ func time_convert(time_in_sec):
 		return "%02d:%02d:%02d" % [hours, minutes, seconds]
 	return "%02d:%02d" % [minutes, seconds]
 
+func hide_rematch_menu():
+	Network.rematch_menu = false
+	var post_game_buttons = get_node_or_null("%PostGameButtons")
+	var disconnected_label = get_node_or_null("%OpponentDisconnectedLabel")
+	if post_game_buttons:
+		post_game_buttons.hide()
+	if disconnected_label:
+		disconnected_label.hide()
+
 func _process(delta):
 	
 	var p1_old_text = $"%P1TurnTimerLabel".text
@@ -659,6 +751,9 @@ func _process(delta):
 
 	if $"%VersionLabel".visible:
 		$"%VersionLabel".text = "version " + Global.VERSION
+
+	if Network.undo and Network.rematch_menu:
+		hide_rematch_menu()
 
 	var you_id = 1
 	var opponent_id = 2

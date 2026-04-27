@@ -42,6 +42,11 @@ onready var settings_nodes = {
 	"di_combo_limit": $"%DIComboLimit",
 	"brace_enabled": $"%BraceEnabled",
 	"show_last_di_state": $"%ShowLastDIState",
+	"asymmetrical_health_meter": $"%AsymmetricalHealthMeter",
+	"p1_starting_health": $"%P1Health",
+	"p2_starting_health": $"%P2Health",
+	"p1_starting_meter": $"%P1Meter",
+	"p2_starting_meter": $"%P2Meter",
 }
 
 var float_to_string = [
@@ -52,6 +57,8 @@ var float_to_string = [
 	"starting_meter",
 	"min_di_scaling",
 	"max_di_scaling",
+	"p1_starting_meter",
+	"p2_starting_meter",
 ]
 
 func _ready():
@@ -134,6 +141,7 @@ func update_menu():
 #			$"%TurnLength".value = 30
 		$"%TurnLengthLabel".text = "Turn Clock (sec)"
 		$"%TurnMinLengthContainer".hide()
+	$"%AsymmetricalContainer".visible = $"%AsymmetricalHealthMeter".pressed
 	pass
 
 func update_lobby_data():
@@ -294,3 +302,19 @@ func _on_MinDIScalingMeter_value_changed(value):
 func _on_MaxDIScalingMeter_value_changed(value):
 	$"%MaxDIScalingMeterValueLabel".text = str(value)
 	pass # Replace with function body.
+
+
+func _on_P1Health_value_changed(value):
+	$"%P1HealthValueLabel".text = str(int(value)) + "%"
+
+
+func _on_P2Health_value_changed(value):
+	$"%P2HealthValueLabel".text = str(int(value)) + "%"
+
+
+func _on_P1Meter_value_changed(value):
+	$"%P1MeterValueLabel".text = str(value)
+
+
+func _on_P2Meter_value_changed(value):
+	$"%P2MeterValueLabel".text = str(value)

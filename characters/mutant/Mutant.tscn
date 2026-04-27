@@ -1,4 +1,4 @@
-[gd_scene load_steps=331 format=2]
+[gd_scene load_steps=335 format=2]
 
 [ext_resource path="res://mechanics/Hitbox.gd" type="Script" id=1]
 [ext_resource path="res://HurtboxState.gd" type="Script" id=2]
@@ -325,6 +325,10 @@
 [ext_resource path="res://characters/mutant/states/GasBomb.gd" type="Script" id=323]
 [ext_resource path="res://characters/mutant/projectiles/GasBomb.tscn" type="PackedScene" id=324]
 [ext_resource path="res://characters/mutant/actionuidata/BubbleTrapActionUIData.tscn" type="PackedScene" id=325]
+[ext_resource path="res://characters/mutant/sprites/gasbomb3.png" type="Texture" id=326]
+[ext_resource path="res://characters/mutant/sprites/gasbomb2.png" type="Texture" id=327]
+[ext_resource path="res://characters/mutant/sprites/gasbomb4.png" type="Texture" id=328]
+[ext_resource path="res://characters/mutant/sprites/gasbomb1.png" type="Texture" id=329]
 
 [sub_resource type="ShaderMaterial" id=1]
 resource_local_to_scene = true
@@ -456,6 +460,11 @@ animations = [ {
 "frames": [ ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 81 ), ExtResource( 82 ), ExtResource( 82 ), ExtResource( 82 ), ExtResource( 82 ), ExtResource( 79 ), ExtResource( 79 ), ExtResource( 79 ), ExtResource( 80 ), ExtResource( 80 ), ExtResource( 80 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ), ExtResource( 83 ) ],
 "loop": true,
 "name": "ForwardThrow",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 329 ), ExtResource( 329 ), ExtResource( 329 ), ExtResource( 329 ), ExtResource( 327 ), ExtResource( 327 ), ExtResource( 327 ), ExtResource( 326 ), ExtResource( 326 ), ExtResource( 326 ), ExtResource( 326 ), ExtResource( 328 ), ExtResource( 328 ), ExtResource( 328 ), ExtResource( 328 ) ],
+"loop": true,
+"name": "GasBomb",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 132 ) ],
@@ -721,8 +730,7 @@ extra_color_2 = Color( 0.392157, 0.823529, 0.419608, 1 )
 [node name="Sprite" parent="Flip" index="0"]
 material = SubResource( 2 )
 frames = SubResource( 7 )
-animation = "SwipeDown"
-frame = 4
+animation = "GasBomb"
 offset = Vector2( 0, -16 )
 __meta__ = {
 "_edit_group_": true,
@@ -848,7 +856,7 @@ sfx_volume = -5.0
 title = "Caustic Barrage Lo"
 type = 3
 button_texture = ExtResource( 268 )
-air_type = 1
+air_type = 2
 land_cancel = true
 min_land_cancel_frame = 12
 interrupt_from_string = "AerialSuper
@@ -859,6 +867,7 @@ Aerial"
 super_level_ = 1
 super_effect_ = true
 scale_combo_meter_ = true
+force_air_juke = true
 air = true
 
 [node name="CausticBarrage" type="Node2D" parent="StateMachine" index="2"]
@@ -2422,7 +2431,7 @@ __meta__ = {
 apply_forces = true
 apply_fric = true
 apply_grav = true
-anim_length = 16
+anim_length = 15
 projectile_scene = ExtResource( 324 )
 projectile_tick = 5
 projectile_pos_y = -16
@@ -2842,25 +2851,25 @@ projectile_pos_x = 16
 projectile_pos_y = -24
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 160 ): {
-"x": 37,
-"y": -1
-},
 ExtResource( 166 ): {
 "x": -8,
 "y": -17
-},
-ExtResource( 169 ): {
-"x": 16,
-"y": -7
 },
 ExtResource( 171 ): {
 "x": 15,
 "y": -10
 },
+ExtResource( 169 ): {
+"x": 16,
+"y": -7
+},
 ExtResource( 173 ): {
 "x": 9,
 "y": -11
+},
+ExtResource( 160 ): {
+"x": 37,
+"y": -1
 }
 }
 interruptible_on_opponent_turn = true

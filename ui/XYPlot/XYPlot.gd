@@ -585,7 +585,10 @@ func update_value(p = null, set_buffer_update = true):
 			point = point.normalized() * length
 			angle = point.angle()
 	
-	if snap and !Input.is_key_pressed(KEY_SHIFT):
+	var shift_pressed = Input.is_key_pressed(KEY_SHIFT)
+	var invert_snap = (not Engine.editor_hint) and Global.xyplot_invert_snap
+	var snap_now = shift_pressed if invert_snap else !shift_pressed
+	if snap and snap_now:
 		if snap_radius > 0.0:
 			if abs(point.length() / panel_radius - snap_radius) < SNAP_AMOUNT:
 				point = point.normalized() * snap_radius * panel_radius

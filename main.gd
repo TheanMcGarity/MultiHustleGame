@@ -22,6 +22,7 @@ var p2_ghost_data
 var p2_ghost_extra
 
 var match_data = {}
+var has_submitted_a_turn = false
 
 var started_ghost_this_frame = false
 
@@ -72,14 +73,15 @@ func _ready():
 #	SteamHustle.print_all_achievements()
 
 	########################### charloader
-	var container = $"%OptionsContainer".get_node("VBoxContainer").get_node("Contents").get_node("VBoxContainer").get_node("VBoxContainer")
+	var mod_toggle = $"%ModToggle" if has_node("%ModToggle") else null
+	var container = mod_toggle.get_parent() if mod_toggle else null
 
-	if (container.get_node_or_null("LoadOnStart") == null):
+	if container and container.get_node_or_null("DeleteCache") == null:
 		var btt = Button.new()
 		btt.name = "DeleteCache"
 		btt.text = "delete character cache"
 		container.add_child(btt)
-		container.move_child(btt, len(container.get_children()) - 4)
+		container.move_child(btt, mod_toggle.get_index())
 		btt.connect("pressed", self, "_delete_char_cache", [btt])
 #
 	var loaded_mods = false
@@ -164,12 +166,59 @@ func _on_received_spectator_match_data(data):
 
 func _on_match_ready(data):
 	match_data = data
-	singleplayer = true if match_data.has("replay") else data["singleplayer"]
-	if !match_data.has("replay"):
+	has_submitted_a_turn = false
+	if match_data.has("replay_challenge"):
+		singleplayer = false
+	elif match_data.has("replay"):
+		singleplayer = true
+	else:
+		singleplayer = data["singleplayer"]
+	if !match_data.has("replay") and !match_data.has("replay_challenge"):
 		ReplayManager.playback = false
+	if match_data.has("replay_challenge") and match_data.has("selected_characters"):
+		yield(_load_replay_chars_and_wait(match_data), "completed")
 	SteamLobby.SETTINGS_LOCKED = false
 	setup_game(singleplayer, data)
 	emit_signal("game_started")
+
+func _load_replay_chars_and_wait(match_data):
+	var loading_rect = $"%SteamLobby".get_node_or_null("ReplayLoadingRect")
+	var label = null
+	if loading_rect:
+		label = loading_rect.get_node_or_null("ReplayLoadingLabel")
+		loading_rect.show()
+		if label:
+			label.text = "Loading replay characters..."
+		yield(get_tree(), "idle_frame")
+		yield(get_tree(), "idle_frame")
+	var css = _Global.css_instance
+	var my_side = Network.player_id
+	for player_id in [1, 2]:
+		var char_name = match_data.selected_characters[player_id]["name"]
+		if !css.isCustomChar(char_name):
+			continue
+		var is_mine = (player_id == my_side)
+		if label:
+			if is_mine:
+				label.text = "Loading your character: " + css.getCharName(char_name) + "..."
+			else:
+				label.text = "Loading opponent's character: " + css.getCharName(char_name) + "..."
+		yield(get_tree(), "idle_frame")
+		yield(get_tree(), "idle_frame")
+		var idx = css.name_to_index.get(char_name)
+		if idx == null:
+			idx = css.name_to_index.get(css.retro_charName(char_name))
+		if idx != null:
+			css.loadListChar(idx, !is_mine)
+		yield(get_tree(), "idle_frame")
+	if label:
+		label.text = "Waiting for opponent to load their character..."
+	yield(get_tree(), "idle_frame")
+	SteamLobby.signal_replay_mods_loaded()
+	while not SteamLobby.remote_replay_mods_loaded:
+		yield(get_tree(), "idle_frame")
+	if loading_rect:
+		loading_rect.hide()
 
 
 func show_lobby():
@@ -267,6 +316,9 @@ func _on_player_actionable():
 	ui_layer.on_player_actionable()
 	$"%GhostWaitTimer".start()
 	start_ghost()
+	if Global.enable_replay_backups and has_submitted_a_turn and !ReplayManager.playback and is_instance_valid(game) and !game.game_finished:
+		ReplayManager.save_replay_backup(match_data)
+	has_submitted_a_turn = true
 
 func on_action_clicked(action, data, extra, player_id):
 	if player_id == 1:

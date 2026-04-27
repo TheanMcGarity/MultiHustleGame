@@ -556,6 +556,29 @@ func assign_players():
 		network_ids[2] = player_ids[1]
 		rpc_("sync_ids", network_ids)
 
+func assign_players_for_replay_challenge(replay_data):
+	print("assigning players for replay challenge")
+	if !steam:
+		return
+	player_id = SteamLobby.PLAYER_SIDE
+	if SteamLobby.PLAYER_SIDE == 1:
+		network_ids[1] = SteamHustle.STEAM_ID
+		network_ids[2] = SteamLobby.OPPONENT_ID
+	else:
+		network_ids[1] = SteamLobby.OPPONENT_ID
+		network_ids[2] = SteamHustle.STEAM_ID
+	ReplayManager.frames = replay_data.frames
+	if ReplayManager.frames.has("finished"):
+		ReplayManager.frames["finished"] = false
+	ReplayManager.playback = true
+	ReplayManager.replaying_ingame = true
+	var match_data = replay_data.duplicate(true)
+	match_data.erase("frames")
+	match_data["replay_challenge"] = true
+	match_data["singleplayer"] = false
+	multiplayer_active = true
+	emit_signal("match_ready", match_data)
+
 func select_character(character, style=null):
 	rpc_("sync_character_selection", [player_id, character, style])
 

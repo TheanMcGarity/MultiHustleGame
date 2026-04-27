@@ -39,6 +39,7 @@ func _on_create_lobby_button_pressed():
 		availability = SteamLobby.LOBBY_AVAILABILITY.FRIENDS
 	SteamLobby.LOBBY_NAME = get_lobby_name()
 	SteamLobby.LOBBY_CHARLOADER_ENABLED = charloader_button.pressed and ModLoader.active
+	SteamLobby.LOBBY_REPLAY_CHALLENGE_ENABLED = $"%ReplayChallengeButton".pressed
 	SteamLobby.create_lobby(availability, $"%LobbySize".value)
 
 func _on_back_button_pressed():

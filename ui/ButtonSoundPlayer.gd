@@ -23,7 +23,10 @@ func setup():
 	$Hover.volume_db = hover_db
 	$Select.volume_db = select_db
 	for button_container in button_containers:
-		for button in get_node(button_container).get_children():
+		var node = get_node_or_null(button_container) if button_container else null
+		if not node:
+			continue
+		for button in node.get_children():
 			if button is BaseButton:
 				if connected_buttons.has(button):
 					continue

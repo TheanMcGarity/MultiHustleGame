@@ -9,6 +9,10 @@ onready var user_list = $"%UserList"
 var users = []
 var matches = {}
 var selected_user = null
+var pending_replay_challenge_member = null
+var pending_replay_match_data = null
+var pending_replay_path = ""
+var incoming_is_replay_challenge = false
 
 var handshake_made = false
 
@@ -16,6 +20,8 @@ var handshake_made = false
 func _ready():
 	SteamLobby.connect("lobby_data_update", self, "_on_lobby_data_update")
 	SteamLobby.connect("received_challenge", self, "_on_received_challenge")
+	SteamLobby.connect("received_replay_challenge", self, "_on_received_replay_challenge")
+	SteamLobby.connect("replay_challenge_declined", self, "_on_replay_challenge_declined_with_reason")
 	SteamLobby.connect("retrieved_lobby_members", self, "_on_retrieved_lobby_members", [], CONNECT_DEFERRED)
 	SteamLobby.connect("challenge_declined", self, "_on_challenge_declined")
 	SteamLobby.connect("challenger_cancelled", self, "_on_challenger_cancelled")
@@ -25,6 +31,9 @@ func _ready():
 	$"%ChallengeCancelButton".connect("pressed", self, "_on_challenge_cancelled")
 	$"%ChallengeAcceptButton".connect("pressed", self, "_on_challenge_accept_pressed")
 	$"%ChallengeDeclineButton".connect("pressed", self, "_on_challenge_decline_pressed")
+	$"%SidePickerP1Button".connect("pressed", self, "_on_side_picker_p1_pressed")
+	$"%SidePickerP2Button".connect("pressed", self, "_on_side_picker_p2_pressed")
+	$"%SidePickerCancelButton".connect("pressed", self, "_on_side_picker_cancel_pressed")
 #	user_list.connect("item_selected", self, "_on_user_selected")
 	$"%GameSettingsPanelContainer".init(false)
 	_on_retrieved_lobby_members(SteamLobby.LOBBY_MEMBERS)
@@ -38,14 +47,25 @@ func _on_lobby_data_update(success, lobby_id, member_id):
 	SteamLobby._get_Lobby_Members()
 
 func _on_challenge_accept_pressed():
-	SteamLobby.accept_challenge()
+	if incoming_is_replay_challenge:
+		incoming_is_replay_challenge = false
+		SteamLobby.accept_replay_challenge()
+	else:
+		SteamLobby.accept_challenge()
 	$"%ChallengeDialogScreen".hide()
 
 func _on_challenge_decline_pressed():
-	SteamLobby.decline_challenge()
+	if incoming_is_replay_challenge:
+		incoming_is_replay_challenge = false
+		SteamLobby.decline_replay_challenge()
+	else:
+		SteamLobby.decline_challenge()
 	$"%ChallengeDialogScreen".hide()
 
 func _on_received_challenge(steam_id):
+	incoming_is_replay_challenge = false
+	$"%ChallengeAcceptButton".show()
+	$"%ChallengeDeclineButton".text = "decline"
 	$"%ChallengeLabel".text = Steam.getFriendPersonaName(steam_id) + " has challenged you."
 	$"%ChallengeDialogScreen".show()
 	if visible:
@@ -57,6 +77,62 @@ func _on_challenge_cancelled():
 	
 func _on_user_challenge_pressed():
 	$"%SendChallengeDialogScreen".show()
+
+func _on_user_replay_challenge_pressed(member):
+	pending_replay_challenge_member = member
+	var ui_layer = get_parent()
+	if !ui_layer.is_connected("replay_picked_for_challenge", self, "_on_replay_picked_for_challenge"):
+		ui_layer.connect("replay_picked_for_challenge", self, "_on_replay_picked_for_challenge")
+	var opponent_name = Steam.getFriendPersonaName(member.steam_id) if member else ""
+	ui_layer.open_replay_picker_for_challenge(opponent_name)
+
+func _on_replay_picked_for_challenge(match_data, path):
+	pending_replay_match_data = match_data
+	pending_replay_path = path
+	_show_side_picker_dialog()
+
+func _show_side_picker_dialog():
+	var p1_name = "P1"
+	var p2_name = "P2"
+	if pending_replay_match_data and pending_replay_match_data.has("selected_characters"):
+		var sc = pending_replay_match_data.selected_characters
+		if sc.has(1) and sc[1].has("name"):
+			p1_name = _display_char_name(sc[1]["name"])
+		if sc.has(2) and sc[2].has("name"):
+			p2_name = _display_char_name(sc[2]["name"])
+	$"%SidePickerLabel".text = "Pick your side\n%s vs %s" % [p1_name, p2_name]
+	$"%SidePickerP1Button".text = "P1 (" + p1_name + ")"
+	$"%SidePickerP2Button".text = "P2 (" + p2_name + ")"
+	$"%SidePickerDialogScreen".show()
+
+func _display_char_name(full_name):
+	var css = Network.css_instance
+	if css:
+		return css.getCharName(full_name)
+	if full_name.find("__") != -1:
+		return full_name.split("__")[1]
+	return full_name
+
+func _on_side_picker_p1_pressed():
+	_send_replay_challenge(1)
+
+func _on_side_picker_p2_pressed():
+	_send_replay_challenge(2)
+
+func _on_side_picker_cancel_pressed():
+	_clear_pending_replay_challenge()
+	$"%SidePickerDialogScreen".hide()
+
+func _send_replay_challenge(side):
+	if pending_replay_challenge_member and pending_replay_match_data:
+		SteamLobby.replay_challenge_user(pending_replay_challenge_member, pending_replay_match_data, side)
+	_clear_pending_replay_challenge()
+	$"%SidePickerDialogScreen".hide()
+
+func _clear_pending_replay_challenge():
+	pending_replay_challenge_member = null
+	pending_replay_match_data = null
+	pending_replay_path = ""
 
 func show():
 	.show()
@@ -128,6 +204,7 @@ func _on_retrieved_lobby_members(members):
 		$"%UserList".add_child(user_scene)
 		user_scene.init(member)
 		user_scene.connect("challenge_pressed", self, "_on_user_challenge_pressed")
+		user_scene.connect("replay_challenge_pressed", self, "_on_user_replay_challenge_pressed")
 #		user_list.add_item(member.steam_name, null)
 		print("updating members")
 		users.append(member)
@@ -178,3 +255,68 @@ func _on_back_button_pressed():
 func _on_IncompatibleQuitButton_pressed():
 	Network.stop_multiplayer(true)
 	Global.reload()
+
+func _on_received_replay_challenge(steam_id, replay_data, challenger_side):
+	var p1_name = "P1"
+	var p2_name = "P2"
+	if replay_data.has("selected_characters"):
+		var sc = replay_data.selected_characters
+		if sc.has(1) and sc[1].has("name"):
+			p1_name = _display_char_name(sc[1].name)
+		if sc.has(2) and sc[2].has("name"):
+			p2_name = _display_char_name(sc[2].name)
+	var missing = _missing_chars_for_replay(replay_data)
+	if !missing.empty():
+		SteamLobby.decline_replay_challenge_with_reason("missing_mods", missing)
+		return
+	var challenger_name = Steam.getFriendPersonaName(steam_id)
+	var their_char = p1_name if challenger_side == 1 else p2_name
+	var your_side = 2 if challenger_side == 1 else 1
+	var your_char = p2_name if challenger_side == 1 else p1_name
+	incoming_is_replay_challenge = true
+	$"%ChallengeAcceptButton".show()
+	$"%ChallengeDeclineButton".text = "decline"
+	$"%ChallengeLabel".text = "%s wants to replay-challenge you.\n%s vs %s\nThey'd play P%d (%s) — you'd play P%d (%s)." % [challenger_name, p1_name, p2_name, challenger_side, their_char, your_side, your_char]
+	$"%ChallengeDialogScreen".show()
+	if visible:
+		$ChallengeSound.play()
+
+func _on_replay_challenge_declined_with_reason(reason, detail):
+	if reason == null:
+		return
+	var msg = "Replay challenge declined."
+	if reason == "missing_mods":
+		var missing_str = ""
+		if detail is Array:
+			var pretty = []
+			for n in detail:
+				pretty.append(_display_char_name(n))
+			missing_str = ", ".join(pretty)
+		msg = "Opponent is missing required mods:\n%s" % missing_str
+	$"%ChallengeLabel".text = msg
+	incoming_is_replay_challenge = false
+	$"%ChallengeAcceptButton".hide()
+	$"%ChallengeDeclineButton".text = "ok"
+	$"%ChallengeDialogScreen".show()
+
+func _missing_chars_for_replay(replay_data):
+	var missing = []
+	if !replay_data.has("selected_characters"):
+		return missing
+	var css = Network.css_instance
+	if !css:
+		return missing
+	for player_id in [1, 2]:
+		var sc = replay_data.selected_characters
+		if !sc.has(player_id) or !sc[player_id].has("name"):
+			continue
+		var char_name = sc[player_id].name
+		if !css.isCustomChar(char_name):
+			continue
+		if css.name_to_index.has(char_name):
+			continue
+		var retro = css.retro_charName(char_name)
+		if retro != null and css.name_to_index.has(retro):
+			continue
+		missing.append(char_name)
+	return missing

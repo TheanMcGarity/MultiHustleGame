@@ -197,7 +197,7 @@ unique_name_in_owner = true
 visible = false
 margin_left = 1.0
 margin_top = 146.0
-margin_right = 234.0
+margin_right = 220.0
 margin_bottom = 157.0
 text = "No matches currently in progress..."
 align = 1
@@ -267,7 +267,7 @@ force_mute_on_hide = true
 [node name="Buttons" type="HBoxContainer" parent="MarginContainer/HBoxContainer/VBoxContainer"]
 visible = false
 margin_top = 307.0
-margin_right = 187.0
+margin_right = 171.0
 margin_bottom = 319.0
 alignment = 1
 __meta__ = {
@@ -276,7 +276,7 @@ __meta__ = {
 
 [node name="StartButton" type="Button" parent="MarginContainer/HBoxContainer/VBoxContainer/Buttons"]
 unique_name_in_owner = true
-margin_right = 187.0
+margin_right = 171.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
 disabled = true
@@ -324,10 +324,26 @@ margin_right = -50.0
 margin_bottom = -20.0
 color = Color( 0, 0, 0, 0.780392 )
 
-[node name="Label" type="Label" parent="LoadingModsRect"]
+[node name="LoadingModsLabel" type="Label" parent="LoadingModsRect"]
+unique_name_in_owner = true
 anchor_right = 1.0
 anchor_bottom = 1.0
 text = "Loading mods..."
+align = 1
+valign = 1
+
+[node name="ReplayLoadingRect" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0, 0, 0, 0.901961 )
+
+[node name="ReplayLoadingLabel" type="Label" parent="ReplayLoadingRect"]
+unique_name_in_owner = true
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Loading replay characters..."
 align = 1
 valign = 1
 
@@ -423,6 +439,65 @@ margin_bottom = 20.0
 rect_min_size = Vector2( 50, 20 )
 text = "cancel"
 clip_text = true
+
+[node name="SidePickerDialogScreen" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0, 0, 0, 0.803922 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SidePickerDialogScreen"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -80.0
+margin_top = -47.0
+margin_right = 80.0
+margin_bottom = 47.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="SidePickerLabel" type="Label" parent="SidePickerDialogScreen/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 31.0
+margin_right = 160.0
+margin_bottom = 42.0
+grow_horizontal = 2
+text = "Pick your side"
+align = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SidePickerDialogScreen/VBoxContainer"]
+margin_top = 43.0
+margin_right = 160.0
+margin_bottom = 63.0
+alignment = 1
+
+[node name="SidePickerP1Button" type="Button" parent="SidePickerDialogScreen/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+margin_right = 70.0
+margin_bottom = 20.0
+rect_min_size = Vector2( 70, 20 )
+text = "P1"
+clip_text = true
+
+[node name="SidePickerP2Button" type="Button" parent="SidePickerDialogScreen/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+margin_left = 71.0
+margin_right = 141.0
+margin_bottom = 20.0
+rect_min_size = Vector2( 70, 20 )
+text = "P2"
+clip_text = true
+
+[node name="SidePickerCancelButton" type="Button" parent="SidePickerDialogScreen/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 64.0
+margin_right = 160.0
+margin_bottom = 84.0
+rect_min_size = Vector2( 0, 20 )
+text = "cancel"
 
 [node name="LoadingSpectatorRect" type="ColorRect" parent="."]
 unique_name_in_owner = true

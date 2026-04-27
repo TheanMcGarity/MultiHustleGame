@@ -501,7 +501,18 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 		if SteamLobby.is_fighting():
 			SteamLobby.on_match_started()
 
-	if match_data.has("starting_meter"):
+	if match_data.has("asymmetrical_health_meter") and match_data.asymmetrical_health_meter:
+		if match_data.has("p1_starting_meter"):
+			p1.gain_super_meter(p1.fixed.round(p1.fixed.mul(str(Fighter.MAX_SUPER_METER), match_data.p1_starting_meter)))
+		if match_data.has("p2_starting_meter"):
+			p2.gain_super_meter(p2.fixed.round(p2.fixed.mul(str(Fighter.MAX_SUPER_METER), match_data.p2_starting_meter)))
+		if match_data.has("p1_starting_health"):
+			p1.hp = int(round(p1.MAX_HEALTH * float(match_data.p1_starting_health) / 100.0))
+			p1.trail_hp = p1.hp
+		if match_data.has("p2_starting_health"):
+			p2.hp = int(round(p2.MAX_HEALTH * float(match_data.p2_starting_health) / 100.0))
+			p2.trail_hp = p2.hp
+	elif match_data.has("starting_meter"):
 		var meter_amount = p1.fixed.round(p1.fixed.mul(str(Fighter.MAX_SUPER_METER), match_data.starting_meter))
 		p1.gain_super_meter(meter_amount)
 		p2.gain_super_meter(meter_amount)

@@ -36,8 +36,6 @@ gravity = "0"
 air_friction = "1.5"
 max_air_speed = "50"
 max_fall_speed = "100"
-extra_state_variables = "homing
-ticks"
 
 [node name="Sprite" parent="Flip" index="0"]
 scale = Vector2( 0.5, 0.5 )
@@ -49,8 +47,8 @@ free = false
 one_shot = false
 
 [node name="CollisionBox" parent="." index="2"]
-width = 4
-height = 4
+width = 1
+height = 1
 
 [node name="Hurtbox" parent="." index="3"]
 width = 5

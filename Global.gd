@@ -2,15 +2,21 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.32-steam-unstable"
+var VERSION = "1.9.33-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 var audio_player
 var music_enabled = true
+var master_value = 1.0
+var fx_value = 1.0
+var ui_value = 1.0
+var music_value = 1.0
 var freeze_ghost_prediction = true
 var freeze_ghost_sound = true
 var ghost_afterimages = true
 var fullscreen = false
+var cap_framerate = true
+var xyplot_invert_snap = false
 var show_hitboxes = false
 var show_extra_info = false
 var light_mode = false
@@ -31,6 +37,7 @@ var steam_demo_version = false
 var show_last_move_indicators = true
 var speed_lines_enabled = true
 var replay_extra_freeze_frames = true
+var enable_replay_backups = true
 var seen_custom_character_nag = false
 var forfeit_buttons_enabled = false
 var auto_fc = true
@@ -120,6 +127,7 @@ func _enter_tree():
 	rng.randomize()
 	set_music_enabled(music_enabled)
 	set_fullscreen(fullscreen)
+	set_cap_framerate(cap_framerate)
 #	load_supporter_pack()
 #	var test = PoolByteArray()
 #	var test2 = bytes2var(test)
@@ -188,6 +196,16 @@ func set_fullscreen(on):
 		OS.window_borderless = false
 	save_options()
 
+func set_cap_framerate(on):
+	cap_framerate = on
+	if on:
+		Engine.target_fps = 60
+		OS.vsync_enabled = true
+	else:
+		Engine.target_fps = 0
+		OS.vsync_enabled = false
+	save_options()
+
 func set_hitboxes(on):
 	show_hitboxes = on
 	save_options()
@@ -239,6 +257,8 @@ func save_options():
 			"ghost_afterimages": ghost_afterimages,
 			"ghost_speed": ghost_speed,
 			"fullscreen": fullscreen,
+			"cap_framerate": cap_framerate,
+			"xyplot_invert_snap": xyplot_invert_snap,
 			"show_hitboxes": show_hitboxes,
 			"show_last_move_indicators": show_last_move_indicators,
 			"show_playback_controls": show_playback_controls,
@@ -254,8 +274,13 @@ func save_options():
 			"speed_lines_enabled": speed_lines_enabled,
 			"auto_fc": auto_fc,
 			"replay_extra_freeze_frames": replay_extra_freeze_frames,
+			"enable_replay_backups": enable_replay_backups,
 			"seen_custom_character_nag": seen_custom_character_nag,
 #			"forfeit_buttons_enabled": forfeit_buttons_enabled,
+			"master_value" : master_value,
+			"fx_value" : fx_value,
+			"ui_value" : ui_value,
+			"music_value" : music_value,
 		}
 	})
 
@@ -269,6 +294,8 @@ func get_default_player_data():
 			"freeze_ghost_sound": true,
 			"ghost_afterimages": true,
 			"fullscreen": false,
+			"cap_framerate": true,
+			"xyplot_invert_snap": false,
 			"ghost_speed": 2,
 			"show_hitboxes": false,
 			"show_last_move_indicators": true,
@@ -284,8 +311,13 @@ func get_default_player_data():
 			"auto_fc": true,
 			"show_extra_info": false,
 			"replay_extra_freeze_frames": true,
+			"enable_replay_backups": true,
 			"seen_custom_character_nag": false,
 #			"forfeit_buttons_enabled": false,
+			"master_value" : 1.0,
+			"fx_value" : 1.0,
+			"ui_value" : 1.0,
+			"music_value" : 1.0,
 		}
 	}
 

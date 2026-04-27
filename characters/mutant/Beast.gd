@@ -202,6 +202,13 @@ func tick():
 			juke_speed = fixed.mul(juke_speed, "0.7")
 			if current_state().state_name == "DashForward":
 				juke_speed = fixed.mul(juke_speed, "1.4")
+			if !fixed.eq(juke_dir_x, "0"):
+				var facing = get_facing_int()
+				if (fixed.lt(juke_dir_x, "0") and facing == -1) or (fixed.gt(juke_dir_x, "0") and facing == 1):
+					juke_speed = fixed.mul(juke_speed, "1.4")
+		
+		if current_state().state_name == "AirDash":
+			juke_speed = fixed.mul(juke_speed, "1.8")
 
 		if up_juke_ticks > 0:
 			up_juke_ticks -= 1

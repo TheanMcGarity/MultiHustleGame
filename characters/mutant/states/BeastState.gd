@@ -5,6 +5,7 @@ class_name BeastState
 export var moving_up_only = false
 export var moving_down_only = false
 export var force_air_juke = false
+export var force_air_juke_allow_down = false
 export var juke_on_block = false
 export var juke_pip_max_blocks = 0
 

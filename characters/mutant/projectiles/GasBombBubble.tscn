@@ -25,6 +25,7 @@ animations = [ {
 
 [node name="BaseProjectile" instance=ExtResource( 1 )]
 script = ExtResource( 7 )
+air_friction = "0.15"
 damages_own_team = true
 has_projectile_parry_window = false
 deletes_other_projectiles = false
@@ -73,7 +74,7 @@ bass_sound_volume = -8.0
 knockback = "7.0"
 grounded_hit_state = "HurtAerial"
 minimum_grounded_frames = 10
-start_tick = 9
+start_tick = 1
 always_on = true
 
 [node name="Pop" type="Node2D" parent="StateMachine" index="1"]

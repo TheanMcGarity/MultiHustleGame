@@ -16,7 +16,7 @@ func show_options():
 	spike_button.hide()
 	spike_button.set_pressed_no_signal(true)
 	juke_button.show()
-	if fighter.current_state().state_name == "Knockdown":
+	if fighter.current_state().state_name == "Knockdown" or fighter.current_state().state_name == "HardKnockdown":
 		juke_button.hide()
 		juke_dir.hide()
 		return
@@ -35,6 +35,12 @@ func is_invalid_state(state):
 
 func update_selected_move(move_state):
 	.update_selected_move(move_state)
+	if fighter.current_state().state_name == "Knockdown" or fighter.current_state().state_name == "HardKnockdown":
+		juke_button.set_pressed_no_signal(false)
+		juke_button.disabled = true
+		juke_button.hide()
+		juke_dir.hide()
+		return
 	juke_button.disabled = fighter.juke_pips < 1
 	if move_state is CharacterState:
 		if is_invalid_state(move_state):
@@ -45,10 +51,11 @@ func update_selected_move(move_state):
 		juke_button.disabled = true
 	
 	var air_juke = move_state and move_state.get("force_air_juke")
+	var allow_down = move_state and move_state.get("force_air_juke_allow_down")
 	var different = ((juke_dir.S or juke_dir.N) != air_juke)
-	juke_dir.set_S(!fighter.is_grounded())
-	juke_dir.set_SW(!fighter.is_grounded())
-	juke_dir.set_SE(!fighter.is_grounded())
+	juke_dir.set_S(!fighter.is_grounded() or allow_down)
+	juke_dir.set_SW(!fighter.is_grounded() or allow_down)
+	juke_dir.set_SE(!fighter.is_grounded() or allow_down)
 #	juke_dir.set_Neutral(!fighter.is_grounded())
 	juke_dir.set_N((!fighter.is_grounded() and fighter.air_movements_left > 0) or air_juke)
 	juke_dir.set_NE((!fighter.is_grounded() and fighter.air_movements_left > 0) or air_juke)

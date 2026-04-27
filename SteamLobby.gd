@@ -14,6 +14,9 @@ signal quit_on_rematch()
 signal received_match_settings()
 signal handshake_made()
 signal received_challenge()
+signal received_replay_challenge(steam_id, replay_data, challenger_side)
+signal replay_challenge_declined(reason, detail)
+signal replay_mods_loaded_received()
 signal challenge_declined()
 signal challenger_cancelled()
 signal received_spectator_match_data(data)
@@ -33,8 +36,12 @@ var MATCH_SETTINGS = {}
 var CHALLENGING_STEAM_ID = 0
 var CHALLENGER_STEAM_ID = 0
 var CHALLENGER_MATCH_SETTINGS = {}
+var REPLAY_FULL_DATA = null
+var REPLAY_CHALLENGER_SIDE = 0
+var remote_replay_mods_loaded = false
 var REQUESTING_TO_SPECTATE = 0
 var LOBBY_CHARLOADER_ENABLED = true
+var LOBBY_REPLAY_CHALLENGE_ENABLED = true
 
 var LOBBY_ID: int = 0
 var LOBBY_MEMBERS: Array = []
@@ -183,6 +190,25 @@ func challenge_user(user):
 	CHALLENGING_STEAM_ID = user.steam_id
 	OPPONENT_ID = user.steam_id
 	PLAYER_SIDE = 1
+
+func replay_challenge_user(user, match_data, side):
+	print("replay-challenging user as side " + str(side))
+	var full_replay = match_data.duplicate(true)
+	full_replay["frames"] = ReplayManager.frames
+	var data = {
+		"replay_challenge_from": SteamHustle.STEAM_ID,
+		"replay_data": full_replay,
+		"replay_challenger_side": side,
+	}
+	Steam.setLobbyMemberData(LOBBY_ID, "status", "busy")
+	_send_P2P_Packet(user.steam_id, data)
+	SETTINGS_LOCKED = true
+	CHALLENGING_STEAM_ID = user.steam_id
+	OPPONENT_ID = user.steam_id
+	PLAYER_SIDE = side
+	REPLAY_FULL_DATA = full_replay
+	REPLAY_CHALLENGER_SIDE = side
+	remote_replay_mods_loaded = false
 
 func on_match_started():
 	Steam.setLobbyMemberData(LOBBY_ID, "game_started", "true")
@@ -366,6 +392,70 @@ func _receive_challenge(steam_id, match_settings):
 	CHALLENGER_MATCH_SETTINGS = match_settings
 	emit_signal("received_challenge", CHALLENGER_STEAM_ID)
 
+func _receive_replay_challenge(steam_id, replay_data, challenger_side):
+	if Steam.getLobbyMemberData(LOBBY_ID, SteamHustle.STEAM_ID, "status") != "idle":
+		_send_P2P_Packet(steam_id, {"player_busy": null})
+		return
+	print("received replay challenge from side " + str(challenger_side))
+	Steam.setLobbyMemberData(LOBBY_ID, "status", "busy")
+	CHALLENGER_STEAM_ID = steam_id
+	REPLAY_FULL_DATA = replay_data
+	REPLAY_CHALLENGER_SIDE = challenger_side
+	remote_replay_mods_loaded = false
+	emit_signal("received_replay_challenge", steam_id, replay_data, challenger_side)
+
+func accept_replay_challenge():
+	var steam_id = CHALLENGER_STEAM_ID
+	var my_side = 2 if REPLAY_CHALLENGER_SIDE == 1 else 1
+	print("accepting replay challenge as side " + str(my_side))
+	OPPONENT_ID = steam_id
+	PLAYER_SIDE = my_side
+	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "player_id", str(my_side))
+	SETTINGS_LOCKED = true
+	_send_P2P_Packet(steam_id, {
+		"replay_challenge_accepted": SteamHustle.STEAM_ID,
+	})
+	_setup_replay_game_vs(OPPONENT_ID)
+
+func decline_replay_challenge():
+	var steam_id = CHALLENGER_STEAM_ID
+	_send_P2P_Packet(steam_id, {"replay_challenge_declined": SteamHustle.STEAM_ID})
+	Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+	CHALLENGER_STEAM_ID = 0
+	REPLAY_FULL_DATA = null
+	REPLAY_CHALLENGER_SIDE = 0
+
+func signal_replay_mods_loaded():
+	if OPPONENT_ID == 0:
+		return
+	_send_P2P_Packet(OPPONENT_ID, {"replay_mods_loaded": SteamHustle.STEAM_ID})
+
+func decline_replay_challenge_with_reason(reason, detail=null):
+	var steam_id = CHALLENGER_STEAM_ID
+	_send_P2P_Packet(steam_id, {
+		"replay_challenge_declined": SteamHustle.STEAM_ID,
+		"replay_decline_reason": reason,
+		"replay_decline_detail": detail,
+	})
+	Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+	CHALLENGER_STEAM_ID = 0
+	REPLAY_FULL_DATA = null
+	REPLAY_CHALLENGER_SIDE = 0
+
+func _on_opponent_replay_challenge_accepted(steam_id):
+	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "player_id", str(PLAYER_SIDE))
+	_setup_replay_game_vs(steam_id)
+
+func _setup_replay_game_vs(steam_id):
+	print("registering players for replay challenge")
+	REMATCHING_ID = 0
+	OPPONENT_ID = steam_id
+	Network.register_player_steam(steam_id)
+	Network.register_player_steam(SteamHustle.STEAM_ID)
+	Steam.setLobbyMemberData(LOBBY_ID, "status", "fighting")
+	Steam.setLobbyMemberData(LOBBY_ID, "opponent_id", str(OPPONENT_ID))
+	Network.assign_players_for_replay_challenge(REPLAY_FULL_DATA)
+
 func _on_challenge_declined(member_id):
 	if member_id != CHALLENGING_STEAM_ID:
 		return
@@ -458,6 +548,18 @@ func _read_P2P_Packet():
 		if readable.has("challenge_accepted"):
 			if PACKET_SENDER == CHALLENGING_STEAM_ID:
 				_on_opponent_challenge_accepted(readable.challenge_accepted)
+		if readable.has("replay_challenge_from"):
+			_receive_replay_challenge(readable.replay_challenge_from, readable.replay_data, readable.replay_challenger_side)
+		if readable.has("replay_challenge_accepted"):
+			if PACKET_SENDER == CHALLENGING_STEAM_ID:
+				_on_opponent_replay_challenge_accepted(readable.replay_challenge_accepted)
+		if readable.has("replay_challenge_declined"):
+			_on_challenge_declined(readable.replay_challenge_declined)
+			emit_signal("replay_challenge_declined", readable.get("replay_decline_reason"), readable.get("replay_decline_detail"))
+		if readable.has("replay_mods_loaded"):
+			if PACKET_SENDER == OPPONENT_ID:
+				remote_replay_mods_loaded = true
+				emit_signal("replay_mods_loaded_received")
 		if readable.has("match_quit"):
 			if PACKET_SENDER == OPPONENT_ID:
 				if Network.rematch_menu:
@@ -694,6 +796,7 @@ func _on_Lobby_Created(connect: int, lobby_id: int):
 		Steam.setLobbyJoinable(LOBBY_ID, true)
 		Steam.setLobbyData(LOBBY_ID, "name", ProfanityFilter.filter(LOBBY_NAME))
 		Steam.setLobbyData(LOBBY_ID, "charloader", "Yes" if LOBBY_CHARLOADER_ENABLED else "No")
+		Steam.setLobbyData(LOBBY_ID, "replay_challenge", "Yes" if LOBBY_REPLAY_CHALLENGE_ENABLED else "No")
 		Steam.setLobbyData(LOBBY_ID, "code", lobby_code)
 		print("lobby code: " + lobby_code)
 #		Steam.setLobbyData(LOBBY_ID, "status", "Waiting")
@@ -724,6 +827,8 @@ func _on_Lobby_Joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		# Set this lobby ID as your lobby ID
 		LOBBY_ID = lobby_id
 		LOBBY_CHARLOADER_ENABLED = Steam.getLobbyData(LOBBY_ID, "charloader") == "Yes"
+		var rce = Steam.getLobbyData(LOBBY_ID, "replay_challenge")
+		LOBBY_REPLAY_CHALLENGE_ENABLED = rce != "No"
 
 		# Get the lobby members
 		_get_Lobby_Members()

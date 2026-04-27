@@ -10,6 +10,10 @@ var jumped = false
 func _enter():
 	jumped = false
 
+func _frame_0():
+	if host.is_grounded():
+		host.apply_force_relative("5", "0")
+
 func _frame_5():
 	host.start_projectile_invulnerability()
 

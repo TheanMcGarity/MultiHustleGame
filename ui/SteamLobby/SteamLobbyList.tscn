@@ -344,7 +344,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 202.0
 margin_top = 287.0
-margin_right = -49.0
 margin_bottom = 33.0
 min_value = 2.0
 max_value = 32.0
@@ -367,9 +366,9 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -46.0
+margin_left = 5.0
 margin_top = 21.0
-margin_right = -4.0
+margin_right = 18.0
 margin_bottom = 33.0
 text = "16"
 
@@ -377,7 +376,7 @@ text = "16"
 unique_name_in_owner = true
 margin_left = 137.0
 margin_top = 268.0
-margin_right = 302.0
+margin_right = 353.0
 margin_bottom = 286.0
 max_length = 64
 placeholder_text = "lobby name"
@@ -403,11 +402,21 @@ custom_colors/font_color_hover = Color( 0.396078, 0.901961, 1, 1 )
 custom_colors/font_color_pressed = Color( 0.396078, 0.901961, 1, 1 )
 text = "allow custom characters"
 
+[node name="ReplayChallengeButton" type="CheckButton" parent="CreateLobbyDialog"]
+unique_name_in_owner = true
+margin_left = 210.0
+margin_top = 300.0
+margin_right = 354.0
+margin_bottom = 312.0
+hint_tooltip = "Players can challenge with saved replays."
+pressed = true
+text = "allow replay challenges"
+
 [node name="Panel" type="Panel" parent="CreateLobbyDialog"]
 show_behind_parent = true
 margin_left = 59.0
 margin_top = 266.0
-margin_right = 304.0
+margin_right = 357.0
 margin_bottom = 314.0
 mouse_filter = 2
 
@@ -519,10 +528,10 @@ size_flags_horizontal = 0
 text = "refresh"
 
 [node name="Label" type="Label" parent="."]
-margin_left = 251.0
-margin_top = 276.0
-margin_right = 613.0
-margin_bottom = 329.0
+margin_left = 245.0
+margin_top = 277.0
+margin_right = 607.0
+margin_bottom = 330.0
 autowrap = true
 
 [node name="LobbySettingsChangedWindow" type="PanelContainer" parent="."]

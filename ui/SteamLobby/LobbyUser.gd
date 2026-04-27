@@ -1,6 +1,7 @@
 extends Panel
 
 signal challenge_pressed()
+signal replay_challenge_pressed(member)
 signal avatar_loaded()
 
 #const MEMBER_MIN_SIZE = 30
@@ -12,6 +13,7 @@ var member
 func _ready():
 	Steam.connect("avatar_loaded", self, "_loaded_Avatar")
 	$"%ChallengeButton".connect("pressed", self, "on_challenge_pressed")
+	$"%ReplayChallengeButton".connect("pressed", self, "on_replay_challenge_pressed")
 
 func init(member):
 #	if $"%AvatarIcon".texture == null:
@@ -20,13 +22,20 @@ func init(member):
 	self.member = member
 	$"%OwnerIcon".visible = false
 	$"%ChallengeButton".hide()
+	$"%ReplayChallengeButton".hide()
 	if SteamHustle.STEAM_ID != member.steam_id:
 		$"%ChallengeButton".show()
+		if SteamLobby.LOBBY_REPLAY_CHALLENGE_ENABLED:
+			$"%ReplayChallengeButton".show()
+		else:
+			$"%ChallengeButton".margin_right = 97
 	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == member.steam_id:
 		$"%OwnerIcon".visible = true
 	var status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, member.steam_id, "status")
 	if status != "idle":
 		$"%ChallengeButton".disabled = true
+		$"%ReplayChallengeButton".hide()
+		$"%ChallengeButton".margin_right = 97
 		$"%ChallengeButton".text = status
 		if status == "fighting":
 			$"%ChallengeButton".text = "fighting " + Steam.getFriendPersonaName(int(Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, member.steam_id, "opponent_id")))
@@ -42,6 +51,10 @@ func on_challenge_pressed():
 	if member:
 		emit_signal("challenge_pressed")
 		SteamLobby.challenge_user(member)
+
+func on_replay_challenge_pressed():
+	if member:
+		emit_signal("replay_challenge_pressed", member)
 
 func _loaded_Avatar(id: int, size: int, buffer: PoolByteArray) -> void:
 	if id != member.steam_id:

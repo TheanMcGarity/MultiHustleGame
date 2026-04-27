@@ -2,14 +2,15 @@ extends "res://main.gd"
 
 # delete character cache button
 func _ready():
-	var container = $"%OptionsContainer".get_node("VBoxContainer").get_node("Contents").get_node("VBoxContainer").get_node("VBoxContainer")
+	var mod_toggle = $"%ModToggle" if has_node("%ModToggle") else null
+	var container = mod_toggle.get_parent() if mod_toggle else null
 
-	if (container.get_node_or_null("LoadOnStart") == null):
+	if container and container.get_node_or_null("DeleteCache") == null:
 		var btt = Button.new()
 		btt.name = "DeleteCache"
 		btt.text = "delete character cache"
 		container.add_child(btt)
-		container.move_child(btt, len(container.get_children()) - 4)
+		container.move_child(btt, mod_toggle.get_index())
 		btt.connect("pressed", self, "_delete_char_cache", [btt])
 
 func _delete_char_cache(btt):
