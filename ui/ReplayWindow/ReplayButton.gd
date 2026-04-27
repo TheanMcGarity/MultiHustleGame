@@ -30,12 +30,11 @@ func show_data():
 	if !("version" in match_data):
 		return
 	$"%VersionLabel".show()
-	var label_text = str(match_data["version"])
+	$"%VersionLabel".text = str(match_data["version"])
 	if match_data.has("selected_characters"):
 		var sc = match_data.selected_characters
 		var p1_name = _pretty(sc[1].name) if sc.has(1) and sc[1].has("name") else "?"
 		var p2_name = _pretty(sc[2].name) if sc.has(2) and sc[2].has("name") else "?"
-		label_text += " — " + p1_name + " vs " + p2_name
-	$"%VersionLabel".text = label_text
+		$"%MatchupLabel".text = p1_name + " vs " + p2_name
 	yield(get_tree(), "idle_frame")
 	emit_signal("data_updated")

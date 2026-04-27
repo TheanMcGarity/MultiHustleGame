@@ -1257,9 +1257,6 @@ func process_tick():
 #						call_deferred("_on_turn_started")
 					p1_turn = false
 					p2_turn = false
-					if game_paused:
-						if Network.multiplayer_active:
-							Network.can_open_action_buttons = false
 					game_paused = false
 		else:
 			ReplayManager.frames.finished = false
@@ -1303,7 +1300,6 @@ func process_tick():
 						Network.rpc_("end_turn_simulation", [current_tick, Network.player_id])
 						network_sync_tick = current_tick
 						network_simulate_ready = false
-						Network.sync_unlock_turn()
 						Network.on_turn_started()
 
 #						SteamLobby.update_spectator_tick(current_tick)

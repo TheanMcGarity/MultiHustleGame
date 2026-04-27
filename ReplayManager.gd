@@ -125,7 +125,13 @@ func save_replay_backup(match_data: Dictionary):
 	var data = match_data.duplicate(true)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
-	var file_name = BACKUP_PREFIX + generate_replay_name()
+	var stem = generate_replay_name()
+	if match_data.has("user_data"):
+		var ud = match_data.user_data
+		var p1 = Utils.filter_filename(str(ud.get("p1", "p1")))
+		var p2 = Utils.filter_filename(str(ud.get("p2", "p2")))
+		stem = p1 + "_v_" + p2 + "_" + stem
+	var file_name = BACKUP_PREFIX + stem
 	var file = File.new()
 	file.open("user://replay/backup/" + file_name + ".replay", File.WRITE)
 	file.store_var(data, true)

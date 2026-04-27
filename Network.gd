@@ -621,26 +621,6 @@ func sync_tick():
 	rpc_("opponent_tick", null, "remote")
 	pass
 
-func sync_unlock_turn():
-	print("telling opponent we are actionable")
-	rpc_("opponent_sync_check_unlock", null, "remote")
-
-remote func opponent_sync_check_unlock():
-	print("opponent is actionable")
-	while is_instance_valid(game) and !game.game_paused:
-		yield(get_tree(), "idle_frame")
-	print("so are we")
-	rpc_("confirm_opponent_actionable", null, "remote")
-
-remote func confirm_opponent_actionable():
-	print("confirming...")
-	rpc_("opponent_sync_unlock", null, "remote")
-
-remote func opponent_sync_unlock():
-	print("unlocking action buttons")
-	can_open_action_buttons = true
-	emit_signal("force_open_action_buttons")
-
 remote func opponent_tick():
 	print("opponent ready")
 	yield(get_tree(), "idle_frame")
@@ -720,10 +700,9 @@ remotesync func end_turn_simulation(tick, player_id):
 	if ticks[1] == ticks[2]:
 		turn_synced = true
 		send_ready = false
-#		if rng.percent(60):
+		can_open_action_buttons = true
 		emit_signal("player_turns_synced")
-#		if is_host():
-#			host_start_turn()
+		emit_signal("force_open_action_buttons")
 
 func host_start_turn():
 	while !game.is_waiting_on_player():
@@ -765,6 +744,7 @@ remotesync func multiplayer_turn_ready(id):
 		possible_softlock = true
 		emit_signal("turn_ready")
 		turn_synced = false
+		can_open_action_buttons = false
 		send_ready = true
 
 func send_current_action():

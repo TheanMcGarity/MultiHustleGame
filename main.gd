@@ -23,6 +23,7 @@ var p2_ghost_extra
 
 var match_data = {}
 var has_submitted_a_turn = false
+var last_backup_tick = -1
 
 var started_ghost_this_frame = false
 
@@ -37,6 +38,7 @@ func _ready():
 	connect("game_started", ui_layer, "on_game_started")
 	Network.connect("start_game", self, "_on_game_started", [false])
 	Network.connect("match_ready", self, "_on_match_ready")
+	Network.connect("force_open_action_buttons", self, "_on_multiplayer_turn_started")
 	SteamLobby.connect("received_spectator_match_data", self, "_on_received_spectator_match_data")
 	$"%P1ActionButtons".connect("action_clicked", self, "on_action_clicked", [1])
 	$"%P2ActionButtons".connect("action_clicked", self, "on_action_clicked", [2])
@@ -167,6 +169,7 @@ func _on_received_spectator_match_data(data):
 func _on_match_ready(data):
 	match_data = data
 	has_submitted_a_turn = false
+	last_backup_tick = -1
 	if match_data.has("replay_challenge"):
 		singleplayer = false
 	elif match_data.has("replay"):
@@ -316,7 +319,20 @@ func _on_player_actionable():
 	ui_layer.on_player_actionable()
 	$"%GhostWaitTimer".start()
 	start_ghost()
-	if Global.enable_replay_backups and has_submitted_a_turn and !ReplayManager.playback and is_instance_valid(game) and !game.game_finished:
+	_maybe_save_backup()
+
+func _on_multiplayer_turn_started():
+	_maybe_save_backup()
+
+func _maybe_save_backup():
+	if !is_instance_valid(game):
+		return
+	if SteamLobby.SPECTATING:
+		return
+	if game.current_tick == last_backup_tick:
+		return
+	last_backup_tick = game.current_tick
+	if Global.enable_replay_backups and has_submitted_a_turn and !ReplayManager.playback and !game.game_finished:
 		ReplayManager.save_replay_backup(match_data)
 	has_submitted_a_turn = true
 

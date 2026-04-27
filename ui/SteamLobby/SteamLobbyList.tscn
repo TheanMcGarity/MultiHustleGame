@@ -291,7 +291,7 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-margin_left = -18.0
+margin_left = 32.0
 margin_top = 1.0
 margin_right = 226.0
 margin_bottom = 52.0
@@ -528,10 +528,10 @@ size_flags_horizontal = 0
 text = "refresh"
 
 [node name="Label" type="Label" parent="."]
-margin_left = 245.0
-margin_top = 277.0
-margin_right = 607.0
-margin_bottom = 330.0
+margin_left = 275.0
+margin_top = 275.0
+margin_right = 637.0
+margin_bottom = 328.0
 autowrap = true
 
 [node name="LobbySettingsChangedWindow" type="PanelContainer" parent="."]

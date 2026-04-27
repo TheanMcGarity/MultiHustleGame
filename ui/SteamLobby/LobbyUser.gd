@@ -39,6 +39,10 @@ func init(member):
 		$"%ChallengeButton".text = status
 		if status == "fighting":
 			$"%ChallengeButton".text = "fighting " + Steam.getFriendPersonaName(int(Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, member.steam_id, "opponent_id")))
+		elif status == "spectating":
+			var spectating_id = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, member.steam_id, "spectating_id")
+			if spectating_id != "":
+				$"%ChallengeButton".text = "spectating " + Steam.getFriendPersonaName(int(spectating_id))
 
 #	var lobby_owner = SteamLobby.am_i_lobby_owner()
 #	rect_min_size.y = MEMBER_MIN_SIZE if !lobby_owner else OWNER_MIN_SIZE

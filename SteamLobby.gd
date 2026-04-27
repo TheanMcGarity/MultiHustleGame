@@ -981,6 +981,10 @@ func _on_P2P_Session_Connect_Fail(steamID: int, session_error: int) -> void:
 	elif session_error == 5:
 		print("WARNING: Session failure with "+str(steamID)+" [unused].")
 
+	# Mid-match disconnect: notify Network so the game can unstick / show "opponent disconnected"
+	if is_fighting() and steamID == OPPONENT_ID and session_error in [3, 4]:
+		Network.player_disconnected(steamID)
+
 	# Else no known error
 	else:
 		print("WARNING: Session failure with "+str(steamID)+" [unknown error "+str(session_error)+"].")
