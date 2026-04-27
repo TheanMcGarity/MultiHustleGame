@@ -92,12 +92,18 @@ func generate_replay_name():
 func save_replay_mp(match_data, p1, p2):
 	save_replay(match_data, generate_mp_replay_name(p1, p2), true)
 
+func _strip_spectator_data(data: Dictionary):
+	data.erase("spectating")
+	data.erase("replay")
+	data.erase("replay_challenge")
+
 func save_replay(match_data: Dictionary, file_name="", autosave=false):
 	if file_name == "":
 		file_name = generate_replay_name()
 	file_name = Utils.filter_filename(file_name)
 
 	var data = match_data.duplicate(true)
+	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
 
@@ -123,6 +129,7 @@ func save_replay_backup(match_data: Dictionary):
 	if !dir.dir_exists("user://replay/backup"):
 		dir.make_dir("user://replay/backup")
 	var data = match_data.duplicate(true)
+	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
 	var stem = generate_replay_name()
@@ -203,6 +210,7 @@ func load_replay(path):
 	frames = data.frames
 	var match_data = data.duplicate(true)
 	match_data.erase("frames")
+	_strip_spectator_data(match_data)
 	return match_data
 
 func force_ints(dict):
