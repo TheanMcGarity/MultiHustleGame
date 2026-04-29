@@ -263,6 +263,14 @@ func hit_fighter_last():
 func can_be_thrown():
 	return !throw_invulnerable
 
+func _copy_state_variables_to(o: BaseObj):
+	for variable in state_variables:
+		var v = get(variable)
+		if v is Array or v is Dictionary:
+			o.set(variable, v.duplicate(true))
+		else:
+			o.set(variable, v)
+
 func copy_to(o: BaseObj):
 	if !initialized:
 		init()
@@ -275,13 +283,8 @@ func copy_to(o: BaseObj):
 		o.creator = o.objs_map[creator_name]
 	o.init()
 	o.update_data()
-	for variable in state_variables:
-		var v = get(variable)
-		if v is Array or v is Dictionary:
-			o.set(variable, v.duplicate(true))
-		else:
-			o.set(variable, get(variable))
-	
+	_copy_state_variables_to(o)
+
 #	o.chara.set_facing(get_facing_int())
 
 	o.change_state(current_state.state_name, current_state.data)
@@ -322,8 +325,14 @@ func copy_to(o: BaseObj):
 			hitboxes[i].copy_to(o.hitboxes[i])
 			o.hitboxes[i].update_position(pos.x, pos.y)
 	hurtbox.copy_to(o.hurtbox)
+	# _enter on the ghost may re-trigger start_X_invulnerability calls that the
+	# real instance has long since ended. Explicitly re-sync all invul flags
+	# from real (post-_enter) so prediction matches.
 	o.projectile_invulnerable = projectile_invulnerable
 	o.invulnerable = invulnerable
+	o.throw_invulnerable = throw_invulnerable
+	o.aerial_attack_immune = aerial_attack_immune
+	o.grounded_attack_immune = grounded_attack_immune
 
 	chara.copy_to(o.chara)
 	o.set_facing(get_facing_int())

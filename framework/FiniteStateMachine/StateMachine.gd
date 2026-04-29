@@ -208,7 +208,7 @@ func _change_state(state_name: String, data=null, enter=true, exit=true) -> void
 		if new_state:
 			_change_state(new_state)
 			return
-	
+
 	emit_signal("state_changed", states_stack)
 
 func try(method: String, args: Array = []):

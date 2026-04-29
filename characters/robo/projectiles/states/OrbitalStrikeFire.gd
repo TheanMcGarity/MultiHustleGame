@@ -35,6 +35,10 @@ func _frame_0():
 	last_ground_fire = host.get_pos().x
 	host.line_drawer.z_index = 1000
 	host.active = true
+	host.immunity_susceptible = false
+
+func _frame_2():
+	host.immunity_susceptible = true
 
 
 func _frame_200():

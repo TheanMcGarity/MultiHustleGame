@@ -204,7 +204,9 @@ func _make_sfx_player(stream: AudioStream, volume: float) -> VariableSound2D:
 	player.stream = stream
 	player.volume_db = volume
 	player.pitch_variation = sfx_pitch_variation
-	player.override_same_sfx = override_same_sfx
+	# Only auto-override sfx on non-fighter hosts (projectiles etc).
+	# Fighter sfx don't stack-collide the same way, so force off there.
+	player.override_same_sfx = override_same_sfx and !host.is_in_group("Fighter")
 	player.override_same_wav = override_same_wav
 	return player
 

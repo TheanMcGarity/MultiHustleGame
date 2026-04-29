@@ -1,8 +1,11 @@
 extends BaseProjectile
 
 const IS_ROBOT_MISSILE = true
+const EXPLOSION = preload("res://characters/robo/projectiles/MissileExplosion.tscn")
 
 var detected_friends = []
+var arc_index = 0
+var is_up_missile = false
 
 func hit_by(hitbox):
 	if hitbox.id == id:
@@ -16,6 +19,8 @@ func hit_by(hitbox):
 			disable()
 
 func disable():
-	spawn_particle_effect_relative(preload("res://fx/SmallExplosion.tscn"))
-	screen_bump(Vector2(), 5.0, 0.4)
+	if !disabled:
+		var explosion = spawn_object(EXPLOSION, 0, 0)
+		if creator:
+			explosion.set_facing(creator.get_facing_int())
 	.disable()
