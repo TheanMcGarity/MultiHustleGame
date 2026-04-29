@@ -7,7 +7,7 @@ export var one_shot = false
 export var streams: Array = []
 
 # overrides sfx with all the same params
-export var override_same_sfx = true
+export var override_same_sfx = false
 
 # overrides sfx with the same *sound*, regardless of params
 export var override_same_wav = false

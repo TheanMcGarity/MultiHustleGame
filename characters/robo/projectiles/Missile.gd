@@ -6,6 +6,7 @@ const EXPLOSION = preload("res://characters/robo/projectiles/MissileExplosion.ts
 var detected_friends = []
 var arc_index = 0
 var is_up_missile = false
+var initial_facing = 1
 
 func hit_by(hitbox):
 	if hitbox.id == id:

@@ -214,12 +214,15 @@ func _load_replay_chars_and_wait(match_data):
 		if idx != null:
 			css.loadListChar(idx, !is_mine)
 		yield(get_tree(), "idle_frame")
-	if label:
-		label.text = "Waiting for opponent to load their character..."
-	yield(get_tree(), "idle_frame")
-	SteamLobby.signal_replay_mods_loaded()
-	while not SteamLobby.remote_replay_mods_loaded:
+	# Spectators have no opponent to handshake with — signal_replay_mods_loaded
+	# returns early when OPPONENT_ID == 0, so the wait loop would hang forever.
+	if not match_data.get("spectating"):
+		if label:
+			label.text = "Waiting for opponent to load their character..."
 		yield(get_tree(), "idle_frame")
+		SteamLobby.signal_replay_mods_loaded()
+		while not SteamLobby.remote_replay_mods_loaded:
+			yield(get_tree(), "idle_frame")
 	if loading_rect:
 		loading_rect.hide()
 

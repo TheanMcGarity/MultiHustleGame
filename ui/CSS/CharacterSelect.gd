@@ -39,6 +39,7 @@ var buttonsToLoad = [] # will hold the same data as charList, but is used only t
 
 var charPortrait = {} # will hold the portrait textures to be shown on unloaded characters
 var errorMessage = {} # will hold a list of missing files for any characters that don't load correctly
+var importWarnings = {} # chars that loaded but still have import issues (will show in the bottom warning regardless of load success)
 var charExColors = {} # will hold the dictionaries containing the extra colors of unloaded characters
 
 var loadThread # a thread that will be used to load characters so the game doesn't get completely stuck
@@ -76,6 +77,7 @@ var hash_to_folder = {}
 
 # Label things #
 var loadingLabel
+var importWarningLabel
 var loadingText = ""
 var retract_loaded = false # whenever this is true the loading label will start to dissapear after a few seconds...
 var labelTimer = 0 # ...using this timer
@@ -115,8 +117,11 @@ func _ready():
 	h.open("res://cl_port/headers/oggstr.header", File.READ)
 	oggstr_header = h.get_buffer(h.get_len())
 	h.close()
-	loadingLabel = createLabel("Character Loaded", "Loaded", 0, 345)
+	loadingLabel = createLabel("Character Loaded", "Loaded", 4, 345)
 	loadingLabel.percent_visible = 0
+	importWarningLabel = createLabel("", "ImportWarning", 4, 332)
+	importWarningLabel.modulate = Color(1, 0.45, 0.35)
+	importWarningLabel.rect_min_size = Vector2(632, 0)
 	
 	# get all of the modsses
 	_Global.css_instance = self
@@ -216,6 +221,7 @@ func init(singleplayer=true):
 	emit_signal("opened")
 	loadingLabel_vanish()
 	loadingLabel.text = ""
+	_update_import_warning()
 	currentlyLoading = false
 #	if Network.steam:
 #		$"%QuitButton".hide()
@@ -309,7 +315,15 @@ func get_character_data(button):
 func get_display_data(button):
 	var data = {}
 	if !isCustomChar(button.name) or (button.name in loadedChars):
-		var scene = button.character_scene.instance()
+		var scene = button.character_scene.instance() if button.character_scene else null
+		if scene == null:
+			data["name"] = "(broken)"
+			data["portrait"] = null
+			# Failed to instance means the cache is broken even if loading
+			# previously appeared to succeed. Surface it in the bottom warning.
+			importWarnings[button.name] = ["character_scene failed to instance"]
+			_update_import_warning()
+			return data
 		data["name"] = scene.name
 		data["portrait"] = scene.character_portrait
 		if scene.use_extra_color_1:
@@ -629,16 +643,21 @@ func loadListChar(index, hideName = false): # hide name parameter is for online,
 	# the scene is edited, the node name gets updated
 	var char_scene
 	if (miss == []):
-		char_scene = load(_charPath).instance()
-		char_scene.name = curFighter
+		var packed = load(_charPath)
+		char_scene = packed.instance() if packed else null
+		if char_scene == null:
+			# Validation passed but instance still failed — treat as broken.
+			miss = ["scene at " + _charPath + " failed to instance"]
+			errorMessage[curFighter] = "ERROR - scene failed to load:\n" + _charPath
+		else:
+			char_scene.name = curFighter
 	else:
 		errorMessage[curFighter] = "ERROR - these files are missing:"
 		for f in miss:
 			errorMessage[curFighter] += "\n" + f
-	
-	ModLoader.saveScene(char_scene, _charPath)
 
 	if miss == []:
+		ModLoader.saveScene(char_scene, _charPath)
 		char_scene.queue_free()
 
 	# update the button's character scene
@@ -683,12 +702,35 @@ func updateButtonHeight(_divisions):
 func async_loadButtonChar(button):
 	var miss = loadListChar(name_to_index[button.name])
 	_on_button_mouse_entered(button)
-	
+	_update_import_warning()
+
 	if (miss == []):
 		buffer_select(button)
 	loadingText = getCharName(button.name) + " Loaded"
 	loadingLabel_vanish()
 	currentlyLoading = false
+
+func _update_import_warning():
+	if !importWarningLabel:
+		return
+	var keys = []
+	for k in errorMessage.keys():
+		if !(k in keys):
+			keys.append(k)
+	for k in importWarnings.keys():
+		if !(k in keys):
+			keys.append(k)
+	if keys.empty():
+		importWarningLabel.text = ""
+		return
+	var joined = ""
+	var first = true
+	for n in keys:
+		if !first:
+			joined += ", "
+		joined += n
+		first = false
+	importWarningLabel.text = "[!] Broken imports: " + joined + "  --  modder, fix your .import files. user: try Options > Delete Character Cache"
 
 # this function encapsulates character selection, to be called either when a character finishes loading or when pressing a base character button
 func buffer_select(button):
@@ -1203,8 +1245,45 @@ func _createImportFiles(folder, _charName, _charPath): # returns an array of mis
 	if (modName in charPackages.keys()):
 		loadingText = "Loading Cached Package"
 		ProjectSettings.load_resource_pack(charPackages[modName])
-		return []
-	
+		# Validate the cached scene actually instances. If it fails, the cache
+		# is broken (mod's imports busted, stale paths, etc.) — purge it and
+		# fall through to a full re-import in this same session. no_cache=true
+		# avoids poisoning ResourceLoader's cache with the broken scene.
+		var packed = ResourceLoader.load(_charPath, "", true)
+		var test_instance = packed.instance() if packed else null
+		if test_instance == null:
+			print("Char cache for '" + modName + "' failed to instance — purging and re-importing.")
+			dir.remove(charPackages[modName])
+			charPackages.erase(modName)
+		else:
+			test_instance.queue_free()
+			# Even if the cache instances OK, run the same validation checks as
+			# fresh import so the modder gets called out for broken imports.
+			# Cache shouldn't let messed-up mods slip past unnoticed.
+			var soft_issues = []
+			# 1. every asset must have a .import sidecar
+			var assets = ModLoader._get_all_files(folder, "png") + ModLoader._get_all_files(folder, "wav") + ModLoader._get_all_files(folder, "ogg")
+			for asset_path in assets:
+				if !dir.file_exists(asset_path + ".import"):
+					soft_issues.append(asset_path + ".import")
+			# 2. every .import's expected destination must exist (on disk or in pck)
+			var imports = ModLoader._get_all_files(folder, "import")
+			for f in imports:
+				if dir.file_exists(f.replace(".import", "")):
+					var im = ConfigFile.new()
+					im.load(f)
+					var expected = im.get_value("remap", "path")
+					if !dir.file_exists(expected) and !ResourceLoader.exists(expected):
+						soft_issues.append(expected)
+			# 3. the scene's referenced resources must exist
+			soft_issues += _validateScene(_charPath, name_to_folder.get(curFighter, ""))
+			if !soft_issues.empty():
+				importWarnings[curFighter] = soft_issues
+				print("Cache loaded for '" + curFighter + "' but validation found issues: ", soft_issues)
+			else:
+				importWarnings.erase(curFighter)
+			return []
+
 	_import_start()
 
 	var assets = ModLoader._get_all_files(folder, "png") + ModLoader._get_all_files(folder, "wav") + ModLoader._get_all_files(folder, "ogg")

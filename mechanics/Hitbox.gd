@@ -115,7 +115,7 @@ export var whiff_sound_volume = -8.0
 export var hit_sound_volume = -5.0
 export var bass_sound_volume = -5.0
 export var bass_on_whiff = false
-export var override_same_sfx = true
+export var override_same_sfx = false
 export var override_same_wav = false
 export var sfx_pitch_variation = 0.1
 
@@ -204,9 +204,7 @@ func _make_sfx_player(stream: AudioStream, volume: float) -> VariableSound2D:
 	player.stream = stream
 	player.volume_db = volume
 	player.pitch_variation = sfx_pitch_variation
-	# Only auto-override sfx on non-fighter hosts (projectiles etc).
-	# Fighter sfx don't stack-collide the same way, so force off there.
-	player.override_same_sfx = override_same_sfx and !host.is_in_group("Fighter")
+	player.override_same_sfx = override_same_sfx
 	player.override_same_wav = override_same_wav
 	return player
 
@@ -241,8 +239,9 @@ func activate():
 	if combo_victim_hitlag == -1:
 		combo_victim_hitlag = victim_hitlag
 	if bump_on_whiff and !host.is_ghost:
-		var camera = get_tree().get_nodes_in_group("Camera")[0]
-		camera.bump(camera_bump_dir, screenshake_amount, Utils.frames(victim_hitlag if screenshake_frames < 0 else screenshake_frames))
+		var camera = host.get_camera()
+		if camera:
+			camera.bump(camera_bump_dir, screenshake_amount, Utils.frames(victim_hitlag if screenshake_frames < 0 else screenshake_frames))
 
 func deactivate():
 	played_whiff_sound = false
@@ -353,7 +352,7 @@ func already_hit_object(obj):
 
 func hit(obj):
 	if !(obj.name in hit_objects) and (!obj.invulnerable or hitbox_type == HitboxType.ThrowHit) and otg_check(obj):
-		var camera = get_tree().get_nodes_in_group("Camera")[0]
+		var camera = host.get_camera()
 		var dir = get_dir_float(true)
 		if grounded_hit_state is String and grounded_hit_state == "HurtGrounded" and obj.is_grounded():
 				dir.y *= 0
@@ -369,7 +368,7 @@ func hit(obj):
 					host.feinting = false
 					host.current_state().feinting = false
 			if !host.is_ghost:
-				if !bump_on_whiff:
+				if !bump_on_whiff and camera:
 					var length = Utils.frames(victim_hitlag if screenshake_frames < 0 else screenshake_frames) * float(obj.global_hitstop_modifier)
 #					length = length + (length * (Fighter.GLOBAL_HITLAG_MODIIFER if (Global.replay_extra_freeze_frames and !obj.is_ghost) else 0))
 					camera.bump(camera_bump_dir, screenshake_amount, length)

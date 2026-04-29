@@ -692,6 +692,9 @@ script = ExtResource( 202 )
 [node name="Super3" parent="Sounds" index="12"]
 pitch_variation = 0.03
 
+[node name="Hitbox" parent="StateMachine/ParrySuper" index="0"]
+override_same_sfx = true
+
 [node name="Wait" parent="StateMachine" index="11"]
 allowed_stances_string = "Normal
 BackSway"
@@ -702,9 +705,14 @@ interrupt_exceptions_string = "WhiffCancel"
 
 [node name="Hitbox" parent="StateMachine/Burst" index="0"]
 beats_grab = false
+override_same_sfx = true
+
+[node name="Hitbox" parent="StateMachine/DefensiveBurst" index="0"]
+override_same_sfx = true
 
 [node name="Hitbox" parent="StateMachine/OffensiveBurst" index="0"]
 beats_grab = false
+override_same_sfx = true
 
 [node name="Fall" parent="StateMachine" index="18"]
 allowed_stances_string = "Normal
@@ -1781,19 +1789,17 @@ y = -14
 width = 12
 height = 13
 damage = 120
-hitstun_ticks = 18
+hitstun_ticks = 48
 hitlag_ticks = 10
 victim_hitlag = 10
 damage_proration = 2
 cancellable = false
-sdi_modifier = "0.5"
 can_clash = false
 block_punishable = true
 screenshake_amount = 8
 hit_sound = ExtResource( 42 )
-dir_x = "1"
-dir_y = "-1"
-knockback = "16"
+dir_y = "-2.0"
+knockback = "11"
 pushback_x = "-5.0"
 grounded_hit_state = "HurtAerial"
 knockdown = true
@@ -1809,7 +1815,7 @@ y = -28
 width = 14
 height = 19
 damage = 60
-hitstun_ticks = 18
+hitstun_ticks = 48
 hitlag_ticks = 6
 victim_hitlag = 6
 damage_proration = 2
@@ -1818,9 +1824,9 @@ can_clash = false
 group = 1
 screenshake_amount = 5
 hit_sound = ExtResource( 42 )
-dir_x = "1"
-dir_y = "-1"
-knockback = "12"
+dir_x = "2.0"
+dir_y = "-2.5"
+knockback = "11"
 grounded_hit_state = "HurtAerial"
 knockdown = true
 knockdown_extends_hitstun = false
@@ -1876,18 +1882,16 @@ y = -14
 width = 12
 height = 13
 damage = 150
-hitstun_ticks = 18
+hitstun_ticks = 48
 hitlag_ticks = 10
 victim_hitlag = 10
 damage_proration = 2
 cancellable = false
-sdi_modifier = "0.5"
 can_clash = false
 screenshake_amount = 8
 hit_sound = ExtResource( 42 )
-dir_x = "1"
-dir_y = "-1"
-knockback = "16"
+dir_y = "-2.0"
+knockback = "11"
 pushback_x = "-5.0"
 grounded_hit_state = "HurtAerial"
 knockdown = true
@@ -1903,7 +1907,7 @@ y = -28
 width = 14
 height = 19
 damage = 90
-hitstun_ticks = 18
+hitstun_ticks = 48
 hitlag_ticks = 6
 victim_hitlag = 6
 damage_proration = 2
@@ -1911,9 +1915,9 @@ cancellable = false
 can_clash = false
 screenshake_amount = 5
 hit_sound = ExtResource( 42 )
-dir_x = "1"
-dir_y = "-1"
-knockback = "12"
+dir_x = "2.0"
+dir_y = "-2.5"
+knockback = "11"
 grounded_hit_state = "HurtAerial"
 knockdown = true
 knockdown_extends_hitstun = false
@@ -3699,10 +3703,6 @@ anim_length = 33
 enter_force_dir_x = "1.0"
 enter_force_speed = "7.0"
 throw_positions = {
-Resource( "res://characters/stickman/sprites/hitgrab_followup6.png" ): {
-"x": 2,
-"y": -7
-},
 ExtResource( 219 ): {
 "x": 24,
 "y": 3
@@ -3718,6 +3718,10 @@ ExtResource( 222 ): {
 ExtResource( 221 ): {
 "x": 27,
 "y": 1
+},
+Resource( "res://characters/stickman/sprites/hitgrab_followup6.png" ): {
+"x": 2,
+"y": -7
 }
 }
 button_texture = ExtResource( 223 )
@@ -3774,6 +3778,8 @@ __meta__ = {
 anim_length = 51
 enter_force_dir_x = "1.0"
 enter_force_speed = "2.0"
+state_screenshake_tick = 12
+state_screenshake_dir = Vector2( 0, -1 )
 type = 1
 button_texture = ExtResource( 36 )
 iasa_at = 22
@@ -3938,10 +3944,6 @@ force_tick = 10
 enter_force_dir_x = "1.0"
 enter_force_speed = "4.0"
 throw_positions = {
-ExtResource( 209 ): {
-"x": 32,
-"y": -6
-},
 ExtResource( 207 ): {
 "x": 13,
 "y": -10
@@ -3953,6 +3955,10 @@ ExtResource( 206 ): {
 ExtResource( 208 ): {
 "x": 14,
 "y": -11
+},
+ExtResource( 209 ): {
+"x": 32,
+"y": -6
 }
 }
 burst_cancellable = false
@@ -3995,10 +4001,6 @@ active_ticks = 1
 sprite_animation = "GroundedThrow"
 anim_length = 19
 throw_positions = {
-ExtResource( 209 ): {
-"x": 32,
-"y": -5
-},
 ExtResource( 207 ): {
 "x": 14,
 "y": -9
@@ -4010,6 +4012,10 @@ ExtResource( 206 ): {
 ExtResource( 208 ): {
 "x": 13,
 "y": -12
+},
+ExtResource( 209 ): {
+"x": 32,
+"y": -5
 },
 ExtResource( 210 ): {
 "x": 37,

@@ -20,8 +20,8 @@ func show():
 		$"%PlaybackSpeed".value = {
 			4: 0,
 			2: 1,
-			1: 2,
-			0: 3,
+			-1: 2,
+			1: 3,
 		}[Global.playback_speed_mod]
 		.show()
 
@@ -45,8 +45,8 @@ func _on_HSlider_value_changed(value):
 		Global.playback_speed_mod = 2
 		$"%SpeedText".text = "x0.5"
 	elif value == 2:
+		Global.playback_speed_mod = -1
+		$"%SpeedText".text = "x0.75"
+	elif value == 3:
 		Global.playback_speed_mod = 1
 		$"%SpeedText".text = "x1.0"
-	elif value == 3:
-		Global.playback_speed_mod = 0
-		$"%SpeedText".text = "x4.0"

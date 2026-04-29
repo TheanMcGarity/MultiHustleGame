@@ -58,6 +58,8 @@ func bump(dir=Vector2(), amount=default_screenshake_amount, time=default_screens
 	time = float(time)
 	amount *= SCREENSHAKE_MODIFIER
 	time *= SCREENSHAKE_TIME_MODIFIER
+	# Stretch the shake duration so it scales with the current playback speed.
+	time /= Global.get_playback_speed_factor()
 #	if !Global.screen_shake:
 #		return
 	var shake_tween = create_tween()

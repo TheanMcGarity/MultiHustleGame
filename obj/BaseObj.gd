@@ -558,8 +558,12 @@ func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vec
 	return obj
 
 func get_camera():
-	var cameras = get_tree().get_nodes_in_group("Camera")
-	return cameras[0] if cameras.size() > 0 and !is_ghost else null
+	if is_ghost:
+		return null
+	for cam in get_tree().get_nodes_in_group("Camera"):
+		if is_instance_valid(cam) and is_instance_valid(cam.get_parent()) and !cam.get_parent().is_ghost:
+			return cam
+	return null
 
 func grab_camera_focus():
 	var camera = get_camera()

@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.40-steam-unstable"
+var VERSION = "1.9.44-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 var audio_player
@@ -84,7 +84,13 @@ func world_to_screen(x, y) -> Vector2:
 func screen_to_world(xy: Vector2):
 	if !is_instance_valid(current_game):
 		return xy
-	return xy - RESOLUTION / 2 + current_game.camera.global_position
+	var camera = current_game.camera
+	var viewport_size = current_game.get_viewport_rect().size
+	# Camera2D.get_camera_screen_center() returns the actual world-space point
+	# at the screen center, accounting for limit clamping + drag margin / etc.
+	# Using camera.global_position would be wrong when the camera is pushed by
+	# its limits (e.g. zoomed out near the bottom of the stage).
+	return (xy - viewport_size / 2) * camera.zoom + camera.get_camera_screen_center()
 
 func screen_to_world_int(xy: Vector2):
 	return {
@@ -140,6 +146,13 @@ func get_ghost_speed_modifier():
 		return 0.25
 	if ghost_speed > 1:
 		return float(ghost_speed - 1)
+
+func get_playback_speed_factor() -> float:
+	if playback_speed_mod == -1:
+		return 0.75
+	elif playback_speed_mod > 0:
+		return 1.0 / playback_speed_mod
+	return 1.0
 
 func _ready():
 	yield(get_tree(), "idle_frame")

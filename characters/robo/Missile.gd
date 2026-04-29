@@ -46,6 +46,7 @@ func process_projectile(obj):
 	obj.z_index = host.z_index + 1
 	obj.arc_index = idx
 	obj.is_up_missile = _is_up()
+	obj.initial_facing = host.get_facing_int()
 	missiles_left -= 1
 	if missiles_left > 0:
 		current_tick = 1

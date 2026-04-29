@@ -59,6 +59,7 @@ custom_y_fric = "0.15"
 fallback_state = "Pop"
 anim_length = 90
 endless = false
+poison = false
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/Default" index="0"]
 z_index = 1000
@@ -74,6 +75,7 @@ allowed_to_hit_own_team = false
 hit_sound = ExtResource( 9 )
 hit_sound_volume = -8.0
 bass_sound_volume = -8.0
+override_same_sfx = true
 knockback = "7.0"
 grounded_hit_state = "HurtAerial"
 minimum_grounded_frames = 10

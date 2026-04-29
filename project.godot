@@ -605,6 +605,7 @@ limits/message_queue/max_size_kb=58324
 
 [physics]
 
+common/physics_jitter_fix=0.0
 common/enable_pause_aware_picking=true
 
 [rendering]

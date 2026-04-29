@@ -2888,14 +2888,6 @@ projectile_pos_x = 16
 projectile_pos_y = -24
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 171 ): {
-"x": 15,
-"y": -10
-},
-ExtResource( 160 ): {
-"x": 37,
-"y": -1
-},
 ExtResource( 166 ): {
 "x": -8,
 "y": -17
@@ -2903,6 +2895,14 @@ ExtResource( 166 ): {
 ExtResource( 169 ): {
 "x": 16,
 "y": -7
+},
+ExtResource( 171 ): {
+"x": 15,
+"y": -10
+},
+ExtResource( 160 ): {
+"x": 37,
+"y": -1
 },
 ExtResource( 173 ): {
 "x": 9,
@@ -4002,6 +4002,9 @@ grounded_hit_state = "HurtAerial"
 start_tick = 8
 active_ticks = 2
 
+[node name="Hitbox" parent="StateMachine/ParrySuper" index="0"]
+override_same_sfx = true
+
 [node name="ShredLandCancel" type="Node2D" parent="StateMachine" index="40"]
 script = ExtResource( 285 )
 __meta__ = {
@@ -4065,6 +4068,10 @@ landing_recovery = 6
 
 [node name="Hitbox" parent="StateMachine/Burst" index="0"]
 beats_grab = false
+override_same_sfx = true
+
+[node name="Hitbox" parent="StateMachine/DefensiveBurst" index="0"]
+override_same_sfx = true
 
 [node name="OffensiveBurst" parent="StateMachine" index="54"]
 script = ExtResource( 320 )
@@ -4078,6 +4085,7 @@ OffensiveBurst
 
 [node name="Hitbox" parent="StateMachine/OffensiveBurst" index="0"]
 beats_grab = false
+override_same_sfx = true
 
 [node name="Fall" parent="StateMachine" index="58"]
 sprite_animation = ""
@@ -4216,10 +4224,6 @@ enter_force_dir_x = "1.0"
 enter_force_dir_y = "-2.0"
 enter_force_speed = "4"
 throw_positions = {
-ExtResource( 79 ): {
-"x": 23,
-"y": 16
-},
 ExtResource( 82 ): {
 "x": -8,
 "y": -5
@@ -4227,6 +4231,10 @@ ExtResource( 82 ): {
 ExtResource( 81 ): {
 "x": -11,
 "y": -6
+},
+ExtResource( 79 ): {
+"x": 23,
+"y": 16
 }
 }
 land_cancel = true

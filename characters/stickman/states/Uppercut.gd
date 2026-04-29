@@ -3,7 +3,6 @@ extends CharacterState
 onready var hitbox_2 = $Hitbox2
 
 func _frame_0():
-	pass
 #	if current_tick == 0:
 	if host.initiative and host.is_grounded():
 #		host.start_invulnerability()
@@ -22,7 +21,6 @@ func _frame_0():
 	hitbox_2.block_punishable = false
 
 func on_got_blocked():
-	.on_got_blocked()
 	hitbox_2.block_punishable = true
 
 func _tick():

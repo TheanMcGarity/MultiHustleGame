@@ -1,8 +1,8 @@
 extends DefaultFireball
 
-const ASCENT_ANGLE_BASE = "-1.2"
+const ASCENT_ANGLE_BASE = "-1.4"
 const ASCENT_ANGLE_PER_INDEX = "0.0"
-const DESCENT_ANGLE_BASE = "1.5"
+const DESCENT_ANGLE_BASE = "1.6"
 const DESCENT_ANGLE_PER_INDEX = "-0.17"
 const ASCENT_TICKS_BASE = 8
 const ASCENT_TICKS_PER_INDEX = 0
@@ -14,8 +14,8 @@ const STEER_FACTOR = "0.35"
 const DESCENT_FORCE_BASE = "0.05"
 const DESCENT_FORCE_INCREASE = "0.05"
 
-const UP_ASCENT_ANGLE_BASE = "-1.271"
-const UP_ASCENT_ANGLE_PER_INDEX = "-0.3"
+const UP_ASCENT_ANGLE_BASE = "-1.371"
+const UP_ASCENT_ANGLE_PER_INDEX = "-0.2"
 const UP_DESCENT_ANGLE_BASE = "1.5"
 const UP_DESCENT_ANGLE_PER_INDEX = "0.0"
 const UP_ASCENT_TICKS_BASE = 7
@@ -52,9 +52,7 @@ func _ready():
 
 
 func _facing_int():
-	if host.creator:
-		return -1 if host.creator.get_facing() == "Left" else 1
-	return -1 if host.get_facing() == "Left" else 1
+	return host.initial_facing
 
 func _frame_0():
 	var idx = host.arc_index

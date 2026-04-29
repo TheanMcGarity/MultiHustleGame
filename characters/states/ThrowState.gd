@@ -155,8 +155,9 @@ func _release():
 #	if increment_combo:
 #		host.incr_combo()
 	if screenshake_amount > 0 and screenshake_frames > 0 and !host.is_ghost:
-		var camera = get_tree().get_nodes_in_group("Camera")[0]
-		camera.bump(Vector2(), screenshake_amount, screenshake_frames / 60.0)
+		var camera = host.get_camera()
+		if camera:
+			camera.bump(Vector2(), screenshake_amount, screenshake_frames / 60.0)
 	if release_sfx and !ReplayManager.resimulating:
 		release_sfx_player.play()
 	if play_release_sfx_bass:

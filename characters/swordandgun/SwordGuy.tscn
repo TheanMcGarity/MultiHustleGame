@@ -2342,11 +2342,16 @@ button_texture = ExtResource( 153 )
 iasa_at = 15
 self_hit_cancellable = false
 interrupt_from_string = "GroundedAttack
-Grounded"
-interrupt_into_string = "Grounded"
+Grounded
+"
+interrupt_into_string = "Grounded
+Aerial"
 hit_cancel_into_string = "GroundedAttack
 GroundedSpecial
-GroundedSuper"
+GroundedSuper
+AerialAttack
+AerialSpecial
+AerialSuper"
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/HSlash2" index="0"]
 z_index = 1000
@@ -2402,10 +2407,16 @@ type = 1
 button_texture = ExtResource( 153 )
 iasa_at = 15
 self_hit_cancellable = false
-interrupt_into_string = "Grounded"
+interrupt_into_string = "Grounded
+Aerial
+"
 hit_cancel_into_string = "GroundedAttack
 GroundedSpecial
-GroundedSuper"
+GroundedSuper
+AerialAttack
+AerialSpecial
+AerialSuper
+"
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/HSlashUp" index="0"]
 z_index = 1000
@@ -2509,12 +2520,17 @@ button_texture = ExtResource( 154 )
 iasa_at = 18
 self_hit_cancellable = false
 interrupt_from_string = "GroundedAttack
-Grounded"
-interrupt_into_string = "Grounded"
+Grounded
+Aerial
+AerialAttack"
+interrupt_into_string = "Grounded
+Aerial
+"
 hit_cancel_into_string = "GroundedSpecial
 GroundedAttack
 GroundedSuper
-Jump"
+Jump
+AerialAttack"
 initiative_effect = true
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/VSlash" index="0"]
@@ -4314,11 +4330,15 @@ type = 1
 button_texture = ExtResource( 158 )
 interrupt_from_string = "GroundedAttack
 Grounded"
-interrupt_into_string = "Grounded"
+interrupt_into_string = "Grounded
+Aerial"
 hit_cancel_into_string = "GroundedAttack
 GroundedSpecial
 GroundedSuper
-Jump"
+Jump
+AerialAttack
+AerialSpecial
+AerialSuper"
 auto_fall = false
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/Pommel" index="0"]
@@ -4578,10 +4598,13 @@ type = 1
 button_texture = ExtResource( 217 )
 interrupt_from_string = "Grounded
 GroundedAttack"
-interrupt_into_string = "Grounded"
+interrupt_into_string = "Grounded
+Aerial"
 hit_cancel_into_string = "GroundedSpecial
 GroundedSuper
-Jump"
+Jump
+AerialSpecial
+AerialSuper"
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/AnkleCutter" index="0"]
 z_index = 1000
@@ -4634,9 +4657,12 @@ flip_icon = false
 self_hit_cancellable = false
 interrupt_from_string = "Grounded
 GroundedSpecial"
-interrupt_into_string = "Grounded"
+interrupt_into_string = "Grounded
+Aerial"
 hit_cancel_into_string = "GroundedSpecial
-GroundedSuper"
+GroundedSuper
+AerialSpecial
+AerialSuper"
 hit_cancel_exceptions_string = "Teleport"
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/BackSlash" index="0"]
@@ -4702,6 +4728,18 @@ knockdown_extends_hitstun = false
 wall_slam = true
 start_tick = 8
 active_ticks = 1
+
+[node name="Hitbox" parent="StateMachine/ParrySuper" index="0"]
+override_same_sfx = true
+
+[node name="Hitbox" parent="StateMachine/Burst" index="0"]
+override_same_sfx = true
+
+[node name="Hitbox" parent="StateMachine/DefensiveBurst" index="0"]
+override_same_sfx = true
+
+[node name="Hitbox" parent="StateMachine/OffensiveBurst" index="0"]
+override_same_sfx = true
 
 [node name="SuperFallStartup" parent="StateMachine" index="86"]
 selectable = false

@@ -192,6 +192,7 @@ func copy_to(game: Game):
 #	print(p2_pos)
 #	game.p1.set_pos(p1_pos.x, p1_pos.y)
 #	game.p2.set_pos(p2_pos.x, p2_pos.y)
+	game.current_tick = current_tick
 	p1.chara.copy_to(game.p1.chara)
 	p2.chara.copy_to(game.p2.chara)
 	game.p1.update_data()
@@ -1163,6 +1164,7 @@ func simulate_until_ready():
 	show_state()
 
 func simulate_one_tick():
+	camera.tick()
 	tick()
 
 	show_state()
@@ -1219,9 +1221,32 @@ func end_game():
 func negative_on_hit(player):
 	return player.current_state().started_during_combo and !player.opponent.current_state().started_during_combo
 
+# When one player becomes actionable, the other's state_interruptable is
+# force-set so the turn ends for both players together. This also computes
+# busy_interrupt and calls on_interrupt() on the coupled-in player. Pure
+# simulation effects only — no UI / signal / network side effects, so it can
+# safely be called from ghost_tick as well as process_tick.
+func _apply_turn_coupling():
+	if p1.state_interruptable and !p1_turn:
+		p2.busy_interrupt = (!p2.state_interruptable and !(p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2)))
+		if !p2.busy_interrupt:
+			p2.current_state().on_interrupt()
+		p2.state_interruptable = true
+		p1_turn = true
+	elif p2.state_interruptable and !p2_turn:
+		p1.busy_interrupt = (!p1.state_interruptable and !(p1.current_state().interruptible_on_opponent_turn or p1.feinting or negative_on_hit(p1)))
+		if !p1.busy_interrupt:
+			p1.current_state().on_interrupt()
+		p1.state_interruptable = true
+		p2_turn = true
+
 func process_tick():
 #	super_active = super_freeze_ticks > 0
 	if super_freeze_ticks > 0:
+		# Keep camera ticking through freeze frames so screenshake plays out.
+		# Gated by playback speed so the shake scales with slow-mo too.
+		if playback_speed_allows_tick():
+			camera.tick()
 		if hit_freeze:
 			process_fx()
 #		super_freeze_ticks -= 1
@@ -1236,7 +1261,9 @@ func process_tick():
 	if can_tick:
 		advance_frame_input = false
 	if !Global.frame_advance:
-		if Global.playback_speed_mod > 0:
+		if Global.playback_speed_mod == -1:
+			can_tick = real_tick % 3 != 2
+		elif Global.playback_speed_mod > 0:
 			can_tick = real_tick % Global.playback_speed_mod == 0
 	if (Network.multiplayer_active) and !ghost_tick and !spectating:
 		can_tick = network_simulate_ready
@@ -1245,6 +1272,11 @@ func process_tick():
 		can_tick = true
 #	if Network.player_id == 2:
 #		can_tick = can_tick and (real_tick % 8 == 0)
+
+	# When the pause button is held (frame_advance) and we're not advancing
+	# this frame, the sim won't run — but screenshake should still play out.
+	if Global.frame_advance and !can_tick:
+		camera.tick()
 
 	if !ReplayManager.playback:
 		if !is_waiting_on_player():
@@ -1261,14 +1293,15 @@ func process_tick():
 		else:
 			ReplayManager.frames.finished = false
 			game_paused = true
+			# Keep camera ticking while waiting on player input so screenshake
+			# plays through — only freeze frames should pause the shake.
+			camera.tick()
 			var someones_turn = false
-			if p1.state_interruptable and !p1_turn:
-				p2.busy_interrupt = (!p2.state_interruptable and !(p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2)))
-				if !p2.busy_interrupt:
-					p2.current_state().on_interrupt()
-				p2.state_interruptable = true
+			var was_p1_turn = p1_turn
+			var was_p2_turn = p2_turn
+			_apply_turn_coupling()
+			if p1_turn and !was_p1_turn:
 				p1.show_you_label()
-				p1_turn = true
 #				p1.update_advantage()
 #				p2.update_advantage()
 				if singleplayer:
@@ -1276,15 +1309,9 @@ func process_tick():
 				elif !is_ghost:
 					someones_turn = true
 				player_actionable = true
-
-			elif p2.state_interruptable and !p2_turn:
+			elif p2_turn and !was_p2_turn:
 				someones_turn = true
-				p1.busy_interrupt = (!p1.state_interruptable and !(p1.current_state().interruptible_on_opponent_turn or p1.feinting or negative_on_hit(p1)))
-				if !p1.busy_interrupt:
-					p1.current_state().on_interrupt()
-				p1.state_interruptable = true
 				p2.show_you_label()
-				p2_turn = true
 #				p1.update_advantage()
 #				p2.update_advantage()
 				if singleplayer:
@@ -1320,31 +1347,31 @@ func process_tick():
 func _process(delta):
 	update()
 	super_dim()
-	
-	if camera.global_position.y > camera.limit_bottom - get_viewport_rect().size.y/2:
-		camera.global_position.y = camera.limit_bottom - get_viewport_rect().size.y/2
-	if camera.global_position.x > camera.limit_right - get_viewport_rect().size.x/2:
-		camera.global_position.x = camera.limit_right - get_viewport_rect().size.x/2
-	if camera.global_position.x < camera.limit_left + get_viewport_rect().size.x/2:
-		camera.global_position.x = camera.limit_left + get_viewport_rect().size.x/2
-	
-	if is_instance_valid(ghost_game):
-		ghost_game.camera_zoom = camera_zoom
-		ghost_game.update_camera_limits()
 
-	if game_started and !is_ghost:
-		camera.zoom = Vector2.ONE
-		var dist = p1.get_hurtbox_center().y - p2.get_hurtbox_center().y
-		if abs(p1.get_hurtbox_center().y - p2.get_hurtbox_center().y) > CAMERA_MAX_Y_DIST:
-			var dist_ratio = abs(dist) / float(CAMERA_MAX_Y_DIST)
-			camera.zoom = Vector2.ONE * dist_ratio
-		camera.zoom *= camera_zoom
-	if is_instance_valid(ghost_game):
-		ghost_game.camera.zoom = camera.zoom
-		ghost_game.camera.position = camera.position
-		ghost_game.camera.position = camera.position
+	if playback_speed_allows_tick():
+		if camera.global_position.y > camera.limit_bottom - get_viewport_rect().size.y/2:
+			camera.global_position.y = camera.limit_bottom - get_viewport_rect().size.y/2
+		if camera.global_position.x > camera.limit_right - get_viewport_rect().size.x/2:
+			camera.global_position.x = camera.limit_right - get_viewport_rect().size.x/2
+		if camera.global_position.x < camera.limit_left + get_viewport_rect().size.x/2:
+			camera.global_position.x = camera.limit_left + get_viewport_rect().size.x/2
 
-	camera_snap_position = camera.position
+		if is_instance_valid(ghost_game):
+			ghost_game.camera_zoom = camera_zoom
+			ghost_game.update_camera_limits()
+
+		if game_started and !is_ghost:
+			camera.zoom = Vector2.ONE
+			var dist = p1.get_hurtbox_center().y - p2.get_hurtbox_center().y
+			if abs(p1.get_hurtbox_center().y - p2.get_hurtbox_center().y) > CAMERA_MAX_Y_DIST:
+				var dist_ratio = abs(dist) / float(CAMERA_MAX_Y_DIST)
+				camera.zoom = Vector2.ONE * dist_ratio
+			camera.zoom *= camera_zoom
+		if is_instance_valid(ghost_game):
+			ghost_game.camera.zoom = camera.zoom
+			ghost_game.camera.position = camera.position
+
+		camera_snap_position = camera.position
 
 	if is_ghost and Global.ghost_speed > 2:
 		var current_time = Time.get_unix_time_from_system()
@@ -1361,11 +1388,17 @@ func _process(delta):
 					call_deferred("ghost_tick")
 		
 
+func playback_speed_allows_tick() -> bool:
+	if Global.playback_speed_mod == -1:
+		return real_tick % 3 != 2
+	elif Global.playback_speed_mod > 0:
+		return real_tick % Global.playback_speed_mod == 0
+	return true
+
 func _physics_process(_delta):
 	if forfeit:
 		game_paused = false
 		game_finished = true
-	camera.tick()
 	real_tick += 1
 	if !$GhostStartTimer.is_stopped():
 		return
@@ -1395,7 +1428,7 @@ func _physics_process(_delta):
 			call_deferred("ghost_tick")
 
 	super_active = super_freeze_ticks > 0
-	if super_active:
+	if super_active and playback_speed_allows_tick():
 		super_freeze_ticks -= 1
 		if super_freeze_ticks == 0:
 			super_active = false
@@ -1412,7 +1445,7 @@ func _physics_process(_delta):
 			Network.sync_tick()
 		player_actionable = false
 	
-	if !is_ghost:
+	if !is_ghost and playback_speed_allows_tick():
 		if snapping_camera:
 			var target = (p1.global_position + p2.global_position) / 2
 			if forfeit_player:
@@ -1460,7 +1493,7 @@ func ghost_tick():
 		if ghost_actionable_freeze_ticks == 0:
 			ghost_simulated_ticks += 1
 			simulate_one_tick()
-		if current_tick > GHOST_FRAMES:
+		if ghost_simulated_ticks > GHOST_FRAMES:
 			emit_signal("ghost_finished")
 
 		if p1.ghost_blocked_melee_attack > 0 and !p1.block_frame_label.visible:
@@ -1506,7 +1539,7 @@ func ghost_tick():
 #					p1.grounded_indicator.visible = p1.is_grounded()
 					p2.grounded_indicator.visible = p2.is_grounded() and p2.ghost_was_in_air
 				ghost_p2_actionable = true
-				
+
 #			else:
 #				ghost_actionable_freeze_ticks = 1
 		var p2_tick = ghost_simulated_ticks+(p2.hitlag_ticks if !ghost_p1_actionable else 0)
@@ -1543,7 +1576,7 @@ func ghost_tick():
 						p1.actionable_label.text = "Interrupt\nin %sf" % p1.turn_frames
 					p1.grounded_indicator.visible = p1.is_grounded() and p1.ghost_was_in_air
 #					p2.grounded_indicator.visible = p2.is_grounded()
-				
+
 #			else:
 #				ghost_actionable_freeze_ticks = 1
 
@@ -1552,7 +1585,6 @@ func super_dim():
 
 func update_mouse_world_position():
 	Global.mouse_world_position = Global.screen_to_world(get_local_mouse_position())
-	pass
 
 func _unhandled_input(event: InputEvent):
 	if is_afterimage:
@@ -1567,7 +1599,10 @@ func _unhandled_input(event: InputEvent):
 			drag_position = null
 	if event is InputEventMouseMotion:
 		if drag_position and ((is_waiting_on_player() and !ReplayManager.playback) or Global.frame_advance):
-			camera.global_position -= event.relative
+			# event.relative is in screen pixels; camera position is in world
+			# units. scale by zoom so the panned point stays under the cursor
+			# at any zoom level.
+			camera.global_position -= event.relative * camera.zoom
 			snapping_camera = false
 		
 	if !is_ghost and singleplayer:
@@ -1586,7 +1621,8 @@ func _unhandled_input(event: InputEvent):
 					zoom_in()
 				if event.button_index == BUTTON_WHEEL_DOWN:
 					zoom_out()
-	update_mouse_world_position()
+	if !is_ghost:
+		update_mouse_world_position()
 
 func update_camera_limits():
 	if camera_zoom == 1.0 and stage_width > 320:
