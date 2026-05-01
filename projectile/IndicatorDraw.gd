@@ -20,7 +20,7 @@ func _process(delta):
 
 func _draw():
 	if !host.disabled:
-		var color = Color("ff7a81") if host.id == 2 else Color("aca2ff")
+		var color = Color(host.get_game().player_colors[host.id])
 		var pos = to_local(host.get_hurtbox_center_float())
 		var radius = max((host.hurtbox.width + host.hurtbox.height) / 2.0, 7.0)
 #			draw_arc(to_local(host.get_hurtbox_center_float()), (host.hurtbox.width + host.hurtbox.height) / 2.0, 0, TAU, 32, Color.white, 3.0)

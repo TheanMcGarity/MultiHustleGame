@@ -1,12 +1,13 @@
 [gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://addons/collision_box/CollisionBox.gd" type="Script" id=1]
-[ext_resource path="res://arena_new/PhysicsCube.tscn" type="PackedScene" id=2]
-[ext_resource path="res://arena_new/PlatformTest.tscn" type="PackedScene" id=3]
-[ext_resource path="res://arena_new/SolidBox.gd" type="Script" id=5]
-[ext_resource path="res://arena_new/BaseGround.gd" type="Script" id=6]
+[ext_resource path="res://arena/PhysicsCube.tscn" type="PackedScene" id=2]
+[ext_resource path="res://arena/PlatformTest.tscn" type="PackedScene" id=3]
+[ext_resource path="res://arena/SolidBox.gd" type="Script" id=5]
+[ext_resource path="res://arena/BaseGround.gd" type="Script" id=6]
 [ext_resource path="res://framework/FiniteStateMachine/StateMachine.gd" type="Script" id=7]
 [ext_resource path="res://characters/BoxDraw.gd" type="Script" id=8]
+
 
 [node name="Solids" type="Node2D"]
 

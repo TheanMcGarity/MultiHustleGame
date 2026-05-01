@@ -1,13 +1,14 @@
 [gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://addons/collision_box/CollisionBox.gd" type="Script" id=1]
-[ext_resource path="res://arena_new/PlayerSpawn.tscn" type="PackedScene" id=2]
-[ext_resource path="res://arena_new/SolidBox.gd" type="Script" id=3]
-[ext_resource path="res://arena_new/BaseGround.gd" type="Script" id=4]
+[ext_resource path="res://arena/PlayerSpawn.tscn" type="PackedScene" id=2]
+[ext_resource path="res://arena/SolidBox.gd" type="Script" id=3]
+[ext_resource path="res://arena/BaseGround.gd" type="Script" id=4]
 [ext_resource path="res://framework/FiniteStateMachine/StateMachine.gd" type="Script" id=5]
 [ext_resource path="res://characters/BoxDraw.gd" type="Script" id=6]
 [ext_resource path="res://_ExampleArenasMod/simple-light-wood-dining-table-with-tapered-legs-isolated-on-transparent-background-png.png" type="Texture" id=7]
 [ext_resource path="res://_ExampleArenasMod/White_Bed_JE3_BE3.png" type="Texture" id=8]
+
 
 [node name="HouseArena" type="Node2D"]
 unique_name_in_owner = true

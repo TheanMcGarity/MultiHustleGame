@@ -6,6 +6,8 @@ var VERSION = "1.9.20-steam-mh_0.9.0"
 var TOURNAMENT_VERSION = "1.9.20-steam-mh_tournaments_0.9.0"
 const RESOLUTION = Vector2(640, 360)
 
+var BUILD = 181
+
 var audio_player
 var tournament_mode = false
 var music_enabled = true

@@ -11,7 +11,7 @@ func _frame_0():
 	var vel = host.get_vel()
 	host.set_vel(vel.x, "0")
 	host.set_grounded(true)
-	#host.set_pos(host.get_pos().x, 0)
+	host.set_pos(host.get_pos().x, host.get_closest_floor_y())
 	host.on_the_ground = true
 	host.colliding_with_opponent = false
 	host.play_sound("HitBass")
@@ -30,5 +30,6 @@ func _tick():
 	host.apply_x_fric(GROUND_FRIC)
 #	host.apply_fric()
 	host.apply_forces_no_limit()
+	host.apply_grav()
 	if host.hp <= 0:
 		endless = true

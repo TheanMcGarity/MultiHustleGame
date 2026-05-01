@@ -31,6 +31,10 @@ signal actions_submitted()
 signal turn_started()
 signal zoom_changed()
 
+var gamemode:int = 0 # Gamemode "New"
+
+onready var scripter_ui = get_tree().root.get_node("Main/UILayer/ReplayScriptingMenu")
+
 var p1_data
 var p2_data
 
@@ -174,7 +178,22 @@ var dead_collisions := false
 var team_collisions := false
 
 var reload_ui_allowed := false
+"""
+Should be stuff like
+{1:1, 2:1, 3:1, 4:2, 5:2, 6:2, ...}
+for the idea of one player controlling 3 characters.
+This will be implemented for MultiControl later on.
 
+{ character:tag_team }
+
+For the active tag team player, please just do something like
+{1:2, 2:4, ...}
+for
+{ tag_team:character }
+to get the active character of that team.
+"""
+var tt_players := {}
+var active_tt_player := {}
 
 var player_colors:Dictionary = {
 	1: Color("aca2ff"),
@@ -309,6 +328,7 @@ func copy_to(game):
 		solid.free()
 	game.physics = []
 	game.solids = []
+	game.global_hitboxes = []
 	for solid in solids:
 		if (not is_instance_valid(solid)):
 			continue
@@ -325,7 +345,15 @@ func copy_to(game):
 		solid_node.add_child(new_physical)
 		physical.copy_to(new_physical)
 		game.physics.append(new_physical)
-	
+		
+	for box in global_hitboxes:
+		if (not is_instance_valid(box)):
+			continue
+		var new_solid = box.duplicate()
+		solid_node.add_child(new_solid)
+		if (new_solid is Hitbox):
+			game.global_hitboxes.append(new_solid)
+			new_solid.update_position(box.pos_x,box.pos_y)
 
 func _on_super_started(ticks, player):
 	set_vanilla_game_started(true)
@@ -444,6 +472,11 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		spawners[spawner.player_id] = spawner
 
 	#print(match_data)
+	
+	if match_data.has("gamemode"):
+		gamemode = match_data.gamemode
+	
+	
 	
 	if match_data.has("collide_team"):
 		team_collisions = match_data["collide_team"]
@@ -623,8 +656,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 				p1_data = player.data
 			2:
 				p2_data = player.data
-	#print("PLR DICT: "+str(players))
-	apply_hitboxes(players.values())
+	#print("PLR DICT: "+str(players))apply_hitboxes(players.values())
 	if not ReplayManager.resimulating:
 		show_state()
 	if ReplayManager.playback and not ReplayManager.resimulating and not self.is_ghost:
@@ -643,10 +675,23 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 	
 	for box in Global.get_nodes_in_group_under(self, "global_box"):
 		global_hitboxes.append(box)
+		box.update_position(box.global_position.x, box.global_position.y)
+	
 	for solid in Global.get_nodes_in_group_under(self, "solid"):
 		solids.append(solid)
 	for physical in Global.get_nodes_in_group_under(self, "physics"):
 		physics.append(physical)
+	
+	get_node("/root/Main").get_node("%PauseScripterButton").visible = false
+	match gamemode:
+		4: # "Scripted"
+			get_node("/root/Main").get_node("%PauseScripterButton").visible = true
+			if not is_ghost:
+				scripter_ui.spawn_focus_proj(0,0)
+				scripter_ui.camera_focus_center.attached_players = players.values()
+		_:
+			pass
+		
 
 func on_prediction(ticks=7, player=null):
 	_on_super_started(ticks, player)
@@ -696,6 +741,9 @@ func process_fx():
 			fx.tick()
 
 func tick():
+	if (ReplayManager.playback):
+		if (ReplayManager.frames.script.has(current_tick)):
+			scripter_ui.replay_tick(ReplayManager.frames.script[current_tick])
 	
 	set_vanilla_game_started(true)
 
@@ -809,6 +857,9 @@ func tick():
 			2:
 				p2_data = data
 	resolve_collisions_all()
+	for box in global_hitboxes:
+		if (is_instance_valid(box)):
+			box.update_position(box.global_position.x, box.global_position.y)
 	apply_hitboxes(playerPorts)
 	for index in players.keys():
 		var data = players[index].data
@@ -884,6 +935,12 @@ func resolve_port_priority(id = false):
 			var index2 = pair[1]
 			var p1 = players[index1]
 			var p2 = players[index2]
+			
+			#if (not p1.id in active_tt_player.values()):
+			#	continue
+			#if (not p2.id in active_tt_player.values()):
+			#	continue
+			
 			var p1_state = p1.current_state()
 			var p2_state = p2.current_state()
 			var priority = p.call_func(p1_state, p2_state)
@@ -1743,6 +1800,10 @@ func _unhandled_input(event: InputEvent):
 				if !game_finished and !ReplayManager.playback:
 					if is_waiting_on_player() and current_tick > 0:
 						buffer_playback = true
+			if event.is_action_pressed("trailer_create_teleport_effect"):
+				var pos = get_player(1).get_pos()
+				var pos_v = Vector2(float(pos.x), float(pos.y))
+				_spawn_particle_effect(preload("res://multihustle/trailer/teleportparticle.tscn"), pos_v)
 			if event.is_action_pressed("edit_replay"):
 				if ReplayManager.playback:
 					buffer_edit = true

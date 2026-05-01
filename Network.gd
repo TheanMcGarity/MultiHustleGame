@@ -381,8 +381,8 @@ func _reset():
 	
 	ids_synced = false
 	turn_synced = false
-	
 	get_tree().set_network_peer(null)
+	
 
 # Callback from SceneTree.
 func player_connected(id):
@@ -525,7 +525,7 @@ remotesync func player_emote(player_id, message):
 	if is_instance_valid(Global.current_game):
 		var player = Global.current_game.get_player(player_id)
 		if player:
-			player.emote(message.split("/em ")[-1])
+			player.emote(message)
 
 func request_match_list():
 	if multiplayer_client and multiplayer_client.connected:

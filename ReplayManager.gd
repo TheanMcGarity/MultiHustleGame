@@ -7,7 +7,8 @@ var frames = {
 	"emotes": {
 		1: {},
 		2: {},
-	}
+	},
+	"script": {}
 }
 
 var playback = false setget set_playback
@@ -28,7 +29,8 @@ func init():
 		"emotes": {
 			1: {},
 			2: {},
-		}
+		},
+		"script": {}
 	}
 	
 	var mh_data = {}
@@ -59,9 +61,9 @@ func get_last_action(id):
 		return frames[id][frame_numbers[-1]]
 	return null
 
-func emote(message, player_id, tick):
+func emote(message, player_id, tick, length):
 	if !playback:
-		frames.emotes[player_id][tick] = message
+		frames.emotes[player_id][tick] = [message, length]
 
 func generate_replay_name():
 	var time = Time.get_datetime_dict_from_system()
@@ -180,6 +182,8 @@ func undo(cut = true):
 	
 		if cut:
 			frames[id].erase(last_frame)
+	if cut:
+		frames.script.erase(last_frame)
 	
 	resimulating = true
 	playback = true

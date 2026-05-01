@@ -1,7 +1,8 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://arena_new/PhysicsCube.tscn" type="PackedScene" id=3]
-[ext_resource path="res://arena_new/PlatformTest.tscn" type="PackedScene" id=4]
+[ext_resource path="res://arena/PhysicsCube.tscn" type="PackedScene" id=3]
+[ext_resource path="res://arena/PlatformTest.tscn" type="PackedScene" id=4]
+
 
 [node name="Solids" type="Node2D"]
 

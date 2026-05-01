@@ -140,14 +140,14 @@ align = 1
 [node name="TeamButtons" parent="." instance=ExtResource( 8 )]
 unique_name_in_owner = true
 
-[node name="GameSettingsPanelContainer" type="VBoxContainer" parent="."]
+[node name="GameSettings" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
 margin_left = 241.0
 margin_top = 8.0
 margin_right = 399.0
 margin_bottom = 155.0
 
-[node name="GameSettings" parent="GameSettingsPanelContainer" instance=ExtResource( 9 )]
+[node name="GameSettingsPanelContainer" parent="GameSettings" instance=ExtResource( 9 )]
 unique_name_in_owner = true
 anchor_left = 0.0
 anchor_top = 0.0
@@ -160,29 +160,29 @@ margin_bottom = 131.0
 rect_min_size = Vector2( 0, 131 )
 rect_pivot_offset = Vector2( -348, 162 )
 
-[node name="Control" type="Control" parent="GameSettingsPanelContainer"]
+[node name="Control" type="Control" parent="GameSettings"]
 margin_top = 132.0
 margin_right = 158.0
 margin_bottom = 135.0
 rect_min_size = Vector2( 0, 3 )
 
-[node name="GameTypeInput" type="HBoxContainer" parent="GameSettingsPanelContainer"]
+[node name="GameTypeInput" type="HBoxContainer" parent="GameSettings"]
 margin_top = 136.0
 margin_right = 158.0
 margin_bottom = 148.0
 
-[node name="Label" type="Label" parent="GameSettingsPanelContainer/GameTypeInput"]
+[node name="Label" type="Label" parent="GameSettings/GameTypeInput"]
 margin_right = 55.0
 margin_bottom = 11.0
 text = "Game Mode"
 
-[node name="Spacer" type="Label" parent="GameSettingsPanelContainer/GameTypeInput"]
+[node name="Spacer" type="Label" parent="GameSettings/GameTypeInput"]
 margin_left = 56.0
 margin_right = 80.0
 margin_bottom = 11.0
 text = "        "
 
-[node name="GameType" type="OptionButton" parent="GameSettingsPanelContainer/GameTypeInput"]
+[node name="GameType" type="OptionButton" parent="GameSettings/GameTypeInput"]
 unique_name_in_owner = true
 margin_left = 81.0
 margin_right = 158.0
@@ -190,7 +190,7 @@ margin_bottom = 12.0
 hint_tooltip = "Set the timer for the match (in frames)."
 size_flags_horizontal = 3
 text = "New"
-items = [ "New", null, false, 0, null, "Classic", null, false, 1, null, "MultiControl", null, false, 2, null ]
+items = [ "New", null, false, 0, null, "Classic", null, false, 1, null, "MultiControl", null, false, 2, null, "Tag Team", null, false, 3, null, "Scripted", null, false, 4, null ]
 selected = 0
 
 [connection signal="visibility_changed" from="." to="." method="_on_CharacterSelect_visibility_changed"]

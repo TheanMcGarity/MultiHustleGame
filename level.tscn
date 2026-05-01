@@ -7,6 +7,7 @@
 [ext_resource path="res://assets/trail_1_a.png" type="Texture" id=5]
 [ext_resource path="res://assets/NotoSansUI_Regular.ttf" type="DynamicFontData" id=6]
 
+
 [sub_resource type="GDScript" id=1]
 script/source = "extends Control
 

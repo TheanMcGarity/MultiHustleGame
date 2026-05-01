@@ -12,7 +12,7 @@ margin_bottom = 62.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
-[node name="JumpArc" type="Container" parent="." index="0"]
+[node name="BoostArc" type="Container" parent="." index="0"]
 margin_right = 60.0
 margin_bottom = 66.0
 rect_min_size = Vector2( 60, 66 )
@@ -32,10 +32,11 @@ limit_angle = false
 default_value = Vector2( -4.37114e-08, -1 )
 snap = true
 snap_angles = 8
+snap_grid = false
 snap_align_to_limit_center = true
 snap_radius = 0.6
 
-[node name="PlotPanel" type="Control" parent="JumpArc" index="0"]
+[node name="PlotPanel" type="Control" parent="BoostArc" index="0"]
 unique_name_in_owner = true
 margin_top = 8.0
 margin_right = 50.0
@@ -45,7 +46,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 3 )
 
-[node name="PlotPanelNub" type="Control" parent="JumpArc" index="1"]
+[node name="PlotPanelNub" type="Control" parent="BoostArc" index="1"]
 unique_name_in_owner = true
 margin_top = 8.0
 margin_right = 50.0
@@ -55,7 +56,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 5 )
 
-[node name="Label" type="Label" parent="JumpArc" index="2"]
+[node name="Label" type="Label" parent="BoostArc" index="2"]
 unique_name_in_owner = true
 margin_right = 50.0
 margin_bottom = 11.0
@@ -66,7 +67,7 @@ text = "BoostArc"
 align = 1
 valign = 1
 
-[node name="XLabel" type="Label" parent="JumpArc" index="3"]
+[node name="XLabel" type="Label" parent="BoostArc" index="3"]
 unique_name_in_owner = true
 margin_left = 50.0
 margin_top = 8.0
@@ -78,7 +79,7 @@ text = "0"
 align = 1
 valign = 1
 
-[node name="YLabel" type="Label" parent="JumpArc" index="4"]
+[node name="YLabel" type="Label" parent="BoostArc" index="4"]
 unique_name_in_owner = true
 margin_top = 55.0
 margin_right = 50.0
@@ -89,7 +90,7 @@ text = "-0.6"
 align = 1
 valign = 1
 
-[node name="UpdateTimer" type="Timer" parent="JumpArc" index="5"]
+[node name="UpdateTimer" type="Timer" parent="BoostArc" index="5"]
 unique_name_in_owner = true
 wait_time = 0.3
 one_shot = true

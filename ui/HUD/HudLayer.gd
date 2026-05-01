@@ -348,6 +348,20 @@ func initp2(p2index):
 	print("initp2->MAX_HEALTH=%d" % p2.MAX_HEALTH)
 
 func reinit(p1index:int, p2index:int):
+	var p1 = Global.current_game.get_player(p1index)
+	var p2 = Global.current_game.get_player(p2index)
+	var p1_info_scene = p1.player_info_scene.instance()
+	var p2_info_scene = p2.player_info_scene.instance()
+	p1_info_scene.set_fighter(p1)
+	p2_info_scene.set_fighter(p2)
+	if $"%P1InfoContainer".get_child(0) is PlayerInfo:
+		$"%P1InfoContainer".remove_child($"%P1InfoContainer".get_child(0))
+	if $"%P2InfoContainer".get_child(0) is PlayerInfo:
+		$"%P2InfoContainer".remove_child($"%P2InfoContainer".get_child(0))
+	$"%P1InfoContainer".add_child(p1_info_scene)
+	$"%P1InfoContainer".move_child(p1_info_scene, 0)
+	$"%P2InfoContainer".add_child(p2_info_scene)
+	$"%P2InfoContainer".move_child(p2_info_scene, 0)
 	initp1(p1index)
 	initp2(p2index)
 
@@ -429,5 +443,4 @@ func _physics_process(_delta):
 func _on_UISoftlockButton_pressed():
 	Network.main.ui_layer.p1_action_buttons.re_init(Network.main.ui_layer.GetRealID(1))
 	Network.main.ui_layer.p2_action_buttons.re_init(Network.main.ui_layer.GetRealID(2))
-	initp1(Network.main.ui_layer.GetRealID(1))
-	initp2(Network.main.ui_layer.GetRealID(2))
+	reinit(Network.main.ui_layer.GetRealID(1),Network.main.ui_layer.GetRealID(2))

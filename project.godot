@@ -37,7 +37,7 @@ _global_script_classes=[ {
 "base": "BaseObj",
 "class": "BaseGround",
 "language": "GDScript",
-"path": "res://arena_new/BaseGround.gd"
+"path": "res://arena/BaseGround.gd"
 }, {
 "base": "Node2D",
 "class": "BaseObj",
@@ -272,12 +272,12 @@ _global_script_classes=[ {
 "base": "CollisionBox",
 "class": "PhysicsBox",
 "language": "GDScript",
-"path": "res://arena_new/PhysicsBox.gd"
+"path": "res://arena/PhysicsBox.gd"
 }, {
 "base": "SolidBox",
 "class": "PhysicsBoxBasic",
 "language": "GDScript",
-"path": "res://arena_new/PhysicsCollisionBox.gd"
+"path": "res://arena/PhysicsCollisionBox.gd"
 }, {
 "base": "HBoxContainer",
 "class": "PlayerExtra",
@@ -292,7 +292,7 @@ _global_script_classes=[ {
 "base": "Node2D",
 "class": "PlayerSpawnPoint",
 "language": "GDScript",
-"path": "res://arena_new/PlayerSpawn.gd"
+"path": "res://arena/PlayerSpawn.gd"
 }, {
 "base": "Node",
 "class": "ProfanityFilter",
@@ -347,7 +347,7 @@ _global_script_classes=[ {
 "base": "CollisionBox",
 "class": "SolidBox",
 "language": "GDScript",
-"path": "res://arena_new/SolidBox.gd"
+"path": "res://arena/SolidBox.gd"
 }, {
 "base": "Node",
 "class": "StateInterface",
@@ -447,7 +447,7 @@ _global_script_classes=[ {
 "base": "RigidBody2D",
 "class": "YOMIRigidbody",
 "language": "GDScript",
-"path": "res://arena_new/YOMIRigidbody.gd"
+"path": "res://arena/YOMIRigidbody.gd"
 }, {
 "base": "Panel",
 "class": "YomiColorPicker",
@@ -589,7 +589,7 @@ window/stretch/aspect="keep"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/char_creator/plugin.cfg", "res://addons/collision_box/plugin.cfg", "res://addons/export_categories/plugin.cfg", "res://addons/multirun/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/build_number/plugin.cfg", "res://addons/char_creator/plugin.cfg", "res://addons/collision_box/plugin.cfg", "res://addons/export_categories/plugin.cfg", "res://addons/multirun/plugin.cfg" )
 
 [global]
 
@@ -674,6 +674,19 @@ toggle_frame_advance={
 open_debug_panel={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":true,"meta":false,"command":true,"pressed":false,"scancode":0,"physical_scancode":68,"unicode":0,"echo":false,"script":null)
+ ]
+}
+open={
+"deadzone": 0.5,
+"events": [  ]
+}
+replay={
+"deadzone": 0.5,
+"events": [  ]
+}
+trailer_create_teleport_effect={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":true,"control":true,"meta":false,"command":true,"pressed":false,"scancode":0,"physical_scancode":84,"unicode":0,"echo":false,"script":null)
  ]
 }
 

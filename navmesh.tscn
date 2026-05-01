@@ -7,6 +7,7 @@
 [ext_resource path="res://assets/NotoSansUI_Regular.ttf" type="DynamicFontData" id=5]
 [ext_resource path="res://assets/path_1.png" type="Texture" id=6]
 
+
 [sub_resource type="DynamicFont" id=1]
 size = 18
 use_mipmaps = true

@@ -60,22 +60,74 @@ var game_tick = 0
 
 var hitlag_ticks = 0# setget set__hitlag_ticks
 
-var _is_grounded := false
+var _is_grounded := false setget on_grounded_change
 var grounded_solid
 var wall_solids := []
 
+func on_grounded_change(new):
+	_is_grounded = new
+	chara.set_grounded(new)
+
 func set__hitlag_ticks(new):
 	hitlag_ticks = new
-	if (Global.current_game.is_global_hitlag_activated_now):
-		print("GLOBAL HITSTOP DETECTED!")
-		Global.current_game.is_global_hitlag_activated_now = false
-		for player in Global.current_game.player:
-			player.hitlag_ticks = new
+	#if (Global.current_game.is_global_hitlag_activated_now):
+	#	print("GLOBAL HITSTOP DETECTED!")
+	#	Global.current_game.is_global_hitlag_activated_now = false
+	#	for player in Global.current_game.player:
+	#		player.hitlag_ticks = new
+
+var possible_global_hitstun := false# setget set__possible_global_hitstun
+func set__possible_global_hitstun(no):
+	push_warning("not happening")
+	pass
+const ID_SETTERS := [
+	"spawn_object",
+	"copy_to",
+	"get_display_data",
+	"get_character_data",
+	"InitCharacter_Internal",
+	"start_game",
+]
+var _state_interrupt_backup := false
+func global_hitlag_check():
+	if not possible_global_hitstun:
+		return
+	if not (state_interruptable):#: and _state_interrupt_backup):
+		for player in get_game().players.values():
+			if (player == self):
+				continue
+			player.state_interruptable = false
+			player.possible_global_hitstun = true
+			player.hitlag_ticks = 1
+	else:
+		for player in get_game().players.values():
+			if (player == self):
+				continue
+			player.state_interruptable = true
+			player.possible_global_hitstun = false
+		possible_global_hitstun = false
+	#if (_state_interrupt_backup != state_interruptable):
+	#	_state_interrupt_backup = state_interruptable
 
 func set__id(new):
+	var safe = false
+	var stack = get_stack()
+	for allowed in ID_SETTERS:
+		if (Global.is_allowed_caller(allowed, stack)):
+			safe = true
+			break
+	if (not is_instance_valid(get_game())):
+		safe = true
+	if safe: 
+		id = new
+	else:
+		
+		for player in get_game().players.values():
+			player.possible_global_hitstun = true
+		if (not is_ghost):
+			push_error("Do NOT edit the player ID! Stack trace: %s" % [stack])
 	#if not is_ghost:
 	#	push_warning("Set id for %s to %d from %d" % [name, new, id])
-	id = new
 
 var combo_count = 0
 
@@ -722,20 +774,8 @@ func apply_grav():
 
 # Reacreation of the c++ friction code for yomi
 func apply_fric():
-	if _is_grounded:
-		apply_ground_fric()
-	else:
-		apply_air_fric()
-func apply_ground_fric():
-	var y_vel = float(get_vel().y)
-	var x_vel = float(get_vel().x)
-	var x_vel_new = x_vel - (abs(x_vel) / float(max_ground_speed)) * float(ground_friction) * sign(x_vel)
-	set_vel(x_vel_new, y_vel)
-func apply_air_fric():
-	var y_vel = float(get_vel().y)
-	var x_vel = float(get_vel().x)
-	var x_vel_new = x_vel - (abs(x_vel) / float(max_air_speed)) * float(air_friction) * sign(x_vel)
-	set_vel(x_vel_new, y_vel)
+	chara.set_grounded(_is_grounded)
+	chara.apply_fric()
 
 func apply_x_fric(fric):
 	chara.apply_x_fric(fric)
@@ -829,7 +869,7 @@ func is_grounded():
 	return grounded
 
 func set_grounded(on):
-	_is_grounded = on
+	self._is_grounded = on
 
 func add_pushback(pushback):
 	chara.add_pushback(pushback)
@@ -847,41 +887,40 @@ func update_grounded():
 	if (is_instance_valid(grounded_solid)):
 		grounded_solid.colliding.erase(self)
 	colliding_with_wall()
+	var pos = get_pos()
+	set_col_pos(pos.x,pos.y)
+	
 	for wall in wall_solids:
 		if not is_instance_valid(wall):
 			continue
+		var vel = get_vel()
+		set_col_vel(vel.x,vel.y)
+		
+		
+		
 		var wall_side = _get_side_from_normal(wall.get_overlap_normal(collision_box))
 		move_away_from_wall(wall, wall_side)
+		
+		set_vel(collision_velocity_change.x, collision_velocity_change.y)
+	set_pos(collision_pos_change.x, collision_pos_change.y)
 	
 	#chara.update_grounded()
 	var game = get_game()
 	if not is_instance_valid(game):
 		return
 	var solids = game.solids#get_tree().get_nodes_in_group("Solids")
-	for solid in solids:
-		if not is_instance_valid(solid):
-			continue
-		#var solid = Global.current_game.get_node(solid_path)
-		var col:SolidBox = solid.get_node("SolidBox")
-		
-		if not is_instance_valid(col):
-			continue
-		
-		var pos = position
-		pos.x = pos.x - (collision_box.width / 2)
-		pos.y = pos.y + 2
-		
-		if col.overlaps_on_point(pos):
-			_is_grounded = true
-			grounded_solid = solid
-			set_vel(str(get_vel().x), str(0))
-			#set_pos(str(get_pos().x), str(col.get_aabb().y1))
-			
-			grounded_solid.colliding.append(self)
-			return
+	var on_ground := false
+	for solid in wall_solids:
+		var wall_side = _get_side_from_normal(solid.get_overlap_normal(collision_box))
+		if wall_side == 3:
+			on_ground = true
+			break
 	
-	grounded_solid = null
-	_is_grounded = position.y >= 0
+	if not on_ground:
+		grounded_solid = null
+		self._is_grounded = get_pos().y >= 0
+	
+	
 
 func on_got_parried():
 	hitlag_ticks += current_state().extra_parry_hitlag
@@ -954,6 +993,7 @@ func distance_to(object: BaseObj):
 	return fixed.vec_dist(str(p1.x), str(p1.y), str(p2.x), str(p2.y))
 
 func tick():
+	global_hitlag_check()
 	#if (_is_grounded):
 	#	set_vel(get_vel().x, 0)
 	#	chara.set_position(get_pos().x, grounded_solid.y)
@@ -1119,30 +1159,97 @@ func _get_side_from_normal(normal:Vector2):
 	if (normal.y == 1):
 		return 4
 	return 0
-
+var collision_velocity_change
+var collision_pos_change
+func collide_vel_x(x):
+	collision_velocity_change.x = str(x)
+func collide_vel_y(y):
+	collision_velocity_change.y = str(y)
+	
+func set_col_vel(x,y):
+	collision_velocity_change = {
+		"x": str(x),
+		"y": str(y)
+	}
+	return
+func collide_pos_x(x):
+	collision_pos_change.x = str(x)
+func collide_pos_y(y):
+	collision_pos_change.y = str(y)
+	
+func set_col_pos(x,y):
+	collision_pos_change = {
+		"x": str(x),
+		"y": str(y)
+	}
+	return
+var already_collided_this_frame := {}
 func move_away_from_wall(wall_col, dir):
 	if (not is_instance_valid(wall_col)):
 		return
 	var wall = wall_col.get_parent()
+	if (already_collided_this_frame.has(wall_col)):
+		var check = already_collided_this_frame[wall_col]
+		if (check[0] and check[1] == current_tick):
+			return
+	already_collided_this_frame[wall_col] = [true, current_tick]
 	match dir:
 		1:
 			print("1")
 			var x_vel = float(get_vel().x) / 5
 			x_vel += wall.movement_velocity.x
 			x_vel *= wall.bounciness
-			set_pos(str(wall_col.get_aabb().x1 - collision_box.width), str(get_pos().y))
-			set_vel(str(-abs(x_vel)), str(get_vel().y))
+			collide_pos_x(str(wall_col.get_aabb().x1 - collision_box.width))
+			collide_vel_x(str(-abs(x_vel)))
 		2:
 			print("2")
 			var x_vel = float(get_vel().x) / 5
 			x_vel += wall.movement_velocity.x
 			x_vel *= wall.bounciness
-			set_pos(str(wall_col.get_aabb().x2 + collision_box.width), str(get_pos().y))
-			set_vel(str(abs(x_vel)), str(get_vel().y))
+			collide_pos_x(str(wall_col.get_aabb().x2 + collision_box.width))
+			collide_vel_x(str(abs(x_vel)))
 		4:
 			print("4")
 			var y_vel = float(get_vel().y) / 5
 			y_vel += wall.movement_velocity.y
 			y_vel *= wall.bounciness
-			set_pos(str(get_pos().x), str(wall_col.get_aabb().y2 + collision_box.height * 2))
-			set_vel(str(get_vel().x), str(abs(y_vel)))
+			collide_pos_y(str(wall_col.get_aabb().y2 + collision_box.height * 2))
+			collide_vel_y(str(abs(y_vel)))
+		3:
+			self._is_grounded = true
+			grounded_solid = wall
+			collide_vel_y("0")
+			collide_pos_y(str(wall_col.get_aabb().y1))
+			
+			grounded_solid.colliding.append(self)
+
+
+
+const CLOSEST_FLOOR_STEP = 2
+func get_closest_floor_y(max_dist = INF) -> int:
+	if not is_instance_valid(get_game()):
+		return 0
+	
+	var colliders = []
+	
+	for solid in get_game().solids:
+		if not is_instance_valid(solid):
+			continue
+		var col = solid.get_node("SolidBox")
+		if not is_instance_valid(col):
+			continue
+		colliders.append(col)
+	
+	var x = float(get_pos().x)
+	var current_y_checking = float(get_pos().y)
+	var max_y_check = current_y_checking + max_dist
+	while true:
+		current_y_checking += CLOSEST_FLOOR_STEP
+		
+		if (current_y_checking >= 0.0):
+			break
+		
+		for col in colliders:
+			if col.overlaps_on_point(Vector2(x, current_y_checking)):
+				return int(col.get_aabb().y1)
+	return 0

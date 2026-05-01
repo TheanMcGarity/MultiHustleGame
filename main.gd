@@ -419,14 +419,12 @@ func setup_game_deferred(singleplayer, data):
 			ui_layer.set_turn_time(data.turn_time, (data.has("chess_timer") and data.chess_timer))
 		else :
 			ui_layer.start_timers()
-	print("1")
 	uiselectors = MultiHustle_AddData()
-	print("2")
 	ui_layer.init(self)
-	print("3")
 	hud_layer.init(game)
-	print("4")
 	Network.main = self
+	if (game.players.size() < 3):
+		uiselectors.modulate = Color.transparent
 	#Dumb patchwork fix so that the ui accurately shows who's selected when in multiplayer.
 	for id in uiselectors.selects.keys():
 		var charSelect = uiselectors.selects[id][0]
@@ -435,18 +433,6 @@ func setup_game_deferred(singleplayer, data):
 	var p2 = game.get_player(2)
 	p1.debug_label = $"%DebugLabelP1"
 	p2.debug_label = $"%DebugLabelP2"
-	var p1_info_scene = p1.player_info_scene.instance()
-	var p2_info_scene = p2.player_info_scene.instance()
-	p1_info_scene.set_fighter(p1)
-	p2_info_scene.set_fighter(p2)
-	if $"%P1InfoContainer".get_child(0) is PlayerInfo:
-		$"%P1InfoContainer".remove_child($"%P1InfoContainer".get_child(0))
-	if $"%P2InfoContainer".get_child(0) is PlayerInfo:
-		$"%P2InfoContainer".remove_child($"%P2InfoContainer".get_child(0))
-	$"%P1InfoContainer".add_child(p1_info_scene)
-	$"%P1InfoContainer".move_child(p1_info_scene, 0)
-	$"%P2InfoContainer".add_child(p2_info_scene)
-	$"%P2InfoContainer".move_child(p2_info_scene, 0)
 
 func _start_ghost():
 	if is_instance_valid(ghost_game):

@@ -113,6 +113,8 @@ func _get_property_list():
 		usage = PROPERTY_USAGE_DEFAULT
 	})
 	
+	
+	
 	properties.append({
 		name = "Snap",
 		type = TYPE_NIL,
@@ -135,7 +137,14 @@ func _get_property_list():
 		hint = PROPERTY_HINT_RANGE,
 		hint_string = "0,16"
 	})
-
+	
+	properties.append({
+		name = "snap_grid",
+		type = TYPE_BOOL,
+		usage = usage_of_snap_cat
+	})
+	
+	
 	properties.append({
 		name = "snap_align_to_limit_center",
 		type = TYPE_BOOL,
@@ -161,6 +170,7 @@ const PROPERTY_DEFAULTS = {
 	"min_length": 0.0,
 	"snap": true,
 	"snap_angles": 8,
+	"snap_grid": false,
 	"snap_align_to_limit_center": true,
 	"snap_radius": 0.0,
 	"limit_angle": false,
@@ -192,6 +202,7 @@ var limit_range_degrees = 90.0 setget set_limit_range_degrees
 var limit_center_degrees = 0.0 setget set_limit_center_degrees
 var limit_symmetrical = false setget set_limit_symmetrical
 var snap_angles = 8 setget set_snap_angles
+var snap_grid = false setget set_grid
 var snap_align_to_limit_center = true setget set_snap_align_to_limit_center
 var snap_radius = 0.0 setget set_snap_radius
 var default_value = Vector2(0, 0) setget set_default_value
@@ -293,6 +304,12 @@ func set_limit_symmetrical(val):
 		
 func set_snap_angles(val):
 	snap_angles = int(val)
+	if Engine.editor_hint:
+		update_value(get_default_value())
+		update()
+		
+func set_grid(val):
+	snap_grid = bool(val)
 	if Engine.editor_hint:
 		update_value(get_default_value())
 		update()
@@ -576,7 +593,7 @@ func update_value(p = null, set_buffer_update = true):
 			point = point.normalized() * length
 			angle = point.angle()
 	
-	if snap:
+	if snap and not snap_grid:
 		if snap_radius > 0.0:
 			if abs(point.length() / panel_radius - snap_radius) < SNAP_AMOUNT:
 				point = point.normalized() * snap_radius * panel_radius

@@ -60,7 +60,7 @@ func _draw():
 	bg_line_color.a = 0.65
 	draw_arc(midpoint, radius - 2, 0, TAU, 64, bg_line_color, 1.0)
 	bg_line_color.a = 0.25
-	if parent.snap:
+	if parent.snap or parent.grid:
 		var highlight_line_rate = parent.snap_angles / 4 if parent.snap_angles % 4 == 0 else 1
 		var snap_offset = limit_center if parent.snap_align_to_limit_center and parent.limit_angle else 0
 		for i in range(parent.snap_angles):

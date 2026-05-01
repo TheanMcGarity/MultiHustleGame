@@ -1,7 +1,11 @@
+tool
+
 extends BaseGround
 
-const MIN_SPEED: float = 0.0001
+# notice to arena makers
+export var _c_THIS_IS_A_PHYSICS_COLLIDER = 0
 
+const MIN_SPEED: float = 0.0001
 onready var physics_col:PhysicsBoxBasic = $SolidBox
 
 var vel = Vector2.ZERO setget _set_vel, get_vel
@@ -20,21 +24,28 @@ func copy_to(o):
 	o.accel = accel
 	o.gravity_f = gravity_f
 
+func normal_tick():
+	state_tick()
+	update_data()
+	
+	current_tick += 1
+	game_tick += 1
+
 func tick():
-	.tick()
+	
 	if not initialized:
 		return
-	#is_touching_floor()
+	detect_collisions()
 	apply_grav()
 	apply_fric()
 	apply_forces()
-	detect_collisions()
+	handle_collisions()
 	#snap_to_floor()
 
 	if (position.y > 0):
 		position.y = 0
 	print(object_collisions)
-	handle_collisions()
+	move_away_from_collisions()
 
 func snap_to_floor():
 	var game = get_game()
@@ -55,7 +66,7 @@ func snap_to_floor():
 		if (col.overlaps_on_point(pos)):
 			position.y = col.get_aabb().y1
 
-func detect_collisions():
+func handle_collisions():
 	var self_center = Vector2(
 		physics_col.x + physics_col.width / 2,
 		physics_col.y + physics_col.height / 2
@@ -79,7 +90,12 @@ func detect_collisions():
 			else:
 				position.y += overlap_y * sign(diff.y)
 				vel.y = 0
-				_is_grounded = diff.y < 0
+				_is_grounded = diff.y > 0
+		else:
+			_is_grounded = false
+			
+	if (collision_centers.size() < 1):
+		_is_grounded = position.y >= 0
 	
 	object_collisions = []
 	var game = get_game()
@@ -100,7 +116,7 @@ func detect_collisions():
 		if (overlap):
 			object_collisions.append([col, _get_side_from_normal(physics_col.get_overlap_normal(col))])
 
-func is_touching_floor():
+func detect_collisions():
 	collision_centers = []
 	var game = get_game()
 	if not is_instance_valid(game):
@@ -181,7 +197,7 @@ func move_directly(x, y):
 	.move_directly(x, y)
 	position += Vector2(float(x),float(y))
 
-func handle_collisions():
+func move_away_from_collisions():
 	for col in object_collisions:
 		move_away_from_collision(col[0], col[1])
 
@@ -198,6 +214,7 @@ func move_away_from_collision(wall_col, dir):
 			var x_vel = float(get_vel().x) / 2.5
 			x_vel += wall.movement_velocity.x
 			x_vel *= wall.bounciness
+			x_vel *= bounciness / 2
 			set_pos(str(wall_col.get_aabb().x1 - physics_col.width), str(get_pos().y))
 			set_vel(str(-abs(x_vel)), str(get_vel().y))
 		1:
@@ -205,12 +222,31 @@ func move_away_from_collision(wall_col, dir):
 			var x_vel = float(get_vel().x) / 2.5
 			x_vel += wall.movement_velocity.x
 			x_vel *= wall.bounciness
+			x_vel *= bounciness / 2
 			set_pos(str(wall_col.get_aabb().x2 + physics_col.width), str(get_pos().y))
 			set_vel(str(abs(x_vel)), str(get_vel().y))
 		4:
 			print("4")
 			var y_vel = float(get_vel().y) / 2.5
-			y_vel += wall.movement_velocity.y
+			#y_vel += wall.movement_velocity.y
 			y_vel *= wall.bounciness
+			y_vel *= bounciness / 2
 			set_pos(str(get_pos().x), str(wall_col.get_aabb().y2 + physics_col.height * 2))
 			set_vel(str(get_vel().x), str(abs(y_vel)))
+func _editor_draw():
+	$"%Color".rect_size = size * 2
+	$"%Color".rect_position = Vector2(-(size.x), -(size.y * 2))
+	var col = $"%SolidBox"
+	col.width = size.x
+	col.x = 0
+	col.height = size.y
+	col.y = -size.y
+
+func _ready():
+	$"%Color".rect_size = size * 2
+	$"%Color".rect_position = Vector2(-(size.x), -(size.y * 2))
+	var col = $"%SolidBox"
+	col.width = size.x
+	col.x = 0
+	col.height = size.y
+	col.y = -size.y

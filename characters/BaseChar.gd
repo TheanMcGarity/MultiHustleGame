@@ -441,7 +441,7 @@ var hidden_sprite := false
 
 export var auto_set_opponent := false
 
-onready var fake_emote_label = $"%EmoteLabel"
+onready var fake_emote_label = $EmoteLabel
 onready var real_emote_label = $"%EmoteLabelReal"
 onready var emote_display = $"%EmoteDisplay"
 
@@ -702,7 +702,7 @@ func copy_to(f):
 	f.set_facing(facing, true)
 #	f.set_grounded(is_grounded())
 	f.update_data()
-	f.emote(last_emote)
+	f.emote(last_emote, emote_time)
 	f.emote_live_counter = emote_live_counter
 	f.game_over = game_over
 	f.hidden_sprite = hidden_sprite
@@ -836,29 +836,63 @@ func update_data():
 
 
 var emote_live_counter := 0
-const EMOTE_TIME := 180
+var emote_time := 180
 var last_emote := ""
 
-func emote(message):
+func emote(message, time = 180):
 	last_emote = message
 	emote_live_counter = 0
+	emote_time = time
+	
 	if not is_ghost:
-		ReplayManager.emote(message, id, current_tick)
+		ReplayManager.emote(message, id, current_tick, time)
 	if !Global.enable_emotes:
 		return
+		
+	#if (message == "{trailer_portal}"):
+	#	var tween:SceneTreeTween = create_tween()
+	#	var pos = get_pos()
+	#	var pos_v = Vector2(float(pos.x), float(pos.y))
+	#	_spawn_particle_effect(preload("res://multihustle/trailer/teleportparticle.tscn"), pos_v)
+	#	tween.tween_method(self, "set_player_visible", 1.0, 0.0, 0.33)
+	#	return
+		
 	if is_instance_valid(emote_tween):
 		emote_tween.kill()
 	#emote_tween = create_tween()
+	if not is_instance_valid(real_emote_label):
+		fake_emote_label.clear()
+		fake_emote_label.append_bbcode("[center]" + ProfanityFilter.filter(message))
+		fake_emote_label.show()
+		return
 	real_emote_label.clear()
 	real_emote_label.append_bbcode("[center]" + ProfanityFilter.filter(message))
 	real_emote_label.show()
 	#emote_tween.tween_method(self, "set_emote_visible", 1.0, 0.0, 3.0)
 
 func set_emote_visible(amount: float):
+	if not is_instance_valid(real_emote_label):
+		return
 	if amount <= 0.001:
 		real_emote_label.visible = false
 		return
 	real_emote_label.visible = true
+
+func set_player_visible(amount: float):
+	if not is_instance_valid(real_emote_label):
+		return
+	if amount <= 0.001:
+		hidden_sprite = true
+		return
+	hidden_sprite = false
+
+func set_player_visible_r(amount: float):
+	if not is_instance_valid(real_emote_label):
+		return
+	if amount <= 0.001:
+		hidden_sprite = false
+		return
+	hidden_sprite = true
 
 func get_playback_input():
 	if ReplayManager.playback:
@@ -989,13 +1023,14 @@ const EMOTE_DISPLAY_SIZE = 282
 
 func _process(delta):
 	var zoom = Global.current_game.camera_zoom
-	emote_display.scale = Vector2.ONE * zoom
+	if is_instance_valid(emote_display):
+		emote_display.scale = Vector2.ONE * zoom
 	
 	#emote_display.rect_position.x = EMOTE_DISPLAY_X * (emote_display.rect_size.x / EMOTE_DISPLAY_SIZE)
 	#emote_display.rect_position.y = EMOTE_DISPLAY_Y * (emote_display.rect_size.y / EMOTE_DISPLAY_SIZE)
 	
 	#emote_display.rect_position = (Vector2(EMOTE_DISPLAY_X, EMOTE_DISPLAY_Y)) - (emote_display.rect_size / 2)
-	#real_emote_label.bbcode_text = fake_emote_label.bbcode_text
+	#real_emote_label.bbcode_text ="[i]" fake_emote_label.bbcode_text
 	
 	if (is_instance_valid(hp_label) and hp_label.text_variables != null):
 		hp_label.hide = hidden_sprite
@@ -2002,6 +2037,7 @@ func tick():
 				prev.parry_active = false
 		var minus_offset = 0 if id == 1 else 1
 		state_tick()
+		global_hitlag_check()
 	
 		if in_blockstring:
 			if !current_state().get("IS_NEW_PARRY"):
@@ -2119,6 +2155,7 @@ func tick():
 
 	if forfeit and forfeit_ticks > 2:
 		change_state("ForfeitExplosion")
+		hp = 0
 		forfeit = false
 	
 	if buffered_global_hitlag:
@@ -2134,7 +2171,8 @@ func tick():
 	if ReplayManager.playback:
 		if "emotes" in ReplayManager.frames:
 			if current_tick in ReplayManager.frames.emotes[id]:
-				emote(ReplayManager.frames.emotes[id][current_tick])
+				var em_data = ReplayManager.frames.emotes[id][current_tick]
+				emote(em_data[0], em_data[1])
 	
 	if (forfeit):
 		hide_display_name()
@@ -2415,7 +2453,7 @@ func get_nodes_with_script(root: Node, script_type: Script) -> Array:
 
 func init_display_name():
 	if (is_ghost):
-		display_name = load("res://multihustle/teams/TeamDisplayGhost.tscn").instance()
+		display_name = $DisplayNameGhost
 		add_child(display_name)
 		if Network.game.player_names_rich.has(id):
 			var username = Network.game.player_names_rich[id]
@@ -2427,7 +2465,7 @@ func init_display_name():
 				display_name.bbcode_text = username 
 		return
 	
-	display_name = load("res://multihustle/teams/TeamDisplay.tscn").instance()
+	display_name = $DisplayName
 	add_child(display_name)
 	if Network.game.player_names_rich.has(id):
 		display_name.bbcode_text = Network.game.player_names_rich[id]
@@ -2491,8 +2529,10 @@ func tick_before():
 	##		opponent = player
 	
 	emote_live_counter += 1
+	if not ReplayManager.playback and last_emote != "":# and not Network.multiplayer_active: (Am comsidering this but not sure yet)
+		real_emote_label.bbcode_text = "[center]%.2f\n%s[/center]" % [emote_live_counter / 60.0, last_emote]
 	
-	if emote_live_counter > EMOTE_TIME:
+	if emote_live_counter > emote_time:
 		set_emote_visible(0)
 	
 	if queued_action == "Forfeit":
@@ -2535,13 +2575,11 @@ func tick_before():
 
 			if not is_ghost:
 				ReplayManager.frames[id][current_tick] = {
-					"debug_print": {"frame":current_tick, "player":id},
 					"action": queued_action, 
 					"data": queued_data, 
 					"extra": queued_extra, 
 					"opp": opponent.id,
 				}
-				print(ReplayManager.frames[id][current_tick])
 	previous_input = last_input.duplicate(true)
 	feinted_last = feinting
 	var pressed_feint = false

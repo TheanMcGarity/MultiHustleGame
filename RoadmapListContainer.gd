@@ -1,4 +1,4 @@
-extends HBoxContainer
+extends Control
 
 export var slide_time = 0.0
 export var off_x = -230

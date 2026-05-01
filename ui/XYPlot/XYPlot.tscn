@@ -27,6 +27,7 @@ limit_angle = false
 default_value = Vector2( 0, 0 )
 snap = true
 snap_angles = 8
+snap_grid = false
 snap_align_to_limit_center = true
 snap_radius = 0.0
 

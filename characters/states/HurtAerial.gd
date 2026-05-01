@@ -129,10 +129,10 @@ func _tick():
 			host.spawn_particle_effect(BOUNCE_PARTICLE, particle_pos, particle_dir)
 
 	if bounce_frames > 0:
-		#host.set_pos(host.get_pos().x, 0)
+		host.set_pos(host.get_pos().x, host.get_closest_floor_y())
 		bounce_frames -= 1
-		#if bounce_frames == 0:
-			#host.set_pos(host.get_pos().x, -1)
+		if bounce_frames == 0:
+			host.set_pos(host.get_pos().x, host.get_closest_floor_y() - 1)
 	else:
 		if host.is_grounded() and fixed.ge(vel.y, "0"):
 			if hitbox.air_ground_bounce and !ground_bounced:

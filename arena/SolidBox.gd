@@ -67,5 +67,6 @@ func _min_array(numbers:Array):
 	return smallest
 export var force_draw := false
 func can_draw_box():
-	
-	return force_draw and Engine.editor_hint
+	if  force_draw and Engine.editor_hint:
+		return true
+	return .can_draw_box()

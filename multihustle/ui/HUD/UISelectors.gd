@@ -117,7 +117,7 @@ func DeactivateOther(selfId:int, charId:int):
 			selects[1][0].deactivate_char(charId)
 
 func _process(delta):
-	if  main == null or main.game == null:
+	if  main == null or not is_instance_valid(Global.current_game):
 		self.visible = false
 		return
 	self.visible = true
@@ -127,7 +127,7 @@ func _process(delta):
 	selects[2][0].visible = main.game.game_paused
 	selects[2][1].visible = Global.current_game.singleplayer and main.game.game_paused
 	opp_target_label.visible = !Global.current_game.singleplayer and main.game.game_paused
-	
+
 	"""
 	for pair in selects.values():
 		for entry in pair:

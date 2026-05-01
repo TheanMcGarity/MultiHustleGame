@@ -1,0 +1,119 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://arena/PlatformTest.tscn" type="PackedScene" id=1]
+[ext_resource path="res://arena/PlayerSpawn.tscn" type="PackedScene" id=2]
+[ext_resource path="res://characters/BaseChar.gdshader" type="Shader" id=3]
+[ext_resource path="res://arena/PlayerSpawn.gd" type="Script" id=4]
+[ext_resource path="res://arena/BaseGround.gd" type="Script" id=5]
+[ext_resource path="res://characters/robo/sprites/idle.png" type="Texture" id=6]
+[ext_resource path="res://characters/mutant/sprites/knockdown.png" type="Texture" id=7]
+
+[sub_resource type="ShaderMaterial" id=1]
+shader = ExtResource( 3 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.447059, 0.780392, 0.733333, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = false
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = ExtResource( 3 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0.631373, 0.631373, 0.631373, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = false
+shader_param/use_outline = true
+shader_param/outline_color = Color( 0.203922, 0.203922, 0.203922, 1 )
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = ExtResource( 3 )
+shader_param/use_extra_color_1 = true
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 0.431373, 0.439216, 0.498039, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 0, 0, 0, 1 )
+shader_param/extra_color_1 = Color( 1, 0, 0, 1 )
+shader_param/extra_color_2 = Color( 0.431373, 0.439216, 0.498039, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = false
+shader_param/use_outline = true
+shader_param/outline_color = Color( 1, 0, 0, 1 )
+
+[node name="Solids" type="Node2D"]
+
+[node name="BaseGround" type="Node2D" parent="." groups=["solid"] instance=ExtResource( 1 )]
+position = Vector2( 204, -203 )
+script = ExtResource( 5 )
+size = Vector2( 8, 65 )
+
+[node name="BaseGround2" type="Node2D" parent="." groups=["solid"] instance=ExtResource( 1 )]
+position = Vector2( 220, -203 )
+script = ExtResource( 5 )
+size = Vector2( 500, 8 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_left = 220.0
+margin_top = -187.0
+margin_right = 1222.0
+color = Color( 0.262745, 0.262745, 0.262745, 1 )
+
+[node name="ColorRect2" type="ColorRect" parent="."]
+margin_left = 204.0
+margin_top = -73.0
+margin_right = 220.0
+color = Color( 0.207843, 0.207843, 0.207843, 1 )
+
+[node name="MutantBlue" type="Sprite" parent="."]
+material = SubResource( 1 )
+position = Vector2( 292, -16 )
+texture = ExtResource( 7 )
+
+[node name="Robot1" type="Sprite" parent="."]
+material = SubResource( 2 )
+position = Vector2( 460, -16 )
+texture = ExtResource( 6 )
+
+[node name="Robot2" type="Sprite" parent="."]
+material = SubResource( 2 )
+position = Vector2( 504, -16 )
+texture = ExtResource( 6 )
+
+[node name="Robot3" type="Sprite" parent="."]
+material = SubResource( 2 )
+position = Vector2( 549, -16 )
+texture = ExtResource( 6 )
+
+[node name="MutantNoah" type="Sprite" parent="."]
+material = SubResource( 3 )
+position = Vector2( 334, -16 )
+texture = ExtResource( 7 )
+
+[node name="PlayerSpawn1" type="Node2D" parent="." groups=["spawner"] instance=ExtResource( 2 )]
+position = Vector2( -144, 0 )
+script = ExtResource( 4 )
+
+[node name="PlayerSpawn2" type="Node2D" parent="." groups=["spawner"] instance=ExtResource( 2 )]
+position = Vector2( -176, 0 )
+script = ExtResource( 4 )
+player_id = 2
+
+[node name="PlayerSpawn3" type="Node2D" parent="." groups=["spawner"] instance=ExtResource( 2 )]
+position = Vector2( -227, 0 )
+script = ExtResource( 4 )
+player_id = 3
+
+[node name="PlayerSpawn4" type="Node2D" parent="." groups=["spawner"] instance=ExtResource( 2 )]
+position = Vector2( 597, -1 )
+script = ExtResource( 4 )
+player_id = 4

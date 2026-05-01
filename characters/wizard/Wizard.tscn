@@ -336,6 +336,7 @@
 [ext_resource path="res://fx/ParticleEffect.tscn" type="PackedScene" id=334]
 [ext_resource path="res://characters/wizard/sprites/actionbuttons/redirect.png" type="Texture" id=335]
 
+
 [sub_resource type="ShaderMaterial" id=5]
 resource_local_to_scene = true
 shader = ExtResource( 180 )

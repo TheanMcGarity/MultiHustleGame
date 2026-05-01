@@ -49,6 +49,7 @@ onready var settings_nodes = {
 	"collide_dead": $"%DeadCollisionsEnabled",
 	"ui_reload": $"%AllowUIReload",
 	"clone_army_ai": $"%CloneAIEnable",
+	"tt_char_count": $"%TTCount",
 }
 
 var float_to_string = [

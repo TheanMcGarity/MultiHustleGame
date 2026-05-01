@@ -1,4 +1,4 @@
-[gd_scene load_steps=206 format=2]
+[gd_scene load_steps=209 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -202,6 +202,9 @@
 [ext_resource path="res://characters/HPLabel.gd" type="Script" id=200]
 [ext_resource path="res://ui/ActionSelector/StateIcons/team_rescue.png" type="Texture" id=201]
 [ext_resource path="res://ui/ActionSelector/StateIcons/team_boost.png" type="Texture" id=202]
+[ext_resource path="res://multihustle/teams/TeamDisplay.tscn" type="PackedScene" id=203]
+[ext_resource path="res://multihustle/teams/TeamDisplayGhost.tscn" type="PackedScene" id=204]
+[ext_resource path="res://ui/ActionSelector/StateIcons/forfeit.png" type="Texture" id=205]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
@@ -411,11 +414,11 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="ViewportTexture" id=2]
-viewport_path = NodePath("Viewport")
-
 [sub_resource type="ViewportTexture" id=3]
 viewport_path = NodePath("EmoteView")
+
+[sub_resource type="ViewportTexture" id=2]
+viewport_path = NodePath("Viewport")
 
 [node name="BaseChar" groups=["Fighter"] instance=ExtResource( 3 )]
 script = ExtResource( 1 )
@@ -444,6 +447,7 @@ use_extra_color_1 = false
 extra_color_1 = Color( 1, 0, 1, 1 )
 use_extra_color_2 = false
 extra_color_2 = Color( 1, 0, 1, 1 )
+auto_set_opponent = false
 
 [node name="Sprite" parent="Flip" index="0"]
 material = ExtResource( 134 )
@@ -2078,21 +2082,21 @@ reset_momentum = true
 endless = true
 particle_scene = ExtResource( 154 )
 particle_position = Vector2( 0, -16 )
-spawn_particle_on_enter = true
 enter_sfx = ExtResource( 141 )
+title = "Forfeit"
+type = 4
+button_texture = ExtResource( 205 )
+flip_icon = false
+interrupt_from_string = "AerialSpecial
+GroundedDefense
+AerialDefense
+Parry"
 
-[node name="YouLabel" type="Label" parent="." index="5"]
-visible = false
-margin_left = -20.0
-margin_top = -50.0
-margin_right = 20.0
-margin_bottom = -36.0
-theme = ExtResource( 47 )
-text = "You"
-align = 1
-__meta__ = {
-"_edit_lock_": true
-}
+[node name="EmoteDisplay" type="Sprite" parent="." index="5"]
+unique_name_in_owner = true
+position = Vector2( 0, -60 )
+texture = SubResource( 3 )
+flip_v = true
 
 [node name="PredictionLabel" type="Label" parent="." index="6"]
 visible = false
@@ -2290,16 +2294,34 @@ grow_vertical = 0
 rect_clip_content = false
 theme = ExtResource( 47 )
 bbcode_enabled = true
+bbcode_text = "[center][/center]"
 fit_content_height = true
 scroll_active = false
 __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="EmoteDisplay" type="Sprite" parent="." index="19"]
-unique_name_in_owner = true
-position = Vector2( 0, -60 )
-texture = SubResource( 3 )
-flip_v = true
+[node name="YouLabel" type="Label" parent="." index="19"]
+visible = false
+margin_left = -20.0
+margin_top = -50.0
+margin_right = 20.0
+margin_bottom = -36.0
+theme = ExtResource( 47 )
+text = "You"
+align = 1
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="DisplayName" parent="." index="20" instance=ExtResource( 203 )]
+margin_top = -85.0
+margin_bottom = -72.0
+bbcode_text = ""
+text = ""
+
+[node name="DisplayNameGhost" parent="." index="21" instance=ExtResource( 204 )]
+margin_top = -85.0
+margin_bottom = -72.0
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

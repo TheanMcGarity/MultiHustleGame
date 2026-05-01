@@ -1,4 +1,4 @@
-[gd_scene load_steps=348 format=2]
+[gd_scene load_steps=350 format=2]
 
 [ext_resource path="res://characters/BaseChar.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/swordandgun/sprites/throw2.png" type="Texture" id=2]
@@ -804,6 +804,12 @@ animations = [ {
 "name": "default",
 "speed": 5.0
 } ]
+
+[sub_resource type="ViewportTexture" id=7]
+viewport_path = NodePath("EmoteView")
+
+[sub_resource type="ViewportTexture" id=8]
+viewport_path = NodePath("Viewport")
 
 [node name="Cowboy" groups=["Cowboy"] instance=ExtResource( 1 )]
 material = SubResource( 5 )
@@ -2829,13 +2835,13 @@ enter_force_dir_x = "1.0"
 enter_force_speed = "5.0"
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 124 ): {
-"x": 27,
-"y": -2
-},
 ExtResource( 121 ): {
 "x": 27,
 "y": 1
+},
+ExtResource( 124 ): {
+"x": 27,
+"y": -2
 }
 }
 air_type = 2
@@ -2898,13 +2904,13 @@ enter_force_dir_x = "1.0"
 enter_force_speed = "5.0"
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 124 ): {
-"x": 27,
-"y": -2
-},
 ExtResource( 121 ): {
 "x": 27,
 "y": 1
+},
+ExtResource( 124 ): {
+"x": 27,
+"y": -2
 }
 }
 air_type = 2
@@ -2965,13 +2971,13 @@ force_tick = 25
 enter_force_dir_x = "1.0"
 enter_force_speed = "5.0"
 throw_positions = {
-ExtResource( 124 ): {
-"x": 27,
-"y": -2
-},
 ExtResource( 121 ): {
 "x": 27,
 "y": 1
+},
+ExtResource( 124 ): {
+"x": 27,
+"y": -2
 }
 }
 air_type = 2
@@ -4950,6 +4956,15 @@ block_cancel_allowed = false
 start_tick = 22
 active_ticks = 2
 
+[node name="EmoteDisplay" parent="." index="5"]
+texture = SubResource( 7 )
+
 [node name="BlockFrameLabel" parent="." index="10"]
 margin_top = -51.0
 margin_bottom = -40.0
+
+[node name="TextureRect2" parent="." index="12"]
+texture = SubResource( 8 )
+
+[node name="EmoteDisplayOld" parent="." index="17"]
+texture = SubResource( 8 )

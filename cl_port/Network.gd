@@ -388,7 +388,7 @@ remotesync func on_team_change(team:int, username:String, player:int):
 	 
 
 # TODO: Move to game.gd
-# Please do Dictionary<int, Dictionary<int, BaseChar>>
+# Please do Dictionary<int, Dictionary<int, Fighter>>
 var teams: Dictionary = { 
 	1: {},
 	2: {},
@@ -451,10 +451,6 @@ remotesync func send_mh_chat_message(player_id, message, username):
 signal mh_chat_message_received_preformatted(message)
 remotesync func send_mh_chat_message_preformatted(message):
 	emit_signal("mh_chat_message_received_preformatted", message)
-	
-
-# TODO: Make an actual system that isnt this
-var temp_hitbox_teams = { }
 
 func get_living_players_on_team(team:int):
 	if (teams == null):
@@ -565,18 +561,14 @@ remotesync func mh_resim(frames):
 	if is_instance_valid(game):
 		game.undo(false)
 
-	print("MH_RESIM()1")
-
 	var ui = main.ui_layer
 	for player in game.players:
 		var timer = ui.turn_timers[player]
 		if timer:
 			timer.start(ui.turn_time)
 			timer.paused = false
-	print("MH_RESIM()2")
 
 	resync_request_player_id = 0
-	print("MH_RESIM()3")
 
 remotesync func select_opp(my_id, opp_id):
 	game.players[my_id].opponent = game.players[opp_id]
@@ -719,3 +711,66 @@ func get_is_missing(chara:String) -> bool:
 		if (!found):
 			players_missing += 1
 	return players_missing > 0
+
+func _reset():
+	._reset()
+	
+	sp_opp_dict = {}
+	
+	player1_hash_to_folder = {}
+	player2_hash_to_folder = {}
+	player1_chars = []
+	player2_chars = []
+	
+	steam_oppChars = []
+	
+	normal_mods = []
+	char_mods = []
+	
+	hash_to_folder = {}
+	synced_hash_to_folder = {}
+	synced_chars = {}
+	
+	diff = ""
+	
+	isSteamGame = false
+	steam_isHost = false
+	steam_errorMsg = ""
+	
+	char_loaded = {}
+	
+	sync_unlocks = {}
+	lock_sync_unlocks = true
+	
+	possible_softlock = false
+	resync_request_player_id = 0
+	resync_counter = 0
+	quitter_count = 0
+	
+	teams = { 
+		1: {},
+		2: {},
+		3: {},
+		4: {},
+		0: {}
+	}
+	
+	team_living = {
+		1: 0,
+		2: 0,
+		3: 0,
+		4: 0,
+		0: 0
+	}
+	
+	player_character_names = {}
+	player_character_uses = {}
+	
+	name_init_count = 0
+	name_initialized = false
+
+remotesync func timed_player_emote(player_id, message, time):
+	if is_instance_valid(Global.current_game):
+		var player = Global.current_game.get_player(player_id)
+		if player:
+			player.emote(message, time)

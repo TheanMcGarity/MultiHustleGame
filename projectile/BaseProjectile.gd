@@ -50,20 +50,21 @@ func get_opponent():
 
 func get_fighter():
 	if creator:
-		if (creator.auto_set_opponent):
-			var smallest_dist := INF
-			var closest_player
-			for player in get_game().players.values():
-				if player.id == creator.id:
-					continue
-				if not player.game_over:
-					var pos = get_pos()
-					var other_pos = player.get_pos()
-					var dist = fixed.vec_dist(str(pos.x), str(pos.y), str(other_pos.x), str(other_pos.y))
-					if float(dist) < smallest_dist:
-						smallest_dist = float(dist)
-						closest_player = player
-			creator.opponent = closest_player
+		if creator is Fighter:
+			if (creator.auto_set_opponent):
+				var smallest_dist := INF
+				var closest_player
+				for player in get_game().players.values():
+					if player.id == creator.id:
+						continue
+					if not player.game_over:
+						var pos = get_pos()
+						var other_pos = player.get_pos()
+						var dist = fixed.vec_dist(str(pos.x), str(pos.y), str(other_pos.x), str(other_pos.y))
+						if float(dist) < smallest_dist:
+							smallest_dist = float(dist)
+							closest_player = player
+				creator.opponent = closest_player
 		return creator.get_fighter()
 	else:
 		return obj_from_name("P%d" % id)

@@ -1,7 +1,8 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://arena_new/MovingPlatform.gd" type="Script" id=1]
-[ext_resource path="res://arena_new/PlatformTest.tscn" type="PackedScene" id=2]
+[ext_resource path="res://arena/MovingPlatform.gd" type="Script" id=1]
+[ext_resource path="res://arena/PlatformTest.tscn" type="PackedScene" id=2]
+
 
 [node name="BaseGround" instance=ExtResource( 2 )]
 script = ExtResource( 1 )

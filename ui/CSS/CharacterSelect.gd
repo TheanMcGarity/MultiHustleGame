@@ -55,14 +55,14 @@ var arrowSprites = [null, null]
 
 onready var bttContainer = self.get_node("%CharacterButtonContainer")
 onready var loading_text = $LoadingText
-onready var game_settings_panel_container = $"%GameSettingsPanelContainer"
+onready var game_settings_panel_container = $"%GameSettings"
 onready var scroll_container = $ScrollContainer
 onready var go_button = $"%GoButton"
 onready var selecting_label = $"%SelectingLabel"
 onready var h_box_container = $HBoxContainer
 onready var quit_button = $"%QuitButton"
 
-
+onready var settings_container = $"%GameSettingsPanelContainer"
 
 var btt_disableTimer = 0 # this is a countdown, whenever it's greater than 0 all of the buttons are disabled
 
@@ -317,7 +317,7 @@ func init(singleplayer=true):
 	$"%GoButton".disabled = true
 	$"%GoButton".show()
 	self.singleplayer = singleplayer
-	$"%GameSettings".init(singleplayer)
+	$"%GameSettingsPanelContainer".init(singleplayer)
 #	$"%GameSettingsPanelContainer".singleplayer = singleplayer
 #	$"%P2Display".set_enabled(singleplayer)
 	$"%SelectingLabel".text = "P1 SELECT YOUR CHARACTER" if singleplayer else "SELECT YOUR CHARACTER"
@@ -325,7 +325,7 @@ func init(singleplayer=true):
 	$"%P1Display".init()
 	$"%P2Display".init()
 	if Network.steam:
-		$"%GameSettingsPanelContainer".hide()
+		$"%GameSettings".hide()
 
 
 	selected_styles = {
@@ -564,7 +564,13 @@ func _process(delta):
 			loadThread.wait_to_finish()
 		buffer_go = false
 		go()
-
+	game_type = game_type_input.get_selected_id()
+	if (game_type == 3):
+		settings_container.get_node("VBoxContainer/ScrollContainer/GameSettingsContainer/TTCountContainer").show()
+	else:
+		settings_container.get_node("VBoxContainer/ScrollContainer/GameSettingsContainer/TTCountContainer").hide()
+var game_type:int
+onready var game_type_input:OptionButton = $"%GameType"
 # managing clicks to the page arrows and click outside of the search bar
 func _input(event):
 	if event is InputEventMouseButton:
@@ -1461,7 +1467,7 @@ func get_match_data():
 	if SteamLobby.LOBBY_ID != 0 and SteamLobby.MATCH_SETTINGS:
 		data.merge(SteamLobby.MATCH_SETTINGS)
 	else :
-		data.merge($"%GameSettings".get_data())
+		data.merge($"%GameSettingsPanelContainer".get_data())
 	return data
 
 # Character Loader Overrides

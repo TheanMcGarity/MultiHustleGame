@@ -2,7 +2,8 @@
 
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/ghostsettingsdown.png" type="Texture" id=2]
-[ext_resource path="res://arena_new/PlayerSpawn.gd" type="Script" id=3]
+[ext_resource path="res://arena/PlayerSpawn.gd" type="Script" id=3]
+
 
 [node name="PlayerSpawn" type="Node2D" groups=["spawner"]]
 script = ExtResource( 3 )

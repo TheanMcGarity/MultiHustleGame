@@ -1,4 +1,4 @@
-[gd_scene load_steps=96 format=2]
+[gd_scene load_steps=97 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -83,6 +83,7 @@
 [ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
 [ext_resource path="res://TitleSecret.gd" type="Script" id=82]
 [ext_resource path="res://ui/ArenaSelect/ArenaSelect.tscn" type="PackedScene" id=83]
+[ext_resource path="res://ui/ReplayScriper/ReplayScriptingMenu.tscn" type="PackedScene" id=84]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -1617,10 +1618,11 @@ alignment = 1
 
 [node name="ResumeButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 unique_name_in_owner = true
+modulate = Color( 0.764706, 1, 0.972549, 1 )
 margin_right = 139.0
 margin_bottom = 12.0
 size_flags_vertical = 0
-text = "resume"
+text = "Resume"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 visible = false
@@ -1636,7 +1638,7 @@ margin_bottom = 24.0
 size_flags_horizontal = 3
 size_flags_vertical = 0
 align = 1
-placeholder_text = "replay name"
+placeholder_text = "[Replay Name]"
 caret_blink = true
 
 [node name="SaveReplayButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
@@ -1645,7 +1647,7 @@ margin_top = 25.0
 margin_right = 139.0
 margin_bottom = 37.0
 rect_min_size = Vector2( 60, 0 )
-text = "save replay"
+text = "Save Replay"
 
 [node name="PauseOptionsButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 unique_name_in_owner = true
@@ -1653,7 +1655,16 @@ margin_top = 38.0
 margin_right = 139.0
 margin_bottom = 50.0
 rect_min_size = Vector2( 60, 0 )
-text = "options"
+text = "Settings"
+
+[node name="PauseScripterButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 51.0
+margin_right = 139.0
+margin_bottom = 63.0
+rect_min_size = Vector2( 60, 0 )
+text = "Scripted Replay Menu"
 
 [node name="QuitToMainMenuButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 unique_name_in_owner = true
@@ -1661,16 +1672,17 @@ margin_top = 51.0
 margin_right = 139.0
 margin_bottom = 63.0
 size_flags_vertical = 0
-text = "quit"
+text = "Quit"
 
 [node name="ForfeitButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 unique_name_in_owner = true
 visible = false
+modulate = Color( 1, 0.568627, 0.568627, 1 )
 margin_top = 64.0
 margin_right = 139.0
 margin_bottom = 76.0
 size_flags_vertical = 0
-text = "forfeit"
+text = "Forfeit"
 
 [node name="Control" type="Control" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 margin_top = 64.0
@@ -2460,13 +2472,22 @@ toggle_mode = true
 action_mode = 0
 text = "MULTIHUSTLE ROADMAP"
 
-[node name="VBoxContainer" type="HBoxContainer" parent="UILayer/RoadmapContainer"]
-margin_left = -640.0
-margin_top = 13.0
-margin_bottom = 358.0
+[node name="VBoxContainer" type="Panel" parent="UILayer/RoadmapContainer"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -660.0
+margin_top = 15.0
+margin_right = -142.0
+margin_bottom = 305.0
 script = ExtResource( 78 )
+__meta__ = {
+"_editor_description_": ""
+}
 slide_time = 0.6
 off_x = -640
+on_x = 61
 off_object_positions = {
 NodePath("../../MainMenu"): 0.0
 }
@@ -2475,11 +2496,24 @@ NodePath("../../MainMenu"): 640.0
 }
 main_menu_node = NodePath("../../MainMenu")
 
-[node name="Complete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="UILayer/RoadmapContainer/VBoxContainer"]
+margin_right = 518.0
+margin_bottom = 290.0
+rect_min_size = Vector2( 518, 290 )
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer"]
+margin_right = 518.0
+margin_bottom = 649.0
+rect_min_size = Vector2( 518, 0 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="Complete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
 modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
-margin_right = 160.0
-margin_bottom = 345.0
-rect_min_size = Vector2( 160, 345 )
+margin_right = 518.0
+margin_bottom = 109.0
+rect_min_size = Vector2( 275, 0 )
 text = "Complete:
 - Base mod
 - Teams
@@ -2490,41 +2524,97 @@ text = "Complete:
 - - Rescue"
 autowrap = true
 
-[node name="WIP" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
+[node name="WIP" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
 modulate = Color( 0.921569, 0.694118, 0.258824, 1 )
-margin_left = 161.0
-margin_right = 321.0
-margin_bottom = 345.0
-rect_min_size = Vector2( 160, 345 )
+margin_top = 110.0
+margin_right = 518.0
+margin_bottom = 163.0
+rect_min_size = Vector2( 275, 0 )
 text = "In Development:
-- Arena Loader
 - Team combo moves
 - - Gift
 - - Life Transfer"
 autowrap = true
 
-[node name="Incomplete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
+[node name="Incomplete" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
 modulate = Color( 1, 1, 1, 0.482353 )
-margin_left = 322.0
-margin_right = 482.0
-margin_bottom = 345.0
-rect_min_size = Vector2( 160, 345 )
+margin_top = 164.0
+margin_right = 518.0
+margin_bottom = 217.0
+rect_min_size = Vector2( 275, 0 )
 text = "Not Started:
 - Fix stupid bugs
 - New gamemodes
 - - MultiControl (1 player controls 2+ characters, planned for 1.0.0)"
 autowrap = true
 
-[node name="Bugs" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer"]
+[node name="Bugs" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
 modulate = Color( 1, 0.239216, 0, 1 )
-margin_left = 483.0
-margin_right = 643.0
-margin_bottom = 345.0
-rect_min_size = Vector2( 160, 345 )
+margin_top = 218.0
+margin_right = 518.0
+margin_bottom = 284.0
+rect_min_size = Vector2( 275, 66 )
 text = "Known Bugs:
 - Some throw moves that hit multiple players don't do the same damage to everybody
 - Player Extras sometimes just dont work in replays, which will desync them.
 - Resync re-broke itself..."
+autowrap = true
+
+[node name="V9Label" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
+modulate = Color( 0.768627, 0, 1, 1 )
+margin_top = 285.0
+margin_right = 518.0
+margin_bottom = 305.0
+rect_min_size = Vector2( 160, 20 )
+text = "\"MultiHustle 0.9.0: Physics And Arenas\" Release"
+autowrap = true
+
+[node name="CommunityIdeas" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
+modulate = Color( 0.392157, 0.690196, 0.823529, 1 )
+margin_top = 306.0
+margin_right = 518.0
+margin_bottom = 499.0
+rect_min_size = Vector2( 275, 0 )
+text = "Community Ideas:
+- ... (personal rating /10)
+- Swinging Ropes (4/10)
+- itch.io (no/10)
+- bounce pads (9/10)
+- ceiling fall (idk how/10)
+- desync button (2 billion / 10)
+- - ts so funny
+- Team anticombo move rework (varies)
+- - Boost is a grab type move that will send you and the teammate away with you but no inv frames (86% vote, 8/10)
+- robot fire stage hazard (diy/10)
+- foxy jumpscare (-2/10)
+- instant win trigger for race maps (7/10)"
+autowrap = true
+
+[node name="PersonalIdeas" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
+modulate = Color( 0.588235, 0, 1, 1 )
+margin_top = 500.0
+margin_right = 518.0
+margin_bottom = 567.0
+rect_min_size = Vector2( 275, 0 )
+text = "Peronsal Ideas:
+- ... (Chance of adding %)
+- Interactable Buttons (95%)
+- stage select similar to a modded character selection screen (20%) 
+- - see res://ui/ArenaSelect/example.png"
+autowrap = true
+
+[node name="Needed" type="Label" parent="UILayer/RoadmapContainer/VBoxContainer/ScrollContainer/VBoxContainer2"]
+modulate = Color( 1, 0.403922, 0.698039, 1 )
+margin_top = 568.0
+margin_right = 518.0
+margin_bottom = 649.0
+rect_min_size = Vector2( 275, 0 )
+text = "Needed:
+- Arena Selection Screen (N)
+- Physics Boxes (Y)
+- Finish the per-player settings in online (N)
+- Resolve physics bugs in all objects (N)
+- stage destruction (N)"
 autowrap = true
 
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
@@ -3253,6 +3343,14 @@ visible = false
 unique_name_in_owner = true
 stream = ExtResource( 19 )
 bus = "UI"
+
+[node name="ReplayScriptingMenu" parent="UILayer" instance=ExtResource( 84 )]
+unique_name_in_owner = true
+visible = false
+margin_left = -220.5
+margin_top = -145.5
+margin_right = 220.5
+margin_bottom = 145.5
 
 [node name="GhostWaitTimer" type="Timer" parent="."]
 unique_name_in_owner = true

@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://arena_new/BaseGround.gd" type="Script" id=1]
+[ext_resource path="res://arena/BaseGround.gd" type="Script" id=1]
 [ext_resource path="res://framework/FiniteStateMachine/StateMachine.gd" type="Script" id=2]
 [ext_resource path="res://characters/BoxDraw.gd" type="Script" id=3]
-[ext_resource path="res://arena_new/SolidBox.gd" type="Script" id=4]
+[ext_resource path="res://arena/SolidBox.gd" type="Script" id=4]
 [ext_resource path="res://addons/collision_box/CollisionBox.gd" type="Script" id=5]
 
 [node name="BaseGround" type="Node2D" groups=["solid"]]
@@ -18,14 +18,16 @@ visible = false
 [node name="Particles" type="Node2D" parent="Flip"]
 unique_name_in_owner = true
 
-[node name="ColorRect" type="ColorRect" parent="Flip"]
+[node name="Color" type="ColorRect" parent="Flip"]
+unique_name_in_owner = true
 margin_right = 96.0
-margin_bottom = 15.0
+margin_bottom = 16.0
 color = Color( 0.356863, 0.356863, 0.356863, 1 )
 
 [node name="Sounds" type="Node2D" parent="."]
 
 [node name="SolidBox" type="Node2D" parent="."]
+unique_name_in_owner = true
 z_index = 1000
 script = ExtResource( 4 )
 x = 48

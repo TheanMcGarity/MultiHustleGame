@@ -60,7 +60,7 @@ func _enter():
 		host.start_throw_invulnerability()
 
 func _tick():
-	#host.set_pos(host.get_pos().x, 0)
+	host.set_pos(host.get_pos().x, host.get_closest_floor_y())
 	host.apply_x_fric(GROUND_FRIC)
 	host.apply_forces_no_limit()
 	if wall_slam:

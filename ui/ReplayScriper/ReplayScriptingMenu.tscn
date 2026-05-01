@@ -1,0 +1,326 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://theme.tres" type="Theme" id=1]
+[ext_resource path="res://ui/ReplayScriper/CameraZoomSlider.gd" type="Script" id=2]
+[ext_resource path="res://ui/ReplayScriper/PlayerIDSelector.gd" type="Script" id=3]
+[ext_resource path="res://ui/XYPlot/XYPlot.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/ReplayScriper/ReplayScriptingMenu.gd" type="Script" id=5]
+
+[node name="ReplayScriptingMenu" type="ColorRect"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -281.0
+margin_top = -126.0
+margin_right = 160.0
+margin_bottom = 165.0
+rect_pivot_offset = Vector2( 149, 18 )
+mouse_filter = 2
+theme = ExtResource( 1 )
+color = Color( 0.0941176, 0.0941176, 0.0941176, 1 )
+script = ExtResource( 5 )
+
+[node name="Close" type="Button" parent="."]
+unique_name_in_owner = true
+margin_left = -13.0
+margin_right = -1.0
+margin_bottom = 12.0
+mouse_filter = 1
+text = "X"
+
+[node name="TitleBar" type="ColorRect" parent="."]
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 440.0
+margin_bottom = 12.0
+mouse_filter = 1
+color = Color( 0.172549, 0.172549, 0.172549, 1 )
+
+[node name="Label" type="Label" parent="TitleBar"]
+modulate = Color( 0.737255, 1, 0.909804, 1 )
+margin_right = 439.0
+margin_bottom = 11.0
+text = "Scripted Replay Menu"
+align = 1
+uppercase = true
+
+[node name="CameraPage" type="Control" parent="."]
+unique_name_in_owner = true
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 440.0
+margin_bottom = 290.0
+mouse_filter = 1
+
+[node name="SingleFocusButton" type="Button" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 61.0
+margin_top = 15.0
+margin_right = 182.0
+margin_bottom = 27.0
+mouse_filter = 1
+text = "Focus Camera To Player"
+
+[node name="SingleFocusPlayer" type="SpinBox" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 6.0
+margin_top = 15.0
+margin_right = 54.0
+margin_bottom = 26.0
+mouse_filter = 1
+min_value = 1.0
+max_value = 1.0
+value = 1.0
+rounded = true
+align = 2
+prefix = "p"
+script = ExtResource( 3 )
+
+[node name="DoubleFocusButton" type="Button" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 107.0
+margin_top = 45.0
+margin_right = 264.0
+margin_bottom = 57.0
+mouse_filter = 1
+text = "Focus Camera Between Players"
+
+[node name="DoubleFocusPlayer1" type="SpinBox" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 6.0
+margin_top = 45.0
+margin_right = 54.0
+margin_bottom = 56.0
+rect_pivot_offset = Vector2( 24, 6 )
+mouse_filter = 1
+min_value = 1.0
+max_value = 1.0
+value = 1.0
+rounded = true
+align = 2
+prefix = "p"
+script = ExtResource( 3 )
+
+[node name="DoubleFocusPlayer2" type="SpinBox" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 57.0
+margin_top = 45.0
+margin_right = 105.0
+margin_bottom = 56.0
+rect_pivot_offset = Vector2( 24, 6 )
+mouse_filter = 1
+min_value = 1.0
+max_value = 1.0
+value = 1.0
+rounded = true
+align = 2
+prefix = "p"
+script = ExtResource( 3 )
+
+[node name="CameraZoom" type="VBoxContainer" parent="CameraPage"]
+unique_name_in_owner = true
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 6.0
+margin_top = 66.0
+margin_right = -296.0
+margin_bottom = -187.0
+rect_min_size = Vector2( 60, 0 )
+theme = ExtResource( 1 )
+alignment = 1
+script = ExtResource( 2 )
+min_value = 10
+max_value = 300
+initial_value = 100
+
+[node name="Label" type="Label" parent="CameraPage/CameraZoom"]
+margin_right = 137.0
+margin_bottom = 11.0
+text = "CameraZoom"
+align = 1
+clip_text = true
+
+[node name="Direction" type="HSlider" parent="CameraPage/CameraZoom"]
+margin_top = 12.0
+margin_right = 137.0
+margin_bottom = 24.0
+min_value = 10.0
+max_value = 300.0
+value = 100.0
+
+[node name="ValueLabel" type="Label" parent="CameraPage/CameraZoom"]
+margin_top = 25.0
+margin_right = 137.0
+margin_bottom = 36.0
+text = "1x"
+align = 1
+
+[node name="ZoomEase" type="CheckButton" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 156.0
+margin_top = 78.0
+margin_right = 233.0
+margin_bottom = 90.0
+mouse_filter = 1
+text = "Ease"
+
+[node name="CamZoomButton" type="Button" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 240.0
+margin_top = 78.0
+margin_right = 312.0
+margin_bottom = 90.0
+mouse_filter = 1
+text = "Change Zoom"
+
+[node name="CamOffsetButton" type="Button" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 6.0
+margin_top = 184.0
+margin_right = 83.0
+margin_bottom = 196.0
+mouse_filter = 1
+text = "Offset Camera"
+
+[node name="CamOffset" parent="CameraPage" instance=ExtResource( 4 )]
+unique_name_in_owner = true
+margin_left = 6.0
+margin_top = 107.0
+margin_right = -373.0
+margin_bottom = -116.0
+mouse_filter = 1
+snap_grid = true
+
+[node name="Label" parent="CameraPage/CamOffset" index="2"]
+text = "CamOffset"
+
+[node name="CamOffsetMagnitude" type="SpinBox" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 54.0
+margin_top = 154.0
+margin_right = 102.0
+margin_bottom = 165.0
+rect_pivot_offset = Vector2( -367, 0 )
+mouse_filter = 1
+min_value = 1.0
+max_value = 15.0
+step = 0.01
+value = 1.0
+align = 2
+suffix = "x"
+
+[node name="ZoomEaseSeconds" type="SpinBox" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 156.0
+margin_top = 92.0
+margin_right = 204.0
+margin_bottom = 103.0
+rect_pivot_offset = Vector2( -367, 0 )
+mouse_filter = 1
+min_value = 0.05
+max_value = 0.0
+step = 0.0
+value = 0.3
+allow_greater = true
+suffix = "s"
+
+[node name="CamOffsetEase" type="CheckButton" parent="CameraPage"]
+unique_name_in_owner = true
+margin_left = 54.0
+margin_top = 167.0
+margin_right = 131.0
+margin_bottom = 179.0
+mouse_filter = 1
+text = "Ease"
+
+[node name="MagnitudeLabel" type="Label" parent="CameraPage"]
+margin_left = 104.0
+margin_top = 154.0
+margin_right = 154.0
+margin_bottom = 165.0
+mouse_filter = 1
+text = "Magnitude"
+
+[node name="PosVelPage" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+margin_top = 13.0
+margin_right = 441.0
+margin_bottom = 291.0
+mouse_filter = 1
+
+[node name="MoveButton" type="Button" parent="PosVelPage"]
+unique_name_in_owner = true
+margin_left = 6.0
+margin_top = 78.0
+margin_right = 42.0
+margin_bottom = 90.0
+text = "Move"
+
+[node name="MovePlayer" type="SpinBox" parent="PosVelPage"]
+unique_name_in_owner = true
+margin_left = 44.0
+margin_top = 78.0
+margin_right = 92.0
+margin_bottom = 90.0
+min_value = 1.0
+max_value = 1.0
+value = 1.0
+rounded = true
+prefix = "p"
+script = ExtResource( 3 )
+
+[node name="Move" parent="PosVelPage" instance=ExtResource( 4 )]
+unique_name_in_owner = true
+margin_left = 6.0
+margin_top = 6.0
+margin_right = -375.0
+margin_bottom = -206.0
+snap_grid = true
+
+[node name="Label" parent="PosVelPage/Move" index="2"]
+text = "Move"
+
+[node name="MoveMagnitude" type="SpinBox" parent="PosVelPage"]
+unique_name_in_owner = true
+margin_left = 47.0
+margin_top = 60.0
+margin_right = 95.0
+margin_bottom = 71.0
+min_value = 1.0
+max_value = 15.0
+step = 0.01
+value = 1.0
+align = 2
+suffix = "x"
+
+[node name="MagnitudeLabel" type="Label" parent="PosVelPage"]
+margin_left = 97.0
+margin_top = 60.0
+margin_right = 147.0
+margin_bottom = 71.0
+text = "Magnitude"
+
+[node name="PosVelButton" type="Button" parent="."]
+unique_name_in_owner = true
+margin_left = 375.0
+margin_top = 18.0
+margin_right = 433.0
+margin_bottom = 30.0
+rect_pivot_offset = Vector2( 29, 12 )
+mouse_filter = 1
+text = "PosVelPage"
+
+[node name="CameraButton" type="Button" parent="."]
+unique_name_in_owner = true
+margin_left = 375.0
+margin_top = 32.0
+margin_right = 438.0
+margin_bottom = 44.0
+rect_pivot_offset = Vector2( 29, 12 )
+mouse_filter = 1
+text = "CameraPage"
+
+[editable path="CameraPage/CamOffset"]
+[editable path="PosVelPage/Move"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://ui/Window/Window.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/Chat/minimize_button1.png" type="Texture" id=2]
@@ -25,6 +25,23 @@ border_width_left = 2
 border_width_right = 2
 border_color = Color( 1, 1, 1, 0.145098 )
 
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 1, 0, 0, 1 )
+draw_center = false
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color( 1, 0, 0, 1 )
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+corner_detail = 20
+shadow_color = Color( 1, 0, 0, 0.6 )
+anti_aliasing = false
+anti_aliasing_size = 3.187
+
 [node name="ChatWindow" instance=ExtResource( 1 )]
 self_modulate = Color( 1, 1, 1, 0.184314 )
 margin_left = -66.0
@@ -35,8 +52,6 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 script = ExtResource( 6 )
 force_mute_on_hide = false
-commands = {
-}
 
 [node name="VBoxContainer" parent="." index="0"]
 margin_right = 131.0
@@ -52,6 +67,7 @@ align = 0
 
 [node name="ShowButton" type="TextureButton" parent="VBoxContainer/TitleBar" index="1"]
 unique_name_in_owner = true
+visible = false
 anchor_left = 1.0
 anchor_right = 1.0
 margin_left = -10.0
@@ -63,6 +79,7 @@ texture_hover = ExtResource( 3 )
 
 [node name="MuteButton" type="TextureButton" parent="VBoxContainer/TitleBar" index="2"]
 unique_name_in_owner = true
+visible = false
 anchor_left = 1.0
 anchor_right = 1.0
 margin_left = -21.0
@@ -131,12 +148,14 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -126.0
-margin_top = 10.5
-margin_right = 126.0
-margin_bottom = 21.5
+margin_left = -51.0
+margin_top = 9.0
+margin_right = 51.0
+margin_bottom = 41.0
 custom_colors/font_color = Color( 1, 0.2, 0.239216, 1 )
-text = "message too long"
+custom_styles/normal = SubResource( 3 )
+text = "message too long
+>1500 chars"
 align = 1
 
 [node name="SendButton" type="Button" parent="VBoxContainer/Contents/VBoxContainer/HBoxContainer" index="1"]

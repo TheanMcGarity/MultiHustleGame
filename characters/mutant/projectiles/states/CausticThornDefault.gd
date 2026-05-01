@@ -12,7 +12,7 @@ func fizzle():
 	host.sprite.hide()
 	host.spawn_particle_effect_relative(preload("res://characters/mutant/projectiles/CausticThornEffect2.tscn"), Vector2())
 
-func _enter():
+func _enter(): 
 	._enter()
 	host.sprite.hide()
 #	._frame_0()

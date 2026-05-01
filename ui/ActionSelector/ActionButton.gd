@@ -82,6 +82,8 @@ func _ready():
 	connect("visibility_changed", self, "on_visibility_changed")
 
 func on_visibility_changed():
+	if not is_instance_valid(state):
+		return
 	if is_instance_valid(state.host.opponent):
 		if state and state.flip_with_facing:
 			$"%TextureRect".flip_h = state.host.get_opponent_dir() < 0 if state.host.opponent.current_state().name != "Grabbed" else state.host.get_facing_int() < 0

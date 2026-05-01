@@ -153,6 +153,8 @@ func _ready():
 	$"%CreditsButton".connect("pressed", $"%Credits", "show")
 	$"%CreditsButton".connect("pressed", $"%MainMenu", "hide")
 	$"%PauseOptionsButton".connect("pressed", $"%OptionsContainer", "show")
+	$"%PauseScripterButton".connect("pressed", self, "show_scripter")
+	#$"%Pause".connect("pressed", $"%OptionsContainer", "show")
 	$"%MusicButton".set_pressed_no_signal(Global.music_enabled)
 	$"%MusicButton".connect("toggled", self, "_on_music_button_toggled")
 #	$"%LightModeButton".set_pressed_no_signal(Global.light_mode)
@@ -518,7 +520,7 @@ func pause():
 			$"%QuitToMainMenuButton".show()
 			$"%ForfeitButton".hide()
 		$"%SaveReplayButton".disabled = false
-		$"%SaveReplayButton".text = "save replay"
+		$"%SaveReplayButton".text = "Save Replay"
 		$"%SaveReplayLabel".text = ""
 
 func _unhandled_input(event):
@@ -567,7 +569,7 @@ func _process(delta):
 	var p2_different_text = p2_old_text != $"%P2TurnTimerLabel".text
 
 	if $"%VersionLabel".visible:
-		$"%VersionLabel".text = "version " + Global.VERSION
+		$"%VersionLabel".text = "version %s#%d" % [Global.VERSION, Global.BUILD]
 	var you_id = 1
 	var opponent_id = 2
 	if Network.multiplayer_active:
@@ -953,3 +955,6 @@ func _fix_window_position():
 	yield(get_tree(), "idle_frame")
 	
 	Global.set_fullscreen(original_value)
+func show_scripter():
+	$"%PausePanel".hide()
+	$"%ReplayScriptingMenu".show()
