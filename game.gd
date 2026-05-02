@@ -273,14 +273,16 @@ func on_particle_effect_spawned(fx: ParticleEffect):
 func on_object_spawned(obj: BaseObj):
 	objects.append(obj)
 	active_objects.append(obj)
-	objects_node.add_child(obj)
-	obj.has_ceiling = has_ceiling
-	obj.ceiling_height = ceiling_height
-	# Fresh spawns get a counter-derived name; copy_to preassigns the source's
-	# name and the seed will be overwritten by copy_to anyway.
+	# Assign the counter-derived name BEFORE add_child fires the obj's _ready
+	# (which falls back to obj_name = name and would lock in a Node-tree name
+	# like "@FlameWave@882"). With this in place, real spawns get clean numeric
+	# names and ghost spawns (where copy_to preassigns obj_name) keep theirs.
 	if !obj.obj_name:
 		objs_spawned_count += 1
 		obj.obj_name = str(objs_spawned_count)
+	objects_node.add_child(obj)
+	obj.has_ceiling = has_ceiling
+	obj.ceiling_height = ceiling_height
 	var name_int = obj.obj_name.to_int()
 	obj.logic_rng = BetterRng.new()
 	obj.logic_rng_static = BetterRng.new()
@@ -1101,7 +1103,7 @@ func apply_hitboxes(players):
 					if p.projectile_invulnerable:
 						if object.get("immunity_susceptible"):
 							continue
-						elif p.projectile_invulnerable_always_forced:
+						elif p.roll_projectile_invulnerable and object.get("roll_immunity_susceptible"):
 							continue
 
 					var hitboxes = object.get_active_hitboxes()

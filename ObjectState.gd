@@ -614,7 +614,7 @@ func _exit_shared():
 	host.reset_hurtbox()
 	host.end_invulnerability()
 	host.end_projectile_invulnerability()
-	host.end_forced_projectile_invulnerability()
+	host.end_roll_projectile_invulnerability()
 	host.end_throw_invulnerability()
 
 	host.end_aerial_attack_invulnerability()

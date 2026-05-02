@@ -160,6 +160,8 @@ func init():
 	$"%AllowSaveButton".connect("toggled", self, "_on_allow_save_toggled")
 	if !Global.STYLE_SAVE_FEATURE_ENABLED:
 		$"%AllowSaveButton".hide()
+	else:
+		$"%AllowSaveButton".set_pressed_no_signal(Global.allow_save_default)
 	if !SteamHustle.WORKSHOP_ENABLED:
 		$"%WorkshopButton".disabled = true
 	_on_character_button_pressed(buttons[0])
@@ -501,7 +503,9 @@ func _on_show_outline_toggled(on):
 	$"%ShowOutline".set_pressed_no_signal(on)
 	update_warning()
 
-func _on_allow_save_toggled(_pressed):
+func _on_allow_save_toggled(pressed):
+	Global.allow_save_default = pressed
+	Global.save_options()
 	_mark_style_modified()
 
 func _on_character_button_pressed(button):
@@ -540,6 +544,11 @@ func _on_DLCWarning_meta_clicked(meta):
 	pass # Replace with function body.
 
 func _on_WorkshopButton_pressed():
+	# Publishing to workshop implies sharing — force the toggle on so both
+	# the local save and the uploaded copy carry allow_others_save = true.
+	# Use no_signal so Global.allow_save_default isn't overwritten.
+	if Global.STYLE_SAVE_FEATURE_ENABLED:
+		$"%AllowSaveButton".set_pressed_no_signal(true)
 	save_style(false)
 	var item = UGCItem.new()
 	item.connect("item_created", self, "_on_item_created")

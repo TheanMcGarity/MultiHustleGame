@@ -578,23 +578,28 @@ func _apply_aura_state(particle, entry: Dictionary):
 		particle.facing = get_facing_int()
 	else:
 		var hidden = _aura_hidden_for_limb(resolved)
-		particle.position = _aura_position_for_limb(resolved)
-		particle.attached_to_limb = true
-		if settings.get("attach_position_only", true):
-			particle.attached_rotation = 0.0
-			particle.attached_limb_flipped = false
-		else:
-			particle.attached_rotation = _aura_rotation_for_limb(resolved)
-			var flipped = _aura_flipped_for_limb(resolved)
-			if entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
-				flipped = !flipped
-			particle.attached_limb_flipped = flipped
-		# Particles is a child of Flip, so Flip's scale.x mirror already
-		# handles the facing-flip. Pass facing = 1 to bypass tick's
-		# facing-based XOR which would otherwise double-flip.
-		particle.facing = 1
 		if hidden:
+			# Limb has no data on the current sprite — pause emission but
+			# leave the particle's transform alone so already-spawned particles
+			# in local mode don't teleport back to the chest (which is where
+			# the position-resolver falls back to).
 			should_emit = false
+		else:
+			particle.position = _aura_position_for_limb(resolved)
+			particle.attached_to_limb = true
+			if settings.get("attach_position_only", true):
+				particle.attached_rotation = 0.0
+				particle.attached_limb_flipped = false
+			else:
+				particle.attached_rotation = _aura_rotation_for_limb(resolved)
+				var flipped = _aura_flipped_for_limb(resolved)
+				if entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
+					flipped = !flipped
+				particle.attached_limb_flipped = flipped
+			# Particles is a child of Flip, so Flip's scale.x mirror already
+			# handles the facing-flip. Pass facing = 1 to bypass tick's
+			# facing-based XOR which would otherwise double-flip.
+			particle.facing = 1
 	if particle.particles.emitting != should_emit:
 		particle.particles.emitting = should_emit
 

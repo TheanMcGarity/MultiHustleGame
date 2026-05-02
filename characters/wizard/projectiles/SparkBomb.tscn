@@ -69,6 +69,7 @@ extra_state_variables = "exploded
 armed
 delay_ticks"
 immunity_susceptible = false
+roll_immunity_susceptible = true
 deletes_other_projectiles = false
 
 [node name="Sprite" parent="Flip" index="0"]

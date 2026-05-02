@@ -366,15 +366,16 @@ text = "go back"
 [node name="HBoxContainer2" type="HBoxContainer" parent="."]
 margin_right = 40.0
 margin_bottom = 40.0
+mouse_filter = 2
 
 [node name="WorkshopUpdatedLabel" type="RichTextLabel" parent="."]
 unique_name_in_owner = true
 visible = false
 modulate = Color( 0.113725, 0.552941, 0.960784, 1 )
-margin_left = 475.0
-margin_top = 21.0
-margin_right = 618.0
-margin_bottom = 37.0
+margin_left = 354.0
+margin_top = 22.0
+margin_right = 497.0
+margin_bottom = 38.0
 text = "style uploaded to workshop"
 scroll_active = false
 
@@ -398,9 +399,8 @@ margin_bottom = 239.0
 custom_constants/separation = 6
 
 [node name="ScrollContainer" type="ScrollContainer" parent="StyleCreditsPanel/VBoxContainer"]
-margin_top = 17.0
 margin_right = 178.0
-margin_bottom = 215.0
+margin_bottom = 220.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 scroll_horizontal_enabled = false
@@ -413,9 +413,9 @@ custom_constants/separation = 4
 
 [node name="StyleCreditsCloseButton" type="Button" parent="StyleCreditsPanel/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 221.0
+margin_top = 226.0
 margin_right = 178.0
-margin_bottom = 233.0
+margin_bottom = 238.0
 text = "close"
 
 [node name="AllowSaveButton" type="CheckButton" parent="."]

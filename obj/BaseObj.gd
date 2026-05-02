@@ -94,9 +94,9 @@ var default_hurtbox = {
 
 var projectile_invulnerable = false
 var throw_invulnerable = false
-var projectile_invulnerable_always_forced = false
+var roll_projectile_invulnerable = false
 
-var state_variables = ["id", "projectile_invulnerable_always_forced", "grounded_attack_immune", "game_tick", "match_seed", "aerial_attack_immune", "last_object_hit", "can_update_sprite", "last_hit_frame", "damages_own_team", "ceiling_height", "has_ceiling", "has_projectile_parry_window", "always_parriable", "use_platforms", "gravity", "ground_friction", "air_friction", "max_ground_speed", "max_air_speed", "max_fall_speed", "projectile_invulnerable", "gravity_enabled", "default_hurtbox", "throw_invulnerable", "creator_name", "name", "obj_name", "stage_width", "hitlag_ticks", "combo_count", "invulnerable", "current_tick", "disabled", "state_interruptable", "state_hit_cancellable"]
+var state_variables = ["id", "roll_projectile_invulnerable", "grounded_attack_immune", "game_tick", "match_seed", "aerial_attack_immune", "last_object_hit", "can_update_sprite", "last_hit_frame", "damages_own_team", "ceiling_height", "has_ceiling", "has_projectile_parry_window", "always_parriable", "use_platforms", "gravity", "ground_friction", "air_friction", "max_ground_speed", "max_air_speed", "max_fall_speed", "projectile_invulnerable", "gravity_enabled", "default_hurtbox", "throw_invulnerable", "creator_name", "name", "obj_name", "stage_width", "hitlag_ticks", "combo_count", "invulnerable", "current_tick", "disabled", "state_interruptable", "state_hit_cancellable"]
 
 var hitboxes = []
 
@@ -502,11 +502,11 @@ func start_projectile_invulnerability():
 func end_projectile_invulnerability():
 	projectile_invulnerable = false
 
-func start_forced_projectile_invulnerability():
-	projectile_invulnerable_always_forced = true
+func start_roll_projectile_invulnerability():
+	roll_projectile_invulnerable = true
 	
-func end_forced_projectile_invulnerability():
-	projectile_invulnerable_always_forced = false
+func end_roll_projectile_invulnerability():
+	roll_projectile_invulnerable = false
 
 func start_aerial_attack_invulnerability():
 	aerial_attack_immune = true

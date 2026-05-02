@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.48-steam-unstable"
+var VERSION = "1.9.49-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -44,6 +44,7 @@ var seen_custom_character_nag = false
 var forfeit_buttons_enabled = false
 var auto_fc = true
 var ghost_speed = 2
+var allow_save_default = true
 
 var winws_detected = false
 
@@ -303,6 +304,7 @@ func save_options():
 			"fx_value" : fx_value,
 			"ui_value" : ui_value,
 			"music_value" : music_value,
+			"allow_save_default": allow_save_default,
 		}
 	})
 
@@ -340,6 +342,7 @@ func get_default_player_data():
 			"fx_value" : 1.0,
 			"ui_value" : 1.0,
 			"music_value" : 1.0,
+			"allow_save_default": true,
 		}
 	}
 

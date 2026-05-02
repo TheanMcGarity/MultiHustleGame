@@ -97,7 +97,7 @@ static func get_setting_min(setting):
 	var minimums = {
 		"amount": 1,
 		"lifetime": 0.064,
-		"speed_scale": 1.0,
+		"speed_scale": 0.0,
 		"explosiveness": 0.0,
 		"lifetime_randomness": 0.0,
 		"gravity_x": -100.0,
