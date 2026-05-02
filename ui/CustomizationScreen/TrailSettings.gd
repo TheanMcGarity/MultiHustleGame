@@ -1,5 +1,24 @@
 extends VBoxContainer
 
+const ATTACH_LIMB_NONE := "(none)"
+const ATTACH_LIMB_OPTIONS := [
+	ATTACH_LIMB_NONE,
+	"Head",
+	"LeftHand", "RightHand", "Hands",
+	"LeftFoot", "RightFoot", "Feet",
+]
+# Old attach_limb values that map to the simplified set above. Body / Upper /
+# Lower fall through to "(none)" since there's no anatomical body limb anymore.
+const ATTACH_LIMB_MIGRATIONS := {
+	"UpperBody": "",
+	"LowerBody": "",
+	"Body": "",
+	"LeftArm": "LeftHand",
+	"RightArm": "RightHand",
+	"LeftLeg": "LeftFoot",
+	"RightLeg": "RightFoot",
+}
+
 signal settings_changed(settings)
 
 var start_color := Color.white
@@ -70,6 +89,21 @@ func load_settings(settings):
 			if shape == $"%Shape".get_item_text(id):
 				$"%Shape".selected = id
 				break
+	var attach_limb = settings.get("attach_limb", "")
+	if ATTACH_LIMB_MIGRATIONS.has(attach_limb):
+		attach_limb = ATTACH_LIMB_MIGRATIONS[attach_limb]
+	if attach_limb == "":
+		attach_limb = ATTACH_LIMB_NONE
+	for id in $"%AttachLimb".get_item_count():
+		if attach_limb == $"%AttachLimb".get_item_text(id):
+			$"%AttachLimb".selected = id
+			break
+	if has_node("%MirrorPair"):
+		$"%MirrorPair".set_pressed_no_signal(settings.get("attach_pair_mirror", true))
+	if has_node("%PositionOnly"):
+		$"%PositionOnly".set_pressed_no_signal(settings.get("attach_position_only", true))
+	if has_node("%ConsistentSide"):
+		$"%ConsistentSide".set_pressed_no_signal(settings.get("attach_consistent_side", true))
 #			yield(get_tree(), "idle_frame")
 
 func _ready():
@@ -77,6 +111,15 @@ func _ready():
 	for shape_name in shapes:
 		$"%Shape".add_item(shape_name)
 		shape_names.append(shape_name)
+	for limb in ATTACH_LIMB_OPTIONS:
+		$"%AttachLimb".add_item(limb)
+	$"%AttachLimb".connect("item_selected", self, "_on_attach_limb_selected")
+	if has_node("%MirrorPair"):
+		$"%MirrorPair".connect("toggled", self, "_setting_value_changed")
+	if has_node("%PositionOnly"):
+		$"%PositionOnly".connect("toggled", self, "_setting_value_changed")
+	if has_node("%ConsistentSide"):
+		$"%ConsistentSide".connect("toggled", self, "_setting_value_changed")
 	for node in settings_map:
 		if node.has_signal("value_changed"):
 			node.connect("value_changed", self, "_setting_value_changed")
@@ -90,6 +133,9 @@ func _ready():
 		nodes_map[setting] = node
 	pass # Replace with function body.
 
+func _on_attach_limb_selected(_index):
+	_setting_value_changed()
+
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())
 
@@ -102,10 +148,18 @@ func set_end_color(end_color):
 	_setting_value_changed()
 
 func get_settings():
+	var attach_limb_text = $"%AttachLimb".get_item_text($"%AttachLimb".selected) if $"%AttachLimb".selected >= 0 else ATTACH_LIMB_NONE
+	var mirror_pair = $"%MirrorPair".pressed if has_node("%MirrorPair") else true
+	var position_only = $"%PositionOnly".pressed if has_node("%PositionOnly") else true
+	var consistent_side = $"%ConsistentSide".pressed if has_node("%ConsistentSide") else true
 	var map = {
 		"start_color": $"%StartColor".current_color,
 		"end_color": $"%EndColor".current_color,
 		"shape": shape_names[$"%Shape".selected],
+		"attach_limb": "" if attach_limb_text == ATTACH_LIMB_NONE else attach_limb_text,
+		"attach_pair_mirror": mirror_pair,
+		"attach_position_only": position_only,
+		"attach_consistent_side": consistent_side,
 	}
 #	print("getting all aura settings")
 	for settings_node in settings_map:

@@ -406,6 +406,12 @@ var parried = false
 var busy = false
 
 var initiative = false
+# aura_particles and aura_entries are parallel arrays. Each entry is
+# {settings, attach_limb, pair_index} (the per-internal-particle info from
+# Custom.expand_aura_entries). aura_particle / aura_particle_2 remain as
+# legacy aliases pointing at the first two slots so old code paths still work.
+var aura_particles: Array = []
+var aura_entries: Array = []
 var aura_particle = null
 var aura_particle_2 = null
 
@@ -491,6 +497,107 @@ func init(pos=null):
 	refresh_air_movements()
 
 
+func _aura_attach_limb(settings) -> String:
+	if settings is Dictionary:
+		return settings.get("attach_limb", "")
+	return ""
+
+# Resolves the actual limb name for an aura entry — for pair attaches this is
+# the specific limb (e.g. RightHand for pair_index=1 on "Hands"). When the
+# `attach_consistent_screen_side` setting is on (default) and the character
+# faces left, Left*/Right* limb names are swapped so the aura stays on the
+# same screen side.
+func _resolved_attach_limb(entry: Dictionary) -> String:
+	var name = Custom.resolve_attach_limb(entry)
+	var settings = entry.get("settings")
+	if get_facing_int() == -1 and settings is Dictionary and settings.get("attach_consistent_side", true):
+		name = Custom.swap_left_right_limb(name)
+	return name
+
+func _aura_position_for_limb(limb_name: String) -> Vector2:
+	if limb_name == "":
+		return hurtbox_pos_float()
+	var pos = get_limb_local_pos(limb_name)
+	if pos != null:
+		return pos
+	return hurtbox_pos_float()
+
+# Convention: "natural forward" is (1, 0) (right), so dir (1, 0) → rotation 0,
+# (0, 1) → 90° CW, (-1, 0) → 180°, (0, -1) → 270° CW. Uses the sprite's
+# parent-frame dir (Flip-local) so any rotation on the sprite itself — e.g.
+# Cowboy's gun-shoot arm pivoting on aim angle — gets folded into the aura
+# rotation. Flip's scale.x mirror handles the facing flip automatically since
+# Particles (where auras live) is a child of Flip.
+func _aura_rotation_for_limb(limb_name: String) -> float:
+	if limb_name == "":
+		return 0.0
+	var dir = get_limb_sprite_parent_dir(limb_name)
+	if dir == null or dir.length_squared() < 0.0001:
+		return 0.0
+	return dir.angle()
+
+func _aura_flipped_for_limb(limb_name: String) -> bool:
+	if limb_name == "":
+		return false
+	var data = get_limb_data()
+	if !data.has(limb_name):
+		return false
+	var by_tex = data[limb_name]
+	var tex = get_current_limb_sprite_texture()
+	if tex == null or !by_tex.has(tex):
+		return false
+	var e = by_tex[tex]
+	if !(e is Dictionary):
+		return false
+	return e.get("flipped", false)
+
+# Hide an attached aura on sprites that have no usable data — both explicitly
+# absent and unset (no entry at all). Free-floating auras (attach_limb "") are
+# never hidden.
+func _aura_hidden_for_limb(limb_name: String) -> bool:
+	if limb_name == "":
+		return false
+	if !has_limb_entry_on_current_sprite(limb_name):
+		return true
+	return is_limb_absent_on_current_sprite(limb_name)
+
+# Per-particle update: applies position/rotation/flip from the entry's resolved
+# limb, honoring position_only and pair-mirror settings. When the resolved limb
+# has no data on the current sprite the particle's emission is paused (existing
+# particles fade out instead of suddenly disappearing).
+func _apply_aura_state(particle, entry: Dictionary):
+	var settings = entry["settings"]
+	var resolved = _resolved_attach_limb(entry)
+	var should_emit = Global.enable_custom_particles
+	if resolved == "":
+		# Non-attached aura — leave at hurtbox position, no rotation/flip.
+		particle.position = hurtbox_pos_float()
+		particle.attached_to_limb = false
+		particle.attached_rotation = 0.0
+		particle.attached_limb_flipped = false
+		particle.facing = get_facing_int()
+	else:
+		var hidden = _aura_hidden_for_limb(resolved)
+		particle.position = _aura_position_for_limb(resolved)
+		particle.attached_to_limb = true
+		if settings.get("attach_position_only", true):
+			particle.attached_rotation = 0.0
+			particle.attached_limb_flipped = false
+		else:
+			particle.attached_rotation = _aura_rotation_for_limb(resolved)
+			var flipped = _aura_flipped_for_limb(resolved)
+			if entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
+				flipped = !flipped
+			particle.attached_limb_flipped = flipped
+		# Particles is a child of Flip, so Flip's scale.x mirror already
+		# handles the facing-flip. Pass facing = 1 to bypass tick's
+		# facing-based XOR which would otherwise double-flip.
+		particle.facing = 1
+		if hidden:
+			should_emit = false
+	if particle.particles.emitting != should_emit:
+		particle.particles.emitting = should_emit
+
 func is_ivy():
 	if SteamLobby.SPECTATING or !Network.multiplayer_active:
 		var username = Network.pid_to_username(id)
@@ -532,26 +639,21 @@ func apply_style(style):
 			sprite.get_material().set_shader_param("use_extra_color_2", false)
 		if Global.enable_custom_particles and !is_ghost:
 			reset_aura()
-			if style.show_aura and style.has("aura_settings") and style.aura_settings:
+			var expanded = Custom.expand_aura_entries(Custom.style_auras(style))
+			for entry in expanded:
 				is_aura_active = true
-				aura_particle = preload("res://fx/CustomTrailParticle.tscn").instance()
-				particles.add_child(aura_particle)
-				aura_particle.load_settings(style.aura_settings)
-				aura_particle.position = hurtbox_pos_float()
-				aura_particle.facing = get_facing_int()
-				aura_particle.start_emitting()
-				if aura_particle.show_behind_parent:
-					aura_particle.z_index = -1
-			if style.get("show_aura_2") and style.has("aura_settings_2") and style.aura_settings_2:
-				is_aura_active = true
-				aura_particle_2 = preload("res://fx/CustomTrailParticle.tscn").instance()
-				particles.add_child(aura_particle_2)
-				aura_particle_2.load_settings(style.aura_settings_2)
-				aura_particle_2.position = hurtbox_pos_float()
-				aura_particle_2.facing = get_facing_int()
-				aura_particle_2.start_emitting()
-				if aura_particle_2.show_behind_parent:
-					aura_particle_2.z_index = -1
+				var particle = preload("res://fx/CustomTrailParticle.tscn").instance()
+				particles.add_child(particle)
+				particle.load_settings(entry["settings"])
+				# _apply_aura_state will start_emitting iff the resolved limb
+				# has data on the current sprite — otherwise it stays paused.
+				_apply_aura_state(particle, entry)
+				if particle.show_behind_parent:
+					particle.z_index = -1
+				aura_particles.append(particle)
+				aura_entries.append(entry)
+			aura_particle = aura_particles[0] if aura_particles.size() > 0 else null
+			aura_particle_2 = aura_particles[1] if aura_particles.size() > 1 else null
 		if style.has("hitspark"):
 			if Custom.hitsparks.has(style.hitspark):
 				custom_hitspark = load(Custom.hitsparks[style.hitspark])
@@ -566,11 +668,12 @@ func reset_color():
 
 func reset_aura():
 	is_aura_active = false
-	if is_instance_valid(aura_particle):
-		aura_particle.queue_free()
+	for p in aura_particles:
+		if is_instance_valid(p):
+			p.queue_free()
+	aura_particles.clear()
+	aura_entries.clear()
 	aura_particle = null
-	if is_instance_valid(aura_particle_2):
-		aura_particle_2.queue_free()
 	aura_particle_2 = null
 
 func reset_style():
@@ -945,15 +1048,6 @@ func _process(delta):
 #			sprite.get_material().set_shader_param("color", color)
 	else:
 		self_modulate.a = 1.0
-	if is_instance_valid(aura_particle):
-		aura_particle.visible = Global.enable_custom_particles
-		aura_particle.position = hurtbox_pos_float()
-		aura_particle.facing = get_facing_int()
-	if is_instance_valid(aura_particle_2):
-		aura_particle_2.visible = Global.enable_custom_particles
-		aura_particle_2.position = hurtbox_pos_float()
-		aura_particle_2.facing = get_facing_int()
-	
 	if is_style_active:
 		if applied_style and !is_color_active and Global.enable_custom_colors:
 			apply_style(applied_style)
@@ -2073,6 +2167,12 @@ func tick():
 		buffer_moved_forward = true
 	if current_state().backdash_iasa:
 		buffer_moved_backward = true
+	# Refresh aura state BEFORE ticking particles — so each aura's tick reads
+	# this frame's sprite/position/facing instead of last frame's values.
+	for i in range(aura_particles.size()):
+		var p = aura_particles[i]
+		if is_instance_valid(p):
+			_apply_aura_state(p, aura_entries[i])
 	for particle in particles.get_children():
 		particle.tick()
 	any_available_actions = true

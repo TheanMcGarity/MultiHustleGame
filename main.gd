@@ -25,6 +25,12 @@ var match_data = {}
 var has_submitted_a_turn = false
 var last_backup_tick = -1
 
+# Per-match: which target player_ids we've already asked permission from
+# (one request per match per target). Pending entries are still waiting on
+# the response.
+var style_permission_requested := {}
+var style_permission_pending := {}
+
 var started_ghost_this_frame = false
 
 var _Global = Network
@@ -39,11 +45,21 @@ func _ready():
 	Network.connect("start_game", self, "_on_game_started", [false])
 	Network.connect("match_ready", self, "_on_match_ready")
 	Network.connect("force_open_action_buttons", self, "_on_multiplayer_turn_started")
+	Network.connect("style_save_response_received", self, "_on_style_save_response_received")
 	SteamLobby.connect("received_spectator_match_data", self, "_on_received_spectator_match_data")
 	$"%P1ActionButtons".connect("action_clicked", self, "on_action_clicked", [1])
 	$"%P2ActionButtons".connect("action_clicked", self, "on_action_clicked", [2])
 	$"%GhostButton".connect("toggled", self, "_on_ghost_button_toggled")
 	$"%SaveReplayButton".connect("pressed", self, "save_replay")
+	$"%SaveStylesButton".connect("pressed", self, "_show_style_save_menu", [true])
+	$"%StyleBackButton".connect("pressed", self, "_show_style_save_menu", [false])
+	$"%SaveP1StyleButton".connect("pressed", self, "save_player_style", [1])
+	$"%SaveP2StyleButton".connect("pressed", self, "save_player_style", [2])
+	if !Global.STYLE_SAVE_FEATURE_ENABLED:
+		# Whole feature off — hide the only entry point to the style submenu
+		# so the per-player save buttons can't be reached.
+		$"%SaveStylesButton".hide()
+	$"%PausePanel".connect("visibility_changed", self, "_on_pause_panel_visibility_changed")
 	$"%CharacterSelect".connect("match_ready", self, "_on_match_ready")
 	$"%GhostSpeed".connect("value_changed", self, "_on_ghost_speed_changed")
 	$"%GhostWaitTimer".connect("timeout", self, "_on_ghost_wait_timer_timeout")
@@ -170,6 +186,10 @@ func _on_match_ready(data):
 	match_data = data
 	has_submitted_a_turn = false
 	last_backup_tick = -1
+	style_permission_requested.clear()
+	style_permission_pending.clear()
+	_set_save_style_button_disabled(1, false)
+	_set_save_style_button_disabled(2, false)
 	if match_data.has("replay_challenge"):
 		singleplayer = false
 	elif match_data.has("replay"):
@@ -248,6 +268,177 @@ func save_replay():
 	$"%SaveReplayButton".text = "saved"
 	$"%SaveReplayLabel".text = "saved replay to " + filename
 
+var _style_menu_main_visibility := {}
+var _style_menu_active := false
+
+# Toggles the pause panel between the main button list and the style-saving
+# sub-menu. Snapshots each main button's visibility on the way in and
+# restores it on the way out so we don't fight with code that conditionally
+# shows/hides specific buttons (e.g. forfeit).
+func _show_style_save_menu(show_styles: bool):
+	if show_styles == _style_menu_active:
+		return
+	_style_menu_active = show_styles
+	var main_buttons = ["%ResumeButton", "%ReplayName", "%SaveReplayButton",
+			"%SaveStylesButton", "%PauseOptionsButton",
+			"%QuitToMainMenuButton", "%ForfeitButton"]
+	var style_buttons = ["%StyleName", "%SaveP1StyleButton",
+			"%SaveP2StyleButton", "%StyleBackButton"]
+	if show_styles:
+		_style_menu_main_visibility.clear()
+		for path in main_buttons:
+			var n = get_node_or_null(path)
+			if n:
+				_style_menu_main_visibility[path] = n.visible
+				n.visible = false
+	else:
+		for path in main_buttons:
+			var n = get_node_or_null(path)
+			if n:
+				n.visible = _style_menu_main_visibility.get(path, true)
+		_style_menu_main_visibility.clear()
+	for path in style_buttons:
+		var n = get_node_or_null(path)
+		if n:
+			n.visible = show_styles
+
+# Whenever the pause panel hides (escape, resume, etc.), drop out of the
+# style sub-menu so the next open shows the main pause buttons again with
+# their previously-tracked visibility restored.
+func _on_pause_panel_visibility_changed():
+	if !$"%PausePanel".visible and _style_menu_active:
+		_show_style_save_menu(false)
+
+func save_player_style(player_id: int):
+	if !Global.STYLE_SAVE_FEATURE_ENABLED:
+		return
+	if !is_instance_valid(game):
+		return
+	var player = game.get_player(player_id)
+	if !is_instance_valid(player) or player.applied_style == null:
+		$"%SaveReplayLabel".text = "p%d has no style to save" % player_id
+		return
+	# Respect the style's auto-share flag. Legacy styles without the field are
+	# treated as opted in (default true). Saving your own player's style
+	# bypasses the share gate (singleplayer or your own MP slot — you have
+	# the file locally already). The latest-in-chain steam_id (creator if no
+	# modifiers, else last modifier) also bypasses regardless of context —
+	# they're the most recent person to have touched the style.
+	# Whole gate is short-circuited while the feature flag is off — saves
+	# proceed unconditionally and no permission prompts are emitted.
+	var src = player.applied_style
+	var is_replay = match_data.get("replay", false) or match_data.get("replay_challenge", false)
+	# Spectators are never the "owner" — they're outside the match.
+	# Network.multiplayer_active (the getter) returns false for spectators,
+	# so excluding them explicitly stops the !multiplayer_active branch from
+	# treating them as a local solo player.
+	var saving_own = !is_replay and !SteamLobby.SPECTATING and (!Network.multiplayer_active or Network.player_id == player_id)
+	var i_am_chain_owner = _is_chain_latest(src)
+	if Global.STYLE_SAVE_FEATURE_ENABLED and !saving_own and !i_am_chain_owner and src is Dictionary and !src.get("allow_others_save", true):
+		# Replays have no live owner to ask. Local matches have no remote
+		# peer. Otherwise we use broadcast_rpc so spectators can also send
+		# the request (regular rpc_ short-circuits when SPECTATING).
+		if is_replay:
+			$"%SaveReplayLabel".text = "p%d's style is not shareable" % player_id
+			return
+		var in_lobby = Network.multiplayer_active or SteamLobby.SPECTATING
+		if !in_lobby:
+			$"%SaveReplayLabel".text = "p%d's style is not shareable" % player_id
+			return
+		if style_permission_requested.has(player_id):
+			# Button should already be disabled — defensive no-op.
+			return
+		style_permission_requested[player_id] = true
+		style_permission_pending[player_id] = true
+		var requester = Global.get_player_data().username
+		var style_name = src.get("style_name", "") if src is Dictionary else ""
+		Network.broadcast_rpc("receive_style_save_request", [player_id, requester, style_name])
+		$"%SaveReplayLabel".text = "asked p%d for permission..." % player_id
+		_set_save_style_button_disabled(player_id, true)
+		return
+	_do_save_player_style(player_id, _duplicate_style_object(player.applied_style))
+
+func _is_chain_latest(style) -> bool:
+	if !(style is Dictionary):
+		return false
+	var sid = SteamHustle.STEAM_ID
+	if sid == null or typeof(sid) != TYPE_INT or sid <= 0:
+		return false
+	var my_id = str(sid)
+	var latest_id = ""
+	var mod_ids = style.get("modifier_ids", [])
+	if mod_ids is Array and !mod_ids.empty():
+		latest_id = str(mod_ids[mod_ids.size() - 1])
+	else:
+		latest_id = str(style.get("creator_id", ""))
+	return latest_id != "" and latest_id == my_id
+
+func _set_save_style_button_disabled(player_id: int, disabled: bool):
+	var path = "%%SaveP%dStyleButton" % player_id
+	if has_node(path):
+		get_node(path).disabled = disabled
+
+func _do_save_player_style(player_id: int, style):
+	var requested_name = $"%StyleName".text.strip_edges()
+	if requested_name == "":
+		# Fall back to the style's own name (carried in the .style dict).
+		# Final fallback to the player's username if the style somehow has
+		# no name (old save without it).
+		requested_name = style.get("style_name", "") if style is Dictionary else ""
+		if requested_name == "":
+			var ud = match_data.get("user_data", {}) if match_data else {}
+			requested_name = ud.get("p%d" % player_id, "untitled")
+	requested_name = Utils.filter_filename(requested_name)
+	if requested_name == "":
+		requested_name = "untitled"
+	var unique_name = _next_available_style_name(requested_name)
+	style["style_name"] = unique_name
+	Custom.save_style(style)
+	$"%SaveReplayLabel".text = "saved p%d style as %s.style" % [player_id, unique_name]
+
+# Response from the style's owner. Filter to messages addressed to us:
+# steam matches by verified steam_id, relay falls back to username.
+func _on_style_save_response_received(target_player_id, requester_id, requester_name, allowed):
+	if !_style_response_for_me(requester_id, requester_name):
+		return
+	if !style_permission_pending.has(target_player_id):
+		return
+	style_permission_pending.erase(target_player_id)
+	if !allowed:
+		# Chat already surfaces the denial — don't double up in pause menu.
+		return
+	if !is_instance_valid(game):
+		return
+	var player = game.get_player(target_player_id)
+	if !is_instance_valid(player) or player.applied_style == null:
+		$"%SaveReplayLabel".text = "p%d's style is gone" % target_player_id
+		return
+	_do_save_player_style(target_player_id, _duplicate_style_object(player.applied_style))
+
+func _style_response_for_me(requester_id, requester_name) -> bool:
+	if Network.steam:
+		return requester_id != 0 and requester_id == SteamHustle.STEAM_ID
+	return requester_name == Global.get_player_data().username
+
+# Returns a style_name that doesn't collide with existing files in the
+# user's custom folder. If `base` is taken, appends 2, 3, ... until free.
+func _next_available_style_name(base: String) -> String:
+	var dir = Directory.new()
+	var name = base
+	var n = 2
+	while dir.file_exists("user://custom/" + name + ".style"):
+		name = base + str(n)
+		n += 1
+	return name
+
+func _duplicate_style_object(style):
+	if style is Dictionary:
+		return style.duplicate(true)
+	# Style might be a Resource — try .duplicate() if available, else return as-is.
+	if style and style.has_method("duplicate"):
+		return style.duplicate(true)
+	return style
+
 func hide_main_menu(all=false):
 	ui_layer.hide_main_menu(all)
 
@@ -285,6 +476,8 @@ func setup_game_deferred(singleplayer, data):
 			ui_layer.set_turn_time(data.turn_time, (data.has("chess_timer") and data.chess_timer))
 		else:
 			ui_layer.start_timers()
+	if data.has("replay_challenge") and data.replay_challenge and data.get("restore_timers") and data.has("chess_timer_state"):
+		ui_layer.restore_chess_timer_state(data.chess_timer_state)
 	ui_layer.init(game)
 	hud_layer.init(game)
 	var p1 = game.get_player(1)

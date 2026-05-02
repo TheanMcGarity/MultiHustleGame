@@ -121,6 +121,11 @@ signal both_players_turn_end()
 signal match_ready(match_data)
 signal resim_requested()
 signal resim_denied()
+# requester_id is the verified Steam ID of the request sender (0 on relay).
+# requester_name is a display string — verified Steam persona on steam,
+# claimed username on relay (where there's no spoof-resistant alternative).
+signal style_save_request_received(target_player_id, requester_id, requester_name, style_name)
+signal style_save_response_received(target_player_id, requester_id, requester_name, allowed)
 signal force_open_action_buttons()
 signal player_count_received(playercount)
 signal multiplayer_stopped()
@@ -147,10 +152,27 @@ func _ready():
 func get_multiplayer_active():
 	return multiplayer_active and !SteamLobby.SPECTATING
 
+# Lobby-broadcast RPC — reaches every lobby member, including peers
+# rpc_() can't address (spectators sending to fighters, or asking the
+# non-OPPONENT_ID fighter as a spectator). Receivers must self-filter
+# (e.g. by Network.player_id and SPECTATING) since the packet hits all.
+# Steam path uses SteamLobby.broadcast_rpc; relay falls back to rpc_'s
+# "remote" type since 1v1 relay only has one remote peer anyway.
+func broadcast_rpc(function_name: String, arg=null):
+	if steam:
+		if !(multiplayer_active or SteamLobby.SPECTATING):
+			return
+		SteamLobby.broadcast_rpc(function_name, arg)
+		return
+	# Relay path: spectator broadcast isn't supported — fall through to
+	# normal rpc_ which targets the remote peer (only fighters in 1v1).
+	if multiplayer_active:
+		rpc_(function_name, arg, "remote")
+
 func rpc_(function_name: String, arg=null, type="remotesync"):
 	if SteamLobby.SPECTATING:
 		return
-	
+
 	if !multiplayer_active:
 		return
 
@@ -837,6 +859,38 @@ func answer_resim_request(answer: bool):
 remote func deny_resim():
 	rpc_("send_chat_message", [opponent_player_id(player_id), "-- denied resync request."])
 	emit_signal("resim_denied")
+
+# Style "ask the owner if I can save their style" flow. The requester
+# broadcasts receive_style_save_request; the targeted player's Chat window
+# shows a yes/no prompt, then broadcasts receive_style_save_response back.
+#
+# Identity: on steam we derive the requester's steam_id from p2p_packet_sender
+# (which Steam verifies), look up the verified persona for display, and route
+# the response by steam_id. On relay we trust the claimed username — there's
+# no spectator support there anyway, so the only "remote" peer is the
+# opponent and there's nothing to spoof.
+remote func receive_style_save_request(target_player_id, requester_name, style_name):
+	var sender_id = 0
+	var display_name = requester_name
+	if steam:
+		sender_id = SteamLobby.p2p_packet_sender
+		if sender_id != 0:
+			# Prefer the verified Steam persona over the claimed username.
+			# Otherwise a peer could send a fake name and trick the target
+			# into granting access intended for someone else.
+			display_name = Steam.getFriendPersonaName(sender_id)
+	emit_signal("style_save_request_received", target_player_id, sender_id, display_name, style_name)
+
+remote func receive_style_save_response(target_player_id, requester_id, requester_name, allowed):
+	# Verify the response actually came from the target — otherwise any lobby
+	# peer could spoof a "yes" and trick the requester into saving the style
+	# without permission. Only enforced on steam (where p2p_packet_sender is
+	# the real source); relay falls back to the existing match-peer trust.
+	if steam:
+		var expected = network_ids.get(target_player_id, 0)
+		if expected != 0 and SteamLobby.p2p_packet_sender != expected:
+			return
+	emit_signal("style_save_response_received", target_player_id, requester_id, requester_name, allowed)
 
 remote func multiplayer_resim():
 	auto = true

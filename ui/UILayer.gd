@@ -471,6 +471,27 @@ func _on_sync_timer_request(id, time):
 		received_synced_time = true
 		emit_signal("received_synced_time")
 
+func get_chess_timer_state():
+	if !chess_timer:
+		return null
+	return {
+		"p1_time_left": p1_turn_timer.time_left,
+		"p2_time_left": p2_turn_timer.time_left,
+		"turn_time": turn_time,
+	}
+
+func restore_chess_timer_state(state):
+	if !state or !chess_timer:
+		return
+	if state.has("p1_time_left"):
+		var paused = p1_turn_timer.paused
+		p1_turn_timer.start(state.p1_time_left)
+		p1_turn_timer.paused = paused
+	if state.has("p2_time_left"):
+		var paused = p2_turn_timer.paused
+		p2_turn_timer.start(state.p2_time_left)
+		p2_turn_timer.paused = paused
+
 func sync_timer(player_id):
 	if Network.multiplayer_active:
 		if player_id == Network.player_id:
@@ -713,6 +734,8 @@ func _unhandled_input(event):
 			if event.scancode == KEY_F1:
 				visible = !visible
 				$"../HudLayer/HudLayer".visible = ! $"../HudLayer/HudLayer".visible
+				$"../GhostLayer".visible = visible
+				Global.ui_hidden = !visible
 #			if !Network.multiplayer_active:
 #				if is_instance_valid(game) and $"%ReplayControls".visible:
 #					if event.scancode == KEY_P:
@@ -746,7 +769,14 @@ func hide_rematch_menu():
 		disconnected_label.hide()
 
 func _process(delta):
-	
+
+	if chess_timer and is_instance_valid(game) and game.match_data:
+		game.match_data["chess_timer_state"] = {
+			"p1_time_left": p1_turn_timer.time_left,
+			"p2_time_left": p2_turn_timer.time_left,
+			"turn_time": turn_time,
+		}
+
 	var p1_old_text = $"%P1TurnTimerLabel".text
 	$"%P1TurnTimerLabel".text = time_convert(int(floor(p1_turn_timer.time_left)))
 	var p1_different_text = p1_old_text != $"%P1TurnTimerLabel".text
@@ -898,10 +928,12 @@ func _on_ClearParticlesButton_pressed():
 	if is_instance_valid(game):
 		for particle in game.effects:
 			particle.hide()
-		if game.get_player(1).aura_particle:
-			game.get_player(1).aura_particle.restart()
-		if game.get_player(2).aura_particle:
-			game.get_player(2).aura_particle.restart()
+		for p in game.get_player(1).aura_particles:
+			if is_instance_valid(p):
+				p.restart()
+		for p in game.get_player(2).aura_particles:
+			if is_instance_valid(p):
+				p.restart()
 	pass # Replace with function body.
 
 

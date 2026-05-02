@@ -108,6 +108,17 @@ var global_gravity_modifier = "1.0"
 var camera_snap_position = Vector2()
 
 var objects: Array = []
+# Subset of `objects` excluding disabled entries. Rebuilt by clean_objects()
+# at the start of each tick, also kept in sync as objects spawn (appended) so
+# the in-progress tick can pick up newly-spawned objects. Hot per-tick loops
+# (tick, apply_hitboxes, show_state) iterate this instead of `objects` to skip
+# the per-element disabled flag check on long-match accumulation.
+var active_objects: Array = []
+# Monotonic counter used to name and seed each spawned object. Kept in sync
+# with what objs_map.size() would have been if every spawn (including disabled
+# objects from previous turns) were still present, so ghost prediction names
+# stay deterministic without padding objs_map with null entries.
+var objs_spawned_count = 0
 var objs_map = {
 	
 }
@@ -206,14 +217,17 @@ func copy_to(game: Game):
 		object.free()
 	for fx in game.effects:
 		fx.free()
+	# Sync the spawn counter so future ghost spawns get the same names real
+	# would, even though we skip copying disabled objects.
+	game.objs_spawned_count = objs_spawned_count
 	for object in objects:
-		if is_instance_valid(object):
-			if !object.disabled:
-				var new_obj = load(object.filename).instance()
-				game.on_object_spawned(new_obj)
-				object.copy_to(new_obj)
-			else:
-				game.objs_map[str(game.objs_map.size() + 1)] = null
+		if is_instance_valid(object) and !object.disabled:
+			var new_obj = load(object.filename).instance()
+			# Preassign the name so on_object_spawned doesn't bump the counter
+			# (the counter was already synced above).
+			new_obj.obj_name = object.obj_name
+			game.on_object_spawned(new_obj)
+			object.copy_to(new_obj)
 	game.camera.limit_left = camera.limit_left
 	game.camera.limit_right = camera.limit_right
 
@@ -258,13 +272,19 @@ func on_particle_effect_spawned(fx: ParticleEffect):
 	
 func on_object_spawned(obj: BaseObj):
 	objects.append(obj)
+	active_objects.append(obj)
 	objects_node.add_child(obj)
 	obj.has_ceiling = has_ceiling
 	obj.ceiling_height = ceiling_height
-	obj.obj_name = str(objs_map.size() + 1)
+	# Fresh spawns get a counter-derived name; copy_to preassigns the source's
+	# name and the seed will be overwritten by copy_to anyway.
+	if !obj.obj_name:
+		objs_spawned_count += 1
+		obj.obj_name = str(objs_spawned_count)
+	var name_int = obj.obj_name.to_int()
 	obj.logic_rng = BetterRng.new()
 	obj.logic_rng_static = BetterRng.new()
-	var seed_ = hash(match_data.seed + (objs_map.size() + 1))
+	var seed_ = hash(match_data.seed + name_int)
 	obj.logic_rng.seed = seed_
 	obj.logic_rng_seed = seed_
 	obj.logic_rng_static.seed = match_data.seed
@@ -441,6 +461,7 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 		"P1": p1,
 		"P2": p2,
 	}
+	objs_spawned_count = objs_map.size()
 	p1.objs_map = objs_map
 	p2.objs_map = objs_map
 	snapping_camera = true
@@ -545,15 +566,21 @@ func get_max_replay_tick():
 	return max_replay_tick
 
 func clean_objects():
-	var invalid_objects = []
+	# Drop freed objects from `objects` and rebuild `active_objects` to exclude
+	# anything currently disabled. Single pass so cost stays O(N).
+	var kept = []
+	var active = []
 	for object in objects:
 		if !is_instance_valid(object):
-			invalid_objects.append(object)
-	for object in invalid_objects:
-		objects.erase(object)
+			continue
+		kept.append(object)
+		if !object.disabled:
+			active.append(object)
+	objects = kept
+	active_objects = active
 
 func initialize_objects():
-	for object in objects:
+	for object in active_objects:
 		if !object.initialized:
 			object.init()
 
@@ -581,12 +608,12 @@ func tick():
 			Network.reset_action_inputs()
 
 	clean_objects()
-	for object in objects:
+	for object in active_objects:
 		if object.disabled:
 			continue
 		if not object.initialized:
 			object.init()
-		
+
 		object.tick()
 		var pos = object.get_pos()
 		if pos.x < - stage_width:
@@ -1036,17 +1063,22 @@ func apply_hitboxes(players):
 	var players_to_hit = []
 	var objects_hit_player = false
 	
-	for object in objects:
+	# Pre-pass: update every active object's hitbox positions BEFORE running
+	# any overlap check. Without this the collision loop has an iteration-
+	# order race — the inner check on iter 1 reads opp's stale hitbox pos
+	# (still last frame's), so symmetric clashes (e.g. two fireballs head-on)
+	# only queue one pair and only one side fizzles. The survivor is just
+	# whichever object iterated first.
+	for object in active_objects:
 		if object.disabled:
 			continue
-		
-		# ty wuffie
-		var o_hitboxes = object.get_active_hitboxes()
+		var pre_pos = object.get_pos()
+		for hitbox in object.get_active_hitboxes():
+			hitbox.update_position(pre_pos.x, pre_pos.y)
 
-		var o_pos = object.get_pos()
-
-		for hitbox in o_hitboxes:
-			hitbox.update_position(o_pos.x, o_pos.y)
+	for object in active_objects:
+		if object.disabled:
+			continue
 
 		if players_hittable:
 			for p in [px1, px2]:
@@ -1066,8 +1098,11 @@ func apply_hitboxes(players):
 						player_hit_object = true
 						objects_to_hit.append([obj_hit_by, object])
 
-					if p.projectile_invulnerable and object.get("immunity_susceptible"):
-						continue
+					if p.projectile_invulnerable:
+						if object.get("immunity_susceptible"):
+							continue
+						elif p.projectile_invulnerable_always_forced:
+							continue
 
 					var hitboxes = object.get_active_hitboxes()
 					p_hit_by = get_colliding_hitbox(hitboxes, p.hurtbox)
@@ -1078,7 +1113,7 @@ func apply_hitboxes(players):
 		var opp_objects = []
 		var opp_id = (object.id % 2) + 1
 
-		for opp_object in objects:
+		for opp_object in active_objects:
 			if opp_object.disabled:
 				continue
 			if opp_object.id==opp_id or (object.hit_by_self_projectiles and opp_object!=object):
@@ -1092,7 +1127,7 @@ func apply_hitboxes(players):
 				if obj_hit_by:
 					objects_hit_each_other = true
 					objects_to_hit.append([obj_hit_by, object])
-		
+
 	if objects_hit_each_other or player_hit_object:
 		for pair in objects_to_hit:
 			pair[0].hit(pair[1])
@@ -1221,25 +1256,6 @@ func end_game():
 func negative_on_hit(player):
 	return player.current_state().started_during_combo and !player.opponent.current_state().started_during_combo
 
-# When one player becomes actionable, the other's state_interruptable is
-# force-set so the turn ends for both players together. This also computes
-# busy_interrupt and calls on_interrupt() on the coupled-in player. Pure
-# simulation effects only — no UI / signal / network side effects, so it can
-# safely be called from ghost_tick as well as process_tick.
-func _apply_turn_coupling():
-	if p1.state_interruptable and !p1_turn:
-		p2.busy_interrupt = (!p2.state_interruptable and !(p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2)))
-		if !p2.busy_interrupt:
-			p2.current_state().on_interrupt()
-		p2.state_interruptable = true
-		p1_turn = true
-	elif p2.state_interruptable and !p2_turn:
-		p1.busy_interrupt = (!p1.state_interruptable and !(p1.current_state().interruptible_on_opponent_turn or p1.feinting or negative_on_hit(p1)))
-		if !p1.busy_interrupt:
-			p1.current_state().on_interrupt()
-		p1.state_interruptable = true
-		p2_turn = true
-
 func process_tick():
 #	super_active = super_freeze_ticks > 0
 	if super_freeze_ticks > 0:
@@ -1297,11 +1313,13 @@ func process_tick():
 			# plays through — only freeze frames should pause the shake.
 			camera.tick()
 			var someones_turn = false
-			var was_p1_turn = p1_turn
-			var was_p2_turn = p2_turn
-			_apply_turn_coupling()
-			if p1_turn and !was_p1_turn:
+			if p1.state_interruptable and !p1_turn:
+				p2.busy_interrupt = (!p2.state_interruptable and !(p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2)))
+				if !p2.busy_interrupt:
+					p2.current_state().on_interrupt()
+				p2.state_interruptable = true
 				p1.show_you_label()
+				p1_turn = true
 #				p1.update_advantage()
 #				p2.update_advantage()
 				if singleplayer:
@@ -1309,9 +1327,15 @@ func process_tick():
 				elif !is_ghost:
 					someones_turn = true
 				player_actionable = true
-			elif p2_turn and !was_p2_turn:
+
+			elif p2.state_interruptable and !p2_turn:
 				someones_turn = true
+				p1.busy_interrupt = (!p1.state_interruptable and !(p1.current_state().interruptible_on_opponent_turn or p1.feinting or negative_on_hit(p1)))
+				if !p1.busy_interrupt:
+					p1.current_state().on_interrupt()
+				p1.state_interruptable = true
 				p2.show_you_label()
+				p2_turn = true
 #				p1.update_advantage()
 #				p2.update_advantage()
 				if singleplayer:
@@ -1695,7 +1719,9 @@ func show_state():
 	p2.position = p2.get_pos_visual()
 	p1.update()
 	p2.update()
-	for object in objects:
+	for object in active_objects:
+		if object.disabled:
+			continue
 		object.position = object.get_pos_visual()
 		object.update()
 	

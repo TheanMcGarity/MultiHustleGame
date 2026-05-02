@@ -543,6 +543,8 @@ func _read_P2P_Packet():
 		if readable.has("rpc_data"):
 			print("received rpc")
 			_receive_rpc(readable)
+		if readable.has("rpc_broadcast"):
+			_receive_broadcast_rpc(readable)
 		if readable.has("challenge_from"):
 			_receive_challenge(readable.challenge_from, readable.match_settings)
 		if readable.has("challenge_accepted"):
@@ -931,6 +933,22 @@ func rpc_(function_name, arg):
 		print("sending rpc through steam...")
 		_send_P2P_Packet(OPPONENT_ID, data)
 
+# Lobby-broadcast variant of rpc_ — sends the call to every lobby member,
+# not just OPPONENT_ID. Spectators can use this path (rpc_ would silently
+# stay put because OPPONENT_ID is 0 and the receive side gates on sender).
+# Receivers must filter by their own role (e.g. Network.player_id +
+# !SPECTATING) since the packet reaches everyone.
+func broadcast_rpc(function_name, arg):
+	if LOBBY_ID == 0:
+		return
+	var data = {
+		"rpc_broadcast": {
+			"func": function_name,
+			"arg": arg,
+		}
+	}
+	_send_P2P_Packet(0, data)
+
 
 func _send_P2P_Packet(target: int, packet_data: Dictionary) -> void:
 	# Set the send_type and channel
@@ -1074,13 +1092,27 @@ func update_match_settings(match_settings, id=0):
 func _receive_rpc(data):
 	print("received steam rpc")
 	if OPPONENT_ID != p2p_packet_sender:
-		return 
+		return
 	var args = data.rpc_data.arg
 	if args == null:
 		args = []
 	elif not args is Array:
 		args = [args]
 	var func_ = data.rpc_data.func
+	if Network.check_valid_rpc(func_):
+		Network.callv(func_, args)
+
+# Lobby-broadcast variant — accepts packets from any lobby member (not
+# just OPPONENT_ID). Used for things like style permission requests where
+# the sender may be a spectator and the target may be either fighter.
+func _receive_broadcast_rpc(data):
+	print("received steam broadcast rpc")
+	var args = data.rpc_broadcast.arg
+	if args == null:
+		args = []
+	elif not args is Array:
+		args = [args]
+	var func_ = data.rpc_broadcast.func
 	if Network.check_valid_rpc(func_):
 		Network.callv(func_, args)
 

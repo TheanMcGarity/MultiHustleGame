@@ -468,10 +468,17 @@ grow_horizontal = 2
 text = "Pick your side"
 align = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="SidePickerDialogScreen/VBoxContainer"]
+[node name="SidePickerRestoreTimers" type="CheckBox" parent="SidePickerDialogScreen/VBoxContainer"]
+unique_name_in_owner = true
 margin_top = 43.0
 margin_right = 160.0
-margin_bottom = 63.0
+margin_bottom = 57.0
+text = "Restore timers"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SidePickerDialogScreen/VBoxContainer"]
+margin_top = 58.0
+margin_right = 160.0
+margin_bottom = 78.0
 alignment = 1
 
 [node name="SidePickerP1Button" type="Button" parent="SidePickerDialogScreen/VBoxContainer/HBoxContainer"]
@@ -493,9 +500,9 @@ clip_text = true
 
 [node name="SidePickerCancelButton" type="Button" parent="SidePickerDialogScreen/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 64.0
+margin_top = 79.0
 margin_right = 160.0
-margin_bottom = 84.0
+margin_bottom = 99.0
 rect_min_size = Vector2( 0, 20 )
 text = "cancel"
 

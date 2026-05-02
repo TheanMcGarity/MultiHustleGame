@@ -73,6 +73,9 @@ var grenade_object = null
 var flame_touching_opponent = null
 var magnet_installed = false
 var armor_startup_ticks = 0
+# Incremented each time Step is entered. When even, swaps Left/Right limb
+# data so foot-attached auras alternate between feet across consecutive Steps.
+var step_count = 0
 #var magnet_scale = false
 var used_earthquake_grab = false
 var started_magnet_in_initiative = false
@@ -573,6 +576,14 @@ func try_drive_cancel(fast=false):
 
 func on_state_ended(state):
 	drive_cancel = false
+
+# When in Step state on an even step_count, swap Left/Right limb names so
+# attached auras (e.g. on feet) alternate sides each consecutive step.
+func _resolved_attach_limb(entry: Dictionary) -> String:
+	var name = ._resolved_attach_limb(entry)
+	if step_count % 2 == 0 and current_state() and current_state().name == "Step":
+		name = Custom.swap_left_right_limb(name)
+	return name
 
 func debug_text():
 	.debug_text()

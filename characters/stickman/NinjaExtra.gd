@@ -82,13 +82,13 @@ func update_selected_move(move_state):
 		pull_button.set_pressed_no_signal(false)
 		pull_button.disabled = true
 #	if move_state and move_state.name in ["Uppercut", "UppercutAir"]:
-	if move_state and move_state.name in ["Uppercut"]:
-		if fighter:
-			var hook = fighter.obj_from_name(fighter.grappling_hook_projectile)
-			if hook:
-				if hook.is_locked and not hook.attached_to:
-					pull_button.set_pressed_no_signal(false)
-					pull_button.disabled = true
+#	if move_state and move_state.name in ["Uppercut"]:
+#		if fighter:
+#			var hook = fighter.obj_from_name(fighter.grappling_hook_projectile)
+#			if hook:
+#				if hook.is_locked and not hook.attached_to:
+#					pull_button.set_pressed_no_signal(false)
+#					pull_button.disabled = true
 
 	update_missed_block()
 

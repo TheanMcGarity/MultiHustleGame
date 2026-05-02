@@ -93,7 +93,6 @@ export var projectile_match_facing = false
 export var _c_Other = 0
 export var extra_parry_hitlag = 0
 
-
 export var _c_Flip = 0
 export var flip_frame = -1
 export var force_same_direction_as_previous_state = false
@@ -615,6 +614,7 @@ func _exit_shared():
 	host.reset_hurtbox()
 	host.end_invulnerability()
 	host.end_projectile_invulnerability()
+	host.end_forced_projectile_invulnerability()
 	host.end_throw_invulnerability()
 
 	host.end_aerial_attack_invulnerability()

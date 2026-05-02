@@ -1,4 +1,4 @@
-[gd_scene load_steps=89 format=2]
+[gd_scene load_steps=90 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -76,6 +76,7 @@
 [ext_resource path="res://ui/airoptionbar.png" type="Texture" id=74]
 [ext_resource path="res://ui/tiktok.png" type="Texture" id=75]
 [ext_resource path="res://framework/VariableSound2D.gd" type="Script" id=76]
+[ext_resource path="res://ui/burstp2_4.png" type="Texture" id=77]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -310,6 +311,8 @@ visible = false
 margin_right = 40.0
 margin_bottom = 40.0
 texture = ExtResource( 21 )
+expand = true
+stretch_mode = 1
 
 [node name="P2SuperEffectsNode" type="Node2D" parent="HudLayer/P2SuperTexture"]
 unique_name_in_owner = true
@@ -780,7 +783,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 0
 max_value = 1.0
 step = 0.001
-texture_over = ExtResource( 29 )
+texture_over = ExtResource( 77 )
 texture_progress = ExtResource( 28 )
 fill_mode = 1
 script = ExtResource( 9 )
@@ -1511,9 +1514,8 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 margin_left = -70.5
-margin_top = -33.0
 margin_right = 70.5
-margin_bottom = 33.0
+grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/GameUI/PausePanel"]
 margin_left = 1.0
@@ -1553,6 +1555,53 @@ margin_right = 139.0
 margin_bottom = 37.0
 rect_min_size = Vector2( 60, 0 )
 text = "save replay"
+
+[node name="SaveStylesButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 38.0
+margin_right = 139.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 60, 0 )
+text = "save styles"
+
+[node name="StyleName" type="LineEdit" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 38.0
+margin_right = 139.0
+margin_bottom = 49.0
+size_flags_horizontal = 3
+size_flags_vertical = 0
+align = 1
+placeholder_text = "style name"
+caret_blink = true
+
+[node name="SaveP1StyleButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 50.0
+margin_right = 139.0
+margin_bottom = 62.0
+rect_min_size = Vector2( 60, 0 )
+text = "save p1 style"
+
+[node name="SaveP2StyleButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 63.0
+margin_right = 139.0
+margin_bottom = 75.0
+rect_min_size = Vector2( 60, 0 )
+text = "save p2 style"
+
+[node name="StyleBackButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 76.0
+margin_right = 139.0
+margin_bottom = 88.0
+rect_min_size = Vector2( 60, 0 )
+text = "back"
 
 [node name="PauseOptionsButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 unique_name_in_owner = true
@@ -3039,7 +3088,7 @@ margin_right = 46.0
 margin_bottom = -100.0
 grow_horizontal = 2
 theme = ExtResource( 4 )
-text = "our game is stuck!"
+text = "resync"
 
 [node name="DebugContainer" type="HBoxContainer" parent="UILayer"]
 visible = false

@@ -106,6 +106,9 @@ func save_replay(match_data: Dictionary, file_name="", autosave=false):
 	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
+	# Empty dict reserved for mod-specific data attached to the replay.
+	if !data.has("mod_data"):
+		data["mod_data"] = {}
 
 	var dir = Directory.new()
 	if !dir.dir_exists("user://replay"):
@@ -132,6 +135,8 @@ func save_replay_backup(match_data: Dictionary):
 	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
+	if !data.has("mod_data"):
+		data["mod_data"] = {}
 	var stem = generate_replay_name()
 	if match_data.has("user_data"):
 		var ud = match_data.user_data
@@ -211,6 +216,8 @@ func load_replay(path):
 	var match_data = data.duplicate(true)
 	match_data.erase("frames")
 	_strip_spectator_data(match_data)
+	if !match_data.has("mod_data"):
+		match_data["mod_data"] = {}
 	return match_data
 
 func force_ints(dict):

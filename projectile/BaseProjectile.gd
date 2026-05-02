@@ -54,6 +54,11 @@ func disable():
 	for hitbox in get_active_hitboxes():
 		hitbox.deactivate()
 	stop_particles()
+	# _process stops calling update() once disabled, so any custom _draw
+	# output (e.g. NewBullet's trail line) would stay on screen forever.
+	# Trigger one final redraw — the _draw funcs early-out on `disabled`,
+	# clearing whatever was previously drawn.
+	update()
 
 
 func on_got_parried():

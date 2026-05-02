@@ -2,8 +2,10 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.44-steam-unstable"
+var VERSION = "1.9.48-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
+
+const STYLE_SAVE_FEATURE_ENABLED = true
 
 var audio_player
 var music_enabled = true
@@ -44,6 +46,11 @@ var auto_fc = true
 var ghost_speed = 2
 
 var winws_detected = false
+
+# Transient toggle for the F1 hide-everything keybind. Not persisted; just
+# read by overlay nodes (e.g. projectile owner indicators) to drop visibility
+# while it's set, in addition to the layers F1 directly toggles.
+var ui_hidden = false
 
 var active_sfx_overrides = {}
 

@@ -294,26 +294,31 @@ func _physics_process(_delta):
 			$"%P1SuperTexture".set_material(p1.get_material())
 			$"%P2SuperTexture".set_material(p2.get_material())
 			var screen_center = game.get_viewport_rect().size/2
+			var cam_screen_center = game.camera.get_camera_screen_center()
+			var zoom = game.camera.zoom.x
 			var p1_texture: Texture = p1.sprite.frames.get_frame(p1.sprite.animation, p1.sprite.frame)
 			var p2_texture: Texture = p2.sprite.frames.get_frame(p2.sprite.animation, p2.sprite.frame)
-			var p1_offset
-			var p2_offset
-			if p1_texture:
-				$"%P1SuperTexture".rect_size = p1_texture.get_size() / game.camera.zoom.x
-				p1_offset = (p1_texture.get_size() / 2) / game.camera.zoom.x
-			if p2_texture:
-				$"%P2SuperTexture".rect_size = p2_texture.get_size() / game.camera.zoom.x
-				p2_offset = (p2_texture.get_size() / 2) / game.camera.zoom.x
 			$"%P1SuperTexture".texture = p1_texture
 			$"%P1SuperTexture".flip_h = p1.flip.scale.x < 0
 			$"%P2SuperTexture".texture = p2_texture
 			$"%P2SuperTexture".flip_h = p2.flip.scale.x < 0
-			if p1_offset:
-				$"%P1SuperTexture".rect_global_position = game.get_screen_position(1) + screen_center - p1_offset - (Vector2(0, 4) / game.camera.zoom.x)
-				p1_super_effects_node.position = p1_offset
-			if p2_offset:
-				$"%P2SuperTexture".rect_global_position = game.get_screen_position(2) + screen_center - p2_offset - (Vector2(0, 4) / game.camera.zoom.x)
-				p2_super_effects_node.position = p2_offset
+			# Place each overlay on its sprite's actual rendered center
+			# (player.position + sprite.offset, x-flipped for facing) and size
+			# it to match the sprite's rendered scale (1/camera.zoom).
+			if p1_texture:
+				var p1_size = p1_texture.get_size() / zoom
+				var p1_world = p1.position + Vector2(p1.sprite.offset.x * sign(p1.flip.scale.x), p1.sprite.offset.y)
+				var p1_screen = (p1_world - cam_screen_center) / zoom + screen_center
+				$"%P1SuperTexture".rect_size = p1_size
+				$"%P1SuperTexture".rect_global_position = p1_screen - p1_size / 2
+				p1_super_effects_node.position = p1_size / 2
+			if p2_texture:
+				var p2_size = p2_texture.get_size() / zoom
+				var p2_world = p2.position + Vector2(p2.sprite.offset.x * sign(p2.flip.scale.x), p2.sprite.offset.y)
+				var p2_screen = (p2_world - cam_screen_center) / zoom + screen_center
+				$"%P2SuperTexture".rect_size = p2_size
+				$"%P2SuperTexture".rect_global_position = p2_screen - p2_size / 2
+				p2_super_effects_node.position = p2_size / 2
 		else:
 			super_started = false
 			$"%P1SuperTexture".visible = false

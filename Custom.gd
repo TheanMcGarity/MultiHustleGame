@@ -2,6 +2,115 @@ extends Node
 
 const SUPPORTER_PACK = 2232850
 
+# Pair-attach limb keys → the two underlying limb names. When an aura's
+# attach_limb is one of these, two particles are spawned (one per limb).
+const ATTACH_PAIRS = {
+	"Hands": ["LeftHand", "RightHand"],
+	"Feet": ["LeftFoot", "RightFoot"],
+}
+
+# Renames from the older limb naming scheme. Applied at runtime so old saved
+# styles still work without re-authoring.
+const ATTACH_LIMB_MIGRATIONS := {
+	"UpperBody": "",
+	"LowerBody": "",
+	"Body": "",
+	"LeftArm": "LeftHand",
+	"RightArm": "RightHand",
+	"LeftLeg": "LeftFoot",
+	"RightLeg": "RightFoot",
+}
+
+func migrate_attach_limb(name: String) -> String:
+	if name in ATTACH_LIMB_MIGRATIONS:
+		return ATTACH_LIMB_MIGRATIONS[name]
+	return name
+
+# Swaps "Left*" and "Right*" prefixes — used when the aura should follow the
+# screen-side rather than the anatomical limb when the character is mirrored.
+func swap_left_right_limb(name: String) -> String:
+	if name.begins_with("Left"):
+		return "Right" + name.substr(4)
+	if name.begins_with("Right"):
+		return "Left" + name.substr(5)
+	return name
+
+# Caps on internal particle count when expanding the aura array. Up to 2
+# single-limb auras and up to 4 internal particles total. Anyone trying to
+# stack >2 single-limb auras will have the extras silently ignored — they
+# need pair attaches (Hands/Feet) to actually use their later slots.
+const MAX_AURA_SINGLES = 2
+const MAX_AURA_INTERNAL = 4
+
+# Returns true if the attach_limb string spawns a pair of particles.
+func is_pair_attach(attach_limb: String) -> bool:
+	return attach_limb in ATTACH_PAIRS
+
+# Returns the two limb names for a pair attach, or null for a single attach.
+func pair_limbs(attach_limb: String):
+	if attach_limb in ATTACH_PAIRS:
+		return ATTACH_PAIRS[attach_limb]
+	return null
+
+# Pulls the aura entries out of a style — supports the old aura_settings/
+# aura_settings_2 schema and the new "auras" array. Returns array of dicts
+# {show: bool, settings: dict}.
+func style_auras(style) -> Array:
+	if style == null:
+		return []
+	if style.has("auras") and style["auras"] is Array:
+		var out := []
+		for entry in style["auras"]:
+			if entry is Dictionary:
+				out.append({
+					"show": entry.get("show", false),
+					"settings": entry.get("settings"),
+				})
+		return out
+	var legacy := []
+	if style.get("show_aura") and style.get("aura_settings"):
+		legacy.append({"show": true, "settings": style.get("aura_settings")})
+	if style.get("show_aura_2") and style.get("aura_settings_2"):
+		legacy.append({"show": true, "settings": style.get("aura_settings_2")})
+	return legacy
+
+# Expands the aura entries into the per-internal-particle list, capping at
+# MAX_AURA_SINGLES singles and MAX_AURA_INTERNAL total. Each output entry is
+# {settings, attach_limb, pair_index} where pair_index is 0 for first/single
+# and 1 for the second limb in a pair.
+func expand_aura_entries(entries: Array) -> Array:
+	var out := []
+	var single_count := 0
+	for e in entries:
+		if !e.get("show", false):
+			continue
+		var s = e.get("settings")
+		if !(s is Dictionary):
+			continue
+		var attach = migrate_attach_limb(s.get("attach_limb", ""))
+		if is_pair_attach(attach):
+			if out.size() + 2 > MAX_AURA_INTERNAL:
+				continue
+			out.append({"settings": s, "attach_limb": attach, "pair_index": 0})
+			out.append({"settings": s, "attach_limb": attach, "pair_index": 1})
+		else:
+			if single_count >= MAX_AURA_SINGLES:
+				continue
+			if out.size() + 1 > MAX_AURA_INTERNAL:
+				continue
+			single_count += 1
+			out.append({"settings": s, "attach_limb": attach, "pair_index": 0})
+	return out
+
+# Resolves the actual single limb name for an entry — for pair attaches this
+# is one of the two real limbs; for singles it's the attach_limb itself.
+func resolve_attach_limb(entry: Dictionary) -> String:
+	var attach = entry.get("attach_limb", "")
+	if is_pair_attach(attach):
+		var pair = ATTACH_PAIRS[attach]
+		return pair[entry.get("pair_index", 0)]
+	return attach
+
 var hitsparks = {
 	"bash": "res://fx/HitEffect1.tscn",
 	"bash2": "res://fx/hitsparks/HitEffect1Alt.tscn",
@@ -127,6 +236,9 @@ func save_style(style):
 	make_custom_folder()
 	var file = File.new()
 	var filename_ = "user://custom/"+ style.style_name + ".style"
+	# Empty dict reserved for mod-specific data attached to the style.
+	if !style.has("mod_data"):
+		style["mod_data"] = {}
 	file.open(filename_, File.WRITE)
 	file.store_var(style, true)
 	file.close()
@@ -139,6 +251,8 @@ func save_style_workshop(style):
 	if !dir.dir_exists(folder_path):
 		dir.make_dir(folder_path)
 	var filename_ = folder_path + "/" + style.style_name + ".style"
+	if !style.has("mod_data"):
+		style["mod_data"] = {}
 	file.open(filename_, File.WRITE)
 	file.store_var(style, true)
 	file.close()
@@ -173,6 +287,8 @@ func load_all_styles():
 		var file = File.new()
 		file.open(path, File.READ)
 		var data: Dictionary = file.get_var()
+		if !data.has("mod_data"):
+			data["mod_data"] = {}
 		styles.append(data)
 		file.close()
 	return [styles, files]

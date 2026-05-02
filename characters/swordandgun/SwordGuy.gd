@@ -64,6 +64,14 @@ func _ready():
 	shooting_arm.set_material(sprite.get_material())
 	material = null
 
+# When the gun-shoot arm sprite is visible, redirect hand limb lookups to it
+# so auras attached to the hands track the arm's gun_shoot_arm*.png frames
+# instead of the main body sprite (which doesn't include the arms).
+func get_current_limb_sprite_node_for(limb_name: String):
+	if (limb_name == "LeftHand" or limb_name == "RightHand") and shooting_arm and shooting_arm.visible:
+		return shooting_arm
+	return .get_current_limb_sprite_node_for(limb_name)
+
 func init(pos=null):
 	.init(pos)
 	bullets_left = 6

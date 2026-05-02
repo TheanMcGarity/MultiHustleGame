@@ -29,6 +29,14 @@ var boost_frames_left = 0
 var stackriken_out = false
 var can_divekick_hop = true
 var detach_delay = 0
+# Set true by a grounded Uppercut that landed in neutral. After Ninja next
+# becomes state_interruptable, the opponent's hitstun is cancelled — but
+# delayed by UPPERCUT_HITSTUN_CANCEL_DELAY frames so Ninja always gets that
+# many frames of advantage before the opponent recovers (works on trade —
+# Ninja still triggers it after his own hitstun ends).
+var cancel_opponent_hitstun_pending = false
+var cancel_opponent_hitstun_countdown = -1
+const UPPERCUT_HITSTUN_CANCEL_DELAY = 2
 
 const RELEASE_MODIFIER = "1.175"
 const HOOK_DISABLE_DIST = "32"
@@ -143,8 +151,32 @@ func apply_grav():
 				return
 	.apply_grav()
 
+# Arm the Uppercut neutral-hit countdown the moment Ninja's state becomes
+# interruptable (this is what the state's enable_interrupt() signal drives,
+# vs the boolean which can be cleared/reset by other state changes).
+func on_state_interruptable(state=null):
+	.on_state_interruptable(state)
+	if cancel_opponent_hitstun_pending and cancel_opponent_hitstun_countdown < 0:
+		cancel_opponent_hitstun_countdown = UPPERCUT_HITSTUN_CANCEL_DELAY
+
 func tick():
 	.tick()
+	# Grounded-Uppercut neutral-hit reward: countdown gets armed in
+	# on_state_interruptable when the pending flag is set. Decrement here
+	# and fire the opponent's hitstun-cancel when it hits 0 — Ninja still
+	# gets UPPERCUT_HITSTUN_CANCEL_DELAY frames of clean advantage.
+	if cancel_opponent_hitstun_countdown >= 0:
+		if cancel_opponent_hitstun_countdown == 0:
+			cancel_opponent_hitstun_pending = false
+			cancel_opponent_hitstun_countdown = -1
+			if opponent and opponent.is_in_hurt_state(false):
+				opponent.combo_count = 0
+				opponent.hitlag_ticks = 0
+				# Direct enable_interrupt out of the hurt state — switching
+				# to Wait would bake in a 10-frame interrupt delay.
+				opponent.current_state().enable_interrupt(false, true)
+		else:
+			cancel_opponent_hitstun_countdown -= 1
 	if turn_frames <= 1 and boost_frames_left <= 0:
 		released_this_turn = false
 	var hook = obj_from_name(grappling_hook_projectile)

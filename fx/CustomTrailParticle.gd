@@ -97,7 +97,7 @@ static func get_setting_min(setting):
 	var minimums = {
 		"amount": 1,
 		"lifetime": 0.064,
-		"speed_scale": 0.0,
+		"speed_scale": 1.0,
 		"explosiveness": 0.0,
 		"lifetime_randomness": 0.0,
 		"gravity_x": -100.0,
@@ -129,7 +129,7 @@ static func get_setting_max(setting):
 	var maximums = {
 		"amount": 32,
 		"lifetime": 2.0,
-		"speed_scale": 10.0,
+		"speed_scale": 30.0,
 		"explosiveness": 1.0,
 		"lifetime_randomness": 1.0,
 		"gravity_x": 100.0,
@@ -202,15 +202,46 @@ func _physics_process(_delta):
 
 var flip_with_character = true
 
+# Set by BaseChar / CustomizationScreen / CharacterDisplay when this aura is
+# attached to a specific limb. Rotation comes directly from the limb dir
+# (assuming natural forward = (1, 0)); scale.x handles the user's "flipped"
+# toggle from the Limb Finder. When facing left, the x_offset is mirrored
+# across the y axis so an offset aura stays on the same side of the body.
+var attached_to_limb = false
+var attached_rotation = 0.0
+var attached_limb_flipped = false
+var default_x_offset = 0.0
+var default_y_offset = 0.0
+
 func tick():
 	.tick()
-	if flip_with_character:
+	if attached_to_limb:
+		rotation = attached_rotation
+		# scale.x mirrors first (before rotation in T*R*S), so facing left
+		# flips the aura horizontally without introducing a 180° rotation.
+		var flipped = attached_limb_flipped
+		if facing == -1:
+			flipped = !flipped
+		scale.x = -1 if flipped else 1
+		particles.gravity.x = default_gravity_x
+		particles.angle = default_angle
+		# Apply the offset in aura-local space — parent rotation/scale will
+		# rotate and mirror it naturally, so e.g. a sword aura with x_offset
+		# extends along the limb dir.
+		particles.position.x = -default_x_offset if facing == -1 else default_x_offset
+		particles.position.y = default_y_offset
+	elif flip_with_character:
+		rotation = 0.0
+		scale.x = 1
 		particles.gravity.x = default_gravity_x * facing
 		particles.angle = 360 - default_angle if facing == -1 else default_angle
+		particles.position.x = default_x_offset
 	else:
+		rotation = 0.0
 		particles.gravity.x = default_gravity_x
 		particles.angle = default_angle
 		scale.x = facing
+		particles.position.x = default_x_offset
 
 func set_start_alpha(a):
 #	particles.self_modulate.a = a
@@ -263,9 +294,11 @@ func set_gravity_y(y):
 	particles.gravity.y = y
 
 func set_x_offset(x):
+	default_x_offset = x
 	particles.position.x = x
 
 func set_y_offset(y):
+	default_y_offset = y
 	particles.position.y = y
 
 func set_lifetime(lifetime):

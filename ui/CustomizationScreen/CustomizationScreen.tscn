@@ -59,7 +59,7 @@ margin_top = 1.0
 margin_right = 393.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
-align = 1
+clip_text = true
 
 [node name="WorkshopButton" type="Button" parent="HBoxContainer"]
 unique_name_in_owner = true
@@ -82,6 +82,14 @@ margin_left = 567.0
 margin_right = 625.0
 margin_bottom = 13.0
 text = "open folder"
+
+[node name="StyleCreditsButton" type="Button" parent="."]
+unique_name_in_owner = true
+margin_left = 568.0
+margin_top = 22.0
+margin_right = 632.0
+margin_bottom = 35.0
+text = "style credits"
 
 [node name="SeeOn" type="Label" parent="."]
 margin_left = 218.0
@@ -122,7 +130,7 @@ scroll_horizontal_enabled = false
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/ScrollContainer2"]
 margin_right = 201.0
-margin_bottom = 1528.0
+margin_bottom = 1612.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
@@ -328,7 +336,7 @@ text = "show aura"
 unique_name_in_owner = true
 margin_top = 333.0
 margin_right = 201.0
-margin_bottom = 1528.0
+margin_bottom = 1612.0
 
 [node name="MovingSprite" type="Sprite" parent="."]
 unique_name_in_owner = true
@@ -370,9 +378,63 @@ margin_bottom = 37.0
 text = "style uploaded to workshop"
 scroll_active = false
 
+[node name="StyleCreditsPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -90.0
+margin_top = -120.0
+margin_right = 90.0
+margin_bottom = 120.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="StyleCreditsPanel"]
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 179.0
+margin_bottom = 239.0
+custom_constants/separation = 6
+
+[node name="ScrollContainer" type="ScrollContainer" parent="StyleCreditsPanel/VBoxContainer"]
+margin_top = 17.0
+margin_right = 178.0
+margin_bottom = 215.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+scroll_horizontal_enabled = false
+
+[node name="StyleCreditsList" type="VBoxContainer" parent="StyleCreditsPanel/VBoxContainer/ScrollContainer"]
+unique_name_in_owner = true
+margin_right = 178.0
+size_flags_horizontal = 3
+custom_constants/separation = 4
+
+[node name="StyleCreditsCloseButton" type="Button" parent="StyleCreditsPanel/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 221.0
+margin_right = 178.0
+margin_bottom = 233.0
+text = "close"
+
+[node name="AllowSaveButton" type="CheckButton" parent="."]
+unique_name_in_owner = true
+margin_left = 491.0
+margin_top = 22.0
+margin_right = 567.0
+margin_bottom = 35.0
+hint_tooltip = "If disabled, anyone who wants to save your style from a match will need express permission."
+size_flags_horizontal = 0
+pressed = true
+text = "auto share"
+align = 2
+
 [connection signal="text_changed" from="HBoxContainer/StyleName" to="." method="_on_StyleName_text_changed"]
 [connection signal="text_entered" from="HBoxContainer/StyleName" to="." method="_on_StyleName_text_entered"]
 [connection signal="pressed" from="HBoxContainer/WorkshopButton" to="." method="_on_WorkshopButton_pressed"]
 [connection signal="pressed" from="HBoxContainer/WorkshopButton2" to="." method="_on_WorkshopButton2_pressed"]
 [connection signal="pressed" from="HBoxContainer/OpenFolderButton" to="." method="_on_OpenFolderButton_pressed"]
+[connection signal="pressed" from="StyleCreditsButton" to="." method="_on_StyleCreditsButton_pressed"]
 [connection signal="meta_clicked" from="WorkshopUpdatedLabel" to="." method="_on_WorkshopUpdatedLabel_meta_clicked"]
+[connection signal="pressed" from="StyleCreditsPanel/VBoxContainer/StyleCreditsCloseButton" to="." method="_on_StyleCreditsCloseButton_pressed"]

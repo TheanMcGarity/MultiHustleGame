@@ -56,6 +56,11 @@ var spark_speed_frames = 0
 onready var liftoff_sprite = $"%LiftoffSprite"
 onready var spark_speed_particle = $"%SparkSpeedParticle"
 
+func get_current_limb_sprite_node():
+	if liftoff_sprite and liftoff_sprite.visible:
+		return liftoff_sprite
+	return .get_current_limb_sprite_node()
+
 func copy_to(f):
 	.copy_to(f)
 	f.boulder_projectile = boulder_projectile

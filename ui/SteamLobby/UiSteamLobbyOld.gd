@@ -103,6 +103,9 @@ func _show_side_picker_dialog():
 	$"%SidePickerLabel".text = "Pick your side\n%s vs %s" % [p1_name, p2_name]
 	$"%SidePickerP1Button".text = "P1 (" + p1_name + ")"
 	$"%SidePickerP2Button".text = "P2 (" + p2_name + ")"
+	var has_timer_state = pending_replay_match_data and pending_replay_match_data.get("chess_timer") and pending_replay_match_data.has("chess_timer_state")
+	$"%SidePickerRestoreTimers".visible = has_timer_state
+	$"%SidePickerRestoreTimers".pressed = has_timer_state
 	$"%SidePickerDialogScreen".show()
 
 func _display_char_name(full_name):
@@ -125,6 +128,7 @@ func _on_side_picker_cancel_pressed():
 
 func _send_replay_challenge(side):
 	if pending_replay_challenge_member and pending_replay_match_data:
+		pending_replay_match_data["restore_timers"] = $"%SidePickerRestoreTimers".visible and $"%SidePickerRestoreTimers".pressed
 		SteamLobby.replay_challenge_user(pending_replay_challenge_member, pending_replay_match_data, side)
 	_clear_pending_replay_challenge()
 	$"%SidePickerDialogScreen".hide()

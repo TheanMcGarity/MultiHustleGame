@@ -16,6 +16,16 @@ var startup_lag = 0
 func _ready():
 	pass # Replace with function body.
 func _enter():
+	# Reset the alternation counter on a fresh entry (came from something
+	# other than Step or Return), and don't bump it on Return → Step
+	# transitions so the foot doesn't alternate when continuing the same
+	# stepping motion.
+	var prev = _previous_state()
+	var prev_name = prev.name if prev != null else ""
+	if prev_name != "Step" and prev_name != "Return":
+		host.step_count = 0
+	if prev_name != "Return":
+		host.step_count += 1
 	if host.combo_count <= 0:
 		startup_lag += STARTUP_LAG
 	if host.reverse_state:

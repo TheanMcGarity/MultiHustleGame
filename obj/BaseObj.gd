@@ -94,8 +94,9 @@ var default_hurtbox = {
 
 var projectile_invulnerable = false
 var throw_invulnerable = false
+var projectile_invulnerable_always_forced = false
 
-var state_variables = ["id", "grounded_attack_immune", "game_tick", "match_seed", "aerial_attack_immune", "last_object_hit", "can_update_sprite", "last_hit_frame", "damages_own_team", "ceiling_height", "has_ceiling", "has_projectile_parry_window", "always_parriable", "use_platforms", "gravity", "ground_friction", "air_friction", "max_ground_speed", "max_air_speed", "max_fall_speed", "projectile_invulnerable", "gravity_enabled", "default_hurtbox", "throw_invulnerable", "creator_name", "name", "obj_name", "stage_width", "hitlag_ticks", "combo_count", "invulnerable", "current_tick", "disabled", "state_interruptable", "state_hit_cancellable"]
+var state_variables = ["id", "projectile_invulnerable_always_forced", "grounded_attack_immune", "game_tick", "match_seed", "aerial_attack_immune", "last_object_hit", "can_update_sprite", "last_hit_frame", "damages_own_team", "ceiling_height", "has_ceiling", "has_projectile_parry_window", "always_parriable", "use_platforms", "gravity", "ground_friction", "air_friction", "max_ground_speed", "max_air_speed", "max_fall_speed", "projectile_invulnerable", "gravity_enabled", "default_hurtbox", "throw_invulnerable", "creator_name", "name", "obj_name", "stage_width", "hitlag_ticks", "combo_count", "invulnerable", "current_tick", "disabled", "state_interruptable", "state_hit_cancellable"]
 
 var hitboxes = []
 
@@ -456,13 +457,11 @@ func obj_distance(obj):
 func spawn_object(projectile: PackedScene, pos_x: int, pos_y: int, relative=true, data=null, local=true):
 	var obj = projectile.instance()
 	obj.creator_name = obj_name
-#	obj.obj_name = str(objs_map.size() + 1)r
 	obj.objs_map = objs_map
 	obj.is_ghost = is_ghost
-	obj.obj_name = str(objs_map.size() + 1)
+	# Name is assigned by Game.on_object_spawned (which holds the spawn counter).
 	obj.spawn_data = data
 	obj.stage_width = stage_width
-#	add_child(obj)
 	var pos = get_pos()
 	if local:
 		obj.set_pos(pos.x + pos_x * (get_facing_int() if relative else 1), pos.y + pos_y)
@@ -470,9 +469,6 @@ func spawn_object(projectile: PackedScene, pos_x: int, pos_y: int, relative=true
 		obj.set_pos(pos_x, pos_y)
 	obj.set_facing(get_facing_int())
 	obj.id = id
-	
-#	remove_child(obj)
-	obj.obj_name = str(objs_map.size() + 1)
 	emit_signal("object_spawned", obj)
 	return obj
 
@@ -505,6 +501,12 @@ func start_projectile_invulnerability():
 
 func end_projectile_invulnerability():
 	projectile_invulnerable = false
+
+func start_forced_projectile_invulnerability():
+	projectile_invulnerable_always_forced = true
+	
+func end_forced_projectile_invulnerability():
+	projectile_invulnerable_always_forced = false
 
 func start_aerial_attack_invulnerability():
 	aerial_attack_immune = true
@@ -906,6 +908,207 @@ func state_tick():
 
 func get_states():
 	return state_machine.states_map.values()
+
+# --- Limb Finder runtime API ---
+# Returns the limb_data dictionary stored on the node by the Limb Finder plugin.
+# Format: { limb_name: { Texture: { x, y, dir_x, dir_y, flipped } } }
+func get_limb_data() -> Dictionary:
+	if has_meta("limb_data"):
+		var d = get_meta("limb_data")
+		if d is Dictionary:
+			return d
+	return {}
+
+# The currently-active sprite node used for limb lookups. Override in
+# subclasses for objects that swap which AnimatedSprite is active
+# (Mutant's TwistAttackSprite, Wizard's LiftoffSprite, etc).
+# Returning a different node also makes `get_limb_pos`/`get_limb_dir` apply
+# THAT node's transform — including rotation/scale/flip.
+func get_current_limb_sprite_node():
+	return sprite
+
+func get_current_limb_sprite_texture():
+	var s = get_current_limb_sprite_node()
+	if s and s is AnimatedSprite and s.frames and s.frames.has_animation(s.animation):
+		return s.frames.get_frame(s.animation, s.frame)
+	return null
+
+# Per-limb override hook. Subclasses can return a different sprite for
+# specific limbs — e.g. Cowboy's gun-shoot arm sprite for LeftHand/RightHand
+# while the body is on the main sprite. Defaults to the same sprite for all
+# limbs.
+func get_current_limb_sprite_node_for(_limb_name: String):
+	return get_current_limb_sprite_node()
+
+func get_current_limb_sprite_texture_for(limb_name: String):
+	var s = get_current_limb_sprite_node_for(limb_name)
+	if s and s is AnimatedSprite and s.frames and s.frames.has_animation(s.animation):
+		return s.frames.get_frame(s.animation, s.frame)
+	return null
+
+func get_limb_entry(limb_name: String):
+	var data = get_limb_data()
+	if !data.has(limb_name):
+		return null
+	var by_tex = data[limb_name]
+	var tex = get_current_limb_sprite_texture_for(limb_name)
+	if tex and by_tex.has(tex):
+		var e = by_tex[tex]
+		# Entries with `absent: true` mean the user explicitly said this limb
+		# isn't on this sprite — treat the same as no data for runtime queries.
+		if e is Dictionary and e.get("absent", false):
+			return null
+		return e
+	return null
+
+# Returns true if the user explicitly marked this limb as absent on the
+# current sprite. Differs from "no data" — use this to hide visuals attached
+# to the limb when the sprite doesn't contain it.
+func is_limb_absent_on_current_sprite(limb_name: String) -> bool:
+	var data = get_limb_data()
+	if !data.has(limb_name):
+		return false
+	var by_tex = data[limb_name]
+	var tex = get_current_limb_sprite_texture_for(limb_name)
+	if tex and by_tex.has(tex):
+		var e = by_tex[tex]
+		return e is Dictionary and e.get("absent", false)
+	return false
+
+# World-space limb position. Accounts for the sprite's full transform chain:
+# parent transforms (Flip's scale-x for facing), the sprite's own
+# position/rotation/scale, sprite.offset, sprite.centered, and flip_h/flip_v.
+func get_limb_pos(limb_name: String):
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return null
+	var s = get_current_limb_sprite_node_for(limb_name)
+	var tex = get_current_limb_sprite_texture_for(limb_name)
+	if s == null or tex == null:
+		return Vector2(e.x, e.y)
+	return _limb_pixel_to_world(s, tex, Vector2(e.x, e.y))
+
+# World-space limb direction (unit vector). Applies sprite rotation/scale/flip
+# but NOT translation (it's a direction, not a point).
+func get_limb_dir(limb_name: String):
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return null
+	var s = get_current_limb_sprite_node_for(limb_name)
+	if s == null:
+		return Vector2(e.dir_x, e.dir_y)
+	return _limb_dir_to_world(s, Vector2(e.dir_x, e.dir_y))
+
+# Limb position in the sprite's parent frame — typically Flip-local, since
+# `Particles` (where auras live) is a sibling of the sprite under Flip. This
+# lets Flip's facing-mirror transform automatically position auras at the
+# mirrored anatomical limb when the character faces left, with no double
+# flipping.
+func get_limb_local_pos(limb_name: String):
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return null
+	var s = get_current_limb_sprite_node_for(limb_name)
+	var tex = get_current_limb_sprite_texture_for(limb_name)
+	if s == null or tex == null:
+		return Vector2(e.x, e.y)
+	var local = Vector2(e.x, e.y)
+	if "centered" in s and s.centered:
+		local -= tex.get_size() / 2
+	if "flip_h" in s and s.flip_h:
+		local.x = -local.x
+	if "flip_v" in s and s.flip_v:
+		local.y = -local.y
+	if "offset" in s:
+		local += s.offset
+	return s.transform.xform(local)
+
+# Limb direction in the sprite's parent frame (typically Flip-local). Applies
+# the sprite's local transform (rotation, scale) and flip_h/flip_v on top of
+# the texture-pixel dir, so a rotating sprite (e.g. Cowboy's gun-shoot arm
+# pivoting on aim angle) gets its rotation reflected in the result.
+func get_limb_sprite_parent_dir(limb_name: String):
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return null
+	var s = get_current_limb_sprite_node_for(limb_name)
+	var d = Vector2(e.dir_x, e.dir_y)
+	if s == null:
+		return d
+	if "flip_h" in s and s.flip_h:
+		d.x = -d.x
+	if "flip_v" in s and s.flip_v:
+		d.y = -d.y
+	return s.transform.basis_xform(d)
+
+# Limb direction in this BaseObj's local frame (unit vector).
+# Useful for orienting child nodes attached to the character (aura particles etc).
+func get_limb_local_dir(limb_name: String):
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return null
+	var s = get_current_limb_sprite_node_for(limb_name)
+	var d = Vector2(e.dir_x, e.dir_y)
+	if s == null:
+		return d
+	if "flip_h" in s and s.flip_h:
+		d.x = -d.x
+	if "flip_v" in s and s.flip_v:
+		d.y = -d.y
+	var world_d = s.global_transform.basis_xform(d)
+	return self.global_transform.basis_xform_inv(world_d)
+
+# True iff there's any entry (present or absent) for this limb on the current sprite.
+func has_limb_entry_on_current_sprite(limb_name: String) -> bool:
+	var data = get_limb_data()
+	if !data.has(limb_name):
+		return false
+	var by_tex = data[limb_name]
+	var tex = get_current_limb_sprite_texture_for(limb_name)
+	return tex != null and by_tex.has(tex)
+
+# Texture-pixel position of the limb (no transforms applied). Useful if you
+# want to do math in the original sprite-art space.
+func get_limb_pixel_pos(limb_name: String):
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return null
+	return Vector2(e.x, e.y)
+
+# Texture-pixel direction (no transforms applied).
+func get_limb_pixel_dir(limb_name: String):
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return null
+	return Vector2(e.dir_x, e.dir_y)
+
+func is_limb_flipped(limb_name: String) -> bool:
+	var e = get_limb_entry(limb_name)
+	if e == null:
+		return false
+	return e.get("flipped", false)
+
+func _limb_pixel_to_world(sprite_node: Node2D, tex: Texture, pixel_pos: Vector2) -> Vector2:
+	var local = pixel_pos
+	if "centered" in sprite_node and sprite_node.centered:
+		local -= tex.get_size() / 2
+	# flip_h / flip_v on the sprite mirror the texture in place; they don't
+	# show up in the transform, so we mirror the local point manually.
+	if "flip_h" in sprite_node and sprite_node.flip_h:
+		local.x = -local.x
+	if "flip_v" in sprite_node and sprite_node.flip_v:
+		local.y = -local.y
+	if "offset" in sprite_node:
+		local += sprite_node.offset
+	return sprite_node.global_transform.xform(local)
+
+func _limb_dir_to_world(sprite_node: Node2D, dir: Vector2) -> Vector2:
+	var d = dir
+	if "flip_h" in sprite_node and sprite_node.flip_h:
+		d.x = -d.x
+	if "flip_v" in sprite_node and sprite_node.flip_v:
+		d.y = -d.y
+	return sprite_node.global_transform.basis_xform(d)
 
 func fixed_deg_to_rad(n):
 	assert(n is int or n is String)

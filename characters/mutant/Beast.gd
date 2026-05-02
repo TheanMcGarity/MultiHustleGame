@@ -22,6 +22,11 @@ const JUKE_STARTUP_TICKS_NO_INITIATIVE = 2
 onready var twist_attack_sprite = $"%TwistAttackSprite"
 onready var rebirth_particle_effect = $"%RebirthParticleEffect"
 
+func get_current_limb_sprite_node():
+	if twist_attack_sprite and twist_attack_sprite.visible:
+		return twist_attack_sprite
+	return .get_current_limb_sprite_node()
+
 var install_ticks = 0
 var shockwave_projectile = null
 var spike_projectile = null
@@ -250,6 +255,7 @@ func tick():
 
 
 func on_got_parried():
+	.on_got_parried()
 	if juked_this_turn:
 		juke_ticks = 0
 		up_juke_ticks = 0

@@ -48,6 +48,7 @@ func _enter():
 	host.apply_force(force.x, str(0))
 	host.start_throw_invulnerability()
 	host.start_projectile_invulnerability()
+	host.start_forced_projectile_invulnerability()
 
 func _frame_0():
 	if tech:
@@ -71,6 +72,7 @@ func _frame_10():
 		host.end_invulnerability()
 		host.end_throw_invulnerability()
 		host.end_projectile_invulnerability()
+		host.end_forced_projectile_invulnerability()
 
 func _tick():
 	custom_x_fric = GROUND_FRIC 

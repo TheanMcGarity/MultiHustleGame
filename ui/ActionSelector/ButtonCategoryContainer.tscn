@@ -65,48 +65,47 @@ text = "Predict"
 
 [node name="GuardBreakLabel" type="Label" parent="VBoxContainer/CenterContainer"]
 unique_name_in_owner = true
-visible = false
-modulate = Color( 1, 1, 1, 0.509804 )
+modulate = Color( 1, 1, 1, 0.588235 )
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 margin_left = -30.0
-margin_top = -29.0
+margin_top = -32.0
 margin_right = 30.0
-margin_bottom = -18.0
+margin_bottom = -21.0
 custom_colors/font_color = Color( 1, 0.486275, 0.121569, 1 )
 text = "Guard Break"
 align = 1
 
 [node name="InitiativeLabel" type="Label" parent="VBoxContainer/CenterContainer"]
 unique_name_in_owner = true
-visible = false
-modulate = Color( 1, 1, 1, 0.509804 )
+modulate = Color( 1, 1, 1, 0.588235 )
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 margin_left = -30.0
-margin_top = -29.0
+margin_top = -32.0
 margin_right = 30.0
-margin_bottom = -18.0
+margin_bottom = -21.0
 custom_colors/font_color = Color( 0.392157, 0.823529, 0.419608, 1 )
 text = "Initiative"
 align = 1
 
-[node name="FrameLabel" type="Label" parent="VBoxContainer/CenterContainer"]
+[node name="FrameLabel" type="RichTextLabel" parent="VBoxContainer/CenterContainer"]
 unique_name_in_owner = true
-modulate = Color( 1, 1, 1, 0.509804 )
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-margin_left = -20.0
-margin_top = -21.0
-margin_right = 20.0
+margin_left = -30.0
+margin_top = -22.0
+margin_right = 30.0
 margin_bottom = -10.0
-align = 1
+mouse_filter = 2
+bbcode_enabled = true
+scroll_active = false
 
 [node name="ButtonCategoryContainer" type="PanelContainer" parent="VBoxContainer"]
 self_modulate = Color( 1, 1, 1, 0 )
@@ -150,8 +149,9 @@ theme_type_variation = "InvisScrollbar"
 unique_name_in_owner = true
 anchor_top = 1.0
 anchor_bottom = 1.0
-margin_top = -52.0
+margin_top = -51.0
 margin_right = 54.0
+margin_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_horizontal = 3
