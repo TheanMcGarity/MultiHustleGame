@@ -4,7 +4,7 @@ const SUPERS_CONSUMED = 1
 const MAX_DIST_H = 640
 const MAX_DIST_V = 200
 
-func _frame_7():
+func _frame_5():
 	host.start_invulnerability()
 	if host.orb_projectile:
 		host.objs_map[host.orb_projectile].frozen = true
@@ -17,7 +17,7 @@ func _frame_7():
 	for i in range(SUPERS_CONSUMED):
 		host.use_super_bar()
 
-func _frame_8():
+func _frame_6():
 	host.end_invulnerability()
 	spawn_particle_relative(particle_scene, Vector2(0, -16))
 

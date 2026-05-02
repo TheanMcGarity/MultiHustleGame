@@ -286,11 +286,14 @@ func load_all_styles():
 	for path in files:
 		var file = File.new()
 		file.open(path, File.READ)
-		var data: Dictionary = file.get_var()
+		var data = file.get_var()
+		file.close()
+		if !(data is Dictionary):
+			continue
 		if !data.has("mod_data"):
 			data["mod_data"] = {}
 		styles.append(data)
-		file.close()
+
 	return [styles, files]
 
 func get_style_name(path):

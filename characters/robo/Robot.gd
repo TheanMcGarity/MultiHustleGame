@@ -72,6 +72,8 @@ var magnet_ticks_left = 0
 var grenade_object = null
 var flame_touching_opponent = null
 var magnet_installed = false
+var honking = false
+var honking_cooldown = 0
 var armor_startup_ticks = 0
 # Incremented each time Step is entered. When even, swaps Left/Right limb
 # data so foot-attached auras alternate between feet across consecutive Steps.
@@ -89,6 +91,8 @@ var drive_cancel = false
 var buffer_drive_cancel = false
 var super_armor_installed = false
 var propel_friction_ticks = 0
+
+var HONK_COOLDOWN = 30
 
 onready var chainsaw_arm = $"%ChainsawArm"
 onready var drive_jump_sprite = $"%DriveJumpSprite"
@@ -278,6 +282,14 @@ func tick():
 			buffer_armor = false
 	if current_state().is_grab and feinting and armor_active:
 		feinting = false
+	if honking:
+		honking = false
+		play_sound("Honk")
+		honking_cooldown = HONK_COOLDOWN
+	elif honking_cooldown > 0:
+		honking_cooldown -= 1
+		if combo_count > 0:
+			honking_cooldown = 0
 
 	if magnet_ticks_left > 0:
 #		start_magnet_fx()
@@ -483,6 +495,10 @@ func stop_magnet_fx():
 func process_extra(extra):
 	.process_extra(extra)
 	var can_fly = true
+	if extra.has("honk"):
+		honking = extra.honk
+
+		
 	force_fly = false
 #	if current_state().get("can_fly") != null and current_state().can_fly == false:
 #		can_fly = false

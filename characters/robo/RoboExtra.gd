@@ -31,7 +31,8 @@ func get_extra():
 		"pull_enabled": $"%PullEnabled".pressed and $"%PullEnabled".visible,
 		"loic_dir": loic.get_data() if loic.is_visible_in_tree() else {"x": fighter.loic_dir, "y": 0},
 		"drive_cancel": drive_pressed() if fighter.stance != "Drive" else !drive_pressed(),
-		"bounce": bounce.get_data()
+		"bounce": bounce.get_data(),
+		"honk": $"%HonkEnabled".pressed
 	}
 
 func drive_pressed():
@@ -87,6 +88,7 @@ func show_options():
 	$"%ArmorEnabled".hide()
 	$"%NadeActive".hide()
 	$"%PullEnabled".hide()
+	$"%HonkEnabled".hide()
 	$"%FlyDir".set_dir("Neutral")
 	$"%FlyDir".facing = fighter.get_opponent_dir()
 	$"%FlyDir".init()
@@ -95,6 +97,8 @@ func show_options():
 		$"%FlyDir".set_dir(current_dir)
 #	$"%FlyEnabled".set_pressed_no_signal(false)
 	var nade = fighter.obj_from_name(fighter.grenade_object)
+	if fighter.stance == "Drive" and fighter.honking_cooldown <= 0:
+		$"%HonkEnabled".show()
 	if nade:
 		if !nade.active:
 			$"%NadeActive".show()
@@ -137,6 +141,7 @@ func reset():
 	$"%ArmorEnabled".set_pressed_no_signal(false)
 	$"%NadeActive".set_pressed_no_signal(false)
 	$"%PullEnabled".set_pressed_no_signal(false)
+	$"%HonkEnabled".set_pressed_no_signal(false)
 	$"%DriveCancel".set_pressed_no_signal(fighter.stance == "Drive")
 	
 	if fighter.current_state().get("disable_aerial_movement"):

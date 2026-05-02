@@ -94,13 +94,24 @@ func _ready():
 	var mod_toggle = $"%ModToggle" if has_node("%ModToggle") else null
 	var container = mod_toggle.get_parent() if mod_toggle else null
 
-	if container and container.get_node_or_null("DeleteCache") == null:
+	if container and container.get_node_or_null("ModToggleRow") == null:
 		var btt = Button.new()
 		btt.name = "DeleteCache"
 		btt.text = "delete character cache"
-		container.add_child(btt)
-		container.move_child(btt, mod_toggle.get_index())
+		btt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btt.connect("pressed", self, "_delete_char_cache", [btt])
+
+		var hbox = HBoxContainer.new()
+		hbox.name = "ModToggleRow"
+		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.add_constant_override("separation", 10)
+		var idx = mod_toggle.get_index()
+		container.remove_child(mod_toggle)
+		container.add_child(hbox)
+		container.move_child(hbox, idx)
+		hbox.add_child(btt)
+		hbox.add_child(mod_toggle)
+		mod_toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 #
 	var loaded_mods = false
 	while !Global.mods_loaded:
@@ -664,6 +675,9 @@ func _on_simulation_continue():
 	p1_ghost_action = null
 	p1_ghost_data = null
 	p1_ghost_extra = null
+	p2_ghost_action = null
+	p2_ghost_data = null
+	p2_ghost_extra = null
 	call_deferred("stop_ghost")
 
 func _on_ghost_speed_changed(_value):

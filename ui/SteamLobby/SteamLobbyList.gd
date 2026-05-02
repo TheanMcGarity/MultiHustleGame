@@ -22,6 +22,7 @@ func _ready():
 #	$"%RefreshTimer".connect("timeout", self, "_on_refresh_timer_timeout")
 	SteamLobby.connect("lobby_match_list_received", self, "_on_lobby_match_list_received", [], CONNECT_DEFERRED)
 	$"%BackButton".connect("pressed", self, "_on_back_button_pressed")
+	lobby_name.connect("text_entered", self, "_on_lobby_name_text_entered")
 	
 	charloader_button.disabled = !ModLoader.active
 #	exclamation_button.visible = ModLoader.active
@@ -30,6 +31,9 @@ func _ready():
 		exclamation_button.hide()
 
 #	charloader_button.pressed = ModLoader.active
+
+func _on_lobby_name_text_entered(_text):
+	_on_create_lobby_button_pressed()
 
 func _on_create_lobby_button_pressed():
 	var availability
