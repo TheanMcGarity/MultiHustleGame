@@ -4,6 +4,8 @@ class_name SettingsSlider
 
 signal value_changed(value)
 
+const ARROW_STEP = 0.01
+
 onready var slider = $"%HSlider"
 var value = 0.0
 var mouse_entered = false
@@ -17,6 +19,9 @@ export var step = 0.01
 # Mapping: value = min * (max/min)^t, inverse: t = log(value/min)/log(max/min).
 # Requires min_value > 0 for the pure form; falls back to a shifted curve if not.
 export var exponential = false
+# Optional override for the slider's left-side label. When empty, the slider's
+# node name is used (matches the existing convention for most settings).
+export var label_text = ""
 
 func _ready():
 	if exponential:
@@ -27,8 +32,24 @@ func _ready():
 		slider.min_value = min_value
 		slider.max_value = max_value
 		slider.step = step
-	$"%Label".text = name
+	$"%Label".text = label_text if label_text else name
 	set_value(default_value)
+
+func _input(event):
+	# Override the HSlider's built-in arrow stepping with a flat 0.01 in value
+	# space (its native step is nonlinear in value space for exponential mode).
+	# `_input` runs before `_gui_input`, so consuming the event here prevents
+	# the HSlider from also processing the same arrow press.
+	if !slider.has_focus():
+		return
+	if !(event is InputEventKey) or !event.pressed:
+		return
+	if event.scancode == KEY_LEFT:
+		set_value(value - ARROW_STEP)
+		get_tree().set_input_as_handled()
+	elif event.scancode == KEY_RIGHT:
+		set_value(value + ARROW_STEP)
+		get_tree().set_input_as_handled()
 
 func _on_HSlider_value_changed(slider_val):
 	if exponential:
@@ -41,8 +62,11 @@ func _on_HSlider_value_changed(slider_val):
 func set_value(v):
 	v = clamp(v, min_value, max_value)
 	if exponential:
+		# Drive the slider position from the value, but keep `value` exact
+		# instead of round-tripping it through the slider's coarse 0.001 step
+		# — otherwise styles round to a slightly-off number on load.
 		slider.value = _value_to_slider(v)
-		value = _slider_to_value(slider.value)
+		value = v
 	else:
 		slider.value = v
 		value = slider.value

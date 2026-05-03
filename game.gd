@@ -675,7 +675,7 @@ func tick():
 				# bypasses the `is_waiting_on_player` check, advancing the state
 				# while live mode would have paused. That's the "extra turn
 				# where the comboer does nothing" symptom on resync/backup load.
-				if current_tick >= max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
+				if current_tick >= max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished) and not buffer_playback:
 					ReplayManager.set_deferred("playback", false)
 			else :
 				if current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else max_replay_tick - 2):
@@ -1448,7 +1448,7 @@ func _physics_process(_delta):
 				process_tick()
 		else:
 			call_deferred("simulate_one_tick")
-			if current_tick >= game_end_tick + 120:
+			if !buffer_playback and current_tick >= game_end_tick + 120:
 				start_playback()
 	else:
 		if ghost_actionable_freeze_ticks > 0:
@@ -1492,6 +1492,7 @@ func _physics_process(_delta):
 	
 	if !is_ghost and buffer_playback:
 		ReplayManager.resimulating = false
+		ReplayManager.play_full = false
 		game_finished = false
 		emit_signal("simulation_continue")
 		start_playback()

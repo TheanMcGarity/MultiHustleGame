@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.53-steam-unstable"
+var VERSION = "1.9.55-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -18,6 +18,7 @@ var freeze_ghost_sound = true
 var ghost_afterimages = true
 var fullscreen = false
 var cap_framerate = true
+var vsync = true
 var xyplot_invert_snap = false
 var show_hitboxes = false
 var show_extra_info = false
@@ -144,6 +145,7 @@ func _enter_tree():
 	set_music_enabled(music_enabled)
 	set_fullscreen(fullscreen)
 	set_cap_framerate(cap_framerate)
+	set_vsync(vsync)
 #	load_supporter_pack()
 #	var test = PoolByteArray()
 #	var test2 = bytes2var(test)
@@ -221,12 +223,12 @@ func set_fullscreen(on):
 
 func set_cap_framerate(on):
 	cap_framerate = on
-	if on:
-		Engine.target_fps = 60
-		OS.vsync_enabled = true
-	else:
-		Engine.target_fps = 0
-		OS.vsync_enabled = false
+	Engine.target_fps = 60 if on else 0
+	save_options()
+
+func set_vsync(on):
+	vsync = on
+	OS.vsync_enabled = on
 	save_options()
 
 func set_hitboxes(on):
@@ -281,6 +283,7 @@ func save_options():
 			"ghost_speed": ghost_speed,
 			"fullscreen": fullscreen,
 			"cap_framerate": cap_framerate,
+			"vsync": vsync,
 			"xyplot_invert_snap": xyplot_invert_snap,
 			"show_hitboxes": show_hitboxes,
 			"show_last_move_indicators": show_last_move_indicators,
@@ -319,6 +322,7 @@ func get_default_player_data():
 			"ghost_afterimages": true,
 			"fullscreen": false,
 			"cap_framerate": true,
+			"vsync": true,
 			"xyplot_invert_snap": false,
 			"ghost_speed": 2,
 			"show_hitboxes": false,

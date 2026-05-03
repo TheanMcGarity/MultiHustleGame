@@ -130,7 +130,7 @@ scroll_horizontal_enabled = false
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/ScrollContainer2"]
 margin_right = 201.0
-margin_bottom = 1612.0
+margin_bottom = 1720.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
@@ -313,30 +313,53 @@ margin_top = 307.0
 margin_right = 201.0
 margin_bottom = 311.0
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer"]
+[node name="TrailEditLabel" type="Label" parent="Panel/ScrollContainer2/VBoxContainer"]
+modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
 margin_top = 316.0
 margin_right = 201.0
-margin_bottom = 328.0
-
-[node name="TrailEditLabel" type="Label" parent="Panel/ScrollContainer2/VBoxContainer/HBoxContainer2"]
-modulate = Color( 0.392157, 0.823529, 0.419608, 1 )
-margin_right = 126.0
-margin_bottom = 11.0
+margin_bottom = 327.0
 size_flags_horizontal = 3
 text = "Aura"
 
+[node name="SyncAuraChanges" type="CheckButton" parent="Panel/ScrollContainer2/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 332.0
+margin_right = 91.0
+margin_bottom = 344.0
+hint_tooltip = "When on, any edit to one aura is mirrored to the other(s)."
+size_flags_horizontal = 0
+text = "sync changes"
+
+[node name="AuraTabsContainer" type="HBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 349.0
+margin_right = 201.0
+margin_bottom = 363.0
+rect_min_size = Vector2( 0, 14 )
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer"]
+margin_top = 368.0
+margin_right = 201.0
+margin_bottom = 380.0
+
 [node name="ShowAura" type="CheckButton" parent="Panel/ScrollContainer2/VBoxContainer/HBoxContainer2"]
 unique_name_in_owner = true
-margin_left = 127.0
-margin_right = 201.0
+margin_right = 74.0
 margin_bottom = 12.0
+size_flags_horizontal = 0
 text = "show aura"
+
+[node name="AuraCopyPasteRow" type="HBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 385.0
+margin_right = 201.0
+margin_bottom = 385.0
 
 [node name="TrailSettings" parent="Panel/ScrollContainer2/VBoxContainer" instance=ExtResource( 6 )]
 unique_name_in_owner = true
-margin_top = 333.0
+margin_top = 390.0
 margin_right = 201.0
-margin_bottom = 1612.0
+margin_bottom = 1720.0
 
 [node name="MovingSprite" type="Sprite" parent="."]
 unique_name_in_owner = true

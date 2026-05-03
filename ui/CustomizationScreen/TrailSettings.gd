@@ -31,6 +31,36 @@ onready var settings_map = {
 	$"%Local": "local_coords",
 	$"%Shape": "shape",
 	$"%Speed Scale": "speed_scale",
+	$"%DisableOnKO": "disable_on_ko",
+	$"%CapFramerate": "cap_framerate",
+	$"%Framerate": "framerate",
+	$"%DynamicTriggers": "dynamic_triggers",
+	$"%TriggerDuringCombo": "trigger_during_combo",
+	$"%TriggerDuringComboLinger": "trigger_during_combo_linger",
+	$"%TriggerDuringMelee": "trigger_during_melee_attacks",
+	$"%TriggerDuringMeleeLinger": "trigger_during_melee_attacks_linger",
+	$"%TriggerWhileBeingComboed": "trigger_while_being_comboed",
+	$"%TriggerWhileBeingComboedLinger": "trigger_while_being_comboed_linger",
+	$"%TriggerLowHealth": "trigger_low_health",
+	$"%TriggerLowHealthThreshold": "trigger_low_health_threshold",
+	$"%TriggerLowHealthLinger": "trigger_low_health_linger",
+	$"%TriggerHighHealth": "trigger_high_health",
+	$"%TriggerHighHealthThreshold": "trigger_high_health_threshold",
+	$"%TriggerHighHealthLinger": "trigger_high_health_linger",
+	$"%TriggerSuperLevel": "trigger_super_level",
+	$"%TriggerSuperLevelMin": "trigger_super_level_min",
+	$"%TriggerSuperLevelLinger": "trigger_super_level_linger",
+	$"%TriggerAfterSpawnProj": "trigger_after_spawn_projectile",
+	$"%TriggerAfterSpawnProjDuration": "trigger_after_spawn_projectile_duration",
+	$"%TriggerAfterTakeDmg": "trigger_after_take_damage",
+	$"%TriggerAfterTakeDmgDuration": "trigger_after_take_damage_duration",
+	$"%TriggerAfterOppTakeDmg": "trigger_after_opponent_take_damage",
+	$"%TriggerAfterOppTakeDmgDuration": "trigger_after_opponent_take_damage_duration",
+	$"%TriggerAfterPerfectParry": "trigger_after_perfect_parry",
+	$"%TriggerAfterPerfectParryDuration": "trigger_after_perfect_parry_duration",
+	$"%TriggerAfterBurst": "trigger_after_burst",
+	$"%TriggerAfterBurstDuration": "trigger_after_burst_duration",
+	$"%TriggersInverted": "triggers_inverted",
 	$"%Explosiveness": "explosiveness",
 	$"%Lifetime Randomness": "lifetime_randomness",
 	$"%Direction": "direction",
@@ -104,6 +134,12 @@ func load_settings(settings):
 		$"%PositionOnly".set_pressed_no_signal(settings.get("attach_position_only", true))
 	if has_node("%ConsistentSide"):
 		$"%ConsistentSide".set_pressed_no_signal(settings.get("attach_consistent_side", true))
+	if has_node("%CapFramerate"):
+		_update_framerate_visibility()
+	if has_node("%AttachLimb"):
+		_update_attach_visibility()
+	if has_node("%DynamicTriggers"):
+		_update_trigger_visibility()
 #			yield(get_tree(), "idle_frame")
 
 func _ready():
@@ -114,6 +150,18 @@ func _ready():
 	for limb in ATTACH_LIMB_OPTIONS:
 		$"%AttachLimb".add_item(limb)
 	$"%AttachLimb".connect("item_selected", self, "_on_attach_limb_selected")
+	$"%CapFramerate".connect("toggled", self, "_on_cap_framerate_toggled")
+	for trigger_button_name in [
+		"DynamicTriggers",
+		"TriggerDuringCombo", "TriggerDuringMelee", "TriggerWhileBeingComboed",
+		"TriggerLowHealth", "TriggerHighHealth", "TriggerSuperLevel",
+		"TriggerAfterSpawnProj", "TriggerAfterTakeDmg", "TriggerAfterOppTakeDmg",
+		"TriggerAfterPerfectParry", "TriggerAfterBurst"
+	]:
+		get_node("%" + trigger_button_name).connect("toggled", self, "_on_trigger_toggled")
+	_update_framerate_visibility()
+	_update_attach_visibility()
+	_update_trigger_visibility()
 	if has_node("%MirrorPair"):
 		$"%MirrorPair".connect("toggled", self, "_setting_value_changed")
 	if has_node("%PositionOnly"):
@@ -134,7 +182,56 @@ func _ready():
 	pass # Replace with function body.
 
 func _on_attach_limb_selected(_index):
+	_update_attach_visibility()
 	_setting_value_changed()
+
+func _on_cap_framerate_toggled(_pressed):
+	_update_framerate_visibility()
+
+func _update_framerate_visibility():
+	$"%Framerate".visible = $"%CapFramerate".pressed
+
+func _update_attach_visibility():
+	var attached = $"%AttachLimb".selected > 0
+	if has_node("%MirrorPair"):
+		$"%MirrorPair".visible = attached
+	if has_node("%PositionOnly"):
+		$"%PositionOnly".visible = attached
+	if has_node("%ConsistentSide"):
+		$"%ConsistentSide".visible = attached
+
+func _on_trigger_toggled(_pressed):
+	_update_trigger_visibility()
+	_setting_value_changed()
+
+func _update_trigger_visibility():
+	var dt = $"%DynamicTriggers".pressed
+	$"%TriggerDuringCombo".visible = dt
+	$"%TriggerDuringMelee".visible = dt
+	$"%TriggerWhileBeingComboed".visible = dt
+	$"%TriggerAfterSpawnProj".visible = dt
+	$"%TriggerAfterTakeDmg".visible = dt
+	$"%TriggerAfterOppTakeDmg".visible = dt
+	$"%TriggerDuringComboLinger".visible = dt and $"%TriggerDuringCombo".pressed
+	$"%TriggerDuringMeleeLinger".visible = dt and $"%TriggerDuringMelee".pressed
+	$"%TriggerWhileBeingComboedLinger".visible = dt and $"%TriggerWhileBeingComboed".pressed
+	$"%TriggerLowHealth".visible = dt
+	$"%TriggerLowHealthThreshold".visible = dt and $"%TriggerLowHealth".pressed
+	$"%TriggerLowHealthLinger".visible = dt and $"%TriggerLowHealth".pressed
+	$"%TriggerHighHealth".visible = dt
+	$"%TriggerHighHealthThreshold".visible = dt and $"%TriggerHighHealth".pressed
+	$"%TriggerHighHealthLinger".visible = dt and $"%TriggerHighHealth".pressed
+	$"%TriggerSuperLevel".visible = dt
+	$"%TriggerSuperLevelMin".visible = dt and $"%TriggerSuperLevel".pressed
+	$"%TriggerSuperLevelLinger".visible = dt and $"%TriggerSuperLevel".pressed
+	$"%TriggerAfterSpawnProjDuration".visible = dt and $"%TriggerAfterSpawnProj".pressed
+	$"%TriggerAfterTakeDmgDuration".visible = dt and $"%TriggerAfterTakeDmg".pressed
+	$"%TriggerAfterOppTakeDmgDuration".visible = dt and $"%TriggerAfterOppTakeDmg".pressed
+	$"%TriggerAfterPerfectParry".visible = dt
+	$"%TriggerAfterPerfectParryDuration".visible = dt and $"%TriggerAfterPerfectParry".pressed
+	$"%TriggerAfterBurst".visible = dt
+	$"%TriggerAfterBurstDuration".visible = dt and $"%TriggerAfterBurst".pressed
+	$"%TriggersInverted".visible = dt
 
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())

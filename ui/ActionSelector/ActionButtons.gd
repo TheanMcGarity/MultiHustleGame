@@ -155,9 +155,21 @@ func _process(delta):
 		_send_ui_action(buffered_ui_actions[-1])
 		buffered_ui_actions = []
 	
+var _select_button_shortcut: ShortCut
+
+func _build_select_button_shortcut() -> ShortCut:
+	var sc = ShortCut.new()
+	var ev = InputEventAction.new()
+	ev.action = Hotkeys.LOCK_IN
+	ev.pressed = true
+	sc.shortcut = ev
+	return sc
+
 func unpress_extra_on_lock_in():
 	var select_button: Button = $"%SelectButton"
-	select_button.shortcut = preload("res://ui/ActionSelector/SelectButtonShortcut.tres")
+	if _select_button_shortcut == null:
+		_select_button_shortcut = _build_select_button_shortcut()
+	select_button.shortcut = _select_button_shortcut
 	if lock_in_pressed:
 		check_extra_button_pressed(fighter_extra)
 #

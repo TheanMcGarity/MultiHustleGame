@@ -12,6 +12,14 @@ func _ready():
 	$"%ShowButton".connect("pressed", self, "hide")
 	$"%PauseButton".connect("toggled", self, "_on_pause_toggled")
 	$"%FrameAdvance".connect("pressed", self, "_on_frame_advance")
+	Hotkeys.connect("binding_changed", self, "_refresh_hotkey_labels")
+	_refresh_hotkey_labels()
+
+func _refresh_hotkey_labels(_action = ""):
+	var pause_key = Hotkeys.get_display_name(Hotkeys.TOGGLE_FRAME_ADVANCE)
+	var advance_key = Hotkeys.get_display_name(Hotkeys.FRAME_ADVANCE)
+	$"%PauseHotkeyLabel".text = ("(%s)" % pause_key) if pause_key else ""
+	$"%FrameAdvanceHotkeyLabel".text = ("(%s)" % advance_key) if advance_key else ""
 	
 func show():
 	if Global.show_playback_controls:

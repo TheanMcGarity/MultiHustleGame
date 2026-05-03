@@ -55,7 +55,19 @@ shader_param/outline_color = Color( 0, 0, 0, 1 )
 material = SubResource( 2 )
 script = ExtResource( 7 )
 __meta__ = {
-"_editor_description_": ""
+"_editor_description_": "",
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
 }
 gravity = "0.45"
 air_friction = "0.0"

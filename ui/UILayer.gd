@@ -172,6 +172,8 @@ func _ready():
 	$"%HitboxesButton".connect("toggled", self, "_on_hitboxes_button_toggled")
 	$"%CapFramerateButton".set_pressed_no_signal(Global.cap_framerate)
 	$"%CapFramerateButton".connect("toggled", self, "_on_cap_framerate_button_toggled")
+	$"%VsyncButton".set_pressed_no_signal(Global.vsync)
+	$"%VsyncButton".connect("toggled", self, "_on_vsync_button_toggled")
 	$"%PlaybackControls".set_pressed_no_signal(Global.show_playback_controls)
 	$"%PlaybackControls".connect("toggled", self, "_on_playback_controls_button_toggled")
 	$"%PredictionSettingsOpenButton".connect("pressed", self, "_on_open_prediction_settings_pressed")
@@ -276,6 +278,9 @@ func _on_hitboxes_button_toggled(on):
 
 func _on_cap_framerate_button_toggled(on):
 	Global.set_cap_framerate(on)
+
+func _on_vsync_button_toggled(on):
+	Global.set_vsync(on)
 
 func _on_playback_controls_button_toggled(on):
 	Global.set_playback_controls(on)
@@ -785,6 +790,16 @@ func _unhandled_input(event):
 		_toggle_playback_controls()
 	if event.is_action_pressed(Hotkeys.TOGGLE_PROJECTILE_OWNERS):
 		_toggle_projectile_owners()
+	if event.is_action_pressed(Hotkeys.TOGGLE_FULLSCREEN):
+		_toggle_fullscreen()
+	if event.is_action_pressed(Hotkeys.PLAYBACK_SPEED_1):
+		_set_playback_speed(4)
+	if event.is_action_pressed(Hotkeys.PLAYBACK_SPEED_2):
+		_set_playback_speed(2)
+	if event.is_action_pressed(Hotkeys.PLAYBACK_SPEED_3):
+		_set_playback_speed(-1)
+	if event.is_action_pressed(Hotkeys.PLAYBACK_SPEED_4):
+		_set_playback_speed(1)
 	if event.is_action_pressed(Hotkeys.RESET_ZOOM):
 		_on_reset_zoom_pressed()
 	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_1):
@@ -1038,20 +1053,35 @@ func _toggle_projectile_owners():
 	$"%ProjectileOwnersButton".set_pressed_no_signal(Global.show_projectile_owners)
 	Global.save_options()
 
+func _toggle_fullscreen():
+	Global.set_fullscreen(!Global.fullscreen)
+	$"%FullscreenButton".set_pressed_no_signal(Global.fullscreen)
+
+# mod values: 4 = 0.25x, 2 = 0.5x, -1 = 0.75x, 1 = 1.0x.
+# slider.value_changed updates both Global.playback_speed_mod and the label.
+func _set_playback_speed(mod):
+	var slider_value = {4: 0, 2: 1, -1: 2, 1: 3}.get(mod, 3)
+	var slider = get_node_or_null("%PlaybackSpeed")
+	if slider:
+		slider.value = slider_value
+	else:
+		Global.playback_speed_mod = mod
+
 
 # --- XY plot arrow-key nudging (not rebindable) -----------------------------
 
 func _handle_xy_nudge(event):
 	if not is_instance_valid(Hotkeys.hovered_xy_plot):
 		return
-	if not (event is InputEventKey) or not event.pressed or event.echo:
-		return
 	var nudge = null
-	match event.scancode:
-		KEY_LEFT: nudge = Vector2(-0.01, 0)
-		KEY_RIGHT: nudge = Vector2(0.01, 0)
-		KEY_UP: nudge = Vector2(0, -0.01)
-		KEY_DOWN: nudge = Vector2(0, 0.01)
+	if event.is_action_pressed(Hotkeys.NUDGE_LEFT):
+		nudge = Vector2(-0.01, 0)
+	elif event.is_action_pressed(Hotkeys.NUDGE_RIGHT):
+		nudge = Vector2(0.01, 0)
+	elif event.is_action_pressed(Hotkeys.NUDGE_UP):
+		nudge = Vector2(0, -0.01)
+	elif event.is_action_pressed(Hotkeys.NUDGE_DOWN):
+		nudge = Vector2(0, 0.01)
 	if nudge == null:
 		return
 	var plot = Hotkeys.hovered_xy_plot

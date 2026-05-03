@@ -26,6 +26,15 @@ const RESET_ZOOM = "reset_zoom"
 const PREDICTION_SPEED_1 = "prediction_speed_1"
 const PREDICTION_SPEED_2 = "prediction_speed_2"
 const PREDICTION_SPEED_3 = "prediction_speed_3"
+const NUDGE_LEFT = "nudge_left"
+const NUDGE_RIGHT = "nudge_right"
+const NUDGE_UP = "nudge_up"
+const NUDGE_DOWN = "nudge_down"
+const TOGGLE_FULLSCREEN = "toggle_fullscreen"
+const PLAYBACK_SPEED_1 = "playback_speed_1"
+const PLAYBACK_SPEED_2 = "playback_speed_2"
+const PLAYBACK_SPEED_3 = "playback_speed_3"
+const PLAYBACK_SPEED_4 = "playback_speed_4"
 
 const RUNTIME_DEFAULTS = {
 	TOGGLE_HUD: KEY_F1,
@@ -41,11 +50,21 @@ const RUNTIME_DEFAULTS = {
 	PREDICTION_SPEED_1: 0,
 	PREDICTION_SPEED_2: 0,
 	PREDICTION_SPEED_3: 0,
+	NUDGE_LEFT: KEY_LEFT,
+	NUDGE_RIGHT: KEY_RIGHT,
+	NUDGE_UP: KEY_UP,
+	NUDGE_DOWN: KEY_DOWN,
+	TOGGLE_FULLSCREEN: KEY_F11,
+	PLAYBACK_SPEED_1: 0,
+	PLAYBACK_SPEED_2: 0,
+	PLAYBACK_SPEED_3: 0,
+	PLAYBACK_SPEED_4: 0,
 }
 
 # Actions the user can rebind via the hotkeys settings UI.
 # PAUSE/FOCUS_NEXT/ACCEPT/OPEN_DEBUG_PANEL are intentionally omitted - system keys.
 const REBINDABLE = [
+	{"action": TOGGLE_FULLSCREEN, "label": "Toggle Fullscreen"},
 	{"action": LOCK_IN, "label": "Lock In"},
 	{"action": WATCH_REPLAY, "label": "Watch Replay"},
 	{"action": EDIT_REPLAY, "label": "Edit Replay"},
@@ -61,9 +80,16 @@ const REBINDABLE = [
 	{"action": TOGGLE_HITBOXES, "label": "Toggle Hitboxes"},
 	{"action": CLEAR_PARTICLES, "label": "Clear Particles"},
 	{"action": TOGGLE_PLAYBACK_CONTROLS, "label": "Toggle Playback Controls"},
+	{"action": PLAYBACK_SPEED_1, "label": "Playback Speed x0.25"},
+	{"action": PLAYBACK_SPEED_2, "label": "Playback Speed x0.5"},
+	{"action": PLAYBACK_SPEED_3, "label": "Playback Speed x0.75"},
+	{"action": PLAYBACK_SPEED_4, "label": "Playback Speed x1"},
 	{"action": TOGGLE_PROJECTILE_OWNERS, "label": "Toggle Projectile Owners"},
 	{"action": RESET_ZOOM, "label": "Reset Zoom"},
-
+	{"action": NUDGE_LEFT, "label": "Nudge XY Plot Left"},
+	{"action": NUDGE_RIGHT, "label": "Nudge XY Plot Right"},
+	{"action": NUDGE_UP, "label": "Nudge XY Plot Up"},
+	{"action": NUDGE_DOWN, "label": "Nudge XY Plot Down"},
 ]
 
 # ESC is reserved as the "clear binding" gesture during rebind, so it can't be assigned.

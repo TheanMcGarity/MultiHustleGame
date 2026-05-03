@@ -3,8 +3,8 @@ extends WizardState
 export var redirect = false
 
 func _frame_0():
-	if redirect:
-		host.hover_left -= host.TK_HOVER_AMOUNT
+
+	host.hover_left -= host.TK_LAUNCH_HOVER_AMOUNT
 	var obj = host.obj_from_name(host.boulder_projectile)
 	if obj:
 		var dir = xy_to_dir(data.x, data.y)
@@ -18,4 +18,5 @@ func is_usable():
 			return false
 		if !redirect and obj.current_state().state_name == "Launch":
 			return false
-	return host.boulder_projectile != null and (!redirect or host.hover_left >= host.TK_HOVER_AMOUNT) and .is_usable()
+	return host.boulder_projectile != null and .is_usable()
+#	return host.boulder_projectile != null and (!redirect or host.hover_left >= host.TK_HOVER_AMOUNT) and .is_usable()

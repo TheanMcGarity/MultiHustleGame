@@ -23,7 +23,7 @@ const SPARK_BOMB_SELF_DAMAGE = 31
 const FLAME_WAVE_COOLDOWN = 30
 const ORB_DRAIN_INCREASE_FREQUENCY = 120
 const TK_HOVER_AMOUNT = HOVER_AMOUNT / 2
-#const TK_LAUNCH_HOVER_AMOUNT = HOVER_AMOUNT / 4 
+const TK_LAUNCH_HOVER_AMOUNT = HOVER_AMOUNT / 4 
 
 var hover_left = 0
 var hover_drain_amount = 25
@@ -81,7 +81,12 @@ func init(pos=null):
 func on_blocked_melee_attack():
 	.on_blocked_melee_attack()
 	hovering = false
-	
+	if boulder_projectile != null:
+		var obj = obj_from_name(boulder_projectile)
+		if obj:
+			obj.drop()
+		boulder_projectile = null
+
 func on_roll_started():
 	hovering = false
 	fast_falling = false
@@ -227,7 +232,11 @@ func tick():
 					hover_left = 0
 			apply_grav_fast_fall()
 #		if current_state().busy_interrupt_type != CharacterState.BusyInterrupt.Hurt and !hovering:
-		hover_left += (hover_gain_amount if hover_left >= HOVER_MIN_AMOUNT else hover_gain_amount_depleted ) if is_grounded() else hover_gain_amount_air
+		var hover_to_gain = (hover_gain_amount if hover_left >= HOVER_MIN_AMOUNT else hover_gain_amount_depleted ) if is_grounded() else hover_gain_amount_air
+		var proj = obj_from_name(boulder_projectile)
+		if proj and !proj.launched:
+			hover_to_gain /= 2
+		hover_left += hover_to_gain
 		if hover_left > HOVER_AMOUNT:
 			hover_left = HOVER_AMOUNT
 	if orb_projectile:

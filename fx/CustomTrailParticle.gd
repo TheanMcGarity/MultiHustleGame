@@ -35,6 +35,8 @@ var custom_set = {
 	"lifetime": "set_lifetime",
 	"angle": "set_angle",
 	"flip_with_character": "set_flip_with_character",
+	"framerate": "set_framerate",
+	"cap_framerate": "set_cap_framerate",
 }
 
 static func get_shapes():
@@ -91,6 +93,36 @@ static func get_default():
 		"scale_amount_random": 0.0,
 		"angle": 0.0,
 		"angle_random": 0.0,
+		"cap_framerate": false,
+		"framerate": 60,
+		"disable_on_ko": true,
+		"dynamic_triggers": false,
+		"triggers_inverted": false,
+		"trigger_during_combo": false,
+		"trigger_during_combo_linger": 0,
+		"trigger_during_melee_attacks": false,
+		"trigger_during_melee_attacks_linger": 0,
+		"trigger_while_being_comboed": false,
+		"trigger_while_being_comboed_linger": 0,
+		"trigger_low_health": false,
+		"trigger_low_health_threshold": 30,
+		"trigger_low_health_linger": 0,
+		"trigger_high_health": false,
+		"trigger_high_health_threshold": 70,
+		"trigger_high_health_linger": 0,
+		"trigger_super_level": false,
+		"trigger_super_level_min": 1,
+		"trigger_super_level_linger": 0,
+		"trigger_after_spawn_projectile": false,
+		"trigger_after_spawn_projectile_duration": 30,
+		"trigger_after_take_damage": false,
+		"trigger_after_take_damage_duration": 30,
+		"trigger_after_opponent_take_damage": false,
+		"trigger_after_opponent_take_damage_duration": 30,
+		"trigger_after_perfect_parry": false,
+		"trigger_after_perfect_parry_duration": 30,
+		"trigger_after_burst": false,
+		"trigger_after_burst_duration": 30,
 	}
 
 static func get_setting_min(setting):
@@ -122,7 +154,23 @@ static func get_setting_min(setting):
 		"y_offset": -24.0,
 		"angle": -360.0,
 		"angle_random": 0.0,
+		"framerate": 1,
+		"trigger_during_combo_linger": 0,
+		"trigger_during_melee_attacks_linger": 0,
+		"trigger_while_being_comboed_linger": 0,
+		"trigger_low_health_threshold": 1,
+		"trigger_low_health_linger": 0,
+		"trigger_high_health_threshold": 1,
+		"trigger_high_health_linger": 0,
+		"trigger_super_level_min": 1,
+		"trigger_super_level_linger": 0,
+		"trigger_after_spawn_projectile_duration": 1,
+		"trigger_after_take_damage_duration": 1,
+		"trigger_after_opponent_take_damage_duration": 1,
+		"trigger_after_perfect_parry_duration": 1,
+		"trigger_after_burst_duration": 1,
 	}
+	# cap_framerate and the dynamic_triggers booleans aren't in the numeric clamp set
 	return minimums[setting] if minimums.has(setting) else null
 
 static func get_setting_max(setting):
@@ -154,6 +202,21 @@ static func get_setting_max(setting):
 		"scale_amount_random": 1.0,
 		"angle": 360.0,
 		"angle_random": 1.0,
+		"framerate": 60,
+		"trigger_during_combo_linger": 120,
+		"trigger_during_melee_attacks_linger": 120,
+		"trigger_while_being_comboed_linger": 120,
+		"trigger_low_health_threshold": 100,
+		"trigger_low_health_linger": 120,
+		"trigger_high_health_threshold": 100,
+		"trigger_high_health_linger": 120,
+		"trigger_super_level_min": 9,
+		"trigger_super_level_linger": 120,
+		"trigger_after_spawn_projectile_duration": 120,
+		"trigger_after_take_damage_duration": 120,
+		"trigger_after_opponent_take_damage_duration": 120,
+		"trigger_after_perfect_parry_duration": 120,
+		"trigger_after_burst_duration": 120,
 	}
 	return maximums[setting] if maximums.has(setting) else null
 
@@ -312,6 +375,43 @@ func set_angle(angle):
 func set_flip_with_character(on):
 	flip_with_character = on
 
+var cap_framerate_enabled = false
+var framerate_value = 60
+
+func set_cap_framerate(on):
+	cap_framerate_enabled = on
+	_apply_framerate()
+
+func set_framerate(value):
+	framerate_value = int(value)
+	_apply_framerate()
+
+func _apply_framerate():
+	particles.fixed_fps = framerate_value if cap_framerate_enabled else 0
+
+const TRIGGER_META_PARAMS = [
+	"disable_on_ko",
+	"dynamic_triggers",
+	"triggers_inverted",
+	"trigger_during_combo", "trigger_during_combo_linger",
+	"trigger_during_melee_attacks", "trigger_during_melee_attacks_linger",
+	"trigger_while_being_comboed", "trigger_while_being_comboed_linger",
+	"trigger_low_health", "trigger_low_health_threshold", "trigger_low_health_linger",
+	"trigger_high_health", "trigger_high_health_threshold", "trigger_high_health_linger",
+	"trigger_super_level", "trigger_super_level_min", "trigger_super_level_linger",
+	"trigger_after_spawn_projectile", "trigger_after_spawn_projectile_duration",
+	"trigger_after_take_damage", "trigger_after_take_damage_duration",
+	"trigger_after_opponent_take_damage", "trigger_after_opponent_take_damage_duration",
+	"trigger_after_perfect_parry", "trigger_after_perfect_parry_duration",
+	"trigger_after_burst", "trigger_after_burst_duration",
+]
+
+# Per-aura tick trackers for threshold-based continuous triggers — stored on
+# the particle (rather than the host) because the threshold is per-aura.
+var style_aura_low_health_tick = -100000
+var style_aura_high_health_tick = -100000
+var style_aura_super_level_tick = -100000
+
 func set_parameter(param, value):
 	var max_value = get_setting_max(param)
 	var min_value = get_setting_min(param)
@@ -319,6 +419,10 @@ func set_parameter(param, value):
 		value = max_value
 	if min_value and value < min_value:
 		value = min_value
+	# Trigger meta-settings live on the entry dict and are evaluated per-tick by
+	# the host character, not pushed to the particles node.
+	if param in TRIGGER_META_PARAMS:
+		return
 	if !(param in custom_set):
 		particles.set(param, value)
 	else:

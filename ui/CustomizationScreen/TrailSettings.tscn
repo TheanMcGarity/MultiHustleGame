@@ -40,14 +40,222 @@ unique_name_in_owner = true
 margin_top = 90.0
 margin_bottom = 115.0
 default_value = 2.0
-min_value = 0.0
 max_value = 30.0
 exponential = true
 
-[node name="HFlowContainer" type="HFlowContainer" parent="."]
+[node name="DisableOnKO" type="CheckButton" parent="."]
+unique_name_in_owner = true
 margin_top = 120.0
 margin_right = 212.0
-margin_bottom = 148.0
+margin_bottom = 132.0
+hint_tooltip = "Stop emitting once a player has been KO'd (the match ended)."
+pressed = true
+text = "disable on KO"
+
+[node name="CapFramerate" type="CheckButton" parent="."]
+unique_name_in_owner = true
+margin_top = 137.0
+margin_right = 212.0
+margin_bottom = 149.0
+hint_tooltip = "Lock this aura's particle simulation to a fixed framerate, regardless of display rate."
+text = "cap framerate"
+
+[node name="Framerate" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 60.0
+min_value = 1.0
+max_value = 60.0
+step = 1.0
+
+[node name="DynamicTriggers" type="CheckButton" parent="."]
+unique_name_in_owner = true
+margin_top = 154.0
+margin_right = 212.0
+margin_bottom = 166.0
+hint_tooltip = "Gate this aura's emission on character state. When off, the aura emits constantly."
+text = "dynamic triggers"
+
+[node name="TriggerDuringCombo" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+margin_top = 171.0
+margin_right = 212.0
+margin_bottom = 183.0
+text = "  during combo"
+
+[node name="TriggerDuringComboLinger" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+max_value = 120.0
+step = 1.0
+label_text = "linger duration"
+
+[node name="TriggerDuringMelee" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  during melee attacks"
+
+[node name="TriggerDuringMeleeLinger" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+max_value = 120.0
+step = 1.0
+label_text = "linger duration"
+
+[node name="TriggerWhileBeingComboed" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  while being comboed"
+
+[node name="TriggerWhileBeingComboedLinger" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+max_value = 120.0
+step = 1.0
+label_text = "linger duration"
+
+[node name="TriggerLowHealth" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  low health"
+
+[node name="TriggerLowHealthThreshold" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 30.0
+min_value = 1.0
+step = 1.0
+label_text = "health %"
+
+[node name="TriggerLowHealthLinger" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+max_value = 120.0
+step = 1.0
+label_text = "linger duration"
+
+[node name="TriggerHighHealth" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  high health"
+
+[node name="TriggerHighHealthThreshold" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 70.0
+min_value = 1.0
+step = 1.0
+label_text = "health %"
+
+[node name="TriggerHighHealthLinger" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+max_value = 120.0
+step = 1.0
+label_text = "linger duration"
+
+[node name="TriggerSuperLevel" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  at super level"
+
+[node name="TriggerSuperLevelMin" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 1.0
+min_value = 1.0
+max_value = 9.0
+step = 1.0
+label_text = "min level"
+
+[node name="TriggerSuperLevelLinger" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+max_value = 120.0
+step = 1.0
+label_text = "linger duration"
+
+[node name="TriggerAfterSpawnProj" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  after spawning projectiles"
+
+[node name="TriggerAfterSpawnProjDuration" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 30.0
+min_value = 1.0
+max_value = 120.0
+step = 1.0
+label_text = "duration"
+
+[node name="TriggerAfterTakeDmg" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  after taking damage"
+
+[node name="TriggerAfterTakeDmgDuration" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 30.0
+min_value = 1.0
+max_value = 120.0
+step = 1.0
+label_text = "duration"
+
+[node name="TriggerAfterOppTakeDmg" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  after opponent takes damage"
+
+[node name="TriggerAfterOppTakeDmgDuration" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 30.0
+min_value = 1.0
+max_value = 120.0
+step = 1.0
+label_text = "duration"
+
+[node name="TriggerAfterPerfectParry" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  after parry"
+
+[node name="TriggerAfterPerfectParryDuration" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 30.0
+min_value = 1.0
+max_value = 120.0
+step = 1.0
+label_text = "duration"
+
+[node name="TriggerAfterBurst" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+text = "  after burst"
+
+[node name="TriggerAfterBurstDuration" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+default_value = 30.0
+min_value = 1.0
+max_value = 120.0
+step = 1.0
+label_text = "duration"
+
+[node name="TriggersInverted" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+hint_tooltip = "Invert the trigger logic — the aura is normally on, and hides while any enabled trigger is active."
+text = "  hide on trigger"
+
+[node name="HFlowContainer" type="HFlowContainer" parent="."]
+margin_top = 171.0
+margin_right = 212.0
+margin_bottom = 199.0
 
 [node name="InFront" type="CheckButton" parent="HFlowContainer"]
 unique_name_in_owner = true
@@ -74,9 +282,9 @@ pressed = true
 text = "flip with character"
 
 [node name="AttachLimbRow" type="HBoxContainer" parent="."]
-margin_top = 153.0
+margin_top = 204.0
 margin_right = 212.0
-margin_bottom = 165.0
+margin_bottom = 216.0
 
 [node name="Label" type="Label" parent="AttachLimbRow"]
 margin_right = 50.0
@@ -92,35 +300,35 @@ size_flags_horizontal = 3
 
 [node name="MirrorPair" type="CheckButton" parent="."]
 unique_name_in_owner = true
-margin_top = 170.0
+margin_top = 221.0
 margin_right = 212.0
-margin_bottom = 182.0
+margin_bottom = 233.0
 hint_tooltip = "For Hands/Feet: mirror the flip on the second limb. With this on, if the left limb's flip is set the right limb's flip is the opposite."
 pressed = true
 text = "mirror flip on other limb"
 
 [node name="PositionOnly" type="CheckButton" parent="."]
 unique_name_in_owner = true
-margin_top = 187.0
+margin_top = 238.0
 margin_right = 212.0
-margin_bottom = 199.0
+margin_bottom = 250.0
 hint_tooltip = "Only apply the limb's position. Don't rotate or flip with the limb data."
 pressed = true
 text = "attach position only"
 
 [node name="ConsistentSide" type="CheckButton" parent="."]
 unique_name_in_owner = true
-margin_top = 204.0
+margin_top = 255.0
 margin_right = 212.0
-margin_bottom = 216.0
+margin_bottom = 267.0
 hint_tooltip = "When on, Left/Right limb auras swap when the character faces left so the aura stays on the same side of the screen (e.g. a LeftHand aura always appears on the screen-left limb)."
 pressed = true
 text = "consistent side"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
-margin_top = 204.0
+margin_top = 272.0
 margin_right = 212.0
-margin_bottom = 216.0
+margin_bottom = 284.0
 
 [node name="Label" type="Label" parent="HBoxContainer"]
 margin_right = 35.0
@@ -136,35 +344,35 @@ text = "shape"
 
 [node name="Angle" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 221.0
-margin_bottom = 246.0
+margin_top = 289.0
+margin_bottom = 314.0
 min_value = -360.0
 max_value = 360.0
 
 [node name="Angle Randomness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 251.0
-margin_bottom = 276.0
+margin_top = 319.0
+margin_bottom = 344.0
 max_value = 1.0
 
 [node name="Gravity X" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 281.0
-margin_bottom = 306.0
+margin_top = 349.0
+margin_bottom = 374.0
 min_value = -100.0
 step = 0.1
 
 [node name="Gravity Y" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 311.0
-margin_bottom = 336.0
+margin_top = 379.0
+margin_bottom = 404.0
 min_value = -100.0
 step = 0.1
 
 [node name="HFlowContainer2" type="HFlowContainer" parent="."]
-margin_top = 341.0
+margin_top = 409.0
 margin_right = 212.0
-margin_bottom = 407.0
+margin_bottom = 475.0
 
 [node name="Direction" parent="HFlowContainer2" instance=ExtResource( 4 )]
 unique_name_in_owner = true
@@ -175,140 +383,140 @@ default_value = Vector2( 0, -1 )
 
 [node name="Direction Spread" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 412.0
-margin_bottom = 437.0
+margin_top = 480.0
+margin_bottom = 505.0
 max_value = 180.0
 step = 1.0
 
 [node name="Initial Velocity" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 442.0
-margin_bottom = 467.0
+margin_top = 510.0
+margin_bottom = 535.0
 min_value = -100.0
 step = 0.1
 
 [node name="Initial Velocity Randomness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 472.0
-margin_bottom = 497.0
+margin_top = 540.0
+margin_bottom = 565.0
 max_value = 1.0
 step = 0.001
 
 [node name="Linear Accel" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 502.0
-margin_bottom = 527.0
+margin_top = 570.0
+margin_bottom = 595.0
 min_value = -100.0
 step = 0.1
 
 [node name="Linear Accel Randomness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 532.0
-margin_bottom = 557.0
+margin_top = 600.0
+margin_bottom = 625.0
 max_value = 1.0
 step = 0.001
 
 [node name="Radial Accel" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 562.0
-margin_bottom = 587.0
+margin_top = 630.0
+margin_bottom = 655.0
 min_value = -100.0
 step = 0.1
 
 [node name="Radial Accel Randomness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 592.0
-margin_bottom = 617.0
+margin_top = 660.0
+margin_bottom = 685.0
 max_value = 1.0
 step = 0.001
 
 [node name="Tangential Accel" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 622.0
-margin_bottom = 647.0
+margin_top = 690.0
+margin_bottom = 715.0
 min_value = -100.0
 step = 0.1
 
 [node name="Tangential Accel Randomness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 652.0
-margin_bottom = 677.0
+margin_top = 720.0
+margin_bottom = 745.0
 max_value = 1.0
 step = 0.001
 
 [node name="Orbit Velocity" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 682.0
-margin_bottom = 707.0
+margin_top = 750.0
+margin_bottom = 775.0
 min_value = -3.0
 max_value = 3.0
 step = 0.025
 
 [node name="Orbit Velocity Randomness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 712.0
-margin_bottom = 737.0
+margin_top = 780.0
+margin_bottom = 805.0
 max_value = 1.0
 step = 0.001
 
 [node name="Start Scale" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 742.0
-margin_bottom = 767.0
+margin_top = 810.0
+margin_bottom = 835.0
 default_value = 1.0
 max_value = 5.0
 
 [node name="End Scale" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 772.0
-margin_bottom = 797.0
+margin_top = 840.0
+margin_bottom = 865.0
 default_value = 1.0
 max_value = 5.0
 
 [node name="Scale Randomness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 802.0
-margin_bottom = 827.0
+margin_top = 870.0
+margin_bottom = 895.0
 max_value = 1.0
 
 [node name="Explosiveness" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 832.0
-margin_bottom = 857.0
+margin_top = 900.0
+margin_bottom = 925.0
 max_value = 1.0
 
 [node name="Rect Size X" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 862.0
-margin_bottom = 887.0
+margin_top = 930.0
+margin_bottom = 955.0
 default_value = 12.0
 max_value = 32.0
 
 [node name="Rect Size Y" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 892.0
-margin_bottom = 917.0
+margin_top = 960.0
+margin_bottom = 985.0
 default_value = 12.0
 max_value = 32.0
 
 [node name="X Offset" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 922.0
-margin_bottom = 947.0
+margin_top = 990.0
+margin_bottom = 1015.0
 min_value = -24.0
 max_value = 24.0
 
 [node name="Y Offset" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 952.0
-margin_bottom = 977.0
+margin_top = 1020.0
+margin_bottom = 1045.0
 min_value = -24.0
 max_value = 24.0
 
 [node name="ColorPickers" type="TabContainer" parent="."]
-margin_top = 982.0
+margin_top = 1050.0
 margin_right = 212.0
-margin_bottom = 1202.0
+margin_bottom = 1270.0
 rect_min_size = Vector2( 0, 220 )
 tab_align = 0
 
@@ -337,16 +545,16 @@ margin_bottom = 0.0
 
 [node name="Start Alpha" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 1207.0
-margin_bottom = 1232.0
+margin_top = 1275.0
+margin_bottom = 1300.0
 default_value = 1.0
 max_value = 1.0
 step = 0.001
 
 [node name="End Alpha" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 1237.0
-margin_bottom = 1262.0
+margin_top = 1305.0
+margin_bottom = 1330.0
 default_value = 1.0
 max_value = 1.0
 step = 0.001

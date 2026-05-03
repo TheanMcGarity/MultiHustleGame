@@ -21,7 +21,7 @@ const AURA_SLOT_COUNT = 2
 var current_aura_slot = 0
 var aura_show = [false, false]
 var aura_settings_cache = [null, null]
-var aura_slot_dropdown: OptionButton = null
+var aura_slot_tabs: Tabs = null
 var copy_aura_button: Button = null
 var paste_aura_button: Button = null
 var aura_clipboard = null
@@ -80,8 +80,29 @@ func get_style_data():
 func save_current_aura_slot():
 	if loading_aura_slot:
 		return
-	aura_show[current_aura_slot] = $"%ShowAura".pressed
-	aura_settings_cache[current_aura_slot] = $"%TrailSettings".get_settings()
+	var show = $"%ShowAura".pressed
+	var settings = $"%TrailSettings".get_settings()
+	var sync_on = has_node("%SyncAuraChanges") and $"%SyncAuraChanges".pressed
+	var prev_settings = aura_settings_cache[current_aura_slot]
+	var prev_show = aura_show[current_aura_slot]
+	# Sync only the keys that actually changed since the last save of THIS slot,
+	# so each other slot keeps its own values for everything the user didn't
+	# touch. Skipped on the first save (when the prev cache is null) — that
+	# would propagate the entire form state and clobber distinct slots.
+	if sync_on and prev_settings is Dictionary and settings is Dictionary:
+		for i in range(AURA_SLOT_COUNT):
+			if i == current_aura_slot:
+				continue
+			if show != prev_show:
+				aura_show[i] = show
+			if not (aura_settings_cache[i] is Dictionary):
+				aura_settings_cache[i] = settings.duplicate(true)
+			else:
+				for key in settings:
+					if not (key in prev_settings) or prev_settings[key] != settings[key]:
+						aura_settings_cache[i][key] = settings[key]
+	aura_show[current_aura_slot] = show
+	aura_settings_cache[current_aura_slot] = settings
 
 func switch_aura_slot(slot):
 	save_current_aura_slot()
@@ -93,8 +114,8 @@ func switch_aura_slot(slot):
 	else:
 		$"%TrailSettings".load_settings(CustomTrailParticle.get_default())
 	loading_aura_slot = false
-	if aura_slot_dropdown:
-		aura_slot_dropdown.select(current_aura_slot)
+	if aura_slot_tabs:
+		aura_slot_tabs.current_tab = current_aura_slot
 	create_all_auras()
 
 func init():
@@ -133,28 +154,26 @@ func init():
 		$"%HitsparkButtonContainer".add_child(button)
 	$"%TrailSettings".connect("settings_changed", self, "_on_trail_settings_changed")
 	$"%ShowAura".connect("pressed", self, "_on_show_aura_pressed")
-	aura_slot_dropdown = OptionButton.new()
+	aura_slot_tabs = Tabs.new()
+	aura_slot_tabs.theme = preload("res://theme.tres")
+	aura_slot_tabs.tab_align = Tabs.ALIGN_LEFT
+	aura_slot_tabs.size_flags_horizontal = SIZE_EXPAND_FILL
 	for i in range(AURA_SLOT_COUNT):
-		aura_slot_dropdown.add_item("Aura %d" % (i + 1))
-	aura_slot_dropdown.select(0)
-	aura_slot_dropdown.connect("item_selected", self, "_on_aura_slot_dropdown_selected")
-	$"%ShowAura".get_parent().add_child(aura_slot_dropdown)
-	# Copy/paste on a separate row right under the slot dropdown.
-	var aura_row_parent = $"%ShowAura".get_parent().get_parent()
-	var copy_paste_row = HBoxContainer.new()
-	aura_row_parent.add_child(copy_paste_row)
-	aura_row_parent.move_child(copy_paste_row, $"%ShowAura".get_parent().get_index() + 1)
+		aura_slot_tabs.add_tab("Aura %d" % (i + 1))
+	aura_slot_tabs.current_tab = 0
+	aura_slot_tabs.connect("tab_changed", self, "_on_aura_slot_tab_changed")
+	$"%AuraTabsContainer".add_child(aura_slot_tabs)
 	copy_aura_button = Button.new()
 	copy_aura_button.text = "copy aura"
 	copy_aura_button.hint_tooltip = "Copy this aura's settings to the clipboard."
 	copy_aura_button.connect("pressed", self, "_on_copy_aura_pressed")
-	copy_paste_row.add_child(copy_aura_button)
+	$"%AuraCopyPasteRow".add_child(copy_aura_button)
 	paste_aura_button = Button.new()
 	paste_aura_button.text = "paste aura"
 	paste_aura_button.hint_tooltip = "Paste the clipboard's aura into this slot (overwrites)."
 	paste_aura_button.disabled = true
 	paste_aura_button.connect("pressed", self, "_on_paste_aura_pressed")
-	copy_paste_row.add_child(paste_aura_button)
+	$"%AuraCopyPasteRow".add_child(paste_aura_button)
 	$"%SaveButton".connect("pressed", self, "save_style")
 	$"%LoadStyleButton".connect("style_selected", self, "load_style")
 	$"%AllowSaveButton".connect("toggled", self, "_on_allow_save_toggled")
@@ -299,8 +318,8 @@ func load_style(style):
 			aura_show[1] = style.get("show_aura_2", false)
 			aura_settings_cache[1] = style.get("aura_settings_2")
 		current_aura_slot = 0
-		if aura_slot_dropdown:
-			aura_slot_dropdown.select(0)
+		if aura_slot_tabs:
+			aura_slot_tabs.current_tab = 0
 		$"%ShowAura".pressed = aura_show[0]
 		if aura_settings_cache[0]:
 			$"%TrailSettings".load_settings(aura_settings_cache[0])
@@ -362,7 +381,7 @@ func _on_show_aura_pressed():
 	call_deferred("create_all_auras")
 	update_warning()
 
-func _on_aura_slot_dropdown_selected(slot):
+func _on_aura_slot_tab_changed(slot):
 	switch_aura_slot(slot)
 
 func _on_copy_aura_pressed():
