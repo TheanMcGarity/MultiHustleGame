@@ -5,24 +5,13 @@ func _ready():
 	var mod_toggle = $"%ModToggle" if has_node("%ModToggle") else null
 	var container = mod_toggle.get_parent() if mod_toggle else null
 
-	if container and container.get_node_or_null("ModToggleRow") == null:
+	if container and container.get_node_or_null("DeleteCache") == null:
 		var btt = Button.new()
 		btt.name = "DeleteCache"
 		btt.text = "delete character cache"
-		btt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		container.add_child(btt)
+		container.move_child(btt, mod_toggle.get_index())
 		btt.connect("pressed", self, "_delete_char_cache", [btt])
-
-		var hbox = HBoxContainer.new()
-		hbox.name = "ModToggleRow"
-		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_constant_override("separation", 10)
-		var idx = mod_toggle.get_index()
-		container.remove_child(mod_toggle)
-		container.add_child(hbox)
-		container.move_child(hbox, idx)
-		hbox.add_child(btt)
-		hbox.add_child(mod_toggle)
-		mod_toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 func _delete_char_cache(btt):
 	var dir = Directory.new()

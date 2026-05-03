@@ -137,6 +137,8 @@ func _ready():
 
 	SteamLobby.connect("join_lobby_success", self, "_on_join_lobby_success")
 	$"%OptionsContainer".hide()
+	update_help_text()
+	Hotkeys.connect("binding_changed", self, "_on_hotkey_changed")
 	p1_turn_timer.connect("timeout", self, "_on_turn_timer_timeout", [1])
 	p2_turn_timer.connect("timeout", self, "_on_turn_timer_timeout", [2])
 	for lobby in [$"%Lobby", $"%DirectConnectLobby", SteamLobby]:
@@ -366,6 +368,11 @@ func load_replays():
 func _on_reset_zoom_pressed():
 	if is_instance_valid(game):
 		game.reset_zoom()
+
+func _set_prediction_speed(speed: int):
+	var btn = get_node_or_null("%%%dSpeed" % speed)
+	if btn:
+		btn.emit_signal("pressed")
 
 func set_turn_time(time, minutes=false):
 #	print("setting turn time to " + str(time))
@@ -724,18 +731,69 @@ func pause():
 		$"%SaveReplayButton".text = "save replay"
 		$"%SaveReplayLabel".text = ""
 
+func _on_hotkey_changed(_action):
+	update_help_text()
+
+func update_help_text():
+	$"%TopInfo".text = _format_help([
+		[Hotkeys.LOCK_IN, "Lock in"],
+		[Hotkeys.WATCH_REPLAY, "Watch replay"],
+		[Hotkeys.PAUSE, "Open menu"],
+		[Hotkeys.TOGGLE_HUD, "Toggle HUD"],
+	])
+	$"%TopInfoMP".text = _format_help([
+		[Hotkeys.LOCK_IN, "Lock in"],
+		[Hotkeys.PAUSE, "Open menu"],
+		[Hotkeys.OPEN_CHAT, "Chat"],
+		[Hotkeys.TOGGLE_HUD, "Toggle HUD"],
+	])
+	$"%TopInfoReplay".text = _format_help([
+		[Hotkeys.WATCH_REPLAY, "Watch replay"],
+		[Hotkeys.EDIT_REPLAY, "Edit replay"],
+		[Hotkeys.PAUSE, "Open menu"],
+		[Hotkeys.TOGGLE_HUD, "Toggle HUD"],
+	])
+
+func _format_help(entries: Array) -> String:
+	var parts = []
+	for entry in entries:
+		var key_name = Hotkeys.get_display_name(entry[0])
+		if key_name == "":
+			continue
+		parts.append("%s: %s" % [key_name, entry[1]])
+	return PoolStringArray(parts).join(" - ")
+
 func _unhandled_input(event):
-	if event is InputEventKey:
-		if event.pressed:
-			if event.scancode == KEY_ENTER:
-				if is_instance_valid(game):
-					$"%ChatWindow".show()
-					$"%ChatWindow".line_edit_focus()
-			if event.scancode == KEY_F1:
-				visible = !visible
-				$"../HudLayer/HudLayer".visible = ! $"../HudLayer/HudLayer".visible
-				$"../GhostLayer".visible = visible
-				Global.ui_hidden = !visible
+	if event.is_action_pressed(Hotkeys.OPEN_CHAT):
+		if is_instance_valid(game):
+			$"%ChatWindow".show()
+			$"%ChatWindow".line_edit_focus()
+	if event.is_action_pressed(Hotkeys.TOGGLE_HUD):
+		visible = !visible
+		$"../HudLayer/HudLayer".visible = ! $"../HudLayer/HudLayer".visible
+		$"../GhostLayer".visible = visible
+		Global.ui_hidden = !visible
+	if event.is_action_pressed(Hotkeys.TOGGLE_FREE_CANCEL):
+		_toggle_free_cancel()
+	if event.is_action_pressed(Hotkeys.TOGGLE_PREDICTION):
+		_toggle_prediction()
+	if event.is_action_pressed(Hotkeys.TOGGLE_HITBOXES):
+		_toggle_hitboxes()
+	if event.is_action_pressed(Hotkeys.CLEAR_PARTICLES):
+		_on_ClearParticlesButton_pressed()
+	if event.is_action_pressed(Hotkeys.TOGGLE_PLAYBACK_CONTROLS):
+		_toggle_playback_controls()
+	if event.is_action_pressed(Hotkeys.TOGGLE_PROJECTILE_OWNERS):
+		_toggle_projectile_owners()
+	if event.is_action_pressed(Hotkeys.RESET_ZOOM):
+		_on_reset_zoom_pressed()
+	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_1):
+		_set_prediction_speed(1)
+	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_2):
+		_set_prediction_speed(2)
+	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_3):
+		_set_prediction_speed(3)
+	_handle_xy_nudge(event)
 #			if !Network.multiplayer_active:
 #				if is_instance_valid(game) and $"%ReplayControls".visible:
 #					if event.scancode == KEY_P:
@@ -940,6 +998,67 @@ func _on_ClearParticlesButton_pressed():
 func _on_RoadmapButton_toggled(button_pressed):
 	$"%RoadmapListContainer".visible = button_pressed
 	pass # Replace with function body.
+
+
+# --- More Hotkeys handlers --------------------------------------------------
+
+func _toggle_free_cancel():
+	if not is_instance_valid(game):
+		return
+	var targets = []
+	if Network.multiplayer_active:
+		targets.append(p1_action_buttons if Network.player_id == 1 else p2_action_buttons)
+	else:
+		targets = [p1_action_buttons, p2_action_buttons]
+	for ab in targets:
+		var feint_btn = ab.get_node("%FeintButton")
+		if not feint_btn.disabled:
+			feint_btn.pressed = !feint_btn.pressed
+			ab.send_ui_action()
+
+func _toggle_prediction():
+	var btn = get_node_or_null("%GhostButton")
+	if btn:
+		btn.set_pressed(!btn.pressed)
+
+func _toggle_hitboxes():
+	Global.show_hitboxes = !Global.show_hitboxes
+	$"%HitboxesButton".set_pressed_no_signal(Global.show_hitboxes)
+	Global.save_options()
+
+func _toggle_playback_controls():
+	Global.show_playback_controls = !Global.show_playback_controls
+	$"%PlaybackControls".set_pressed_no_signal(Global.show_playback_controls)
+	Global.save_options()
+	if is_instance_valid(game) and not Network.multiplayer_active:
+		$"%ReplayControls".visible = Global.show_playback_controls
+
+func _toggle_projectile_owners():
+	Global.show_projectile_owners = !Global.show_projectile_owners
+	$"%ProjectileOwnersButton".set_pressed_no_signal(Global.show_projectile_owners)
+	Global.save_options()
+
+
+# --- XY plot arrow-key nudging (not rebindable) -----------------------------
+
+func _handle_xy_nudge(event):
+	if not is_instance_valid(Hotkeys.hovered_xy_plot):
+		return
+	if not (event is InputEventKey) or not event.pressed or event.echo:
+		return
+	var nudge = null
+	match event.scancode:
+		KEY_LEFT: nudge = Vector2(-0.01, 0)
+		KEY_RIGHT: nudge = Vector2(0.01, 0)
+		KEY_UP: nudge = Vector2(0, -0.01)
+		KEY_DOWN: nudge = Vector2(0, 0.01)
+	if nudge == null:
+		return
+	var plot = Hotkeys.hovered_xy_plot
+	var new_value = plot.value_float + nudge * plot.panel_radius
+	new_value = new_value.limit_length(plot.panel_radius)
+	plot.update_value(new_value, true, true)
+	plot.emit_signal("data_changed")
 
 
 func _on_WorkshopUploader_pressed():

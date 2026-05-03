@@ -1,11 +1,15 @@
 extends PlayerExtra
 
 onready var spike_button = $"%DisableSpikeButton"
+onready var bloom_button = $"%BloomButton"
 onready var juke_button = $"%JukeButton"
 onready var juke_dir = $"%JukeDir"
 
+const BLOOM_AVAILABLE_TICK = 7
+
 func _ready():
 	spike_button.connect("toggled", self, "_on_data_changed")
+	bloom_button.connect("toggled", self, "_on_data_changed")
 	juke_button.connect("toggled", self, "_on_data_changed")
 	juke_dir.connect("data_changed", self, "_on_data_changed", [null])
 
@@ -15,12 +19,14 @@ func _on_data_changed(_on):
 func show_options():
 	spike_button.hide()
 	spike_button.set_pressed_no_signal(true)
+	bloom_button.hide()
+	bloom_button.set_pressed_no_signal(false)
 	juke_button.show()
 	if fighter.current_state().state_name == "Knockdown" or fighter.current_state().state_name == "HardKnockdown":
 		juke_button.hide()
 		juke_dir.hide()
 		return
-	
+
 	if fighter.current_state().get("disable_aerial_movement"):
 		juke_button.hide()
 		juke_dir.hide()
@@ -29,6 +35,13 @@ func show_options():
 	if spike:
 		if spike.get("can_cancel"):
 			spike_button.show()
+
+	# Bloom is offered once the gas bomb has been out long enough — reading
+	# the projectile's current state tick (it lives in GasBombDefault). Toggle
+	# is unpressed by default so the bomb only detonates early on explicit opt-in.
+	var bomb = fighter.obj_from_name(fighter.gas_bomb_projectile)
+	if bomb and bomb.current_state().current_tick > BLOOM_AVAILABLE_TICK:
+		bloom_button.show()
 
 func is_invalid_state(state):
 	return state.type == CharacterState.ActionType.Defense or state.state_name == "DashBackward"
@@ -120,6 +133,7 @@ func get_extra():
 			is_back_juke = "E" in btn
 	var extra = {
 		"spike_enabled": spike_button.pressed,
+		"bloom": bloom_button.pressed and bloom_button.is_visible_in_tree(),
 		"juke_dir": juke_data,
 		"back_juke": is_back_juke
 	}
@@ -127,6 +141,7 @@ func get_extra():
 
 func reset():
 	spike_button.set_pressed_no_signal(true)
+	bloom_button.set_pressed_no_signal(false)
 	juke_button.set_pressed_no_signal(false)
 #	juke_dir.hide()
 

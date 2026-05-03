@@ -488,6 +488,7 @@ Network="*res://cl_port/Network.gd"
 ModLoader="*res://modloader/ModLoader.gd"
 SteamLobby="*res://cl_port/SteamLobby.gd"
 Custom="*res://Custom.gd"
+Hotkeys="*res://Hotkeys.gd"
 ModOverride="*res://ModOverride.gd"
 
 [debug]

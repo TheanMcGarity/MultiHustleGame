@@ -1196,6 +1196,14 @@ func launched_by(hitbox):
 		
 		
 		state_machine._change_state(state, {"hitbox": hitbox})
+		# Clear was_my_turn so the upcoming Continue logic doesn't see a
+		# stale "we were naturally interruptable" flag from the pre-hit state.
+		# Otherwise the Continue elif (`was_my_turn ... and next_state_on_hold`)
+		# will fire on HurtAerial — which inherits next_state_on_hold=true by
+		# default — and pop us into the hurt state's fallback (Wait) early,
+		# right after a projectile hit on a frame where both players were
+		# actionable.
+		was_my_turn = false
 		if hitbox.disable_collision:
 			colliding_with_opponent = false
 

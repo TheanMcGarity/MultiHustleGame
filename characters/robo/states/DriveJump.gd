@@ -9,12 +9,7 @@ const FALL_SPEED = "16"
 const SPIN_RATE = TAU / 8
 
 func _frame_0():
-	if !host.reverse_state:
-		start_jump()
-
-func _frame_3():
-	if host.reverse_state:
-		start_jump()
+	start_jump()
 
 func start_jump():
 	var amount = host.fixed_map("0.0", VERTICAL_FORCE, MINIMUM_FORCE, VERTICAL_FORCE, xy_to_dir(data.x, "0", VERTICAL_FORCE).x)
@@ -30,7 +25,7 @@ func _tick():
 	host.apply_x_fric(X_FRIC)
 	host.apply_grav_custom(GRAV, FALL_SPEED)
 	host.apply_forces_no_limit()
-	if current_tick > (3 if host.reverse_state else 1) and host.is_grounded():
+	if current_tick > 1 and host.is_grounded():
 		return "Landing"
 	if current_tick == 20:
 		enable_interrupt()

@@ -81,6 +81,10 @@ func process_extra(extra):
 		if obj:
 			if !extra.spike_enabled:
 				obj.disable()
+	if extra.has("bloom") and extra.bloom:
+		var bomb = obj_from_name(gas_bomb_projectile)
+		if bomb and bomb.current_state().get("bloom_queued") != null:
+			bomb.current_state().bloom_queued = true
 	var juke_dir = extra.get("juke_dir")
 #	juke_ticks = 0
 	if juke_dir != null:

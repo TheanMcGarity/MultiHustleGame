@@ -102,6 +102,11 @@ onready var magnet_polygon2 = $"%MagnetPolygon2"
 onready var chainsaw_arm_ghosts = [
 ]
 
+func get_current_limb_sprite_node():
+	if drive_jump_sprite and drive_jump_sprite.visible:
+		return drive_jump_sprite
+	return .get_current_limb_sprite_node()
+
 func _ready():
 	chainsaw_arm.set_material(sprite.get_material())
 	drive_jump_sprite.set_material(sprite.get_material())

@@ -12,9 +12,11 @@ var homing = false
 var bounces = 2
 var last_y_vel = "0"
 var last_x_vel = "0"
+var bloom_queued = false
 
 func _enter():
 	host.start_invulnerability()
+	host.play_sound("Spawn")
 
 func _tick():
 	apply_grav = false
@@ -27,6 +29,11 @@ func _tick():
 		last_y_vel = vel.y
 	if !fixed.eq(vel.x, "0"):
 		last_x_vel = vel.x
+
+	if bloom_queued:
+		spawn_acid_bubbles(vel, NUM_BUBBLES - 2)
+		host.disable()
+		return
 
 	if host.get_fighter().is_in_hurt_state(false) and !host.get_opponent().current_state().get("IS_BURST"):
 		host.disable()
@@ -105,9 +112,11 @@ func try_bounce():
 	bounces -= 1
 	return true
 
-func spawn_acid_bubbles(vel):
+func spawn_acid_bubbles(vel, count = NUM_BUBBLES):
+#	host.play_sound("Explo1")
+	host.play_sound("Explo2")
 	var vel_n = fixed.normalized_vec_times(vel.x, vel.y, "2.0")
-	for i in range(NUM_BUBBLES):
+	for i in range(count):
 		var bubble = host.spawn_object(ACID_BUBBLE_SCENE, 0, 0)
 		bubble.no_juke_pips = true
 		bubble.get_node("StateMachine/Default").anim_length = 60 + i

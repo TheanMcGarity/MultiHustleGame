@@ -22,6 +22,8 @@ func _frame_6():
 	spawn_particle_relative(particle_scene, Vector2(0, -16))
 
 func is_usable():
+	if host.last_turn_block:
+		return false
 	if host.orb_projectile:
 		var obj = host.obj_from_name(host.orb_projectile)
 		if obj:

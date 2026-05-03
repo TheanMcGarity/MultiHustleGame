@@ -6,6 +6,9 @@ export var poison = false
 func _on_hit_something(obj, hitbox):
 	queue_state_change("Pop")
 
+func _enter():
+	host.play_sound("Spawn")
+
 func _tick():
 	if poison:
 		var opponent = host.get_opponent()

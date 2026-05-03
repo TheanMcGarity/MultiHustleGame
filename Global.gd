@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.51-steam-unstable"
+var VERSION = "1.9.53-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -348,44 +348,44 @@ func get_default_player_data():
 
 func get_player_data():
 	var file = File.new()
-	var data
-	if !file.file_exists("user://playerdata.json"):
-		data = get_default_player_data()
-		save_player_data(data)
-	file.open("user://playerdata.json", File.READ)
-	data = parse_json(file.get_as_text())
 	var default_data = get_default_player_data()
+	if !file.file_exists("user://playerdata.json"):
+		save_player_data(default_data)
+		return default_data
+	file.open("user://playerdata.json", File.READ)
+	var data = parse_json(file.get_as_text())
+	file.close()
+	# Empty/corrupt read can be a transient state from a concurrent writer
+	# (e.g. another instance mid-save). Fall back to defaults in memory rather
+	# than overwriting the file, otherwise the racing read would clobber the
+	# real data the other process is about to land.
 	if !(data is Dictionary):
-		save_player_data(get_default_player_data())
-		file.close()
-		return get_default_player_data()
+		return default_data
 	for key in default_data:
 		if not (key in data):
 			data[key] = default_data[key]
-	file.close()
 	return data
 
 func save_player_data(data: Dictionary):
 	var file = File.new()
-	var existing_data
-	if !file.file_exists("user://playerdata.json"):
-		existing_data = get_default_player_data()
-	else:
+	var existing_data = get_default_player_data()
+	if file.file_exists("user://playerdata.json"):
 		file.open("user://playerdata.json", File.READ)
-		var string = file.get_as_text()
-		existing_data = parse_json(string)
-		if !(existing_data is Dictionary):
-			var dir = Directory.new()
-			dir.open("user://")
-			dir.remove("user://playerdata.json")
-			existing_data = get_default_player_data()
-
+		var loaded = parse_json(file.get_as_text())
+		file.close()
+		if loaded is Dictionary:
+			existing_data = loaded
 	for key in data:
 		existing_data[key] = data[key]
-	file.open("user://playerdata.json", File.WRITE)
+	# Write to a per-process tmp then atomic-rename so readers never see a
+	# truncated file mid-write, and concurrent instances don't trash each
+	# other's tmp file.
+	var tmp_path = "user://playerdata.json.%d.tmp" % OS.get_process_id()
+	file.open(tmp_path, File.WRITE)
 	file.store_string(JSON.print(existing_data, "  "))
 	file.close()
-	return
+	var dir = Directory.new()
+	dir.rename(tmp_path, "user://playerdata.json")
 
 func reload():
 	if character_select_node:

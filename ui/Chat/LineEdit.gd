@@ -8,7 +8,7 @@ func _ready():
 func _gui_input(event):
 	if event is InputEventKey:
 		if event.pressed:
-			if event.scancode == KEY_ENTER:
+			if event.is_action_pressed(Hotkeys.SEND_CHAT):
 				send_message()
 		$KeyboardSound.play()
 

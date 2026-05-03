@@ -499,12 +499,15 @@ func _on_plot_mouse_entered():
 	mouse_over = true
 	x_label.show()
 	y_label.show()
+	Hotkeys.hovered_xy_plot = self
 
 func _on_plot_mouse_exited():
 	mouse_over = false
 	if not mouse_clicked:
 		x_label.hide()
 		y_label.hide()
+	if Hotkeys.hovered_xy_plot == self:
+		Hotkeys.hovered_xy_plot = null
 
 func get_update_speed():
 	return ((1.0 + (1.0 / Global.get_ghost_speed_modifier())) / 2.0) * 0.3
@@ -545,7 +548,7 @@ func midpoint():
 	
 	return Vector2(pos_x, pos_y)
 
-func update_value(p = null, set_buffer_update = true):
+func update_value(p = null, set_buffer_update = true, ignore_snap = false):
 	var limit_center = get_limit_center()
 	var limit_range = get_limit_range()
 
@@ -588,7 +591,7 @@ func update_value(p = null, set_buffer_update = true):
 	var shift_pressed = Input.is_key_pressed(KEY_SHIFT)
 	var invert_snap = (not Engine.editor_hint) and Global.xyplot_invert_snap
 	var snap_now = shift_pressed if invert_snap else !shift_pressed
-	if snap and snap_now:
+	if snap and snap_now and not ignore_snap:
 		if snap_radius > 0.0:
 			if abs(point.length() / panel_radius - snap_radius) < SNAP_AMOUNT:
 				point = point.normalized() * snap_radius * panel_radius

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://projectile/BaseProjectile.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/mutant/projectiles/states/AcidBubbleDefault.gd" type="Script" id=2]
@@ -10,6 +10,8 @@
 [ext_resource path="res://mechanics/Hitbox.gd" type="Script" id=8]
 [ext_resource path="res://characters/mutant/sound/bubble1.wav" type="AudioStream" id=9]
 [ext_resource path="res://characters/mutant/projectiles/sprites/acid_bubble4.png" type="Texture" id=10]
+[ext_resource path="res://framework/VariableSound2D.gd" type="Script" id=11]
+[ext_resource path="res://characters/mutant/sound/bubble.wav" type="AudioStream" id=12]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
@@ -39,6 +41,12 @@ animation = "Default"
 __meta__ = {
 "_edit_lock_": true
 }
+
+[node name="Spawn" type="AudioStreamPlayer2D" parent="Sounds" index="0"]
+stream = ExtResource( 12 )
+volume_db = -15.0
+bus = "Fx"
+script = ExtResource( 11 )
 
 [node name="CollisionBox" parent="." index="2"]
 width = 5

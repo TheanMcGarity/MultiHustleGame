@@ -670,7 +670,12 @@ func tick():
 		if ReplayManager.playback:
 			if not ReplayManager.resimulating:
 				is_in_replay = true
-				if current_tick > max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
+				# End playback right after the last frame applies (>=, not >).
+				# With > we ran an extra playback tick past max_replay_tick which
+				# bypasses the `is_waiting_on_player` check, advancing the state
+				# while live mode would have paused. That's the "extra turn
+				# where the comboer does nothing" symptom on resync/backup load.
+				if current_tick >= max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
 					ReplayManager.set_deferred("playback", false)
 			else :
 				if current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else max_replay_tick - 2):
@@ -1631,11 +1636,10 @@ func _unhandled_input(event: InputEvent):
 			camera.global_position -= event.relative * camera.zoom
 			snapping_camera = false
 		
-	if !is_ghost and singleplayer:
+	if !is_ghost and (singleplayer or spectating):
 			if event.is_action_pressed("playback"):
-				if !game_finished and !ReplayManager.playback:
-					if is_waiting_on_player() and current_tick > 0:
-						buffer_playback = true
+				if !ReplayManager.resimulating and current_tick > 0:
+					buffer_playback = true
 			if event.is_action_pressed("edit_replay"):
 				if ReplayManager.playback:
 					buffer_edit = true

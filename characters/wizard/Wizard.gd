@@ -22,6 +22,8 @@ const SPARK_SPEED_FRAMES = 70
 const SPARK_BOMB_SELF_DAMAGE = 31 
 const FLAME_WAVE_COOLDOWN = 30
 const ORB_DRAIN_INCREASE_FREQUENCY = 120
+const TK_HOVER_AMOUNT = HOVER_AMOUNT / 2
+#const TK_LAUNCH_HOVER_AMOUNT = HOVER_AMOUNT / 4 
 
 var hover_left = 0
 var hover_drain_amount = 25
@@ -270,6 +272,10 @@ func tick():
 				continue
 		for disabled_obj_name in disabled_bombs:
 			spark_bombs.erase(disabled_obj_name)
+	# No live bombs left to detonate — clear the sticky flag so a freshly
+	# spawned bomb next turn doesn't auto-explode on the wizard's next tick.
+	if !spark_bombs:
+		detonating_bombs = false
 
 	if tether_ticks > 0:
 		if orb_projectile and !is_grounded():

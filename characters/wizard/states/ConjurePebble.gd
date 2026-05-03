@@ -17,6 +17,10 @@ const SILLY_ITEM_CHANCES = {
 
 const NON_BOULDER_CHANCE = 15
 
+func _frame_0():
+	host.hover_left -= host.TK_HOVER_AMOUNT
+	pass
+
 func _frame_1():
 	projectile_scene = host.randi_choice(BOULDERS)
 	if host.randi_percent(NON_BOULDER_CHANCE):
@@ -33,4 +37,4 @@ func process_projectile(obj):
 	host.boulder_projectile = obj.obj_name
 
 func is_usable():
-	return .is_usable() and host.boulder_projectile == null
+	return .is_usable() and host.boulder_projectile == null and host.hover_left >= host.TK_HOVER_AMOUNT

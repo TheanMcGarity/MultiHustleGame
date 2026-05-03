@@ -618,6 +618,10 @@ func _set_label_with_ellipsis(label: Label, text: String):
 	label.text = truncated + ellipsis
 
 func _current_username() -> String:
+	if SteamHustle.STARTED and SteamHustle.STEAM_ID:
+		var steam_name = Steam.getFriendPersonaName(SteamHustle.STEAM_ID)
+		if steam_name is String and steam_name != "":
+			return steam_name
 	var pd = Global.get_player_data()
 	if pd is Dictionary:
 		var u = pd.get("username", "")
