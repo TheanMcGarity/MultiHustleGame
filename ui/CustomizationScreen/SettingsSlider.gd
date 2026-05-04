@@ -4,8 +4,6 @@ class_name SettingsSlider
 
 signal value_changed(value)
 
-const ARROW_STEP = 0.01
-
 onready var slider = $"%HSlider"
 var value = 0.0
 var mouse_entered = false
@@ -36,20 +34,26 @@ func _ready():
 	set_value(default_value)
 
 func _input(event):
-	# Override the HSlider's built-in arrow stepping with a flat 0.01 in value
-	# space (its native step is nonlinear in value space for exponential mode).
+	# Override the HSlider's built-in arrow stepping. For linear sliders the
+	# arrow step matches the slider's configured `step` (so 1-decimal sliders
+	# at step=0.1 actually move, instead of snapping back; and 3-decimal
+	# sliders at step=0.001 reach every value). For exponential sliders
+	# (whose internal step lives in [0,1] space, nonlinear in value space)
+	# we use a flat 0.01 in value space. Holding shift jumps 10x the step.
 	# `_input` runs before `_gui_input`, so consuming the event here prevents
 	# the HSlider from also processing the same arrow press.
 	if !slider.has_focus():
 		return
 	if !(event is InputEventKey) or !event.pressed:
 		return
-	if event.scancode == KEY_LEFT:
-		set_value(value - ARROW_STEP)
-		get_tree().set_input_as_handled()
-	elif event.scancode == KEY_RIGHT:
-		set_value(value + ARROW_STEP)
-		get_tree().set_input_as_handled()
+	if event.scancode != KEY_LEFT and event.scancode != KEY_RIGHT:
+		return
+	var arrow_step = 0.01 if exponential else step
+	if event.shift:
+		arrow_step *= 10
+	var direction = -1 if event.scancode == KEY_LEFT else 1
+	set_value(value + direction * arrow_step)
+	get_tree().set_input_as_handled()
 
 func _on_HSlider_value_changed(slider_val):
 	if exponential:
@@ -75,6 +79,11 @@ func set_value(v):
 
 func get_data():
 	return value
+
+func set_label_text(text: String):
+	label_text = text
+	if has_node("%Label"):
+		$"%Label".text = text
 
 func _slider_to_value(t):
 	if min_value <= 0.0:

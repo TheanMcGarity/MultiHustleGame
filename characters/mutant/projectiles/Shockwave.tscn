@@ -47,6 +47,20 @@ _data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 0.992574, 0 ), 0.0, 0.0, 0, 
 
 [node name="BaseProjectile" instance=ExtResource( 1 )]
 script = ExtResource( 5 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 max_fall_speed = "15"
 has_projectile_parry_window = false
 can_be_hit_by_melee = true

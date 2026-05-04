@@ -19,7 +19,14 @@ func _process(delta):
 		hover_bar.value = fighter.hover_left / float(fighter.HOVER_AMOUNT)
 		hover_bar.self_modulate.a = 0.25 if fighter.hover_left <= fighter.HOVER_MIN_AMOUNT else 1.0
 	#	hover_bar.modulate.b = 0.5 if fighter.hovering else 1.0
-		hover_bar.texture_progress = preload("res://characters/wizard/grav_bar3.png") if !fighter.hovering and !fighter.fast_falling else preload("res://characters/wizard/grav_bar4.png")
+	
+		hover_bar.texture_progress = preload("res://characters/wizard/grav_bar3.png")
+		if fighter.boulder_projectile:
+			var proj = fighter.obj_from_name(fighter.boulder_projectile)
+			if proj and !proj.launched:
+				hover_bar.texture_progress = preload("res://characters/wizard/grav_bar_tk.png")
+		if fighter.hovering or fighter.fast_falling:
+			hover_bar.texture_progress = preload("res://characters/wizard/grav_bar4.png")
 #		$"%GeyserLabel".text = "geyser: " + str(fighter.geyser_charge)
 		for i in range(3):
 			var droplet = get_node("%" + str((i + 1) if player_id == 2 else 3 - i))

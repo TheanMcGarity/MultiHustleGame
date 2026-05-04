@@ -1,4 +1,4 @@
-[gd_scene load_steps=336 format=2]
+[gd_scene load_steps=337 format=2]
 
 [ext_resource path="res://mechanics/Hitbox.gd" type="Script" id=1]
 [ext_resource path="res://HurtboxState.gd" type="Script" id=2]
@@ -330,6 +330,7 @@
 [ext_resource path="res://characters/mutant/sprites/gasbomb4.png" type="Texture" id=328]
 [ext_resource path="res://characters/mutant/sprites/gasbomb1.png" type="Texture" id=329]
 [ext_resource path="res://characters/mutant/sprites/actionicons/bloom.png" type="Texture" id=330]
+[ext_resource path="res://sound/common/landing.wav" type="AudioStream" id=331]
 
 [sub_resource type="ShaderMaterial" id=1]
 resource_local_to_scene = true
@@ -10510,6 +10511,8 @@ type = 2
 data_ui_scene = ExtResource( 288 )
 button_texture = ExtResource( 276 )
 air_type = 2
+uses_air_movement = true
+ignore_air_option_use_in_combos = true
 land_cancel = true
 end_feint = false
 self_hit_cancellable = false
@@ -11220,6 +11223,8 @@ sprite_animation = "RollForward"
 anim_length = 4
 loop_animation = true
 endless = true
+enter_sfx = ExtResource( 331 )
+enter_sfx_volume = -10.0
 busy_interrupt_type = 1
 
 [node name="Roll" parent="StateMachine" index="47"]

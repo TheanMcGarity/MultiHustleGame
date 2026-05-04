@@ -7,6 +7,7 @@ const STRAIGHT_FRAMES = 20
 const HOMING_FORCE = "0.9"
 const HOMING_DECEL = "0.85"
 const MAX_HOMING_SPEED = "12"
+const BLOOM_MIN_DISTANCE = "32"
 
 var homing = false
 var bounces = 2
@@ -31,9 +32,17 @@ func _tick():
 		last_x_vel = vel.x
 
 	if bloom_queued:
-		spawn_acid_bubbles(vel, NUM_BUBBLES - 2)
-		host.disable()
-		return
+		var creator = host.get_fighter()
+		var clear = true
+		if creator and creator.combo_count <= 0:
+			var opp = host.get_opponent()
+			if opp:
+				var target = host.obj_local_center(opp)
+				clear = fixed.gt(fixed.vec_len(str(target.x), str(target.y)), BLOOM_MIN_DISTANCE)
+		if clear:
+			spawn_acid_bubbles(vel, NUM_BUBBLES - 2)
+			host.disable()
+			return
 
 	if host.get_fighter().is_in_hurt_state(false) and !host.get_opponent().current_state().get("IS_BURST"):
 		host.disable()

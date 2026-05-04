@@ -52,6 +52,8 @@ onready var settings_map = {
 	$"%TriggerSuperLevelLinger": "trigger_super_level_linger",
 	$"%TriggerAfterSpawnProj": "trigger_after_spawn_projectile",
 	$"%TriggerAfterSpawnProjDuration": "trigger_after_spawn_projectile_duration",
+	$"%TriggerProjectilesActive": "trigger_projectiles_active",
+	$"%TriggerProjectilesActiveLinger": "trigger_projectiles_active_linger",
 	$"%TriggerAfterTakeDmg": "trigger_after_take_damage",
 	$"%TriggerAfterTakeDmgDuration": "trigger_after_take_damage_duration",
 	$"%TriggerAfterOppTakeDmg": "trigger_after_opponent_take_damage",
@@ -131,7 +133,9 @@ func load_settings(settings):
 	if has_node("%MirrorPair"):
 		$"%MirrorPair".set_pressed_no_signal(settings.get("attach_pair_mirror", true))
 	if has_node("%PositionOnly"):
-		$"%PositionOnly".set_pressed_no_signal(settings.get("attach_position_only", true))
+		# UI says "enable limb rotation" — the inverse of the saved
+		# attach_position_only key (kept for backward compat with existing styles).
+		$"%PositionOnly".set_pressed_no_signal(not settings.get("attach_position_only", true))
 	if has_node("%ConsistentSide"):
 		$"%ConsistentSide".set_pressed_no_signal(settings.get("attach_consistent_side", true))
 	if has_node("%CapFramerate"):
@@ -142,6 +146,24 @@ func load_settings(settings):
 		_update_trigger_visibility()
 #			yield(get_tree(), "idle_frame")
 
+const TRIGGER_LABELS = {
+	"TriggerDuringComboLinger": "linger duration",
+	"TriggerDuringMeleeLinger": "linger duration",
+	"TriggerWhileBeingComboedLinger": "linger duration",
+	"TriggerLowHealthThreshold": "health %",
+	"TriggerLowHealthLinger": "linger duration",
+	"TriggerHighHealthThreshold": "health %",
+	"TriggerHighHealthLinger": "linger duration",
+	"TriggerSuperLevelMin": "min level",
+	"TriggerSuperLevelLinger": "linger duration",
+	"TriggerAfterSpawnProjDuration": "duration",
+	"TriggerAfterTakeDmgDuration": "duration",
+	"TriggerAfterOppTakeDmgDuration": "duration",
+	"TriggerAfterPerfectParryDuration": "duration",
+	"TriggerAfterBurstDuration": "duration",
+	"TriggerProjectilesActiveLinger": "linger duration",
+}
+
 func _ready():
 	var shapes = CustomTrailParticle.get_shapes()
 	for shape_name in shapes:
@@ -151,11 +173,20 @@ func _ready():
 		$"%AttachLimb".add_item(limb)
 	$"%AttachLimb".connect("item_selected", self, "_on_attach_limb_selected")
 	$"%CapFramerate".connect("toggled", self, "_on_cap_framerate_toggled")
+	# Driving these labels from code instead of as scene-instance overrides:
+	# Godot's editor has dropped `label_text` overrides on TrailSettings.tscn
+	# multiple times when the parent SettingsSlider scene is re-saved. Keeping
+	# them here makes them invulnerable to that.
+	for slider_name in TRIGGER_LABELS:
+		var n = get_node_or_null("%" + slider_name)
+		if n and n.has_method("set_label_text"):
+			n.set_label_text(TRIGGER_LABELS[slider_name])
 	for trigger_button_name in [
 		"DynamicTriggers",
 		"TriggerDuringCombo", "TriggerDuringMelee", "TriggerWhileBeingComboed",
 		"TriggerLowHealth", "TriggerHighHealth", "TriggerSuperLevel",
-		"TriggerAfterSpawnProj", "TriggerAfterTakeDmg", "TriggerAfterOppTakeDmg",
+		"TriggerAfterSpawnProj", "TriggerProjectilesActive",
+		"TriggerAfterTakeDmg", "TriggerAfterOppTakeDmg",
 		"TriggerAfterPerfectParry", "TriggerAfterBurst"
 	]:
 		get_node("%" + trigger_button_name).connect("toggled", self, "_on_trigger_toggled")
@@ -225,6 +256,8 @@ func _update_trigger_visibility():
 	$"%TriggerSuperLevelMin".visible = dt and $"%TriggerSuperLevel".pressed
 	$"%TriggerSuperLevelLinger".visible = dt and $"%TriggerSuperLevel".pressed
 	$"%TriggerAfterSpawnProjDuration".visible = dt and $"%TriggerAfterSpawnProj".pressed
+	$"%TriggerProjectilesActive".visible = dt
+	$"%TriggerProjectilesActiveLinger".visible = dt and $"%TriggerProjectilesActive".pressed
 	$"%TriggerAfterTakeDmgDuration".visible = dt and $"%TriggerAfterTakeDmg".pressed
 	$"%TriggerAfterOppTakeDmgDuration".visible = dt and $"%TriggerAfterOppTakeDmg".pressed
 	$"%TriggerAfterPerfectParry".visible = dt
@@ -247,7 +280,9 @@ func set_end_color(end_color):
 func get_settings():
 	var attach_limb_text = $"%AttachLimb".get_item_text($"%AttachLimb".selected) if $"%AttachLimb".selected >= 0 else ATTACH_LIMB_NONE
 	var mirror_pair = $"%MirrorPair".pressed if has_node("%MirrorPair") else true
-	var position_only = $"%PositionOnly".pressed if has_node("%PositionOnly") else true
+	# UI checkbox is "enable limb rotation"; saved key is the inverse
+	# (`attach_position_only`) — kept that way so old styles still load correctly.
+	var position_only = (not $"%PositionOnly".pressed) if has_node("%PositionOnly") else true
 	var consistent_side = $"%ConsistentSide".pressed if has_node("%ConsistentSide") else true
 	var map = {
 		"start_color": $"%StartColor".current_color,

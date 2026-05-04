@@ -769,6 +769,11 @@ func _format_help(entries: Array) -> String:
 	return PoolStringArray(parts).join(" - ")
 
 func _unhandled_input(event):
+	if event is InputEventKey and event.pressed and event.scancode == KEY_ESCAPE:
+		if $"%OptionsContainer".visible:
+			$"%OptionsContainer".hide()
+			get_tree().set_input_as_handled()
+			return
 	if event.is_action_pressed(Hotkeys.OPEN_CHAT):
 		if is_instance_valid(game):
 			$"%ChatWindow".show()

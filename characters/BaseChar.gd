@@ -419,6 +419,7 @@ var aura_particle_2 = null
 # and rollback resync them along with everything else.
 var style_aura_got_hit_tick = -100000
 var style_aura_projectile_spawn_tick = -100000
+var style_aura_projectiles_active_tick = -100000
 var style_aura_combo_active_tick = -100000
 var style_aura_being_comboed_tick = -100000
 var style_aura_melee_attack_tick = -100000
@@ -583,6 +584,8 @@ func _update_style_aura_trackers():
 	var state = current_state()
 	if state and state.type == CharacterState.ActionType.Attack:
 		style_aura_melee_attack_tick = current_tick
+	if get_active_projectiles().size() > 0:
+		style_aura_projectiles_active_tick = current_tick
 
 # Threshold-based triggers (low/high health, super level) are per-aura since
 # each aura has its own threshold. The tick tracker lives on the particle and
@@ -649,6 +652,10 @@ func _aura_trigger_active(particle, settings: Dictionary) -> bool:
 	if not any_active and settings.get("trigger_after_spawn_projectile", false):
 		var dur = int(settings.get("trigger_after_spawn_projectile_duration", 30))
 		if current_tick - style_aura_projectile_spawn_tick <= dur:
+			any_active = true
+	if not any_active and settings.get("trigger_projectiles_active", false):
+		var linger = int(settings.get("trigger_projectiles_active_linger", 0))
+		if current_tick - style_aura_projectiles_active_tick <= linger:
 			any_active = true
 	if not any_active and settings.get("trigger_after_perfect_parry", false):
 		var dur = int(settings.get("trigger_after_perfect_parry_duration", 30))
@@ -825,7 +832,7 @@ func can_unlock_achievements():
 func _ready():
 	sprite.animation = "Wait"
 	state_variables.append_array(
-		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick"]
+		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_projectiles_active_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick"]
 	)
 	add_to_group("Fighter")
 	connect("got_hit", self, "on_got_hit")
@@ -1281,9 +1288,8 @@ func launched_by(hitbox):
 				will_block = !projectile
 
 	var scaling_offset = hitbox.combo_scaling_amount - 1
-	
+	var self_hit = _is_self_hit(hitbox)
 
-	
 #	current_prediction = -1
 	if will_launch:
 		var state
@@ -1299,9 +1305,9 @@ func launched_by(hitbox):
 					state = "HurtAerial"
 					grounded_hits_taken = 0
 
-		increment_opponent_combo(hitbox)
-		
-		
+		if !self_hit:
+			increment_opponent_combo(hitbox)
+
 		state_machine._change_state(state, {"hitbox": hitbox})
 		# Clear was_my_turn so the upcoming Continue logic doesn't see a
 		# stale "we were naturally interruptable" flag from the pre-hit state.
@@ -1338,7 +1344,7 @@ func launched_by(hitbox):
 		damage = fixed.round(fixed.mul(str(damage), "0.5"))
 	if hitbox.counter_hit:
 		damage = fixed.round(fixed.mul(str(damage), COUNTER_HIT_DAMAGE_MODIFIER))
-	take_damage(damage, hitbox.minimum_damage, hitbox.meter_gain_modifier, scaling_offset)
+	take_damage(damage, hitbox.minimum_damage, hitbox.meter_gain_modifier, scaling_offset, "1.0", self_hit)
 
 	if will_launch:
 		state_tick()
@@ -1402,11 +1408,13 @@ func hit_by(hitbox, force_hit=false):
 		return thrown_by(hitbox)
 	if force_hit or (not can_parry_hitbox(hitbox)):
 		ghost_got_hit = true
+		var self_hit = _is_self_hit(hitbox)
 		match hitbox.hitbox_type:
 			Hitbox.HitboxType.Normal:
 				launched_by(hitbox)
 			Hitbox.HitboxType.NoHitstun:
-				take_damage(hitbox.damage if opponent.combo_count <= 0 else hitbox.damage_in_combo)
+				var combo_ref = self if self_hit else opponent
+				take_damage(hitbox.damage if combo_ref.combo_count <= 0 else hitbox.damage_in_combo, 0, "1.0", 0, "1.0", self_hit)
 			Hitbox.HitboxType.Burst:
 				launched_by(hitbox)
 			Hitbox.HitboxType.Flip:
@@ -1417,17 +1425,19 @@ func hit_by(hitbox, force_hit=false):
 					hitbox.facing = get_facing()
 					pass
 				emit_signal("got_hit")
-				increment_opponent_combo(hitbox)
-				take_damage(hitbox.get_damage(), hitbox.minimum_damage, hitbox.meter_gain_modifier)
+				if !self_hit:
+					increment_opponent_combo(hitbox)
+				take_damage(hitbox.get_damage(), hitbox.minimum_damage, hitbox.meter_gain_modifier, 0, "1.0", self_hit)
 			Hitbox.HitboxType.ThrowHit:
 				emit_signal("got_hit")
 				apply_hitlag(hitbox)
 				opponent.apply_hitlag(hitbox)
 				if hitbox.rumble:
 					rumble(hitbox.screenshake_amount, hitbox.victim_hitlag if hitbox.screenshake_frames < 0 else hitbox.screenshake_frames)
-				take_damage(hitbox.get_damage(), hitbox.minimum_damage, hitbox.meter_gain_modifier)
+				take_damage(hitbox.get_damage(), hitbox.minimum_damage, hitbox.meter_gain_modifier, 0, "1.0", self_hit)
 #				increment_opponent_combo(hitbox)
-				opponent.incr_combo(hitbox.scale_combo, false, false, hitbox.combo_scaling_amount)
+				if !self_hit:
+					opponent.incr_combo(hitbox.scale_combo, false, false, hitbox.combo_scaling_amount)
 			Hitbox.HitboxType.OffensiveBurst:
 				opponent.hitstun_decay_combo_count = 0
 #				opponent.combo_proration = Utils.int_min(opponent.combo_proration, 0)
@@ -1717,9 +1727,12 @@ func get_penalty_damage_modifier():
 		return "1.0"
 	return fixed.add("1.0", fixed.mul(fixed.div(str(penalty - min_penalty_for_damage), str(MAX_PENALTY - min_penalty_for_damage)), "0.5"))
 
-func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling_offset=0, damage_taken_meter_gain_modifier = "1.0"):
-	
-	if opponent.combo_count == 0:
+func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling_offset=0, damage_taken_meter_gain_modifier = "1.0", self_hit=false):
+	# Self-hit (own projectile damages self): scale by my own combo state and
+	# don't credit the opponent with meter / combo damage tracking.
+	var combo_ref = self if self_hit else opponent
+
+	if combo_ref.combo_count == 0:
 		trail_hp = get_visual_hp()
 
 	if damage == 0:
@@ -1727,18 +1740,20 @@ func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling
 
 	gain_burst_meter(damage / BURST_ON_DAMAGE_AMOUNT)
 	var damage_score = Utils.int_max(damage, minimum)
-	damage = Utils.int_max(combo_stale_damage(damage, combo_scaling_offset), 1)
+	damage = Utils.int_max(combo_stale_damage(damage, combo_scaling_offset, self_hit), 1)
 	damage = Utils.int_max(damage, minimum)
 	damage = Utils.int_max(guts_stale_damage(damage), 1)
-	if opponent.parry_combo:
+	if !self_hit and opponent.parry_combo:
 		damage = fixed.round(fixed.mul(str(damage), parry_combo_scaling))
 	damage = fixed.round(fixed.mul(str(damage), get_penalty_damage_modifier()))
 	var meter_gain = fixed.round(fixed.mul(str(damage / DAMAGE_SUPER_GAIN_DIVISOR), meter_gain_modifier))
 
-	opponent.gain_super_meter(meter_gain)
+	if !self_hit:
+		opponent.gain_super_meter(meter_gain)
 	gain_super_meter(fixed.round(fixed.mul(str(damage / DAMAGE_TAKEN_SUPER_GAIN_DIVISOR), damage_taken_meter_gain_modifier)))
 	damage = fixed.round(fixed.mul(fixed.mul(str(damage), damage_taken_modifier), global_damage_modifier))
-	opponent.combo_damage += damage
+	if !self_hit:
+		opponent.combo_damage += damage
 	hp -= damage
 	add_penalty(-25)
 	if hp < 0:
@@ -1768,9 +1783,17 @@ func guts_stale_damage(damage: int):
 	damage = fixed.round(fixed.mul(str(damage), guts))
 	return damage
 
-func combo_stale_damage(damage: int, combo_scaling_offset=0):
-	var staling = get_combo_stale(Utils.int_max(opponent.combo_count - combo_scaling_offset + (opponent.combo_proration if opponent.combo_count > 1 else 0) - 1, 0))
+func combo_stale_damage(damage: int, combo_scaling_offset=0, self_hit=false):
+	var src = self if self_hit else opponent
+	var staling = get_combo_stale(Utils.int_max(src.combo_count - combo_scaling_offset + (src.combo_proration if src.combo_count > 1 else 0) - 1, 0))
 	return fixed.round(fixed.mul(str(damage), staling))
+
+# True when the hitbox was launched by this fighter (own projectile or self-melee).
+func _is_self_hit(hitbox) -> bool:
+	if not objs_map.has(hitbox.host):
+		return false
+	var attacker = objs_map[hitbox.host].get_fighter()
+	return attacker == self
 
 func can_perfect_parry():
 	return true

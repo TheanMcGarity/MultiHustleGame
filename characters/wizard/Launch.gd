@@ -6,7 +6,7 @@ func _frame_0():
 	if redirect:
 		go()
 
-func _frame_4():
+func _frame_3():
 	if !redirect:
 		go()
 

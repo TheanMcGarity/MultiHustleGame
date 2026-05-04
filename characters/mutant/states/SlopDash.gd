@@ -14,6 +14,8 @@ func _frame_0():
 		started_in_air = true
 		host.set_grounded(false)
 		host.move_directly(0, -1)
+
+func _frame_1():
 	._frame_0()
 
 func is_usable():

@@ -82,6 +82,7 @@ visible = false
 margin_top = 171.0
 margin_right = 212.0
 margin_bottom = 183.0
+hint_tooltip = "Trigger while you are landing a combo on the opponent."
 text = "  during combo"
 
 [node name="TriggerDuringComboLinger" parent="." instance=ExtResource( 3 )]
@@ -89,11 +90,11 @@ unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
-label_text = "linger duration"
 
 [node name="TriggerDuringMelee" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger while you are in a melee attack state."
 text = "  during melee attacks"
 
 [node name="TriggerDuringMeleeLinger" parent="." instance=ExtResource( 3 )]
@@ -101,11 +102,11 @@ unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
-label_text = "linger duration"
 
 [node name="TriggerWhileBeingComboed" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger while the opponent is landing a combo on you."
 text = "  while being comboed"
 
 [node name="TriggerWhileBeingComboedLinger" parent="." instance=ExtResource( 3 )]
@@ -113,11 +114,11 @@ unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
-label_text = "linger duration"
 
 [node name="TriggerLowHealth" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger while your health is at or below the threshold percentage."
 text = "  low health"
 
 [node name="TriggerLowHealthThreshold" parent="." instance=ExtResource( 3 )]
@@ -126,18 +127,17 @@ visible = false
 default_value = 30.0
 min_value = 1.0
 step = 1.0
-label_text = "health %"
 
 [node name="TriggerLowHealthLinger" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
-label_text = "linger duration"
 
 [node name="TriggerHighHealth" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger while your health is at or above the threshold percentage."
 text = "  high health"
 
 [node name="TriggerHighHealthThreshold" parent="." instance=ExtResource( 3 )]
@@ -146,18 +146,17 @@ visible = false
 default_value = 70.0
 min_value = 1.0
 step = 1.0
-label_text = "health %"
 
 [node name="TriggerHighHealthLinger" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
-label_text = "linger duration"
 
 [node name="TriggerSuperLevel" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger while you have at least the specified super level available."
 text = "  at super level"
 
 [node name="TriggerSuperLevelMin" parent="." instance=ExtResource( 3 )]
@@ -167,18 +166,17 @@ default_value = 1.0
 min_value = 1.0
 max_value = 9.0
 step = 1.0
-label_text = "min level"
 
 [node name="TriggerSuperLevelLinger" parent="." instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
-label_text = "linger duration"
 
 [node name="TriggerAfterSpawnProj" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger for the duration window after you spawn a projectile."
 text = "  after spawning projectiles"
 
 [node name="TriggerAfterSpawnProjDuration" parent="." instance=ExtResource( 3 )]
@@ -188,11 +186,23 @@ default_value = 30.0
 min_value = 1.0
 max_value = 120.0
 step = 1.0
-label_text = "duration"
+
+[node name="TriggerProjectilesActive" type="CheckButton" parent="."]
+unique_name_in_owner = true
+visible = false
+hint_tooltip = "Trigger while any of your projectiles are alive on the field."
+text = "  while projectiles active"
+
+[node name="TriggerProjectilesActiveLinger" parent="." instance=ExtResource( 3 )]
+unique_name_in_owner = true
+visible = false
+max_value = 120.0
+step = 1.0
 
 [node name="TriggerAfterTakeDmg" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger for the duration window after you take damage."
 text = "  after taking damage"
 
 [node name="TriggerAfterTakeDmgDuration" parent="." instance=ExtResource( 3 )]
@@ -202,11 +212,11 @@ default_value = 30.0
 min_value = 1.0
 max_value = 120.0
 step = 1.0
-label_text = "duration"
 
 [node name="TriggerAfterOppTakeDmg" type="CheckButton" parent="."]
 unique_name_in_owner = true
 visible = false
+hint_tooltip = "Trigger for the duration window after the opponent takes damage."
 text = "  after opponent takes damage"
 
 [node name="TriggerAfterOppTakeDmgDuration" parent="." instance=ExtResource( 3 )]
@@ -216,7 +226,6 @@ default_value = 30.0
 min_value = 1.0
 max_value = 120.0
 step = 1.0
-label_text = "duration"
 
 [node name="TriggerAfterPerfectParry" type="CheckButton" parent="."]
 unique_name_in_owner = true
@@ -230,7 +239,6 @@ default_value = 30.0
 min_value = 1.0
 max_value = 120.0
 step = 1.0
-label_text = "duration"
 
 [node name="TriggerAfterBurst" type="CheckButton" parent="."]
 unique_name_in_owner = true
@@ -244,7 +252,6 @@ default_value = 30.0
 min_value = 1.0
 max_value = 120.0
 step = 1.0
-label_text = "duration"
 
 [node name="TriggersInverted" type="CheckButton" parent="."]
 unique_name_in_owner = true
@@ -312,9 +319,8 @@ unique_name_in_owner = true
 margin_top = 238.0
 margin_right = 212.0
 margin_bottom = 250.0
-hint_tooltip = "Only apply the limb's position. Don't rotate or flip with the limb data."
-pressed = true
-text = "attach position only"
+hint_tooltip = "When on, the aura rotates and flips with the attached limb. When off, only the limb's position is used (default)."
+text = "rotate with limb"
 
 [node name="ConsistentSide" type="CheckButton" parent="."]
 unique_name_in_owner = true

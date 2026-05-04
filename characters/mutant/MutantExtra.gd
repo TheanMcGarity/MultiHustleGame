@@ -39,9 +39,12 @@ func show_options():
 	# Bloom is offered once the gas bomb has been out long enough — reading
 	# the projectile's current state tick (it lives in GasBombDefault). Toggle
 	# is unpressed by default so the bomb only detonates early on explicit opt-in.
+	# Once bloom_queued is set on the projectile, hide the toggle until the next
+	# gas bomb spawns — the queued detonation is locked in.
 	var bomb = fighter.obj_from_name(fighter.gas_bomb_projectile)
 	if bomb and bomb.current_state().current_tick > BLOOM_AVAILABLE_TICK:
-		bloom_button.show()
+		if not bomb.current_state().get("bloom_queued"):
+			bloom_button.show()
 
 func is_invalid_state(state):
 	return state.type == CharacterState.ActionType.Defense or state.state_name == "DashBackward"

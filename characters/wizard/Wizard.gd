@@ -234,8 +234,12 @@ func tick():
 #		if current_state().busy_interrupt_type != CharacterState.BusyInterrupt.Hurt and !hovering:
 		var hover_to_gain = (hover_gain_amount if hover_left >= HOVER_MIN_AMOUNT else hover_gain_amount_depleted ) if is_grounded() else hover_gain_amount_air
 		var proj = obj_from_name(boulder_projectile)
+#		if proj and !proj.launched:
 		if proj and !proj.launched:
-			hover_to_gain /= 2
+			if hover_left >= HOVER_MIN_AMOUNT:
+				hover_to_gain /= 2
+			else:
+				hover_to_gain -= 1
 		hover_left += hover_to_gain
 		if hover_left > HOVER_AMOUNT:
 			hover_left = HOVER_AMOUNT

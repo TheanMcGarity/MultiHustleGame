@@ -194,6 +194,17 @@ func has_armor():
 func has_autoblock_armor():
 	return (armor_active and !(current_state() is CharacterHurtState))
 
+func meter_gain_modified(amount):
+	# Meter gains are halved only while the orbital strike is in its Fire
+	# state — the windup/aim phase doesn't count, and once the laser ends
+	# the projectile disables itself, so this is a tight on-while-firing gate.
+	var modified = .meter_gain_modified(amount)
+	if orbital_strike_projectile:
+		var proj = obj_from_name(orbital_strike_projectile)
+		if proj and proj.current_state().name == "Fire":
+			modified = modified / 2
+	return modified
+
 
 func incr_combo(scale=true, projectile=false, force=false, combo_scale_amount=1):
 #	if magnet_scale:
