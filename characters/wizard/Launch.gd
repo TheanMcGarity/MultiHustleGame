@@ -3,8 +3,16 @@ extends WizardState
 export var redirect = false
 
 func _frame_0():
+	if redirect:
+		go()
 
-	host.hover_left -= host.TK_LAUNCH_HOVER_AMOUNT
+func _frame_4():
+	if !redirect:
+		go()
+
+func go():
+	if redirect:
+		host.hover_left -= host.TK_LAUNCH_HOVER_AMOUNT
 	var obj = host.obj_from_name(host.boulder_projectile)
 	if obj:
 		var dir = xy_to_dir(data.x, data.y)

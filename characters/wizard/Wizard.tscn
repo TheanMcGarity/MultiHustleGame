@@ -1,4 +1,4 @@
-[gd_scene load_steps=350 format=2]
+[gd_scene load_steps=351 format=2]
 
 [ext_resource path="res://characters/BaseChar.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/wizard/Wizard.gd" type="Script" id=2]
@@ -337,6 +337,7 @@
 [ext_resource path="res://characters/wizard/sprites/actionbuttons/redirect.png" type="Texture" id=335]
 [ext_resource path="res://characters/wizard/OrbTeleportNeutral.gd" type="Script" id=336]
 [ext_resource path="res://sound/common/hit4.wav" type="AudioStream" id=337]
+[ext_resource path="res://characters/wizard/ActionUiData/RedirectActionUIData.tscn" type="PackedScene" id=338]
 
 [sub_resource type="ShaderMaterial" id=5]
 resource_local_to_scene = true
@@ -5062,7 +5063,7 @@ sprite_animation = "Launch"
 anim_length = 14
 title = "Redirect"
 type = 3
-data_ui_scene = ExtResource( 307 )
+data_ui_scene = ExtResource( 338 )
 button_texture = ExtResource( 335 )
 air_type = 2
 interrupt_from_string = "Grounded
