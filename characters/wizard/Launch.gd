@@ -16,15 +16,20 @@ func go():
 	var obj = host.obj_from_name(host.boulder_projectile)
 	if obj:
 		var dir = xy_to_dir(data.x, data.y)
-		obj.launch(dir)
+		if redirect:
+			obj.launch_redirect(dir)
+		else:
+			obj.launch(dir)
 		host.play_sound("Telekinesis")
 
 func is_usable():
 	var obj = host.obj_from_name(host.boulder_projectile)
 	if obj:
-		if redirect and obj.current_state().state_name != "Launch":
+		var sname = obj.current_state().state_name
+		var in_flight = sname == "Launch" or sname == "LaunchRedirect"
+		if redirect and not in_flight:
 			return false
-		if !redirect and obj.current_state().state_name == "Launch":
+		if !redirect and in_flight:
 			return false
 	return host.boulder_projectile != null and .is_usable()
 #	return host.boulder_projectile != null and (!redirect or host.hover_left >= host.TK_HOVER_AMOUNT) and .is_usable()

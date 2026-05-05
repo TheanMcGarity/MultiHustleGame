@@ -18,7 +18,6 @@ const SILLY_ITEM_CHANCES = {
 const NON_BOULDER_CHANCE = 15
 
 func _frame_0():
-	host.hover_left -= host.TK_HOVER_AMOUNT
 	pass
 
 func _frame_1():
@@ -33,7 +32,7 @@ func _frame_4():
 	host.play_sound("HitBass")
 
 func process_projectile(obj):
-
+	host.hover_left -= host.TK_HOVER_AMOUNT
 	host.boulder_projectile = obj.obj_name
 
 func is_usable():

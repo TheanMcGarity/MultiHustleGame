@@ -24,6 +24,14 @@ func _enter():
 		host.stop_particles()
 
 func _tick():
+	# Wizard got hit mid-flight — drop the launched object instead of letting
+	# it keep flying. Drop state's _enter resets momentum, so the boulder
+	# falls naturally rather than detonating. Gated on `launch` so this only
+	# fires for the actual Launch state (the same script also runs the Drop
+	# state with launch=false, and we don't want a feedback loop).
+	if launch and host.creator and is_instance_valid(host.creator.opponent) and host.creator.opponent.combo_count > 0:
+		host.state_machine.queue_state("Drop")
+		return
 	var pos = host.get_pos()
 	var vel = host.get_vel()
 	if floor_bounce_ticks > 0:

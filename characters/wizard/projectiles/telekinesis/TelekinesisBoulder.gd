@@ -46,3 +46,9 @@ func drop():
 func launch(data):
 #	if current_state().name == "Default":
 	state_machine.queue_state("Launch", data)
+
+func launch_redirect(data):
+	# Identical to launch() except the boulder's hitbox comes out 2 frames
+	# later — defined as its own state rather than gated in BoulderFling so
+	# the timing is encoded in the .tscn instead of mixed into the script.
+	state_machine.queue_state("LaunchRedirect", data)
