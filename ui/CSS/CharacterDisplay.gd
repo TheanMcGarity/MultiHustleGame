@@ -20,8 +20,8 @@ func _on_style_selected(style):
 	var material = $"%CharacterPortrait".get_material()
 	material.set_shader_param("color", Color.white)
 	material.set_shader_param("use_outline", false)
-	$"%CharacterPortrait".get_material().set_shader_param("extra_replace_color_1", false)
-	$"%CharacterPortrait".get_material().set_shader_param("extra_replace_color_2", false)
+	$"%CharacterPortrait".get_material().set_shader_param("use_extra_color_1", false)
+	$"%CharacterPortrait".get_material().set_shader_param("use_extra_color_2", false)
 	if style:
 		Custom.apply_style_to_material(style, $"%CharacterPortrait".get_material(), true)
 	_refresh_auras()

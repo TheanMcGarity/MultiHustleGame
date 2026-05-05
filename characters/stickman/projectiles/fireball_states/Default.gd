@@ -51,7 +51,10 @@ func _on_hit_something(obj, _hitbox):
 			fizzle()
 
 func move():
-	if data and data.has("speed_modifier"):
+	# `data` may carry the key with a null value (Fireball._frame_0 only
+	# computes speed_modifier when its own `data` is truthy) — treat null the
+	# same as missing.
+	if data and data.has("speed_modifier") and data["speed_modifier"] != null:
 		host.move_directly_relative((move_x + data["speed_modifier"]) if move_x != 0 else 0, (move_y + data["speed_modifier"]) if move_y != 0 else 0)
 	elif fixed.gt(move_x_string, "0") or fixed.gt(move_y_string, "0"):
 		host.move_directly_relative(move_x_string, move_y_string)

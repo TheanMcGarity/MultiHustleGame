@@ -425,6 +425,20 @@ var style_aura_being_comboed_tick = -100000
 var style_aura_melee_attack_tick = -100000
 var style_aura_burst_tick = -100000
 var style_aura_perfect_parry_tick = -100000
+# Rising-edge / event-tick markers used by aura one-shot mode (sister fields
+# to the continuous ones above — these bump only on the transition into the
+# active state, so each new attack/combo/etc. fires a fresh burst).
+var style_aura_combo_started_tick = -100000
+var style_aura_being_comboed_started_tick = -100000
+var style_aura_melee_attack_started_tick = -100000
+var style_aura_projectiles_first_active_tick = -100000
+var was_combo_active_for_aura = false
+var was_being_comboed_for_aura = false
+var was_projectiles_active_for_aura = false
+# Skip the first rising-edge check so round-start state (full HP, no combo,
+# etc.) doesn't count as "entering" the active state and spuriously fire
+# one-shot bursts on tick 0.
+var _aura_rising_edge_initialized = false
 
 var in_blockstring = false
 var brace_enabled = false
@@ -577,6 +591,7 @@ func _aura_hidden_for_limb(limb_name: String) -> bool:
 # tracker holds the last tick the underlying state was active; the trigger eval
 # checks `current_tick - tracker <= linger` to decide whether the aura emits.
 func _update_style_aura_trackers():
+	# Continuous-active markers (used by linger triggers).
 	if combo_count > 0:
 		style_aura_combo_active_tick = current_tick
 	if is_instance_valid(opponent) and opponent.combo_count > 0:
@@ -587,6 +602,28 @@ func _update_style_aura_trackers():
 	if get_active_projectiles().size() > 0:
 		style_aura_projectiles_active_tick = current_tick
 
+	# Rising-edge "event" markers used by one-shot mode. melee_attack_started
+	# is bumped from on_state_started instead so that rapid attack→attack
+	# cancels each fire their own event (state.type stays Attack across them
+	# so a continuous-state edge wouldn't catch them).
+	# First call: only seed the `was_X_for_aura` baselines so round-start state
+	# (e.g., full HP) doesn't count as a fresh rising edge.
+	var combo_now = combo_count > 0
+	var being_comboed_now = is_instance_valid(opponent) and opponent.combo_count > 0
+	var projectiles_now = get_active_projectiles().size() > 0
+	if _aura_rising_edge_initialized:
+		if combo_now and not was_combo_active_for_aura:
+			style_aura_combo_started_tick = current_tick
+		if being_comboed_now and not was_being_comboed_for_aura:
+			style_aura_being_comboed_started_tick = current_tick
+		if projectiles_now and not was_projectiles_active_for_aura:
+			style_aura_projectiles_first_active_tick = current_tick
+	else:
+		_aura_rising_edge_initialized = true
+	was_combo_active_for_aura = combo_now
+	was_being_comboed_for_aura = being_comboed_now
+	was_projectiles_active_for_aura = projectiles_now
+
 # Threshold-based triggers (low/high health, super level) are per-aura since
 # each aura has its own threshold. The tick tracker lives on the particle and
 # is updated here once per tick before `_aura_trigger_active` reads it for
@@ -594,20 +631,34 @@ func _update_style_aura_trackers():
 func _update_aura_threshold_trackers(particle, settings: Dictionary):
 	if not settings.get("dynamic_triggers", false):
 		return
+	var first_run = not particle._threshold_rising_edge_initialized
 	if MAX_HEALTH > 0:
 		var hp_pct = int((hp * 100) / MAX_HEALTH)
 		if settings.get("trigger_low_health", false):
 			var threshold = int(settings.get("trigger_low_health_threshold", 30))
-			if hp_pct <= threshold:
+			var active_now = hp_pct <= threshold
+			if active_now:
 				particle.style_aura_low_health_tick = current_tick
+			if not first_run and active_now and not particle.was_low_health_active:
+				particle.style_aura_low_health_started_tick = current_tick
+			particle.was_low_health_active = active_now
 		if settings.get("trigger_high_health", false):
 			var threshold = int(settings.get("trigger_high_health_threshold", 70))
-			if hp_pct >= threshold:
+			var active_now = hp_pct >= threshold
+			if active_now:
 				particle.style_aura_high_health_tick = current_tick
+			if not first_run and active_now and not particle.was_high_health_active:
+				particle.style_aura_high_health_started_tick = current_tick
+			particle.was_high_health_active = active_now
 	if settings.get("trigger_super_level", false):
 		var min_level = int(settings.get("trigger_super_level_min", 1))
-		if supers_available >= min_level:
+		var active_now = supers_available >= min_level
+		if active_now:
 			particle.style_aura_super_level_tick = current_tick
+		if not first_run and active_now and not particle.was_super_level_active:
+			particle.style_aura_super_level_started_tick = current_tick
+		particle.was_super_level_active = active_now
+	particle._threshold_rising_edge_initialized = true
 
 # Evaluates the per-aura "dynamic triggers" — ORs together every enabled
 # trigger condition into `any_active`, then optionally inverts via the
@@ -669,6 +720,56 @@ func _aura_trigger_active(particle, settings: Dictionary) -> bool:
 		return not any_active
 	return any_active
 
+# True when any of the aura's enabled triggers had its event happen since the
+# particle last consumed it. Each event-tick value is consumed exactly once
+# per particle, so a continuous trigger (e.g. projectiles_active staying on
+# for 2 seconds) only fires a single burst on the rising edge — not every
+# frame within EVENT_WINDOW. State-entry triggers like during_melee_attacks
+# bump their started_tick on each entry, so attack→attack cancels still each
+# get their own burst.
+#
+# triggers_inverted is intentionally ignored here — inverted + one-shot is
+# ambiguous, so one-shot just uses the natural rising edges.
+#
+# EVENT_WINDOW = 1 covers the off-by-one between events fired during
+# state_tick() (pre-`current_tick++`) and _apply_aura_state (post-increment).
+func _aura_trigger_event_fired(particle, settings: Dictionary) -> bool:
+	if not settings.get("dynamic_triggers", false):
+		return false
+	var EVENT_WINDOW = 1
+	# Each entry: (settings_key, "trigger_name", started_tick).
+	# The trigger_name is the dict key on particle._consumed_event_ticks.
+	var checks = [
+		["trigger_during_combo", "combo", style_aura_combo_started_tick],
+		["trigger_while_being_comboed", "being_comboed", style_aura_being_comboed_started_tick],
+		["trigger_during_melee_attacks", "melee_attack", style_aura_melee_attack_started_tick],
+		["trigger_low_health", "low_health", particle.style_aura_low_health_started_tick],
+		["trigger_high_health", "high_health", particle.style_aura_high_health_started_tick],
+		["trigger_super_level", "super_level", particle.style_aura_super_level_started_tick],
+		["trigger_after_take_damage", "got_hit", style_aura_got_hit_tick],
+		["trigger_after_spawn_projectile", "projectile_spawn", style_aura_projectile_spawn_tick],
+		["trigger_projectiles_active", "projectiles_active", style_aura_projectiles_first_active_tick],
+		["trigger_after_perfect_parry", "perfect_parry", style_aura_perfect_parry_tick],
+		["trigger_after_burst", "burst", style_aura_burst_tick],
+	]
+	# opponent.got_hit lives on the other character; only consult if valid.
+	if is_instance_valid(opponent):
+		checks.append(["trigger_after_opponent_take_damage", "opp_got_hit", opponent.style_aura_got_hit_tick])
+	for entry in checks:
+		var setting_key = entry[0]
+		var event_name = entry[1]
+		var started_tick = entry[2]
+		if not settings.get(setting_key, false):
+			continue
+		if current_tick - started_tick > EVENT_WINDOW:
+			continue
+		# Already consumed this exact rising edge — wait for the next one.
+		if particle._consumed_event_ticks.get(event_name, -100000) == started_tick:
+			continue
+		particle._consumed_event_ticks[event_name] = started_tick
+		return true
+	return false
+
 # Per-particle update: applies position/rotation/flip from the entry's resolved
 # limb, honoring position_only and pair-mirror settings. When the resolved limb
 # has no data on the current sprite the particle's emission is paused (existing
@@ -710,8 +811,30 @@ func _apply_aura_state(particle, entry: Dictionary):
 			# handles the facing-flip. Pass facing = 1 to bypass tick's
 			# facing-based XOR which would otherwise double-flip.
 			particle.facing = 1
-	if particle.particles.emitting != should_emit:
-		particle.particles.emitting = should_emit
+	# Dynamic one-shot mode: each *event* of an enabled trigger this frame
+	# spawns an ephemeral burst emitter that auto-frees after its lifetime.
+	# Continuous-state triggers (during combo, melee attacks, low/high health,
+	# super level, projectiles active) fire on the rising edge of their
+	# condition; melee attacks specifically also re-fire on attack→attack
+	# cancels via on_state_started. Event-shaped triggers (after_X) fire on
+	# every event tick. Customization preview doesn't run this path, so the
+	# editor keeps looping.
+	var is_one_shot = settings.get("dynamic_triggers", false) and settings.get("dynamic_one_shot", false)
+	if is_one_shot:
+		# emit_burst manages emission via burst_emit_ticks_remaining (counted
+		# down in tick()) — Godot's own one_shot is unreliable with our
+		# process_internal toggling, so we drive the cycle ourselves.
+		if _aura_trigger_event_fired(particle, settings):
+			particle.emit_burst()
+	else:
+		# Non-one-shot mode: ensure one_shot is off so emission is continuous
+		# while the trigger is active.
+		if particle.particles.one_shot:
+			particle.particles.one_shot = false
+		if particle.particles_flipped and particle.particles_flipped.one_shot:
+			particle.particles_flipped.one_shot = false
+		if particle.particles.emitting != should_emit:
+			particle.particles.emitting = should_emit
 
 func is_ivy():
 	if SteamLobby.SPECTATING or !Network.multiplayer_active:
@@ -770,7 +893,17 @@ func apply_style(style):
 			aura_particle = aura_particles[0] if aura_particles.size() > 0 else null
 			aura_particle_2 = aura_particles[1] if aura_particles.size() > 1 else null
 		if style.has("hitspark"):
-			if Custom.hitsparks.has(style.hitspark):
+			if style.hitspark == "custom":
+				# Custom hitsparks share one template; per-style config rides
+				# along on `custom_hitspark_config`, which BaseObj propagates
+				# onto each spawned instance just before add_child.
+				custom_hitspark_config = style.get("custom_hitspark", null)
+				custom_hitspark = Custom.make_custom_hitspark_scene(custom_hitspark_config)
+				if custom_hitspark:
+					for hitbox in hitboxes:
+						hitbox.HIT_PARTICLE = custom_hitspark
+			elif Custom.hitsparks.has(style.hitspark):
+				custom_hitspark_config = null
 				custom_hitspark = load(Custom.hitsparks[style.hitspark])
 				for hitbox in hitboxes:
 					hitbox.HIT_PARTICLE = custom_hitspark
@@ -785,6 +918,13 @@ func reset_aura():
 	is_aura_active = false
 	for p in aura_particles:
 		if is_instance_valid(p):
+			# Tear down any in-flight one-shot burst clones the source spawned
+			# so toggling the style off mid-match clears its lingering trail.
+			if p.get("active_burst_clones") != null:
+				for clone in p.active_burst_clones:
+					if is_instance_valid(clone):
+						clone.queue_free()
+				p.active_burst_clones.clear()
 			p.queue_free()
 	aura_particles.clear()
 	aura_entries.clear()
@@ -1131,6 +1271,13 @@ func is_colliding_with_opponent():
 
 func on_state_started(state):
 	.on_state_started(state)
+	# Bump on every attack-state entry so attack→attack cancels (including
+	# hit-cancel self-repeats like NunChukLight → NunChukLight) each fire
+	# their own one-shot event. Same-tick spurious double-fires from
+	# state-machine sub-transitions are deduped by the consumption gate in
+	# _aura_trigger_event_fired (each `started_tick` value fires at most once).
+	if state and state.type == CharacterState.ActionType.Attack:
+		style_aura_melee_attack_started_tick = current_tick
 
 
 func thrown_by(hitbox: ThrowBox):

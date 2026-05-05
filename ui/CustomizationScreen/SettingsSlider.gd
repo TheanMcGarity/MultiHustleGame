@@ -31,6 +31,9 @@ func _ready():
 		slider.max_value = max_value
 		slider.step = step
 	$"%Label".text = label_text if label_text else name
+	$"%Value".connect("text_changed", self, "_on_value_text_changed")
+	$"%Value".connect("text_entered", self, "_on_value_text_entered")
+	$"%Value".connect("focus_exited", self, "_on_value_focus_exited")
 	set_value(default_value)
 
 func _input(event):
@@ -61,7 +64,9 @@ func _on_HSlider_value_changed(slider_val):
 	else:
 		value = slider_val
 	emit_signal("value_changed", value)
-	$"%Value".text = _format_value(value)
+	# Don't clobber the user's in-progress edit while the LineEdit has focus.
+	if not $"%Value".has_focus():
+		$"%Value".text = _format_value(value)
 
 func set_value(v):
 	v = clamp(v, min_value, max_value)
@@ -75,6 +80,31 @@ func set_value(v):
 		slider.value = v
 		value = slider.value
 	emit_signal("value_changed", value)
+	if not $"%Value".has_focus():
+		$"%Value".text = _format_value(value)
+
+func _try_parse_value(text):
+	var trimmed = text.strip_edges()
+	if trimmed == "" or trimmed == "-" or trimmed == "." or trimmed == "-.":
+		return null
+	if !trimmed.is_valid_float():
+		return null
+	return float(trimmed)
+
+func _on_value_text_changed(text):
+	# Live-update the slider as the user types a valid number, but leave the
+	# raw text in place — _on_HSlider_value_changed and set_value both skip
+	# the text reformat while the LineEdit has focus.
+	var parsed = _try_parse_value(text)
+	if parsed == null:
+		return
+	set_value(parsed)
+
+func _on_value_text_entered(_text):
+	# Drop focus on Enter — focus_exited handles the canonical reformat.
+	$"%Value".release_focus()
+
+func _on_value_focus_exited():
 	$"%Value".text = _format_value(value)
 
 func get_data():

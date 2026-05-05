@@ -49,5 +49,11 @@ func _tick():
 					obj.apply_force(force.x, force.y)
 
 func move():
+	# data.speed_modifier can be null when Fireball._frame_0 ran without
+	# `data` (e.g., spawn paths that don't pass an aim direction) — fall back
+	# to the parent's move() in that case.
+	if data == null or not data.has("speed_modifier") or data.speed_modifier == null:
+		.move()
+		return
 	var dir = fixed.vec_mul(host.dir_x, host.dir_y, data.speed_modifier)
 	host.move_directly_relative(dir.x, dir.y)

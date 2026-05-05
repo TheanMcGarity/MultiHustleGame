@@ -12,6 +12,14 @@ var free_colors = []
 var custom_particles = []
 
 var selected_hitspark = "bash"
+# Sprite name for the advanced/custom hitspark editor — "" maps to (none).
+var custom_hitspark_sprite := ""
+# Particle settings for the advanced/custom hitspark editor. Same dict shape
+# as the aura settings cache — populated from $"%HitsparkParticles".get_settings()
+# on edit, applied via load_settings on style load.
+var custom_hitspark_particles = null
+var custom_hitspark_show_particles := false
+var loading_hitspark_particles := false
 
 var workshop_preview_image: Image = null
 
@@ -40,10 +48,20 @@ var current_character_limb_data := {}
 # allow_others_save gate even when usernames clash.
 var loaded_style_creator := ""
 var loaded_style_creator_id := ""
+# Old styles (saved before attribution existed) and renounced-creator styles
+# both flag this so the claim button can offer to attach the current user.
+# It's an explicit flag rather than a name check because we don't want a
+# real user named "unknown" to be treated as unattributed.
+var loaded_style_creator_unknown := false
 var loaded_style_modifiers := []
 var loaded_style_modifier_ids := []
 var style_modified_since_load := false
 const MAX_STYLE_MODIFIERS := 2000
+const UNKNOWN_CREATOR_NAME := "unknown"
+# x-coord where the ClaimButton's right edge sits — captured from the .tscn
+# so the box can grow leftward as text changes (claim → renounce) without
+# the right edge wandering.
+const CLAIM_BUTTON_RIGHT_EDGE := 522.0
 
 func get_style_data():
 	save_current_aura_slot()
@@ -58,6 +76,10 @@ func get_style_data():
 		"use_outline": $"%ShowOutline".pressed,
 		"outline_color": outline_color if $"%ShowOutline".pressed else null,
 		"hitspark": "bash" if selected_hitspark == null else selected_hitspark,
+		# Custom hitspark editor state — only meaningful when hitspark == "custom".
+		# Always written so the round-trip preserves the user's last sprite pick
+		# even after they toggle back to a Simple preset.
+		"custom_hitspark": get_custom_hitspark_config(),
 		# Old-format mirrors of the first two array entries — kept so older
 		# game versions can still read newly-saved styles.
 		"show_aura": aura_show[0],
@@ -66,8 +88,11 @@ func get_style_data():
 		"aura_settings_2": aura_settings_cache[1],
 		"auras": auras,
 		"ivy_effect": false,
-		"creator": loaded_style_creator,
-		"creator_id": loaded_style_creator_id,
+		# Unknown / renounced styles round-trip through an empty creator field
+		# so older game versions (and the load_style branch above) treat them
+		# as unattributed instead of seeing the literal "unknown" string.
+		"creator": "" if loaded_style_creator_unknown else loaded_style_creator,
+		"creator_id": "" if loaded_style_creator_unknown else loaded_style_creator_id,
 		"modifiers": loaded_style_modifiers.duplicate(),
 		"modifier_ids": loaded_style_modifier_ids.duplicate(),
 		# Empty dict reserved for mod-specific data attached to the style.
@@ -152,6 +177,23 @@ func init():
 		button.connect("pressed", self, "select_hitspark", [hitspark])
 		button.rect_min_size = Vector2(50, 20)
 		$"%HitsparkButtonContainer".add_child(button)
+	# Advanced hitspark tab: sprite picker. "(none)" first, then the named
+	# sprite frame sets pulled from Custom.HITSPARK_SPRITE_NAMES.
+	if has_node("%HitsparkSpriteOption"):
+		for sprite_name in Custom.HITSPARK_SPRITE_NAMES:
+			$"%HitsparkSpriteOption".add_item(Custom.hitspark_sprite_label(sprite_name))
+		$"%HitsparkSpriteOption".connect("item_selected", self, "_on_custom_hitspark_sprite_selected")
+	if has_node("%HitsparkTabs"):
+		$"%HitsparkTabs".connect("tab_changed", self, "_on_hitspark_tab_changed")
+	if has_node("%HitsparkParticles"):
+		$"%HitsparkParticles".connect("settings_changed", self, "_on_hitspark_particles_changed")
+		# Seed the editor with the hitspark default so explosiveness=1 etc.
+		# are visible from the start.
+		loading_hitspark_particles = true
+		$"%HitsparkParticles".load_settings(_default_hitspark_particles())
+		loading_hitspark_particles = false
+	if has_node("%ShowHitsparkParticles"):
+		$"%ShowHitsparkParticles".connect("toggled", self, "_on_show_hitspark_particles_toggled")
 	$"%TrailSettings".connect("settings_changed", self, "_on_trail_settings_changed")
 	$"%ShowAura".connect("pressed", self, "_on_show_aura_pressed")
 	aura_slot_tabs = Tabs.new()
@@ -176,6 +218,13 @@ func init():
 	$"%AuraCopyPasteRow".add_child(paste_aura_button)
 	$"%SaveButton".connect("pressed", self, "save_style")
 	$"%LoadStyleButton".connect("style_selected", self, "load_style")
+	$"%ExpandAllButton".connect("pressed", self, "_on_expand_all_pressed")
+	$"%CollapseAllButton".connect("pressed", self, "_on_collapse_all_pressed")
+	$"%FlatViewButton".connect("toggled", self, "_on_flat_view_toggled")
+	if has_node("%ClaimButton"):
+		$"%ClaimButton".connect("pressed", self, "_on_claim_button_pressed")
+	$"%ColorTabs".connect("tab_changed", self, "_on_color_tab_changed")
+	call_deferred("_on_color_tab_changed", $"%ColorTabs".current_tab)
 	$"%AllowSaveButton".connect("toggled", self, "_on_allow_save_toggled")
 	if !Global.STYLE_SAVE_FEATURE_ENABLED:
 		$"%AllowSaveButton".hide()
@@ -261,6 +310,7 @@ func load_style(style):
 		# empty modifiers list — the next save will fill them in.
 		loaded_style_creator = style.get("creator", "") if style is Dictionary else ""
 		loaded_style_creator_id = ""
+		loaded_style_creator_unknown = false
 		loaded_style_modifiers = []
 		loaded_style_modifier_ids = []
 		if style is Dictionary:
@@ -278,6 +328,13 @@ func load_style(style):
 			loaded_style_modifier_ids.append("")
 		while loaded_style_modifier_ids.size() > loaded_style_modifiers.size():
 			loaded_style_modifier_ids.pop_back()
+		# Old-version styles (saved before attribution existed) and styles
+		# that have been renounced both come in with no creator. Mark them
+		# unknown so the claim button can offer to take attribution.
+		if loaded_style_creator == "":
+			loaded_style_creator = UNKNOWN_CREATOR_NAME
+			loaded_style_creator_id = ""
+			loaded_style_creator_unknown = true
 		# If we recognise our own steam_id anywhere in the chain but the saved
 		# username is stale, refresh those entries to the current username.
 		# Next save persists the rename.
@@ -298,7 +355,6 @@ func load_style(style):
 				allow_save = style.get("allow_others_save", true)
 			$"%AllowSaveButton".set_pressed_no_signal(allow_save)
 		style_modified_since_load = false
-		_refresh_style_credits_button()
 		loading_aura_slot = true
 		# Reset all slots, then fill from new "auras" array if present, else
 		# from the old aura_settings/aura_settings_2 fields.
@@ -325,6 +381,7 @@ func load_style(style):
 			$"%TrailSettings".load_settings(aura_settings_cache[0])
 		loading_aura_slot = false
 		$"%StyleName".text = style.style_name
+		_refresh_style_credits_button()
 		$"%ShowOutline".pressed = style.use_outline
 		if style.use_outline:
 			$"%Outline".set_color(style.outline_color)
@@ -335,10 +392,51 @@ func load_style(style):
 		call_deferred("create_all_auras")
 		if style.character_color != null:
 			$"%Character".set_color(style.character_color)
-		for child in $"%HitsparkButtonContainer".get_children():
-			if child.text == style.hitspark.strip_edges():
-				child.pressed = true
-				select_hitspark(style.hitspark)
+		# Auto-switch the color tab to Advanced if this style uses anything
+		# the Simple presets can't represent (extras set, or a base/outline
+		# pair that isn't one of the preset combos).
+		if has_node("%ColorTabs"):
+			$"%ColorTabs".current_tab = 1 if _style_uses_advanced_colors(style) else 0
+		# Restore the custom hitspark sprite pick before deciding which tab to
+		# show — so the OptionButton reflects the saved value even if the style
+		# is currently a Simple preset.
+		var custom_cfg = style.get("custom_hitspark", null) if style is Dictionary else null
+		if custom_cfg is Dictionary:
+			custom_hitspark_sprite = str(custom_cfg.get("sprite", ""))
+			var saved_particles = custom_cfg.get("particles", null)
+			if saved_particles is Dictionary:
+				custom_hitspark_particles = saved_particles
+			else:
+				custom_hitspark_particles = null
+			custom_hitspark_show_particles = bool(custom_cfg.get("show_particles", false))
+		else:
+			custom_hitspark_sprite = ""
+			custom_hitspark_particles = null
+			custom_hitspark_show_particles = false
+		if has_node("%ShowHitsparkParticles"):
+			$"%ShowHitsparkParticles".set_pressed_no_signal(custom_hitspark_show_particles)
+		if has_node("%HitsparkSpriteOption"):
+			var sprite_idx = Custom.HITSPARK_SPRITE_NAMES.find(custom_hitspark_sprite)
+			if sprite_idx == -1:
+				sprite_idx = 0
+			$"%HitsparkSpriteOption".selected = sprite_idx
+		if has_node("%HitsparkParticles"):
+			loading_hitspark_particles = true
+			$"%HitsparkParticles".load_settings(custom_hitspark_particles if custom_hitspark_particles is Dictionary else _default_hitspark_particles())
+			loading_hitspark_particles = false
+		var hs = style.hitspark.strip_edges() if style.has("hitspark") else "bash"
+		if hs == "custom":
+			if has_node("%HitsparkTabs"):
+				$"%HitsparkTabs".current_tab = 1
+			selected_hitspark = "custom"
+			spawn_hitspark()
+		else:
+			if has_node("%HitsparkTabs"):
+				$"%HitsparkTabs".current_tab = 0
+			for child in $"%HitsparkButtonContainer".get_children():
+				if child.text == hs:
+					child.pressed = true
+					select_hitspark(hs)
 	$"%WorkshopButton".disabled = false
 
 func select_hitspark(hitspark_name):
@@ -349,12 +447,84 @@ func select_hitspark(hitspark_name):
 	update_warning()
 
 func spawn_hitspark():
-	if Custom.hitsparks.has(selected_hitspark):
-		if is_instance_valid(hitspark_scene):
-			hitspark_scene.queue_free()
+	if is_instance_valid(hitspark_scene):
+		hitspark_scene.queue_free()
+		hitspark_scene = null
+	if selected_hitspark == "custom":
+		var packed = Custom.make_custom_hitspark_scene(get_custom_hitspark_config())
+		if packed:
+			hitspark_scene = packed.instance()
+			# Set custom_config BEFORE add_child so CustomHitEffect.gd picks
+			# it up in _ready.
+			hitspark_scene.set("custom_config", get_custom_hitspark_config())
+			$"%HitsparkDisplay".add_child(hitspark_scene)
+	elif Custom.hitsparks.has(selected_hitspark):
 		hitspark_scene = load(Custom.hitsparks[selected_hitspark]).instance()
-
 		$"%HitsparkDisplay".add_child(hitspark_scene)
+
+func get_custom_hitspark_config() -> Dictionary:
+	return {
+		"sprite": custom_hitspark_sprite,
+		"show_particles": custom_hitspark_show_particles,
+		"particles": custom_hitspark_particles,
+	}
+
+# Default particle settings used when a style first switches to the custom
+# hitspark and there's nothing saved yet. Hitsparks are bursts, so default
+# explosiveness is 1 (vs auras' default 0). `in_front` flips to true so the
+# particles render in front of the AnimatedSprite — auras default to behind
+# the character, but for hitsparks the sprite is the centerpiece and
+# particles read better layered on top.
+func _default_hitspark_particles() -> Dictionary:
+	var d = CustomTrailParticle.get_default()
+	d["explosiveness"] = 1.0
+	d["in_front"] = true
+	return d
+
+func _on_custom_hitspark_sprite_selected(idx):
+	if idx < 0 or idx >= Custom.HITSPARK_SPRITE_NAMES.size():
+		return
+	var new_sprite = Custom.HITSPARK_SPRITE_NAMES[idx]
+	if custom_hitspark_sprite != new_sprite:
+		_mark_style_modified()
+	custom_hitspark_sprite = new_sprite
+	# Switching the sprite also implies the user is on the custom hitspark
+	# now — flip selected_hitspark to "custom" so save_style writes it out.
+	selected_hitspark = "custom"
+	spawn_hitspark()
+	update_warning()
+
+func _on_hitspark_particles_changed(settings):
+	if loading_hitspark_particles:
+		return
+	custom_hitspark_particles = settings
+	_mark_style_modified()
+	# Touching the particle editor implies the user is on the custom hitspark.
+	selected_hitspark = "custom"
+	spawn_hitspark()
+	update_warning()
+
+func _on_show_hitspark_particles_toggled(on):
+	if custom_hitspark_show_particles == on:
+		return
+	custom_hitspark_show_particles = on
+	_mark_style_modified()
+	selected_hitspark = "custom"
+	spawn_hitspark()
+	update_warning()
+
+func _on_hitspark_tab_changed(tab):
+	# Tab 0 = Simple (one of the named presets), tab 1 = Advanced (custom).
+	# Switching tabs alone shouldn't dirty the style; flipping the active
+	# hitspark to match is enough.
+	if tab == 1:
+		selected_hitspark = "custom"
+	else:
+		# Fall back to a reasonable default if leaving the custom tab and the
+		# active selection wasn't a real preset.
+		if selected_hitspark == "custom":
+			selected_hitspark = "bash"
+	spawn_hitspark()
 
 func _physics_process(delta):
 	if !visible:
@@ -473,6 +643,44 @@ func _preview_aura_rotation_from_entry(entry) -> float:
 
 func _on_back_button_pressed():
 	Global.reload()
+
+func _on_expand_all_pressed():
+	_set_all_sections_expanded(true)
+
+func _on_collapse_all_pressed():
+	_set_all_sections_expanded(false)
+
+func _on_flat_view_toggled(on):
+	for section in _all_collapsible_sections(self):
+		section.set_flat_mode(on)
+
+# TabContainer's min size is the max of its children's min sizes, which
+# means Simple inherits Advanced's height. Resize the container to the active
+# tab's actual content size on tab_changed so Simple shrinks down.
+func _on_color_tab_changed(_tab):
+	var tabs = $"%ColorTabs"
+	var idx = tabs.current_tab
+	if idx < 0:
+		return
+	var visible_count = 0
+	for c in tabs.get_children():
+		if c is Control:
+			if visible_count == idx:
+				tabs.rect_min_size.y = c.get_combined_minimum_size().y + 16
+				return
+			visible_count += 1
+
+func _set_all_sections_expanded(on):
+	for section in _all_collapsible_sections(self):
+		section.set_expanded(on)
+
+func _all_collapsible_sections(root) -> Array:
+	var out := []
+	for child in root.get_children():
+		if child is CollapsibleSection:
+			out.append(child)
+		out.append_array(_all_collapsible_sections(child))
+	return out
 
 func _on_reset_color_pressed():
 	character_color = null
@@ -606,6 +814,7 @@ func _on_item_updated(url):
 func _on_StyleName_text_changed(new_text: String):
 	$"%WorkshopButton".disabled = new_text.strip_edges() == ""
 	$"%WorkshopUpdatedLabel".hide()
+	_populate_style_credits()
 
 
 func _on_WorkshopUpdatedLabel_meta_clicked(meta):
@@ -659,24 +868,141 @@ func _current_steam_id() -> String:
 func _mark_style_modified(_arg=null, _arg2=null):
 	style_modified_since_load = true
 
-# Show/hide the "style credits" button based on whether the loaded style has
-# any attribution data. Called whenever load_style or save_style changes the
-# cached creator/modifiers.
+# Refresh the inline style-credits scroll. Called whenever load_style or
+# save_style changes the cached creator/modifiers — keeps the panel in sync
+# with whichever style is currently loaded.
 func _refresh_style_credits_button():
-	if !has_node("%StyleCreditsButton"):
-		return
-	var has_credits = loaded_style_creator != "" or !loaded_style_modifiers.empty()
-	$"%StyleCreditsButton".visible = has_credits
-
-func _on_StyleCreditsButton_pressed():
-	if !has_node("%StyleCreditsPanel"):
-		return
 	_populate_style_credits()
-	$"%StyleCreditsPanel".show()
+	_refresh_claim_button()
 
-func _on_StyleCreditsCloseButton_pressed():
-	if has_node("%StyleCreditsPanel"):
-		$"%StyleCreditsPanel".hide()
+# A style uses "advanced" colors if it has either extra slot set, or a
+# character/outline combo that isn't one of the preset pairs in
+# Custom.simple_colors / Custom.simple_outlines. Used to auto-pick the
+# right color tab when loading.
+func _style_uses_advanced_colors(style) -> bool:
+	if !(style is Dictionary):
+		return false
+	if style.get("extra_color_1") != null:
+		return true
+	if style.get("extra_color_2") != null:
+		return true
+	var char_color = style.get("character_color")
+	if char_color != null and Custom.is_color_dlc(char_color):
+		return true
+	if style.get("use_outline", false):
+		var outline_color = style.get("outline_color")
+		if outline_color != null and Custom.is_outline_dlc(outline_color):
+			return true
+		if char_color != null and outline_color != null and not Custom.is_combo_simple(char_color, outline_color):
+			return true
+	return false
+
+# True iff the local user matches the cached creator. Match by steam_id when
+# both sides have one (rename-safe), else fall back to username. Returns false
+# for unknown-flagged styles so the claim button can offer to take attribution.
+func _is_self_creator() -> bool:
+	if loaded_style_creator_unknown:
+		return false
+	var current_user = _current_username()
+	var current_id = _current_steam_id()
+	if current_id != "" and loaded_style_creator_id != "":
+		return current_id == loaded_style_creator_id
+	if current_id == "" and loaded_style_creator_id == "":
+		return current_user != "" and current_user == loaded_style_creator
+	return false
+
+# Strip the local user out of the modifiers list (matched by steam_id when
+# both sides have one, else by name). Used when claiming, so the user doesn't
+# end up listed as both creator and modifier.
+func _remove_self_from_modifiers():
+	var current_user = _current_username()
+	var current_id = _current_steam_id()
+	for i in range(loaded_style_modifiers.size() - 1, -1, -1):
+		var mod_name = loaded_style_modifiers[i]
+		var mod_id = loaded_style_modifier_ids[i] if i < loaded_style_modifier_ids.size() else ""
+		var match_self = false
+		if current_id != "" and mod_id != "":
+			match_self = (mod_id == current_id)
+		elif current_id == "" and mod_id == "":
+			match_self = (current_user != "" and mod_name == current_user)
+		if match_self:
+			loaded_style_modifiers.remove(i)
+			if i < loaded_style_modifier_ids.size():
+				loaded_style_modifier_ids.remove(i)
+
+# Append the local user to the modifiers list iff they aren't already in it.
+# Used when renouncing — the renounced creator moves to the modifiers list
+# instead of disappearing entirely.
+func _add_self_to_modifiers():
+	var current_user = _current_username()
+	var current_id = _current_steam_id()
+	if current_user == "":
+		return
+	for i in range(loaded_style_modifiers.size()):
+		var mod_name = loaded_style_modifiers[i]
+		var mod_id = loaded_style_modifier_ids[i] if i < loaded_style_modifier_ids.size() else ""
+		if current_id != "" and mod_id != "":
+			if mod_id == current_id:
+				return
+		elif current_id == "" and mod_id == "":
+			if mod_name == current_user:
+				return
+	loaded_style_modifiers.append(current_user)
+	loaded_style_modifier_ids.append(current_id)
+
+func _on_claim_button_pressed():
+	if loaded_style_creator_unknown:
+		# Claim: take attribution. Bail if the local user can't be identified
+		# — there's nothing meaningful to write into the creator slot.
+		# Deliberately leaves style_modified_since_load alone: claiming is a
+		# metadata-only act, not a content edit. If the user then renounces
+		# without making real changes, the gate in the renounce branch keeps
+		# them out of the modifiers list.
+		var current_user = _current_username()
+		if current_user == "":
+			return
+		_remove_self_from_modifiers()
+		loaded_style_creator = current_user
+		loaded_style_creator_id = _current_steam_id()
+		loaded_style_creator_unknown = false
+	elif _is_self_creator():
+		# Renounce: drop yourself from the creator slot. Only step down into
+		# the modifiers list if there were actual edits since loading —
+		# a pure renounce with no other changes leaves nothing of yourself
+		# behind. The auto-append-as-modifier in save_style is gated on
+		# style_modified_since_load, so leaving the flag alone (instead of
+		# forcing it true) lets a clean renounce save without re-adding self.
+		if style_modified_since_load:
+			_add_self_to_modifiers()
+		loaded_style_creator = UNKNOWN_CREATOR_NAME
+		loaded_style_creator_id = ""
+		loaded_style_creator_unknown = true
+	else:
+		# Safeguard: button shouldn't be visible in this state, but if it is
+		# (e.g. raced with a load), do nothing — never let one user reassign
+		# someone else's authorship.
+		return
+	_refresh_style_credits_button()
+
+# Show "claim authorship" when the style is unattributed, "renounce
+# authorship" when the local user is the creator, and hide the button
+# otherwise. Right-edge stays pinned at CLAIM_BUTTON_RIGHT_EDGE — only the
+# left edge moves to absorb the new text width.
+func _refresh_claim_button():
+	if !has_node("%ClaimButton"):
+		return
+	var btn = $"%ClaimButton"
+	if loaded_style_creator_unknown:
+		btn.text = "claim authorship"
+		btn.visible = _current_username() != ""
+	elif _is_self_creator():
+		btn.text = "renounce authorship"
+		btn.visible = true
+	else:
+		btn.visible = false
+		return
+	btn.margin_right = CLAIM_BUTTON_RIGHT_EDGE
+	btn.margin_left = CLAIM_BUTTON_RIGHT_EDGE - btn.get_combined_minimum_size().x
 
 func _populate_style_credits():
 	if !has_node("%StyleCreditsList"):
@@ -689,32 +1015,24 @@ func _populate_style_credits():
 	if has_node("%StyleName"):
 		style_name = $"%StyleName".text.strip_edges()
 	if style_name != "":
-		var name_label = Label.new()
-		name_label.text = style_name
-		name_label.align = Label.ALIGN_CENTER
-		list.add_child(name_label)
-		var spacer = Control.new()
-		spacer.rect_min_size = Vector2(0, 4)
-		list.add_child(spacer)
+		var title = _make_credits_label(style_name)
+		title.add_color_override("font_color", Color.cyan)
+		list.add_child(title)
 	if loaded_style_creator != "":
-		var creator_header = Label.new()
-		creator_header.text = "created by"
-		creator_header.modulate = Color(1, 1, 1, 0.6)
-		creator_header.align = Label.ALIGN_CENTER
-		list.add_child(creator_header)
-		var creator_label = Label.new()
-		creator_label.text = loaded_style_creator
-		creator_label.align = Label.ALIGN_CENTER
-		list.add_child(creator_label)
+		list.add_child(_make_credits_label("created by", true))
+		list.add_child(_make_credits_label(loaded_style_creator))
 	if !loaded_style_modifiers.empty():
-		var mods_header = Label.new()
-		mods_header.text = "modified by"
-		mods_header.modulate = Color(1, 1, 1, 0.6)
-		mods_header.align = Label.ALIGN_CENTER
-		list.add_child(mods_header)
+		list.add_child(_make_credits_label("modified by", true))
 		# Render most-recent first.
 		for i in range(loaded_style_modifiers.size() - 1, -1, -1):
-			var mod_label = Label.new()
-			mod_label.text = loaded_style_modifiers[i]
-			mod_label.align = Label.ALIGN_CENTER
-			list.add_child(mod_label)
+			list.add_child(_make_credits_label(loaded_style_modifiers[i]))
+
+func _make_credits_label(text: String, dim: bool = false) -> Label:
+	var lbl = Label.new()
+	lbl.text = text
+	lbl.align = Label.ALIGN_CENTER
+	lbl.autowrap = true
+	lbl.size_flags_horizontal = SIZE_EXPAND_FILL
+	if dim:
+		lbl.modulate = Color(1, 1, 1, 0.6)
+	return lbl

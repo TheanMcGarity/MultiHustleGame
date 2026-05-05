@@ -124,6 +124,42 @@ var hitsparks = {
 	"elec": "res://fx/hitsparks/ElectricHitEffect.tscn",
 }
 
+# Sprite-frame resources usable by the custom hitspark editor's "advanced"
+# tab. Order is the order they appear in the OptionButton; the empty string
+# is the "(none)" option which renders no animated sprite at all.
+const HITSPARK_SPRITE_NAMES = ["", "bash", "bash2", "bash3", "fire", "hearts", "petals", "acid", "elec"]
+const HITSPARK_SPRITE_NONE_LABEL = "(none)"
+const CUSTOM_HITSPARK_SCENE_PATH = "res://fx/hitsparks/CustomHitEffect.tscn"
+# Non-default AnimatedSprite scales for sprite frame sets that need them — the
+# elec frames are designed to be drawn wide-and-short and look wrong at 1:1.
+# Names absent from this dict default to Vector2(1, 1).
+const HITSPARK_SPRITE_SCALES = {
+	"elec": Vector2(1.36, 0.68),
+}
+
+# Display label for a sprite name in the option button — the empty-string
+# "no animation" entry shows up as "(none)".
+func hitspark_sprite_label(sprite_name: String) -> String:
+	if sprite_name == "":
+		return HITSPARK_SPRITE_NONE_LABEL
+	return sprite_name
+
+# Build a fresh PackedScene of a custom hitspark with the user's chosen
+# animated-sprite frames already applied. The result can be assigned to
+# Hitbox.HIT_PARTICLE just like the named-preset scenes — each hit instance()s
+# its own copy. Returns null if the template can't be loaded.
+func make_custom_hitspark_scene(config) -> PackedScene:
+	var template = load(CUSTOM_HITSPARK_SCENE_PATH)
+	if template == null:
+		return null
+	# Per-instance config goes through the CustomHitEffect script's
+	# `custom_config` member (set by spawners before add_child), not through
+	# PackedScene.pack — which doesn't reliably preserve Dictionary or
+	# sub-scene-instance overrides in Godot 3 and was leaving particles
+	# unconfigured. The packed template itself is identical for every style;
+	# the spawn site decides what config to apply.
+	return template
+
 #var hitspark_dlc = {
 #	"bash": false,
 #	"bash2": false,

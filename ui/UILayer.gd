@@ -1006,12 +1006,19 @@ func _on_ClearParticlesButton_pressed():
 	if is_instance_valid(game):
 		for particle in game.effects:
 			particle.hide()
-		for p in game.get_player(1).aura_particles:
-			if is_instance_valid(p):
+		for player_id in [1, 2]:
+			for p in game.get_player(player_id).aura_particles:
+				if !is_instance_valid(p):
+					continue
 				p.restart()
-		for p in game.get_player(2).aura_particles:
-			if is_instance_valid(p):
-				p.restart()
+				# Sources also keep an array of in-flight one-shot burst
+				# clones — free them so clearing wipes existing dynamic-trigger
+				# bursts, not just the source emitter's in-flight particles.
+				if p.get("active_burst_clones") != null:
+					for clone in p.active_burst_clones:
+						if is_instance_valid(clone):
+							clone.queue_free()
+					p.active_burst_clones.clear()
 	pass # Replace with function body.
 
 

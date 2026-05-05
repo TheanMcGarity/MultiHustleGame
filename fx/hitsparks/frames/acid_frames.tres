@@ -1,0 +1,13 @@
+[gd_resource type="SpriteFrames" load_steps=4 format=2]
+
+[ext_resource path="res://fx/hitsparks/acid_hit_burst1.png" type="Texture" id=1]
+[ext_resource path="res://fx/hitsparks/acid_hit_burst2.png" type="Texture" id=2]
+[ext_resource path="res://fx/hitsparks/acid_hit_burst3.png" type="Texture" id=3]
+
+[resource]
+animations = [ {
+"frames": [ ExtResource( 1 ), ExtResource( 1 ), ExtResource( 2 ), ExtResource( 2 ), ExtResource( 3 ), ExtResource( 3 ), null ],
+"loop": false,
+"name": "default",
+"speed": 5.0
+} ]

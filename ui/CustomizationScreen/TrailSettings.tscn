@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/CustomizationScreen/TrailSettings.gd" type="Script" id=2]
 [ext_resource path="res://ui/CustomizationScreen/SettingsSlider.tscn" type="PackedScene" id=3]
 [ext_resource path="res://ui/XYPlot/XYPlot.tscn" type="PackedScene" id=4]
 [ext_resource path="res://ui/ColorPicker/CustomColorPicker.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/CustomizationScreen/CollapsibleSection.gd" type="Script" id=6]
 
 [node name="TrailSettings" type="VBoxContainer"]
 margin_right = 212.0
@@ -12,154 +13,175 @@ theme = ExtResource( 1 )
 custom_constants/separation = 5
 script = ExtResource( 2 )
 
-[node name="Particle Amount" parent="." instance=ExtResource( 3 )]
+[node name="LifetimeSection" type="VBoxContainer" parent="."]
+margin_right = 212.0
+margin_bottom = 142.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Lifetime"
+
+[node name="Particle Amount" parent="LifetimeSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 default_value = 16.0
 min_value = 1.0
 max_value = 32.0
 step = 1.0
 
-[node name="Particle Lifetime" parent="." instance=ExtResource( 3 )]
+[node name="Particle Lifetime" parent="LifetimeSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 30.0
-margin_bottom = 55.0
+margin_top = 26.0
+margin_bottom = 51.0
 default_value = 1.0
 min_value = 0.064
 max_value = 2.0
 step = 0.001
 
-[node name="Lifetime Randomness" parent="." instance=ExtResource( 3 )]
+[node name="Lifetime Randomness" parent="LifetimeSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 60.0
-margin_bottom = 85.0
+margin_top = 52.0
+margin_bottom = 77.0
 default_value = 0.5
 max_value = 1.0
 
-[node name="Speed Scale" parent="." instance=ExtResource( 3 )]
+[node name="Speed Scale" parent="LifetimeSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 90.0
-margin_bottom = 115.0
+margin_top = 78.0
+margin_bottom = 103.0
 default_value = 2.0
 max_value = 30.0
 exponential = true
 
-[node name="DisableOnKO" type="CheckButton" parent="."]
+[node name="Explosiveness" parent="LifetimeSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 120.0
-margin_right = 212.0
-margin_bottom = 132.0
-hint_tooltip = "Stop emitting once a player has been KO'd (the match ended)."
-pressed = true
-text = "disable on KO"
+margin_top = 104.0
+margin_bottom = 129.0
+max_value = 1.0
 
-[node name="CapFramerate" type="CheckButton" parent="."]
+[node name="CapFramerate" type="CheckButton" parent="LifetimeSection"]
 unique_name_in_owner = true
-margin_top = 137.0
+margin_top = 130.0
 margin_right = 212.0
-margin_bottom = 149.0
+margin_bottom = 142.0
 hint_tooltip = "Lock this aura's particle simulation to a fixed framerate, regardless of display rate."
 text = "cap framerate"
 
-[node name="Framerate" parent="." instance=ExtResource( 3 )]
+[node name="Framerate" parent="LifetimeSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
+margin_top = 134.0
+margin_bottom = 159.0
 default_value = 60.0
 min_value = 1.0
 max_value = 60.0
 step = 1.0
 
-[node name="DynamicTriggers" type="CheckButton" parent="."]
-unique_name_in_owner = true
-margin_top = 154.0
+[node name="TriggersSection" type="VBoxContainer" parent="."]
+margin_top = 147.0
 margin_right = 212.0
-margin_bottom = 166.0
+margin_bottom = 172.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Triggers"
+
+[node name="DisableOnKO" type="CheckButton" parent="TriggersSection"]
+unique_name_in_owner = true
+margin_right = 212.0
+margin_bottom = 12.0
+hint_tooltip = "Stop emitting once a player has been KO'd (the match ended)."
+pressed = true
+text = "disable on KO"
+
+[node name="DynamicTriggers" type="CheckButton" parent="TriggersSection"]
+unique_name_in_owner = true
+margin_top = 13.0
+margin_right = 212.0
+margin_bottom = 25.0
 hint_tooltip = "Gate this aura's emission on character state. When off, the aura emits constantly."
 text = "dynamic triggers"
 
-[node name="TriggerDuringCombo" type="CheckButton" parent="."]
+[node name="TriggerDuringCombo" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
-margin_top = 171.0
 margin_right = 212.0
-margin_bottom = 183.0
+margin_bottom = 12.0
 hint_tooltip = "Trigger while you are landing a combo on the opponent."
 text = "  during combo"
 
-[node name="TriggerDuringComboLinger" parent="." instance=ExtResource( 3 )]
+[node name="TriggerDuringComboLinger" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerDuringMelee" type="CheckButton" parent="."]
+[node name="TriggerDuringMelee" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger while you are in a melee attack state."
 text = "  during melee attacks"
 
-[node name="TriggerDuringMeleeLinger" parent="." instance=ExtResource( 3 )]
+[node name="TriggerDuringMeleeLinger" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerWhileBeingComboed" type="CheckButton" parent="."]
+[node name="TriggerWhileBeingComboed" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger while the opponent is landing a combo on you."
 text = "  while being comboed"
 
-[node name="TriggerWhileBeingComboedLinger" parent="." instance=ExtResource( 3 )]
+[node name="TriggerWhileBeingComboedLinger" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerLowHealth" type="CheckButton" parent="."]
+[node name="TriggerLowHealth" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger while your health is at or below the threshold percentage."
 text = "  low health"
 
-[node name="TriggerLowHealthThreshold" parent="." instance=ExtResource( 3 )]
+[node name="TriggerLowHealthThreshold" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 30.0
 min_value = 1.0
 step = 1.0
 
-[node name="TriggerLowHealthLinger" parent="." instance=ExtResource( 3 )]
+[node name="TriggerLowHealthLinger" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerHighHealth" type="CheckButton" parent="."]
+[node name="TriggerHighHealth" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger while your health is at or above the threshold percentage."
 text = "  high health"
 
-[node name="TriggerHighHealthThreshold" parent="." instance=ExtResource( 3 )]
+[node name="TriggerHighHealthThreshold" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 70.0
 min_value = 1.0
 step = 1.0
 
-[node name="TriggerHighHealthLinger" parent="." instance=ExtResource( 3 )]
+[node name="TriggerHighHealthLinger" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerSuperLevel" type="CheckButton" parent="."]
+[node name="TriggerSuperLevel" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger while you have at least the specified super level available."
 text = "  at super level"
 
-[node name="TriggerSuperLevelMin" parent="." instance=ExtResource( 3 )]
+[node name="TriggerSuperLevelMin" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 1.0
@@ -167,19 +189,19 @@ min_value = 1.0
 max_value = 9.0
 step = 1.0
 
-[node name="TriggerSuperLevelLinger" parent="." instance=ExtResource( 3 )]
+[node name="TriggerSuperLevelLinger" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerAfterSpawnProj" type="CheckButton" parent="."]
+[node name="TriggerAfterSpawnProj" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger for the duration window after you spawn a projectile."
 text = "  after spawning projectiles"
 
-[node name="TriggerAfterSpawnProjDuration" parent="." instance=ExtResource( 3 )]
+[node name="TriggerAfterSpawnProjDuration" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 30.0
@@ -187,25 +209,25 @@ min_value = 1.0
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerProjectilesActive" type="CheckButton" parent="."]
+[node name="TriggerProjectilesActive" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger while any of your projectiles are alive on the field."
 text = "  while projectiles active"
 
-[node name="TriggerProjectilesActiveLinger" parent="." instance=ExtResource( 3 )]
+[node name="TriggerProjectilesActiveLinger" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerAfterTakeDmg" type="CheckButton" parent="."]
+[node name="TriggerAfterTakeDmg" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger for the duration window after you take damage."
 text = "  after taking damage"
 
-[node name="TriggerAfterTakeDmgDuration" parent="." instance=ExtResource( 3 )]
+[node name="TriggerAfterTakeDmgDuration" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 30.0
@@ -213,13 +235,13 @@ min_value = 1.0
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerAfterOppTakeDmg" type="CheckButton" parent="."]
+[node name="TriggerAfterOppTakeDmg" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Trigger for the duration window after the opponent takes damage."
 text = "  after opponent takes damage"
 
-[node name="TriggerAfterOppTakeDmgDuration" parent="." instance=ExtResource( 3 )]
+[node name="TriggerAfterOppTakeDmgDuration" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 30.0
@@ -227,12 +249,12 @@ min_value = 1.0
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerAfterPerfectParry" type="CheckButton" parent="."]
+[node name="TriggerAfterPerfectParry" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 text = "  after parry"
 
-[node name="TriggerAfterPerfectParryDuration" parent="." instance=ExtResource( 3 )]
+[node name="TriggerAfterPerfectParryDuration" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 30.0
@@ -240,12 +262,12 @@ min_value = 1.0
 max_value = 120.0
 step = 1.0
 
-[node name="TriggerAfterBurst" type="CheckButton" parent="."]
+[node name="TriggerAfterBurst" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 text = "  after burst"
 
-[node name="TriggerAfterBurstDuration" parent="." instance=ExtResource( 3 )]
+[node name="TriggerAfterBurstDuration" parent="TriggersSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 visible = false
 default_value = 30.0
@@ -253,25 +275,32 @@ min_value = 1.0
 max_value = 120.0
 step = 1.0
 
-[node name="TriggersInverted" type="CheckButton" parent="."]
+[node name="TriggersInverted" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 visible = false
 hint_tooltip = "Invert the trigger logic — the aura is normally on, and hides while any enabled trigger is active."
 text = "  hide on trigger"
 
-[node name="HFlowContainer" type="HFlowContainer" parent="."]
-margin_top = 171.0
+[node name="PositionSection" type="VBoxContainer" parent="."]
+margin_top = 177.0
 margin_right = 212.0
-margin_bottom = 199.0
+margin_bottom = 309.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Position & Attachment"
 
-[node name="InFront" type="CheckButton" parent="HFlowContainer"]
+[node name="HFlowContainer" type="HFlowContainer" parent="PositionSection"]
+margin_right = 212.0
+margin_bottom = 28.0
+
+[node name="InFront" type="CheckButton" parent="PositionSection/HFlowContainer"]
 unique_name_in_owner = true
 margin_right = 58.0
 margin_bottom = 12.0
 size_flags_horizontal = 0
 text = "in front"
 
-[node name="Local" type="CheckButton" parent="HFlowContainer"]
+[node name="Local" type="CheckButton" parent="PositionSection/HFlowContainer"]
 unique_name_in_owner = true
 margin_left = 62.0
 margin_right = 106.0
@@ -279,7 +308,7 @@ margin_bottom = 12.0
 size_flags_horizontal = 0
 text = "local"
 
-[node name="FlipWithCharacter" type="CheckButton" parent="HFlowContainer"]
+[node name="FlipWithCharacter" type="CheckButton" parent="PositionSection/HFlowContainer"]
 unique_name_in_owner = true
 margin_top = 16.0
 margin_right = 112.0
@@ -288,245 +317,104 @@ size_flags_horizontal = 0
 pressed = true
 text = "flip with character"
 
-[node name="AttachLimbRow" type="HBoxContainer" parent="."]
-margin_top = 204.0
-margin_right = 212.0
-margin_bottom = 216.0
+[node name="X Offset" parent="PositionSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 29.0
+margin_bottom = 54.0
+min_value = -32.0
+max_value = 32.0
 
-[node name="Label" type="Label" parent="AttachLimbRow"]
+[node name="Y Offset" parent="PositionSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 55.0
+margin_bottom = 80.0
+min_value = -32.0
+max_value = 32.0
+
+[node name="AttachLimbRow" type="HBoxContainer" parent="PositionSection"]
+margin_top = 81.0
+margin_right = 212.0
+margin_bottom = 93.0
+
+[node name="Label" type="Label" parent="PositionSection/AttachLimbRow"]
 margin_right = 50.0
 margin_bottom = 11.0
 text = "Attach to: "
 
-[node name="AttachLimb" type="OptionButton" parent="AttachLimbRow"]
+[node name="AttachLimb" type="OptionButton" parent="PositionSection/AttachLimbRow"]
 unique_name_in_owner = true
 margin_left = 51.0
 margin_right = 212.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
 
-[node name="MirrorPair" type="CheckButton" parent="."]
+[node name="MirrorPair" type="CheckButton" parent="PositionSection"]
 unique_name_in_owner = true
-margin_top = 221.0
+margin_top = 94.0
 margin_right = 212.0
-margin_bottom = 233.0
+margin_bottom = 106.0
 hint_tooltip = "For Hands/Feet: mirror the flip on the second limb. With this on, if the left limb's flip is set the right limb's flip is the opposite."
 pressed = true
 text = "mirror flip on other limb"
 
-[node name="PositionOnly" type="CheckButton" parent="."]
+[node name="PositionOnly" type="CheckButton" parent="PositionSection"]
 unique_name_in_owner = true
-margin_top = 238.0
+margin_top = 107.0
 margin_right = 212.0
-margin_bottom = 250.0
+margin_bottom = 119.0
 hint_tooltip = "When on, the aura rotates and flips with the attached limb. When off, only the limb's position is used (default)."
 text = "rotate with limb"
 
-[node name="ConsistentSide" type="CheckButton" parent="."]
+[node name="ConsistentSide" type="CheckButton" parent="PositionSection"]
 unique_name_in_owner = true
-margin_top = 255.0
+margin_top = 120.0
 margin_right = 212.0
-margin_bottom = 267.0
+margin_bottom = 132.0
 hint_tooltip = "When on, Left/Right limb auras swap when the character faces left so the aura stays on the same side of the screen (e.g. a LeftHand aura always appears on the screen-left limb)."
 pressed = true
 text = "consistent side"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-margin_top = 272.0
+[node name="ScaleSection" type="VBoxContainer" parent="."]
+margin_top = 314.0
 margin_right = 212.0
-margin_bottom = 284.0
+margin_bottom = 391.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Scale"
 
-[node name="Label" type="Label" parent="HBoxContainer"]
-margin_right = 35.0
-margin_bottom = 11.0
-text = "Shape: "
-
-[node name="Shape" type="OptionButton" parent="HBoxContainer"]
+[node name="Start Scale" parent="ScaleSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_left = 36.0
-margin_right = 80.0
-margin_bottom = 12.0
-text = "shape"
-
-[node name="Angle" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 289.0
-margin_bottom = 314.0
-min_value = -360.0
-max_value = 360.0
-
-[node name="Angle Randomness" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 319.0
-margin_bottom = 344.0
-max_value = 1.0
-
-[node name="Gravity X" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 349.0
-margin_bottom = 374.0
-min_value = -100.0
-step = 0.1
-
-[node name="Gravity Y" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 379.0
-margin_bottom = 404.0
-min_value = -100.0
-step = 0.1
-
-[node name="HFlowContainer2" type="HFlowContainer" parent="."]
-margin_top = 409.0
-margin_right = 212.0
-margin_bottom = 475.0
-
-[node name="Direction" parent="HFlowContainer2" instance=ExtResource( 4 )]
-unique_name_in_owner = true
-anchor_right = 0.0
-anchor_bottom = 0.0
-always_max = true
-default_value = Vector2( 0, -1 )
-
-[node name="Direction Spread" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 480.0
-margin_bottom = 505.0
-max_value = 180.0
-step = 1.0
-
-[node name="Initial Velocity" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 510.0
-margin_bottom = 535.0
-min_value = -100.0
-step = 0.1
-
-[node name="Initial Velocity Randomness" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 540.0
-margin_bottom = 565.0
-max_value = 1.0
-step = 0.001
-
-[node name="Linear Accel" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 570.0
-margin_bottom = 595.0
-min_value = -100.0
-step = 0.1
-
-[node name="Linear Accel Randomness" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 600.0
-margin_bottom = 625.0
-max_value = 1.0
-step = 0.001
-
-[node name="Radial Accel" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 630.0
-margin_bottom = 655.0
-min_value = -100.0
-step = 0.1
-
-[node name="Radial Accel Randomness" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 660.0
-margin_bottom = 685.0
-max_value = 1.0
-step = 0.001
-
-[node name="Tangential Accel" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 690.0
-margin_bottom = 715.0
-min_value = -100.0
-step = 0.1
-
-[node name="Tangential Accel Randomness" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 720.0
-margin_bottom = 745.0
-max_value = 1.0
-step = 0.001
-
-[node name="Orbit Velocity" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 750.0
-margin_bottom = 775.0
-min_value = -3.0
-max_value = 3.0
-step = 0.025
-
-[node name="Orbit Velocity Randomness" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 780.0
-margin_bottom = 805.0
-max_value = 1.0
-step = 0.001
-
-[node name="Start Scale" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 810.0
-margin_bottom = 835.0
 default_value = 1.0
 max_value = 5.0
 
-[node name="End Scale" parent="." instance=ExtResource( 3 )]
+[node name="End Scale" parent="ScaleSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 840.0
-margin_bottom = 865.0
+margin_top = 26.0
+margin_bottom = 51.0
 default_value = 1.0
 max_value = 5.0
 
-[node name="Scale Randomness" parent="." instance=ExtResource( 3 )]
+[node name="Scale Randomness" parent="ScaleSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 870.0
-margin_bottom = 895.0
+margin_top = 52.0
+margin_bottom = 77.0
 max_value = 1.0
 
-[node name="Explosiveness" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 900.0
-margin_bottom = 925.0
-max_value = 1.0
-
-[node name="Rect Size X" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 930.0
-margin_bottom = 955.0
-default_value = 12.0
-max_value = 32.0
-
-[node name="Rect Size Y" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 960.0
-margin_bottom = 985.0
-default_value = 12.0
-max_value = 32.0
-
-[node name="X Offset" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 990.0
-margin_bottom = 1015.0
-min_value = -24.0
-max_value = 24.0
-
-[node name="Y Offset" parent="." instance=ExtResource( 3 )]
-unique_name_in_owner = true
-margin_top = 1020.0
-margin_bottom = 1045.0
-min_value = -24.0
-max_value = 24.0
-
-[node name="ColorPickers" type="TabContainer" parent="."]
-margin_top = 1050.0
+[node name="ColorSection" type="VBoxContainer" parent="."]
+margin_top = 396.0
 margin_right = 212.0
-margin_bottom = 1270.0
+margin_bottom = 668.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Color"
+
+[node name="ColorPickers" type="TabContainer" parent="ColorSection"]
+margin_right = 212.0
+margin_bottom = 220.0
 rect_min_size = Vector2( 0, 220 )
 tab_align = 0
 
-[node name="StartColor" parent="ColorPickers" instance=ExtResource( 5 )]
+[node name="StartColor" parent="ColorSection/ColorPickers" instance=ExtResource( 5 )]
 unique_name_in_owner = true
 anchor_left = 0.0
 anchor_top = 0.0
@@ -537,7 +425,7 @@ margin_top = 11.0
 margin_right = 0.0
 margin_bottom = 0.0
 
-[node name="EndColor" parent="ColorPickers" instance=ExtResource( 5 )]
+[node name="EndColor" parent="ColorSection/ColorPickers" instance=ExtResource( 5 )]
 unique_name_in_owner = true
 visible = false
 anchor_left = 0.0
@@ -549,18 +437,255 @@ margin_top = 11.0
 margin_right = 0.0
 margin_bottom = 0.0
 
-[node name="Start Alpha" parent="." instance=ExtResource( 3 )]
+[node name="Start Alpha" parent="ColorSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 1275.0
-margin_bottom = 1300.0
+margin_top = 221.0
+margin_bottom = 246.0
 default_value = 1.0
 max_value = 1.0
 step = 0.001
 
-[node name="End Alpha" parent="." instance=ExtResource( 3 )]
+[node name="End Alpha" parent="ColorSection" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 1305.0
-margin_bottom = 1330.0
+margin_top = 247.0
+margin_bottom = 272.0
 default_value = 1.0
 max_value = 1.0
 step = 0.001
+
+[node name="EmissionAreaSection" type="VBoxContainer" parent="."]
+margin_top = 673.0
+margin_right = 212.0
+margin_bottom = 724.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Emission Area"
+
+[node name="Rect Size X" parent="EmissionAreaSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+default_value = 12.0
+max_value = 32.0
+
+[node name="Rect Size Y" parent="EmissionAreaSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+default_value = 12.0
+max_value = 32.0
+
+[node name="ParticleShapeSection" type="VBoxContainer" parent="."]
+margin_top = 729.0
+margin_right = 212.0
+margin_bottom = 741.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Particle Shape"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ParticleShapeSection"]
+margin_right = 212.0
+margin_bottom = 12.0
+
+[node name="Label" type="Label" parent="ParticleShapeSection/HBoxContainer"]
+margin_right = 35.0
+margin_bottom = 11.0
+text = "Shape: "
+
+[node name="Shape" type="OptionButton" parent="ParticleShapeSection/HBoxContainer"]
+unique_name_in_owner = true
+margin_left = 36.0
+margin_right = 80.0
+margin_bottom = 12.0
+text = "shape"
+
+[node name="GravitySection" type="VBoxContainer" parent="."]
+margin_top = 746.0
+margin_right = 212.0
+margin_bottom = 797.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Gravity"
+
+[node name="Gravity X" parent="GravitySection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+min_value = -100.0
+step = 0.1
+
+[node name="Gravity Y" parent="GravitySection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+min_value = -100.0
+step = 0.1
+
+[node name="InitialVelocitySection" type="VBoxContainer" parent="."]
+margin_top = 802.0
+margin_right = 212.0
+margin_bottom = 946.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Initial Velocity"
+
+[node name="HFlowContainer2" type="HFlowContainer" parent="InitialVelocitySection"]
+margin_right = 212.0
+margin_bottom = 66.0
+
+[node name="Direction" parent="InitialVelocitySection/HFlowContainer2" instance=ExtResource( 4 )]
+unique_name_in_owner = true
+anchor_right = 0.0
+anchor_bottom = 0.0
+always_max = true
+default_value = Vector2( 0, -1 )
+
+[node name="Direction Spread" parent="InitialVelocitySection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 67.0
+margin_bottom = 92.0
+max_value = 180.0
+step = 1.0
+
+[node name="Initial Velocity" parent="InitialVelocitySection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 93.0
+margin_bottom = 118.0
+min_value = -100.0
+step = 0.1
+
+[node name="Initial Velocity Randomness" parent="InitialVelocitySection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 119.0
+margin_bottom = 144.0
+max_value = 1.0
+step = 0.001
+
+[node name="LinearAccelSection" type="VBoxContainer" parent="."]
+margin_top = 951.0
+margin_right = 212.0
+margin_bottom = 1002.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Linear Accel"
+
+[node name="Linear Accel" parent="LinearAccelSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+min_value = -100.0
+step = 0.1
+
+[node name="Linear Accel Randomness" parent="LinearAccelSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+max_value = 1.0
+step = 0.001
+
+[node name="RadialAccelSection" type="VBoxContainer" parent="."]
+margin_top = 1007.0
+margin_right = 212.0
+margin_bottom = 1058.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Radial Accel"
+
+[node name="Radial Accel" parent="RadialAccelSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+min_value = -100.0
+step = 0.1
+
+[node name="Radial Accel Randomness" parent="RadialAccelSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+max_value = 1.0
+step = 0.001
+
+[node name="TangentialAccelSection" type="VBoxContainer" parent="."]
+margin_top = 1063.0
+margin_right = 212.0
+margin_bottom = 1114.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Tangential Accel"
+
+[node name="Tangential Accel" parent="TangentialAccelSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+min_value = -100.0
+step = 0.1
+
+[node name="Tangential Accel Randomness" parent="TangentialAccelSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+max_value = 1.0
+step = 0.001
+
+[node name="OrbitVelocitySection" type="VBoxContainer" parent="."]
+margin_top = 1119.0
+margin_right = 212.0
+margin_bottom = 1170.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Orbit Velocity"
+
+[node name="Orbit Velocity" parent="OrbitVelocitySection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+min_value = -3.0
+max_value = 3.0
+step = 0.025
+
+[node name="Orbit Velocity Randomness" parent="OrbitVelocitySection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+max_value = 1.0
+step = 0.001
+
+[node name="DampingSection" type="VBoxContainer" parent="."]
+margin_top = 1175.0
+margin_right = 212.0
+margin_bottom = 1226.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Damping"
+
+[node name="Damping" parent="DampingSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+max_value = 200.0
+step = 0.1
+
+[node name="DampingRandom" parent="DampingSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+max_value = 1.0
+
+[node name="RotationSection" type="VBoxContainer" parent="."]
+margin_top = 1231.0
+margin_right = 212.0
+margin_bottom = 1334.0
+script = ExtResource( 6 )
+level = 1
+section_title = "Rotation"
+
+[node name="Angle" parent="RotationSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+min_value = -360.0
+max_value = 360.0
+
+[node name="Angle Randomness" parent="RotationSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_bottom = 51.0
+max_value = 1.0
+
+[node name="AngularVelocity" parent="RotationSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 52.0
+margin_bottom = 77.0
+min_value = -1500.0
+max_value = 1500.0
+step = 0.1
+
+[node name="AngularVelocityRandom" parent="RotationSection" instance=ExtResource( 3 )]
+unique_name_in_owner = true
+margin_top = 78.0
+margin_bottom = 103.0
+max_value = 1.0

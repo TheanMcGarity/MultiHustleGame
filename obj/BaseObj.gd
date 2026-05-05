@@ -52,6 +52,10 @@ var has_ceiling = false
 var obj_name: String
 
 var custom_hitspark
+# Config dict propagated onto each spawned CustomHitEffect via _spawn_particle_effect.
+# Schema: {sprite, show_particles, particles}. Set when applying a style with
+# `hitspark == "custom"`; null otherwise (named-preset hitsparks ignore this).
+var custom_hitspark_config = null
 
 var data
 var obj_data
@@ -545,6 +549,13 @@ func spawn_particle_effect_relative(particle_effect: PackedScene, pos: Vector2 =
 
 func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vector2.RIGHT):
 	var obj = particle_effect.instance()
+	# Forward the spawning entity's custom hitspark config (if any) onto the
+	# instance before it enters the tree. CustomHitEffect.gd reads this in
+	# its _ready to configure sprite frames + particle settings without
+	# round-tripping through PackedScene.pack.
+	var cfg = self.get("custom_hitspark_config")
+	if cfg != null:
+		obj.set("custom_config", cfg)
 	add_child(obj)
 	obj.tick()
 	var facing = -1 if dir.x < 0 else 1

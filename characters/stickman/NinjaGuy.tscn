@@ -8821,6 +8821,9 @@ GroundedSpecial
 AerialSpecial"
 interrupt_into_string = "Grounded
 Aerial"
+allowed_stances_string = "Normal
+NunChuk"
+change_stance_to = "Normal"
 
 [node name="DiveKick2" type="Node2D" parent="StateMachine" index="80"]
 script = ExtResource( 12 )

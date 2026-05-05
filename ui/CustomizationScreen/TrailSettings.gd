@@ -21,6 +21,17 @@ const ATTACH_LIMB_MIGRATIONS := {
 
 signal settings_changed(settings)
 
+# Set false for non-aura uses (e.g. hitspark particle editor) where the
+# dynamic-triggers section is irrelevant. The TriggersSection node still
+# exists in the tree so $"%TriggerX" lookups in the script don't NPE — it's
+# just hidden so the user can't reach it.
+export var enable_triggers := true
+# Hides the Attach-to-limb selector and its related toggles (mirror pair,
+# rotate-with-limb, consistent-side). Limb attachment only makes sense for
+# auras that follow a character — irrelevant for hitspark particles, which
+# spawn at a hit location and don't track an emitter.
+export var enable_limb_attach := true
+
 var start_color := Color.white
 var end_color := Color.white
 
@@ -93,12 +104,109 @@ onready var settings_map = {
 	$"%Y Offset": "y_offset",
 	$"%Angle": "angle",
 	$"%Angle Randomness": "angle_random",
+	$"%AngularVelocity": "angular_velocity",
+	$"%AngularVelocityRandom": "angular_velocity_random",
+	$"%Damping": "damping",
+	$"%DampingRandom": "damping_random",
 	$"%FlipWithCharacter": "flip_with_character",
 }
 
 var nodes_map = {}
 
 var shape_names = []
+
+var flip_option: OptionButton
+const FLIP_OPTION_NONE := 0
+const FLIP_OPTION_ALL := 1
+const FLIP_OPTION_RANDOM := 2
+var emission_shape_button: OptionButton
+var circle_radius_slider
+var dynamic_one_shot_button: CheckButton
+
+func _build_flip_shape_button():
+	# Shape lives inside an HBoxContainer (label + OptionButton). Add the
+	# Flip mode picker as its own row below, in the surrounding VBox. The
+	# data still saves as `flip_shape` / `random_flip` booleans (handled in
+	# load_settings / get_settings) — the OptionButton is just a tidier UI
+	# than two checkboxes.
+	var shape_node = $"%Shape"
+	var row = shape_node.get_parent() if shape_node else null
+	var parent = row.get_parent() if row else self
+	var flip_row = HBoxContainer.new()
+	flip_row.name = "FlipRow"
+	var label = Label.new()
+	label.text = "Flip: "
+	flip_row.add_child(label)
+	flip_option = OptionButton.new()
+	flip_option.name = "FlipShape"
+	flip_option.add_item("none", FLIP_OPTION_NONE)
+	flip_option.add_item("all", FLIP_OPTION_ALL)
+	flip_option.add_item("random", FLIP_OPTION_RANDOM)
+	flip_option.hint_tooltip = "How to flip asymmetric particle shapes (arrow, triangle, heart, etc.). 'all' mirrors every particle horizontally; 'random' mirrors about half. Has no visible effect on symmetric shapes."
+	flip_row.add_child(flip_option)
+	parent.add_child(flip_row)
+	if row:
+		var idx = row.get_position_in_parent() + 1
+		parent.move_child(flip_row, idx)
+	flip_option.connect("item_selected", self, "_setting_value_changed")
+
+# Emission shape selector (rectangle vs circle) and the matching circle radius
+# slider — built in code so the editor can't strip them. The associated
+# rect_size sliders are existing scene nodes; we toggle their visibility based
+# on which shape is active.
+func _build_emission_shape_widgets():
+	var row = HBoxContainer.new()
+	row.name = "EmissionShapeRow"
+	var label = Label.new()
+	label.text = "Emission: "
+	row.add_child(label)
+	emission_shape_button = OptionButton.new()
+	emission_shape_button.name = "EmissionShape"
+	emission_shape_button.add_item("rectangle", 0)
+	emission_shape_button.add_item("circle", 1)
+	row.add_child(emission_shape_button)
+
+	circle_radius_slider = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	circle_radius_slider.name = "CircleRadius"
+	circle_radius_slider.label_text = "Circle Radius"
+	circle_radius_slider.default_value = 12.0
+	circle_radius_slider.min_value = 0.0
+	circle_radius_slider.max_value = 32.0
+	circle_radius_slider.step = 0.1
+
+	# Slot the row + slider in just before the existing Rect Size sliders so
+	# they read as a coherent "emission area" group. Rect Size X may now live
+	# inside a CollapsibleSection wrapper, so add to the same parent rather
+	# than to TrailSettings root.
+	if has_node("%Rect Size X"):
+		var anchor = $"%Rect Size X"
+		var anchor_parent = anchor.get_parent()
+		anchor_parent.add_child(row)
+		anchor_parent.add_child(circle_radius_slider)
+		var idx = anchor.get_position_in_parent()
+		anchor_parent.move_child(row, idx)
+		anchor_parent.move_child(circle_radius_slider, idx + 1)
+	else:
+		add_child(row)
+		add_child(circle_radius_slider)
+
+	settings_map[emission_shape_button] = "emission_shape"
+	settings_map[circle_radius_slider] = "emission_circle_radius"
+
+# One-shot toggle for dynamic triggers — placed right under DynamicTriggers
+# in the expanded menu so users see it when they enable triggers.
+func _build_dynamic_one_shot_button():
+	if not has_node("%DynamicTriggers"):
+		return
+	var dt = $"%DynamicTriggers"
+	var parent = dt.get_parent() if dt else self
+	dynamic_one_shot_button = CheckButton.new()
+	dynamic_one_shot_button.name = "DynamicOneShot"
+	dynamic_one_shot_button.text = "enable one-shot mode"
+	dynamic_one_shot_button.hint_tooltip = "creates a new particle on every trigger which disappears after it's finished."
+	parent.add_child(dynamic_one_shot_button)
+	parent.move_child(dynamic_one_shot_button, dt.get_position_in_parent() + 1)
+	settings_map[dynamic_one_shot_button] = "dynamic_one_shot"
 
 func load_settings(settings):
 	for setting in settings:
@@ -115,6 +223,11 @@ func load_settings(settings):
 				node.set_value(value)
 			if value is Vector2 and node is XYPlot:
 				node.set_value_float(value)
+			if value is String and node is OptionButton:
+				for id in node.get_item_count():
+					if value == node.get_item_text(id):
+						node.selected = id
+						break
 	if "shape" in settings:
 		var shape = settings["shape"]
 		for id in $"%Shape".get_item_count():
@@ -144,27 +257,102 @@ func load_settings(settings):
 		_update_attach_visibility()
 	if has_node("%DynamicTriggers"):
 		_update_trigger_visibility()
+	# Explicit default for old styles that don't have emission_shape saved.
+	if emission_shape_button:
+		var em_shape = settings.get("emission_shape", "rectangle")
+		for id in emission_shape_button.get_item_count():
+			if em_shape == emission_shape_button.get_item_text(id):
+				emission_shape_button.selected = id
+				break
+	_update_emission_visibility()
+	# Flip mode is derived from the two booleans the data still stores. Random
+	# wins when both are true, "all" otherwise if flip_shape is true, else "none".
+	if flip_option:
+		if settings.get("random_flip", false):
+			flip_option.selected = FLIP_OPTION_RANDOM
+		elif settings.get("flip_shape", false):
+			flip_option.selected = FLIP_OPTION_ALL
+		else:
+			flip_option.selected = FLIP_OPTION_NONE
 #			yield(get_tree(), "idle_frame")
 
 const TRIGGER_LABELS = {
-	"TriggerDuringComboLinger": "linger duration",
-	"TriggerDuringMeleeLinger": "linger duration",
-	"TriggerWhileBeingComboedLinger": "linger duration",
-	"TriggerLowHealthThreshold": "health %",
-	"TriggerLowHealthLinger": "linger duration",
-	"TriggerHighHealthThreshold": "health %",
-	"TriggerHighHealthLinger": "linger duration",
-	"TriggerSuperLevelMin": "min level",
-	"TriggerSuperLevelLinger": "linger duration",
-	"TriggerAfterSpawnProjDuration": "duration",
-	"TriggerAfterTakeDmgDuration": "duration",
-	"TriggerAfterOppTakeDmgDuration": "duration",
-	"TriggerAfterPerfectParryDuration": "duration",
-	"TriggerAfterBurstDuration": "duration",
-	"TriggerProjectilesActiveLinger": "linger duration",
+	"TriggerDuringComboLinger": "Linger Duration",
+	"TriggerDuringMeleeLinger": "Linger Duration",
+	"TriggerWhileBeingComboedLinger": "Linger Duration",
+	"TriggerLowHealthThreshold": "Health %",
+	"TriggerLowHealthLinger": "Linger Duration",
+	"TriggerHighHealthThreshold": "Health %",
+	"TriggerHighHealthLinger": "Linger Duration",
+	"TriggerSuperLevelMin": "Min Level",
+	"TriggerSuperLevelLinger": "Linger Duration",
+	"TriggerAfterSpawnProjDuration": "Duration",
+	"TriggerAfterTakeDmgDuration": "Duration",
+	"TriggerAfterOppTakeDmgDuration": "Duration",
+	"TriggerAfterPerfectParryDuration": "Duration",
+	"TriggerAfterBurstDuration": "Duration",
+	"TriggerProjectilesActiveLinger": "Linger Duration",
+	"AngularVelocity": "Angular Velocity",
+	"AngularVelocityRandom": "Angular Vel. Randomness",
+	"Damping": "Damping",
+	"DampingRandom": "Damping Randomness",
 }
 
 func _ready():
+	# Godot's editor strips export-property overrides on scene instances when
+	# the property isn't statically visible at edit time (the same issue that
+	# bit `label_text` overrides on SettingsSlider). Fall back to detecting
+	# our role from the node's name so the hitspark instance still loses its
+	# triggers + limb-attach controls even after a linter pass.
+	if name == "HitsparkParticles":
+		enable_triggers = false
+		enable_limb_attach = false
+		# Hitsparks aren't tied to a character's facing or coordinate space —
+		# they spawn at a hit location and play out independently. Hide the
+		# toggles that only make sense for character-attached auras. Using
+		# the unique-name shortcut because PositionSection (a CollapsibleSection)
+		# re-parents its children under a Content node at _ready, so the
+		# direct PositionSection/HFlowContainer path doesn't resolve here.
+		if has_node("%Local"):
+			$"%Local".visible = false
+		if has_node("%FlipWithCharacter"):
+			$"%FlipWithCharacter".visible = false
+		# With limb attachment removed, the section's just "Position".
+		if has_node("PositionSection"):
+			$PositionSection.section_title = "Position"
+	# Strip the entire triggers section for non-aura uses (e.g. hitsparks).
+	# Done as a free() rather than visible=false because the user wants the
+	# triggers feature simply not present in those contexts. Trigger-related
+	# wiring below is gated on enable_triggers so it doesn't try to talk to
+	# nodes that no longer exist.
+	if not enable_triggers and has_node("TriggersSection"):
+		$TriggersSection.free()
+	# Hide limb-attach controls for non-aura uses. AttachLimb stays at its
+	# default "(none)" so save/load don't need special handling. Direct
+	# child paths don't work because PositionSection (a CollapsibleSection)
+	# re-parents its children under a Content node at _ready, so we go
+	# through the unique-name shortcut + walk to the AttachLimbRow parent.
+	if not enable_limb_attach:
+		if has_node("%AttachLimb"):
+			var row = $"%AttachLimb".get_parent()
+			if row:
+				row.visible = false
+		if has_node("%MirrorPair"):
+			$"%MirrorPair".visible = false
+		if has_node("%PositionOnly"):
+			$"%PositionOnly".visible = false
+		if has_node("%ConsistentSide"):
+			$"%ConsistentSide".visible = false
+	# Build the FlipShape checkbox in code — it has to live next to the Shape
+	# OptionButton, but adding it via the .tscn is fragile because Godot's
+	# editor strips unknown nodes from TrailSettings.tscn on save (same issue
+	# that bit the slider label_text overrides). Wire it directly here.
+	_build_flip_shape_button()
+	_build_emission_shape_widgets()
+	if enable_triggers:
+		_build_dynamic_one_shot_button()
+	if emission_shape_button:
+		emission_shape_button.connect("item_selected", self, "_on_emission_shape_changed")
 	var shapes = CustomTrailParticle.get_shapes()
 	for shape_name in shapes:
 		$"%Shape".add_item(shape_name)
@@ -181,18 +369,24 @@ func _ready():
 		var n = get_node_or_null("%" + slider_name)
 		if n and n.has_method("set_label_text"):
 			n.set_label_text(TRIGGER_LABELS[slider_name])
-	for trigger_button_name in [
-		"DynamicTriggers",
-		"TriggerDuringCombo", "TriggerDuringMelee", "TriggerWhileBeingComboed",
-		"TriggerLowHealth", "TriggerHighHealth", "TriggerSuperLevel",
-		"TriggerAfterSpawnProj", "TriggerProjectilesActive",
-		"TriggerAfterTakeDmg", "TriggerAfterOppTakeDmg",
-		"TriggerAfterPerfectParry", "TriggerAfterBurst"
-	]:
-		get_node("%" + trigger_button_name).connect("toggled", self, "_on_trigger_toggled")
+	if enable_triggers:
+		for trigger_button_name in [
+			"DynamicTriggers",
+			"TriggerDuringCombo", "TriggerDuringMelee", "TriggerWhileBeingComboed",
+			"TriggerLowHealth", "TriggerHighHealth", "TriggerSuperLevel",
+			"TriggerAfterSpawnProj", "TriggerProjectilesActive",
+			"TriggerAfterTakeDmg", "TriggerAfterOppTakeDmg",
+			"TriggerAfterPerfectParry", "TriggerAfterBurst"
+		]:
+			get_node("%" + trigger_button_name).connect("toggled", self, "_on_trigger_toggled")
+		# DynamicOneShot also needs to flip linger-slider visibility — it's not
+		# in the loop above because that list pre-existed before one_shot mode.
+		if dynamic_one_shot_button:
+			dynamic_one_shot_button.connect("toggled", self, "_on_trigger_toggled")
 	_update_framerate_visibility()
 	_update_attach_visibility()
-	_update_trigger_visibility()
+	if enable_triggers:
+		_update_trigger_visibility()
 	if has_node("%MirrorPair"):
 		$"%MirrorPair".connect("toggled", self, "_setting_value_changed")
 	if has_node("%PositionOnly"):
@@ -200,6 +394,13 @@ func _ready():
 	if has_node("%ConsistentSide"):
 		$"%ConsistentSide".connect("toggled", self, "_setting_value_changed")
 	for node in settings_map:
+		# Guard against nodes the godot editor may have stripped from the
+		# scene — settings_map is built via $"%Foo" at onready time, so a
+		# missing node lands as null here and would crash has_signal. Also
+		# skip freed objects (e.g. trigger nodes after free()) — those refs
+		# aren't null but are no longer valid.
+		if node == null or not is_instance_valid(node):
+			continue
 		if node.has_signal("value_changed"):
 			node.connect("value_changed", self, "_setting_value_changed")
 		if node.has_signal("toggled"):
@@ -208,6 +409,8 @@ func _ready():
 			node.connect("data_changed", self, "_setting_value_changed")
 		if node.has_signal("color_changed"):
 			node.connect("color_changed", self, "_setting_value_changed")
+		if node.has_signal("item_selected"):
+			node.connect("item_selected", self, "_setting_value_changed")
 		var setting = settings_map[node]
 		nodes_map[setting] = node
 	pass # Replace with function body.
@@ -221,6 +424,24 @@ func _on_cap_framerate_toggled(_pressed):
 
 func _update_framerate_visibility():
 	$"%Framerate".visible = $"%CapFramerate".pressed
+
+func _on_emission_shape_changed(_idx):
+	_update_emission_visibility()
+	_setting_value_changed()
+
+func _current_emission_shape() -> String:
+	if emission_shape_button and emission_shape_button.selected >= 0:
+		return emission_shape_button.get_item_text(emission_shape_button.selected)
+	return "rectangle"
+
+func _update_emission_visibility():
+	var is_circle = _current_emission_shape() == "circle"
+	if has_node("%Rect Size X"):
+		$"%Rect Size X".visible = not is_circle
+	if has_node("%Rect Size Y"):
+		$"%Rect Size Y".visible = not is_circle
+	if circle_radius_slider:
+		circle_radius_slider.visible = is_circle
 
 func _update_attach_visibility():
 	var attached = $"%AttachLimb".selected > 0
@@ -237,34 +458,42 @@ func _on_trigger_toggled(_pressed):
 
 func _update_trigger_visibility():
 	var dt = $"%DynamicTriggers".pressed
+	# In one-shot mode each event spawns a fresh ephemeral burst that lives
+	# its own lifetime — linger/duration values don't apply, and inversion is
+	# intentionally ignored (the rising edges are used directly), so hide
+	# both classes of widget while it's on.
+	var os = dt and dynamic_one_shot_button and dynamic_one_shot_button.pressed
+	var show_linger = dt and not os
+	if dynamic_one_shot_button:
+		dynamic_one_shot_button.visible = dt
 	$"%TriggerDuringCombo".visible = dt
 	$"%TriggerDuringMelee".visible = dt
 	$"%TriggerWhileBeingComboed".visible = dt
 	$"%TriggerAfterSpawnProj".visible = dt
 	$"%TriggerAfterTakeDmg".visible = dt
 	$"%TriggerAfterOppTakeDmg".visible = dt
-	$"%TriggerDuringComboLinger".visible = dt and $"%TriggerDuringCombo".pressed
-	$"%TriggerDuringMeleeLinger".visible = dt and $"%TriggerDuringMelee".pressed
-	$"%TriggerWhileBeingComboedLinger".visible = dt and $"%TriggerWhileBeingComboed".pressed
+	$"%TriggerDuringComboLinger".visible = show_linger and $"%TriggerDuringCombo".pressed
+	$"%TriggerDuringMeleeLinger".visible = show_linger and $"%TriggerDuringMelee".pressed
+	$"%TriggerWhileBeingComboedLinger".visible = show_linger and $"%TriggerWhileBeingComboed".pressed
 	$"%TriggerLowHealth".visible = dt
 	$"%TriggerLowHealthThreshold".visible = dt and $"%TriggerLowHealth".pressed
-	$"%TriggerLowHealthLinger".visible = dt and $"%TriggerLowHealth".pressed
+	$"%TriggerLowHealthLinger".visible = show_linger and $"%TriggerLowHealth".pressed
 	$"%TriggerHighHealth".visible = dt
 	$"%TriggerHighHealthThreshold".visible = dt and $"%TriggerHighHealth".pressed
-	$"%TriggerHighHealthLinger".visible = dt and $"%TriggerHighHealth".pressed
+	$"%TriggerHighHealthLinger".visible = show_linger and $"%TriggerHighHealth".pressed
 	$"%TriggerSuperLevel".visible = dt
 	$"%TriggerSuperLevelMin".visible = dt and $"%TriggerSuperLevel".pressed
-	$"%TriggerSuperLevelLinger".visible = dt and $"%TriggerSuperLevel".pressed
-	$"%TriggerAfterSpawnProjDuration".visible = dt and $"%TriggerAfterSpawnProj".pressed
+	$"%TriggerSuperLevelLinger".visible = show_linger and $"%TriggerSuperLevel".pressed
+	$"%TriggerAfterSpawnProjDuration".visible = show_linger and $"%TriggerAfterSpawnProj".pressed
 	$"%TriggerProjectilesActive".visible = dt
-	$"%TriggerProjectilesActiveLinger".visible = dt and $"%TriggerProjectilesActive".pressed
-	$"%TriggerAfterTakeDmgDuration".visible = dt and $"%TriggerAfterTakeDmg".pressed
-	$"%TriggerAfterOppTakeDmgDuration".visible = dt and $"%TriggerAfterOppTakeDmg".pressed
+	$"%TriggerProjectilesActiveLinger".visible = show_linger and $"%TriggerProjectilesActive".pressed
+	$"%TriggerAfterTakeDmgDuration".visible = show_linger and $"%TriggerAfterTakeDmg".pressed
+	$"%TriggerAfterOppTakeDmgDuration".visible = show_linger and $"%TriggerAfterOppTakeDmg".pressed
 	$"%TriggerAfterPerfectParry".visible = dt
-	$"%TriggerAfterPerfectParryDuration".visible = dt and $"%TriggerAfterPerfectParry".pressed
+	$"%TriggerAfterPerfectParryDuration".visible = show_linger and $"%TriggerAfterPerfectParry".pressed
 	$"%TriggerAfterBurst".visible = dt
-	$"%TriggerAfterBurstDuration".visible = dt and $"%TriggerAfterBurst".pressed
-	$"%TriggersInverted".visible = dt
+	$"%TriggerAfterBurstDuration".visible = show_linger and $"%TriggerAfterBurst".pressed
+	$"%TriggersInverted".visible = dt and not os
 
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())
@@ -295,6 +524,8 @@ func get_settings():
 	}
 #	print("getting all aura settings")
 	for settings_node in settings_map:
+		if settings_node == null or not is_instance_valid(settings_node):
+			continue
 		var value
 		if settings_map[settings_node] in map:
 			continue
@@ -302,10 +533,23 @@ func get_settings():
 			value = settings_node.get_data()
 		elif settings_node is XYPlot:
 			value = settings_node.get_value_float()
+		elif settings_node is OptionButton:
+			# OptionButton inherits BaseButton (which has `pressed`), so this
+			# branch must come before the generic `get("pressed")` check or
+			# the OptionButton's always-false `pressed` would be saved instead
+			# of the selected item text.
+			if settings_node.selected >= 0:
+				value = settings_node.get_item_text(settings_node.selected)
 		elif settings_node.get("pressed") != null:
 			value = settings_node.pressed
 		elif settings_node is SpinBox:
 			value = settings_node.value
 		if value != null:
 			map[settings_map[settings_node]] = value
+	# Derive flip_shape / random_flip from the OptionButton. The dropdown
+	# isn't in settings_map (it's a UI proxy for two saved booleans), so we
+	# write them out here.
+	var flip_idx = flip_option.selected if flip_option else FLIP_OPTION_NONE
+	map["flip_shape"] = (flip_idx == FLIP_OPTION_ALL)
+	map["random_flip"] = (flip_idx == FLIP_OPTION_RANDOM)
 	return map

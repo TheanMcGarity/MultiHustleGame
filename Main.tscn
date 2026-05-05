@@ -2702,7 +2702,7 @@ unique_name_in_owner = true
 margin_top = 301.0
 margin_right = 214.0
 margin_bottom = 313.0
-hint_tooltip = "When enabled, XY plots (DI, juke, etc) don't snap by default. Hold Shift to enable snapping."
+hint_tooltip = "When enabled, XY plots (DI etc) don't snap by default. Hold Shift to enable snapping."
 text = "hold shift to snap xy plots"
 
 [node name="Hotkeys" type="Control" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]

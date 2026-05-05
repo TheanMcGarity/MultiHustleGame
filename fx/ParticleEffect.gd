@@ -97,6 +97,10 @@ func tick():
 	tick += 1
 	for child in get_children():
 		if child is AnimatedSprite:
+			# AnimatedSprite without frames (e.g., custom hitspark whose
+			# config hasn't been applied yet) — skip rather than crash.
+			if child.frames == null:
+				continue
 			if child.frames.get_frame_count(child.animation) > tick:
 				child.frame = tick
 			else:
