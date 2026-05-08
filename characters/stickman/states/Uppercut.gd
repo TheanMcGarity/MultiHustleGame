@@ -32,6 +32,15 @@ func _frame_0():
 func on_got_blocked():
 	hitbox_2.block_punishable = true
 
+# Bypass ObjectState's `if active:` gate. apply_hitboxes resolves p1_hit
+# before p2_hit, so on a trade where Ninja is players[0] his uppercut state
+# ends from the incoming hit BEFORE his own hitbox emits hit_something —
+# the gate then drops the signal and the +2 cancel never gets armed. The
+# hit was real, just resolved a frame too late; fire it anyway.
+func __on_hit_something(obj, hitbox):
+	_on_hit_something(obj, hitbox)
+	host._on_hit_something(obj, hitbox)
+
 func _on_hit_something(obj, hitbox):
 #	if !air and (host.combo_moves_used.size() <= 0):
 	if !air:

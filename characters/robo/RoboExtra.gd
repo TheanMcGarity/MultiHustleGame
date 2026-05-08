@@ -43,6 +43,17 @@ func update_selected_move(move_state):
 	$"%ArmorEnabled".disabled = false
 	$"%FlyEnabled".disabled = false
 
+	# Whiff-block lockout — same gate NewParry.is_usable uses to refuse a
+	# fresh parry after a whiffed one. If the current state is a parry that
+	# didn't catch anything (and we're not mid-combo), disable the armor
+	# toggle so the player can't queue armor straight out of a whiff block.
+	var current = fighter.current_state()
+	if current and current.get("IS_NEW_PARRY") \
+			and !current.parried and !current.autoguard \
+			and fighter.combo_count <= 0:
+		$"%ArmorEnabled".set_pressed_no_signal(false)
+		$"%ArmorEnabled".disabled = true
+
 	if move_state is CharacterState:
 		if move_state.name != "Step" and (\
 		move_state.type == CharacterState.ActionType.Defense \

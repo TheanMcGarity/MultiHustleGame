@@ -63,6 +63,9 @@ func get_current_limb_sprite_node():
 		return liftoff_sprite
 	return .get_current_limb_sprite_node()
 
+func is_in_install_super():
+	return orb_projectile != null
+
 func copy_to(f):
 	.copy_to(f)
 	f.boulder_projectile = boulder_projectile

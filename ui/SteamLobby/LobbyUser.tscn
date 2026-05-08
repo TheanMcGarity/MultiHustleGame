@@ -87,7 +87,7 @@ expand = true
 unique_name_in_owner = true
 margin_left = 1.0
 margin_top = 16.0
-margin_right = 81.0
+margin_right = 76.0
 margin_bottom = 29.0
 mouse_default_cursor_shape = 2
 size_flags_horizontal = 3
@@ -98,9 +98,9 @@ clip_text = true
 
 [node name="ReplayChallengeButton" type="Button" parent="."]
 unique_name_in_owner = true
-margin_left = 82.0
+margin_left = 77.0
 margin_top = 16.0
-margin_right = 97.0
+margin_right = 92.0
 margin_bottom = 29.0
 hint_tooltip = "Challenge with a saved replay."
 mouse_default_cursor_shape = 2

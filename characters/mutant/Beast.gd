@@ -27,6 +27,20 @@ func get_current_limb_sprite_node():
 		return twist_attack_sprite
 	return .get_current_limb_sprite_node()
 
+func is_in_install_super():
+	# Mutant's install lives in `can_air_dash`: Howl sets it true, SlopDash
+	# consumes it on _enter, and process_action re-arms it when the player
+	# chains an attack right after AirDash (so attacks "hold onto" SlopDash).
+	# Also treat the SlopDash state itself as install-active — can_air_dash
+	# briefly drops to false during the dash before the chained attack flips
+	# it back, and the trigger shouldn't flicker off mid-combo.
+	# install_ticks is declared in Beast.gd but never actually mutated;
+	# kept here as a future-proof.
+	if can_air_dash or install_ticks > 0:
+		return true
+	var state = current_state()
+	return state != null and state.state_name == "AirDash"
+
 var install_ticks = 0
 var shockwave_projectile = null
 var spike_projectile = null

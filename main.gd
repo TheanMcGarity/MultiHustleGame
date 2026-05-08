@@ -268,6 +268,77 @@ func save_replay():
 	$"%SaveReplayButton".text = "saved"
 	$"%SaveReplayLabel".text = "saved replay to " + filename
 
+# Ctrl+S is a save-replay shortcut. With the pause menu open, mirrors the
+# Save Replay button (and updates its label inside the panel). With the menu
+# closed, save silently and flash a 2-second "saved replay" toast so the
+# player gets feedback without having to open the menu.
+func _unhandled_key_input(event):
+	if not event.pressed or event.echo:
+		return
+	if event.scancode != KEY_S or not event.control:
+		return
+	if _style_menu_active:
+		return
+	var btn = get_node_or_null("%SaveReplayButton")
+	if btn == null or btn.disabled:
+		return
+	var pause_open = has_node("%PausePanel") and $"%PausePanel".visible
+	save_replay()
+	if not pause_open:
+		_show_save_replay_toast()
+	get_tree().set_input_as_handled()
+
+# Floating duplicate of the pause panel's SaveReplayLabel shown for 2 seconds
+# when Ctrl+S fires with the pause menu closed. Duplicating the existing
+# label inherits its theme/font/anchors so the toast looks identical to what
+# the player would see if they'd opened the pause menu themselves. Auto-
+# dismisses early if the pause panel opens (its own label is now on screen)
+# or if the pause panel's SaveReplayLabel text changes (a fresher save / an
+# unrelated message takes over).
+const _TOAST_NODE_NAME := "_SaveReplayToast"
+const _TOAST_DURATION := 1.5
+var _toast_baseline_label_text := ""
+
+func _get_save_replay_toast():
+	var host = get_node_or_null("%GameUI")
+	if host == null:
+		return null
+	return host.get_node_or_null(_TOAST_NODE_NAME)
+
+func _show_save_replay_toast():
+	# Tear down any toast already on screen — the new save replaces it.
+	var existing = _get_save_replay_toast()
+	if existing:
+		existing.queue_free()
+	var pause_label: Label = get_node_or_null("%SaveReplayLabel")
+	if pause_label == null:
+		return
+	# Parent the toast under GameUI (the Control that holds the pause panel
+	# and owns the global theme) so it inherits the same fonts and styling
+	# the pause label gets. A standalone CanvasLayer would lose all that
+	# inheritance and render the label in the engine default theme.
+	var host = get_node_or_null("%GameUI")
+	if host == null:
+		return
+	_toast_baseline_label_text = pause_label.text
+	var label_copy: Label = pause_label.duplicate()
+	label_copy.name = _TOAST_NODE_NAME
+	# Anchor to screen center, then nudge down ~50px so the toast doesn't
+	# overlap player-info HUD elements at the very middle.
+	label_copy.set_anchors_preset(Control.PRESET_CENTER)
+	label_copy.margin_left = -274
+	label_copy.margin_top = 42
+	label_copy.margin_right = 274
+	label_copy.margin_bottom = 58
+	label_copy.visible = true
+	host.add_child(label_copy)
+	var timer = Timer.new()
+	timer.wait_time = _TOAST_DURATION
+	timer.one_shot = true
+	label_copy.add_child(timer)
+	timer.start()
+	timer.connect("timeout", label_copy, "queue_free")
+
 var _style_menu_main_visibility := {}
 var _style_menu_active := false
 
@@ -476,9 +547,9 @@ func setup_game_deferred(singleplayer, data):
 			ui_layer.set_turn_time(data.turn_time, (data.has("chess_timer") and data.chess_timer))
 		else:
 			ui_layer.start_timers()
+	ui_layer.init(game)
 	if data.has("replay_challenge") and data.replay_challenge and data.get("restore_timers") and data.has("chess_timer_state"):
 		ui_layer.restore_chess_timer_state(data.chess_timer_state)
-	ui_layer.init(game)
 	hud_layer.init(game)
 	var p1 = game.get_player(1)
 	var p2 = game.get_player(2)
@@ -516,9 +587,20 @@ func _on_player_actionable():
 	$"%GhostWaitTimer".start()
 	start_ghost()
 	_maybe_save_backup()
+	_reset_save_replay_button()
 
 func _on_multiplayer_turn_started():
 	_maybe_save_backup()
+	_reset_save_replay_button()
+
+# Re-arm the Save Replay button each new turn so the player can re-save the
+# updated replay (without having to close + re-open the pause menu).
+func _reset_save_replay_button():
+	var btn = get_node_or_null("%SaveReplayButton")
+	if btn == null:
+		return
+	btn.disabled = false
+	btn.text = "save replay"
 
 func _maybe_save_backup():
 	if !is_instance_valid(game):
@@ -555,6 +637,18 @@ func _process(_delta):
 		$"%SpeedLines".set_speed(game.camera.current_speed / game.camera.zoom.x)
 		$"%SpeedLines".tick = game.current_tick
 		$"%SpeedLines".on = !game.is_waiting_on_player()
+	_tick_save_replay_toast()
+
+func _tick_save_replay_toast():
+	var toast = _get_save_replay_toast()
+	if toast == null:
+		return
+	if has_node("%PausePanel") and $"%PausePanel".visible:
+		toast.queue_free()
+		return
+	var pause_label = get_node_or_null("%SaveReplayLabel")
+	if pause_label and pause_label.text != _toast_baseline_label_text:
+		toast.queue_free()
 
 func _physics_process(delta):
 	set_deferred("started_ghost_this_frame", false)

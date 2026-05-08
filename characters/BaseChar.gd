@@ -425,6 +425,13 @@ var style_aura_being_comboed_tick = -100000
 var style_aura_melee_attack_tick = -100000
 var style_aura_burst_tick = -100000
 var style_aura_perfect_parry_tick = -100000
+var style_aura_install_super_tick = -100000
+# Manual-action gate for the Movement variant of the action_type trigger:
+# only counts states the player explicitly chose, not auto-followups.
+# `pending` is set by on_action_selected and consumed by on_state_started so
+# `in_manual_state` reflects the *current* state's origin.
+var style_aura_manual_action_pending = false
+var style_aura_in_manual_state = false
 # Rising-edge / event-tick markers used by aura one-shot mode (sister fields
 # to the continuous ones above — these bump only on the transition into the
 # active state, so each new attack/combo/etc. fires a fresh burst).
@@ -601,6 +608,8 @@ func _update_style_aura_trackers():
 		style_aura_melee_attack_tick = current_tick
 	if get_active_projectiles().size() > 0:
 		style_aura_projectiles_active_tick = current_tick
+	if is_in_install_super():
+		style_aura_install_super_tick = current_tick
 
 	# Rising-edge "event" markers used by one-shot mode. melee_attack_started
 	# is bumped from on_state_started instead so that rapid attack→attack
@@ -658,6 +667,32 @@ func _update_aura_threshold_trackers(particle, settings: Dictionary):
 		if not first_run and active_now and not particle.was_super_level_active:
 			particle.style_aura_super_level_started_tick = current_tick
 		particle.was_super_level_active = active_now
+	# Per-aura action-type tracker — each aura picks its own action category
+	# from the dropdown, so the tick lives on the particle. "Special" includes
+	# Super, "Movement" requires the state to have been player-initiated.
+	if settings.get("trigger_action_type", false):
+		var pick = str(settings.get("trigger_action_type_value", "Attack"))
+		var state = current_state()
+		if state:
+			var matches = false
+			match pick:
+				"Movement":
+					# Exclude passive/idle movement states even when nominally
+					# entered as manual — Wait/Fall/Landing aren't what people
+					# mean by "the player is doing a movement action".
+					var sname = state.name if state else ""
+					var passive = sname == "Wait" or sname == "Fall" or sname == "Landing"
+					matches = state.type == CharacterState.ActionType.Movement and style_aura_in_manual_state and not passive
+				"Defense":
+					matches = state.type == CharacterState.ActionType.Defense
+				"Attack":
+					matches = state.type == CharacterState.ActionType.Attack
+				"Special":
+					matches = state.type == CharacterState.ActionType.Special or state.type == CharacterState.ActionType.Super
+				"Super":
+					matches = state.type == CharacterState.ActionType.Super
+			if matches:
+				particle.style_aura_action_type_tick = current_tick
 	particle._threshold_rising_edge_initialized = true
 
 # Evaluates the per-aura "dynamic triggers" — ORs together every enabled
@@ -715,6 +750,14 @@ func _aura_trigger_active(particle, settings: Dictionary) -> bool:
 	if not any_active and settings.get("trigger_after_burst", false):
 		var dur = int(settings.get("trigger_after_burst_duration", 30))
 		if current_tick - style_aura_burst_tick <= dur:
+			any_active = true
+	if not any_active and settings.get("trigger_action_type", false):
+		var linger = int(settings.get("trigger_action_type_linger", 0))
+		if current_tick - particle.style_aura_action_type_tick <= linger:
+			any_active = true
+	if not any_active and settings.get("trigger_during_install", false):
+		var linger = int(settings.get("trigger_during_install_linger", 0))
+		if current_tick - style_aura_install_super_tick <= linger:
 			any_active = true
 	if settings.get("triggers_inverted", false):
 		return not any_active
@@ -972,7 +1015,7 @@ func can_unlock_achievements():
 func _ready():
 	sprite.animation = "Wait"
 	state_variables.append_array(
-		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_projectiles_active_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick"]
+		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_projectiles_active_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick", "style_aura_install_super_tick", "style_aura_manual_action_pending", "style_aura_in_manual_state"]
 	)
 	add_to_group("Fighter")
 	connect("got_hit", self, "on_got_hit")
@@ -1117,6 +1160,7 @@ func gain_super_meter(amount,stale_amount = "1.0"):
 	gain_super_meter_raw(amount)
 
 func gain_super_meter_raw(amount):
+
 	super_meter += amount
 	var played_sound = false
 	while super_meter >= MAX_SUPER_METER:
@@ -1278,6 +1322,19 @@ func on_state_started(state):
 	# _aura_trigger_event_fired (each `started_tick` value fires at most once).
 	if state and state.type == CharacterState.ActionType.Attack:
 		style_aura_melee_attack_started_tick = current_tick
+	# Consume the pending "this state began because the player picked it" flag
+	# from the most recent on_action_selected. If nothing was queued, the
+	# transition was an auto-followup and the manual-state flag falls off so
+	# the action_type=Movement trigger can ignore those.
+	style_aura_in_manual_state = style_aura_manual_action_pending
+	style_aura_manual_action_pending = false
+
+# Returns true while a character-specific install/buff super is active. Default
+# false in BaseChar; characters with install supers (Wizard's Orb, Mutant's
+# Beast install, SwordGuy's 1000 Cuts, etc.) override this. Untyped on purpose
+# — Godot 3.5 has occasional dispatch quirks with typed virtual overrides.
+func is_in_install_super():
+	return false
 
 
 func thrown_by(hitbox: ThrowBox):
@@ -1491,7 +1548,12 @@ func launched_by(hitbox):
 		damage = fixed.round(fixed.mul(str(damage), "0.5"))
 	if hitbox.counter_hit:
 		damage = fixed.round(fixed.mul(str(damage), COUNTER_HIT_DAMAGE_MODIFIER))
-	take_damage(damage, hitbox.minimum_damage, hitbox.meter_gain_modifier, scaling_offset, "1.0", self_hit)
+	# `will_block` is only set when autoblock-armor caught the hit. The
+	# subsequent `change_state("ParryAuto")` already fired the prev state's
+	# `_on_state_exited`, which (for Robot) clears `armor_active` — so by the
+	# time take_damage runs, has_autoblock_armor() reads false. Pass the
+	# captured flag through so the hp<=0 → hp=1 branch still fires.
+	take_damage(damage, hitbox.minimum_damage, hitbox.meter_gain_modifier, scaling_offset, "1.0", self_hit, will_block)
 
 	if will_launch:
 		state_tick()
@@ -1874,7 +1936,7 @@ func get_penalty_damage_modifier():
 		return "1.0"
 	return fixed.add("1.0", fixed.mul(fixed.div(str(penalty - min_penalty_for_damage), str(MAX_PENALTY - min_penalty_for_damage)), "0.5"))
 
-func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling_offset=0, damage_taken_meter_gain_modifier = "1.0", self_hit=false):
+func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling_offset=0, damage_taken_meter_gain_modifier = "1.0", self_hit=false, armor_block=false):
 	# Self-hit (own projectile damages self): scale by my own combo state and
 	# don't credit the opponent with meter / combo damage tracking.
 	var combo_ref = self if self_hit else opponent
@@ -1905,7 +1967,7 @@ func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling
 	add_penalty(-25)
 	if hp < 0:
 		hp = 0
-	if hp <= 0 and (has_armor() or has_autoblock_armor()):
+	if hp <= 0 and (has_armor() or has_autoblock_armor() or armor_block):
 		hp = 1
 	if current_state().get("IS_NEW_PARRY") and current_state().push:
 		if hp <= 0:
@@ -2672,6 +2734,9 @@ func on_action_selected(action, data, extra):
 	queued_extra = extra
 	state_interruptable = false
 	state_hit_cancellable = false
+	# Mark the *next* state-start as player-initiated so the action_type
+	# Movement trigger can distinguish manual moves from auto-followups.
+	style_aura_manual_action_pending = true
 	if action == "Undo":
 		emit_signal("undo")
 #	if action == "Forfeit":

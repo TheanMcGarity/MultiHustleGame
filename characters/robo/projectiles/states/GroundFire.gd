@@ -3,6 +3,7 @@ extends ObjectState
 const FIRE_TIME = 120
 const LOIC_FIRE_TIME = 60
 const DAMAGE = 2
+const LOIC_DAMAGE = 2
 export var width = 100
 
 
@@ -18,7 +19,7 @@ func _tick():
 			if fighter.flame_touching_opponent == host.obj_name:
 				if !opponent.invulnerable and opponent.is_grounded():
 					if !(opponent.current_state().get("IS_JUMP")):
-						opponent.take_damage(DAMAGE)
+						opponent.take_damage(LOIC_DAMAGE if host.from_loic else DAMAGE)
 		else:
 			if fighter and fighter.flame_touching_opponent == host.obj_name:
 				fighter.flame_touching_opponent = null

@@ -156,6 +156,11 @@ static func get_default():
 		"trigger_after_perfect_parry_duration": 30,
 		"trigger_after_burst": false,
 		"trigger_after_burst_duration": 30,
+		"trigger_action_type": false,
+		"trigger_action_type_value": "Attack",
+		"trigger_action_type_linger": 0,
+		"trigger_during_install": false,
+		"trigger_during_install_linger": 0,
 	}
 
 static func get_setting_min(setting):
@@ -202,6 +207,8 @@ static func get_setting_min(setting):
 		"trigger_high_health_linger": 0,
 		"trigger_super_level_min": 1,
 		"trigger_super_level_linger": 0,
+		"trigger_action_type_linger": 0,
+		"trigger_during_install_linger": 0,
 		"trigger_after_spawn_projectile_duration": 1,
 		"trigger_projectiles_active_linger": 0,
 		"trigger_after_take_damage_duration": 1,
@@ -256,6 +263,8 @@ static func get_setting_max(setting):
 		"trigger_high_health_linger": 120,
 		"trigger_super_level_min": 9,
 		"trigger_super_level_linger": 120,
+		"trigger_action_type_linger": 120,
+		"trigger_during_install_linger": 120,
 		"trigger_after_spawn_projectile_duration": 120,
 		"trigger_projectiles_active_linger": 120,
 		"trigger_after_take_damage_duration": 120,
@@ -787,6 +796,8 @@ const TRIGGER_META_PARAMS = [
 	"trigger_after_opponent_take_damage", "trigger_after_opponent_take_damage_duration",
 	"trigger_after_perfect_parry", "trigger_after_perfect_parry_duration",
 	"trigger_after_burst", "trigger_after_burst_duration",
+	"trigger_action_type", "trigger_action_type_value", "trigger_action_type_linger",
+	"trigger_during_install", "trigger_during_install_linger",
 ]
 
 # Per-aura tick trackers for threshold-based continuous triggers — stored on
@@ -794,6 +805,7 @@ const TRIGGER_META_PARAMS = [
 var style_aura_low_health_tick = -100000
 var style_aura_high_health_tick = -100000
 var style_aura_super_level_tick = -100000
+var style_aura_action_type_tick = -100000
 # Rising-edge ticks (per aura) for one-shot mode.
 var style_aura_low_health_started_tick = -100000
 var style_aura_high_health_started_tick = -100000

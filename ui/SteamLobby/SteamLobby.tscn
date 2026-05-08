@@ -107,13 +107,58 @@ margin_bottom = 303.0
 
 [node name="UserList" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer"]
 unique_name_in_owner = true
-margin_right = 129.0
-margin_bottom = 302.0
+margin_right = 123.0
+margin_bottom = 309.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="LobbyUser" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
-margin_right = 129.0
+margin_right = 123.0
+
+[node name="LobbyUser2" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 31.0
+margin_right = 123.0
+margin_bottom = 61.0
+
+[node name="LobbyUser3" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 62.0
+margin_right = 123.0
+margin_bottom = 92.0
+
+[node name="LobbyUser4" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 93.0
+margin_right = 123.0
+margin_bottom = 123.0
+
+[node name="LobbyUser5" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 124.0
+margin_right = 123.0
+margin_bottom = 154.0
+
+[node name="LobbyUser6" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 155.0
+margin_right = 123.0
+margin_bottom = 185.0
+
+[node name="LobbyUser7" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 186.0
+margin_right = 123.0
+margin_bottom = 216.0
+
+[node name="LobbyUser8" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 217.0
+margin_right = 123.0
+margin_bottom = 247.0
+
+[node name="LobbyUser9" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 248.0
+margin_right = 123.0
+margin_bottom = 278.0
+
+[node name="LobbyUser10" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/UserListPanel/ScrollContainer/UserList" instance=ExtResource( 5 )]
+margin_top = 279.0
+margin_right = 123.0
+margin_bottom = 309.0
 
 [node name="MatchListPanel" type="PanelContainer" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 margin_left = 132.0
@@ -298,6 +343,7 @@ text = "quit"
 
 [node name="LoadingLobbyRect" type="ColorRect" parent="."]
 unique_name_in_owner = true
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 50.0
@@ -316,6 +362,7 @@ valign = 1
 
 [node name="LoadingModsRect" type="ColorRect" parent="."]
 unique_name_in_owner = true
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 50.0

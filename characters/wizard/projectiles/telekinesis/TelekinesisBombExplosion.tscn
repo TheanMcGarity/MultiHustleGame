@@ -30,6 +30,20 @@ animations = [ {
 
 [node name="BaseProjectile" instance=ExtResource( 2 )]
 material = SubResource( 1 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 damages_own_team = true
 has_projectile_parry_window = false
 deletes_other_projectiles = false

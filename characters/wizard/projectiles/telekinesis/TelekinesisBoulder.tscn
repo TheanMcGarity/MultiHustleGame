@@ -74,7 +74,6 @@ air_friction = "0.0"
 max_ground_speed = "30"
 max_air_speed = "30"
 max_fall_speed = "30"
-has_projectile_parry_window = false
 projectile_immune = true
 disable_obj = null
 disable_particle = ExtResource( 9 )
@@ -162,7 +161,7 @@ grounded_hit_state = "HurtAerial"
 minimum_grounded_frames = 4
 knockdown = true
 knockdown_extends_hitstun = false
-start_tick = 6
+start_tick = 4
 always_on = true
 
 [node name="Drop" type="Node2D" parent="StateMachine" index="3"]

@@ -35,6 +35,7 @@ const PLAYBACK_SPEED_1 = "playback_speed_1"
 const PLAYBACK_SPEED_2 = "playback_speed_2"
 const PLAYBACK_SPEED_3 = "playback_speed_3"
 const PLAYBACK_SPEED_4 = "playback_speed_4"
+const TOGGLE_FLIP = "toggle_flip"
 
 const RUNTIME_DEFAULTS = {
 	TOGGLE_HUD: KEY_F1,
@@ -59,6 +60,7 @@ const RUNTIME_DEFAULTS = {
 	PLAYBACK_SPEED_2: 0,
 	PLAYBACK_SPEED_3: 0,
 	PLAYBACK_SPEED_4: 0,
+	TOGGLE_FLIP: 0,
 }
 
 # Actions the user can rebind via the hotkeys settings UI.
@@ -73,6 +75,7 @@ const REBINDABLE = [
 	{"action": TOGGLE_HUD, "label": "Toggle HUD"},
 	{"action": OPEN_CHAT, "label": "Open Chat"},
 	{"action": TOGGLE_FREE_CANCEL, "label": "Toggle Free Cancel"},
+	{"action": TOGGLE_FLIP, "label": "Toggle Flip"},
 	{"action": TOGGLE_PREDICTION, "label": "Toggle Prediction"},
 	{"action": PREDICTION_SPEED_1, "label": "Prediction Speed x0.25"},
 	{"action": PREDICTION_SPEED_2, "label": "Prediction Speed x1"},

@@ -297,6 +297,9 @@ func use_bullet():
 func has_1k_cuts():
 	return cut_projectile != null
 
+func is_in_install_super():
+	return has_1k_cuts()
+
 func on_attack_blocked():
 	if !bullet_cancelling:
 		return

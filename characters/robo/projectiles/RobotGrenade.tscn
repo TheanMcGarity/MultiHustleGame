@@ -41,6 +41,20 @@ animations = [ {
 [node name="Grenade" instance=ExtResource( 1 )]
 material = SubResource( 2 )
 script = ExtResource( 6 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 gravity = "0.25"
 ground_friction = "0.8"
 air_friction = "0.15"

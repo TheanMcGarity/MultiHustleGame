@@ -177,6 +177,22 @@ func tick():
 				opponent.current_state().enable_interrupt(false, true)
 		else:
 			cancel_opponent_hitstun_countdown -= 1
+	# Trade-aware extension: when Ninja's neutral-hit Uppercut connected but
+	# Ninja then took a hit too (trade), Ninja's own hurt state can outlast
+	# the opponent's natural Uppercut hitstun — by the time Ninja recovers
+	# and the +2 cancel fires, the opponent has already exited hurt state
+	# and the cancel does nothing. Each tick while both are in hurt state,
+	# extend the opponent's hitstun so it lasts at least
+	# Ninja's_remaining_hitstun + UPPERCUT_HITSTUN_CANCEL_DELAY. This keeps
+	# the opponent in hurt state long enough for the cancel to actually
+	# guarantee the +2 advantage Uppercut promises.
+	if cancel_opponent_hitstun_pending and is_in_hurt_state(false) and opponent and opponent.is_in_hurt_state(false):
+		var ninja_hurt = current_state()
+		var opp_hurt = opponent.current_state()
+		if ninja_hurt.get("hitstun") != null and opp_hurt.get("hitstun") != null:
+			var target = ninja_hurt.hitstun + UPPERCUT_HITSTUN_CANCEL_DELAY
+			if opp_hurt.hitstun < target:
+				opp_hurt.hitstun = target
 	if turn_frames <= 1 and boost_frames_left <= 0:
 		released_this_turn = false
 	var hook = obj_from_name(grappling_hook_projectile)

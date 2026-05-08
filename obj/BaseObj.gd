@@ -341,8 +341,15 @@ func copy_to(o: BaseObj):
 
 	chara.copy_to(o.chara)
 	o.set_facing(get_facing_int())
-#	var vel = get_vel()
-#	o.set_vel(vel.x, vel.y)
+	# Explicit vel re-sync. Some states' _enter mutate cross-character chara
+	# state — e.g. StickyBombThrow._enter calls host.opponent.reset_momentum(),
+	# which clobbers the opponent's chara vel during the ghost change_state
+	# fast-forward above. The chara.copy_to one line up doesn't reach the
+	# OTHER character's chara, so we need each obj's copy_to to also pin its
+	# own vel from live state at the end. Pairs with the post-_enter invul
+	# resync above (same problem class — _enter side effects in copy_to).
+	var vel = get_vel()
+	o.set_vel(vel.x, vel.y)
 #	o.update_data()
 	for state in state_machine.queued_states:
 		o.state_machine.queued_states.append(state)

@@ -69,6 +69,8 @@ var buffer_armor = false
 var can_unlock_gratuitous = true
 var can_flamethrower = true
 var magnet_ticks_left = 0
+var nade_explosion_in_combo = false
+var hit_with_loic = false
 var grenade_object = null
 var flame_touching_opponent = null
 var magnet_installed = false
@@ -201,7 +203,7 @@ func meter_gain_modified(amount):
 	var modified = .meter_gain_modified(amount)
 	if orbital_strike_projectile:
 		var proj = obj_from_name(orbital_strike_projectile)
-		if proj and proj.current_state().name == "Fire":
+		if proj and proj.current_state() and proj.current_state().name == "Fire":
 			modified = modified / 2
 	return modified
 
@@ -302,6 +304,8 @@ func tick():
 		honking = false
 		play_sound("Honk")
 		honking_cooldown = HONK_COOLDOWN
+	if combo_count == 0:
+		nade_explosion_in_combo = false
 	elif honking_cooldown > 0:
 		honking_cooldown -= 1
 		if combo_count > 0:
@@ -413,11 +417,15 @@ func tick():
 		var can_gain_loic = true
 		if obj and obj.active:
 			can_gain_loic = false
+		if get_opponent().combo_count > 0:
+			can_gain_loic = false
+				
 		if can_gain_loic:
-			if armor_pips > 0:
-				loic_meter += LOIC_GAIN
-			else:
-				loic_meter += LOIC_GAIN_NO_ARMOR
+			var gain = LOIC_GAIN
+			if armor_pips <= 0:
+				gain = LOIC_GAIN_NO_ARMOR
+			loic_meter += gain
+			
 		if infinite_resources:
 			loic_meter = LOIC_METER
 			can_loic = true

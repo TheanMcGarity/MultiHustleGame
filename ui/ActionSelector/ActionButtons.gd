@@ -59,6 +59,11 @@ func _input(event):
 func _ready():
 
 	$"%SelectButton".connect("pressed", self, "_on_submit_pressed")
+	_rebuild_select_button_shortcut()
+	# Track rebinds so the tooltip's key prefix updates live when the user
+	# re-maps LOCK_IN.
+	if not Hotkeys.is_connected("binding_changed", self, "_on_hotkey_binding_changed"):
+		Hotkeys.connect("binding_changed", self, "_on_hotkey_binding_changed")
 #	$"%ContinueButton".connect("pressed", self, "on_action_selected", [$"%ContinueButton"])
 	buttons.append($"%ContinueButton")
 	$"%UndoButton".connect("pressed", self, "_on_undo_pressed")
@@ -157,13 +162,30 @@ func _process(delta):
 	
 var _select_button_shortcut: ShortCut
 
+# Build a shortcut backed by the user's currently-bound LOCK_IN key. We use
+# InputEventKey rather than InputEventAction so Godot's default button-tooltip
+# prefix is a clean key name like "Space" instead of the raw debug string
+# `(InputEventAction : action=submit_action, pressed=(true)`.
 func _build_select_button_shortcut() -> ShortCut:
 	var sc = ShortCut.new()
-	var ev = InputEventAction.new()
-	ev.action = Hotkeys.LOCK_IN
+	var scancode = Hotkeys.get_bound_scancode(Hotkeys.LOCK_IN)
+	if scancode == 0:
+		# No key bound — leave the shortcut empty so no tooltip prefix is shown.
+		return sc
+	var ev = InputEventKey.new()
+	ev.scancode = scancode
 	ev.pressed = true
 	sc.shortcut = ev
 	return sc
+
+func _rebuild_select_button_shortcut():
+	_select_button_shortcut = _build_select_button_shortcut()
+	if has_node("%SelectButton"):
+		$"%SelectButton".shortcut = _select_button_shortcut
+
+func _on_hotkey_binding_changed(action: String):
+	if action == Hotkeys.LOCK_IN:
+		_rebuild_select_button_shortcut()
 
 func unpress_extra_on_lock_in():
 	var select_button: Button = $"%SelectButton"

@@ -5,8 +5,8 @@ class_name DefaultFireball
 export var _c_Projectile_Dir = 0
 export var move_x = 4
 export var move_y = 0
-export var move_x_string = "0"
 export var move_y_string = "0"
+export var move_x_string = "0"
 export var clash = true
 export var num_hits = 1
 export var lifetime = 999999

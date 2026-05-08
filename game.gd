@@ -485,7 +485,7 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 	if !is_ghost:
 		if ReplayManager.playback:
 			get_max_replay_tick()
-		elif !match_data.has("replay"):
+		elif !match_data.has("replay") and !match_data.has("replay_challenge"):
 			ReplayManager.init()
 		else:
 			get_max_replay_tick()
@@ -1329,7 +1329,7 @@ func process_tick():
 				p1_turn = true
 #				p1.update_advantage()
 #				p2.update_advantage()
-				if singleplayer:
+				if singleplayer or spectating:
 					emit_signal("player_actionable")
 				elif !is_ghost:
 					someones_turn = true
@@ -1345,7 +1345,7 @@ func process_tick():
 				p2_turn = true
 #				p1.update_advantage()
 #				p2.update_advantage()
-				if singleplayer:
+				if singleplayer or spectating:
 					emit_signal("player_actionable")
 				elif !is_ghost:
 					someones_turn = true

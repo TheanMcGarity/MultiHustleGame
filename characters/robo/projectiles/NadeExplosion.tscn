@@ -1,11 +1,12 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://characters/BaseChar.gdshader" type="Shader" id=1]
 [ext_resource path="res://projectile/BaseProjectile.tscn" type="PackedScene" id=2]
-[ext_resource path="res://characters/robo/projectiles/NadeExplosionEffect.tscn" type="PackedScene" id=3]
+[ext_resource path="res://characters/robo/projectiles/states/NadeExplosionDefault.gd" type="Script" id=3]
 [ext_resource path="res://mechanics/Hitbox.gd" type="Script" id=4]
 [ext_resource path="res://sound/common/explosion6.wav" type="AudioStream" id=5]
 [ext_resource path="res://sound/common/slash3.wav" type="AudioStream" id=6]
+[ext_resource path="res://characters/robo/projectiles/NadeExplosionEffect.tscn" type="PackedScene" id=7]
 
 [sub_resource type="ShaderMaterial" id=1]
 resource_local_to_scene = true
@@ -32,6 +33,20 @@ animations = [ {
 
 [node name="BaseProjectile" instance=ExtResource( 2 )]
 material = SubResource( 1 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 damages_own_team = true
 has_projectile_parry_window = false
 deletes_other_projectiles = false
@@ -43,7 +58,11 @@ frames = SubResource( 2 )
 animation = "Default"
 
 [node name="Default" parent="StateMachine" index="0"]
-particle_scene = ExtResource( 3 )
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_description_": ""
+}
+particle_scene = ExtResource( 7 )
 spawn_particle_on_enter = true
 move_x = 0
 clash = false

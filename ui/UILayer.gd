@@ -533,6 +533,10 @@ func init(game):
 		$"%ChatWindow".show()
 	game_started = false
 	chess_timer = game.match_data.has("chess_timer") and game.match_data.chess_timer
+	# Clear stale snapshot from any previous match — _process will repopulate
+	# this every frame while chess_timer is on. Non-chess-timer matches leave
+	# it null so saves don't bake in inapplicable state.
+	ReplayManager.chess_timer_state = null
 	timer_sync_tick = -1
 	lock_in_tick = -INF
 	p1_time_run_out = false
@@ -785,6 +789,8 @@ func _unhandled_input(event):
 		Global.ui_hidden = !visible
 	if event.is_action_pressed(Hotkeys.TOGGLE_FREE_CANCEL):
 		_toggle_free_cancel()
+	if event.is_action_pressed(Hotkeys.TOGGLE_FLIP):
+		_toggle_flip()
 	if event.is_action_pressed(Hotkeys.TOGGLE_PREDICTION):
 		_toggle_prediction()
 	if event.is_action_pressed(Hotkeys.TOGGLE_HITBOXES):
@@ -849,11 +855,17 @@ func hide_rematch_menu():
 func _process(delta):
 
 	if chess_timer and is_instance_valid(game) and game.match_data:
-		game.match_data["chess_timer_state"] = {
+		var state = {
 			"p1_time_left": p1_turn_timer.time_left,
 			"p2_time_left": p2_turn_timer.time_left,
 			"turn_time": turn_time,
 		}
+		game.match_data["chess_timer_state"] = state
+		# Mirror to ReplayManager so save-replay paths that don't share the
+		# match_data dict reference (e.g. autosave from Network.gd) still bake
+		# in a fresh snapshot. Spectators publish too — they're the ones most
+		# likely to be the "live witness" feeding a replay challenge later.
+		ReplayManager.chess_timer_state = state
 
 	var p1_old_text = $"%P1TurnTimerLabel".text
 	$"%P1TurnTimerLabel".text = time_convert(int(floor(p1_turn_timer.time_left)))
@@ -1041,6 +1053,20 @@ func _toggle_free_cancel():
 		var feint_btn = ab.get_node("%FeintButton")
 		if not feint_btn.disabled:
 			feint_btn.pressed = !feint_btn.pressed
+			ab.send_ui_action()
+
+func _toggle_flip():
+	if not is_instance_valid(game):
+		return
+	var targets = []
+	if Network.multiplayer_active:
+		targets.append(p1_action_buttons if Network.player_id == 1 else p2_action_buttons)
+	else:
+		targets = [p1_action_buttons, p2_action_buttons]
+	for ab in targets:
+		var reverse_btn = ab.get_node("%ReverseButton")
+		if not reverse_btn.disabled:
+			reverse_btn.pressed = !reverse_btn.pressed
 			ab.send_ui_action()
 
 func _toggle_prediction():

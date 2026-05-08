@@ -122,6 +122,13 @@ const FLIP_OPTION_RANDOM := 2
 var emission_shape_button: OptionButton
 var circle_radius_slider
 var dynamic_one_shot_button: CheckButton
+var action_type_button: CheckButton
+var action_type_option: OptionButton
+var action_type_linger
+var during_install_button: CheckButton
+var during_install_linger
+
+const ACTION_TYPE_OPTIONS := ["Movement", "Defense", "Attack", "Special", "Super"]
 
 func _build_flip_shape_button():
 	# Shape lives inside an HBoxContainer (label + OptionButton). Add the
@@ -207,6 +214,65 @@ func _build_dynamic_one_shot_button():
 	parent.add_child(dynamic_one_shot_button)
 	parent.move_child(dynamic_one_shot_button, dt.get_position_in_parent() + 1)
 	settings_map[dynamic_one_shot_button] = "dynamic_one_shot"
+
+# Action-type trigger: one CheckButton + dropdown of action categories + linger
+# slider. Built in code (instead of in the .tscn) for the same reason as the
+# other dynamic-trigger widgets — the editor strips them on save.
+func _build_action_type_trigger():
+	if not has_node("%DynamicTriggers"):
+		return
+	var dt = $"%DynamicTriggers"
+	var parent = dt.get_parent() if dt else self
+	action_type_button = CheckButton.new()
+	action_type_button.name = "TriggerActionType"
+	action_type_button.unique_name_in_owner = true
+	action_type_button.text = "  during action type"
+	parent.add_child(action_type_button)
+	action_type_option = OptionButton.new()
+	action_type_option.name = "TriggerActionTypeOption"
+	action_type_option.unique_name_in_owner = true
+	for t in ACTION_TYPE_OPTIONS:
+		action_type_option.add_item(t)
+	action_type_option.selected = ACTION_TYPE_OPTIONS.find("Attack")
+	parent.add_child(action_type_option)
+	action_type_linger = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	action_type_linger.name = "TriggerActionTypeLinger"
+	action_type_linger.unique_name_in_owner = true
+	action_type_linger.label_text = "Linger Duration"
+	action_type_linger.default_value = 0.0
+	action_type_linger.min_value = 0.0
+	action_type_linger.max_value = 120.0
+	action_type_linger.step = 1.0
+	parent.add_child(action_type_linger)
+	settings_map[action_type_button] = "trigger_action_type"
+	settings_map[action_type_option] = "trigger_action_type_value"
+	settings_map[action_type_linger] = "trigger_action_type_linger"
+
+# "during install" trigger — character-specific install supers (Wizard's Orb,
+# Mutant's Beast install, SwordGuy's 1000 Cuts buff, etc.). Active state is
+# resolved in BaseChar.is_in_install_super(), which characters override.
+func _build_during_install_trigger():
+	if not has_node("%DynamicTriggers"):
+		return
+	var dt = $"%DynamicTriggers"
+	var parent = dt.get_parent() if dt else self
+	during_install_button = CheckButton.new()
+	during_install_button.name = "TriggerDuringInstall"
+	during_install_button.unique_name_in_owner = true
+	during_install_button.text = "  during install"
+	during_install_button.hint_tooltip = "Active while a character-specific install super is running (Wizard's Orb, Mutant's Beast, SwordGuy's 1000 Cuts, etc.)."
+	parent.add_child(during_install_button)
+	during_install_linger = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	during_install_linger.name = "TriggerDuringInstallLinger"
+	during_install_linger.unique_name_in_owner = true
+	during_install_linger.label_text = "Linger Duration"
+	during_install_linger.default_value = 0.0
+	during_install_linger.min_value = 0.0
+	during_install_linger.max_value = 120.0
+	during_install_linger.step = 1.0
+	parent.add_child(during_install_linger)
+	settings_map[during_install_button] = "trigger_during_install"
+	settings_map[during_install_linger] = "trigger_during_install_linger"
 
 func load_settings(settings):
 	for setting in settings:
@@ -351,6 +417,8 @@ func _ready():
 	_build_emission_shape_widgets()
 	if enable_triggers:
 		_build_dynamic_one_shot_button()
+		_build_action_type_trigger()
+		_build_during_install_trigger()
 	if emission_shape_button:
 		emission_shape_button.connect("item_selected", self, "_on_emission_shape_changed")
 	var shapes = CustomTrailParticle.get_shapes()
@@ -383,6 +451,16 @@ func _ready():
 		# in the loop above because that list pre-existed before one_shot mode.
 		if dynamic_one_shot_button:
 			dynamic_one_shot_button.connect("toggled", self, "_on_trigger_toggled")
+		# Same wiring for the runtime-built action-type and install triggers.
+		if action_type_button:
+			action_type_button.connect("toggled", self, "_on_trigger_toggled")
+		if action_type_option:
+			# OptionButton emits item_selected, not value_changed/toggled, so the
+			# generic settings_map signal-wiring loop misses it. Hook it manually
+			# so dropdown changes get saved alongside the rest.
+			action_type_option.connect("item_selected", self, "_on_trigger_toggled")
+		if during_install_button:
+			during_install_button.connect("toggled", self, "_on_trigger_toggled")
 	_update_framerate_visibility()
 	_update_attach_visibility()
 	if enable_triggers:
@@ -494,6 +572,16 @@ func _update_trigger_visibility():
 	$"%TriggerAfterBurst".visible = dt
 	$"%TriggerAfterBurstDuration".visible = show_linger and $"%TriggerAfterBurst".pressed
 	$"%TriggersInverted".visible = dt and not os
+	# Runtime-built triggers (action_type, during_install).
+	if action_type_button:
+		action_type_button.visible = dt
+		action_type_option.visible = dt and action_type_button.pressed
+	if action_type_linger:
+		action_type_linger.visible = show_linger and action_type_button and action_type_button.pressed
+	if during_install_button:
+		during_install_button.visible = dt
+	if during_install_linger:
+		during_install_linger.visible = show_linger and during_install_button and during_install_button.pressed
 
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())

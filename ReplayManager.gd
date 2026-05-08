@@ -19,6 +19,13 @@ var play_full = false
 var resim_tick = null
 var replaying_ingame = false
 
+# Latest chess-timer snapshot, written by UILayer._process every frame during
+# chess-timer matches. Save-replay paths fall back to this so manual saves,
+# autosaves, and spectator-side saves all bake in fresh timer state — matters
+# for replay challenges with restore_timers, where stale or missing state
+# leaves the new match starting from full duration.
+var chess_timer_state = null
+
 func set_playback(p):
 	playback = p
 
@@ -106,6 +113,8 @@ func save_replay(match_data: Dictionary, file_name="", autosave=false):
 	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
+	if chess_timer_state != null:
+		data["chess_timer_state"] = chess_timer_state.duplicate()
 	# Empty dict reserved for mod-specific data attached to the replay.
 	if !data.has("mod_data"):
 		data["mod_data"] = {}
@@ -135,6 +144,8 @@ func save_replay_backup(match_data: Dictionary):
 	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
+	if chess_timer_state != null:
+		data["chess_timer_state"] = chess_timer_state.duplicate()
 	if !data.has("mod_data"):
 		data["mod_data"] = {}
 	var stem = generate_replay_name()

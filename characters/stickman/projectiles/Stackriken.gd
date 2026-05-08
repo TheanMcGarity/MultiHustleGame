@@ -9,8 +9,6 @@ var force_y
 
 var refresh_amount = REFRESH_AMOUNT
 
-onready var hitbox = $Hitbox
-
 func init(pos=null):
 	.init(pos)
 	var fighter = get_fighter()

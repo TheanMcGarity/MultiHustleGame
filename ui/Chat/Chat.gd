@@ -80,10 +80,18 @@ func on_steam_chat_message_received(steam_id: int, message: String):
 	if !SteamLobby.can_get_messages_from_user(steam_id):
 		return
 	var color = "ff333d" if (Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "player_id") == "2") else "1d8df5"
-	if (Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")=="spectating"):
+	var sender_status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")
+	if sender_status == "spectating":
 		color = "999999"
 		if steam_id == SteamHustle.STEAM_ID:
 			color = "DDDDDD"
+	# When we're in/watching a match and someone outside (still in the main
+	# lobby) chats, dim their name so it reads as background chatter rather
+	# than a teammate / spectator of our match.
+	var my_status = SteamLobby.get_status()
+	if (my_status == "fighting" or my_status == "spectating") \
+			and sender_status != "fighting" and sender_status != "spectating":
+		color = "888888"
 
 	var steam_name = Steam.getFriendPersonaName(steam_id)
 	
