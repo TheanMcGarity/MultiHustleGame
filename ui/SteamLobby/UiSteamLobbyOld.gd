@@ -103,7 +103,18 @@ func _show_side_picker_dialog():
 	$"%SidePickerLabel".text = "Pick your side\n%s vs %s" % [p1_name, p2_name]
 	$"%SidePickerP1Button".text = "P1 (" + p1_name + ")"
 	$"%SidePickerP2Button".text = "P2 (" + p2_name + ")"
-	var has_timer_state = pending_replay_match_data and pending_replay_match_data.get("chess_timer") and pending_replay_match_data.has("chess_timer_state")
+	# Restore-timers offer applies to any mode that runs a per-player clock —
+	# both chess and increment carry chess_timer_state. Old replays still use
+	# the bool field; new ones use timer_mode (already normalized via Utils
+	# before reaching here).
+	var has_timer = false
+	if pending_replay_match_data:
+		var mode = pending_replay_match_data.get("timer_mode", null)
+		if mode == null:
+			has_timer = pending_replay_match_data.get("chess_timer", false)
+		else:
+			has_timer = mode != "none"
+	var has_timer_state = has_timer and pending_replay_match_data.has("chess_timer_state")
 	$"%SidePickerRestoreTimers".visible = has_timer_state
 	$"%SidePickerRestoreTimers".pressed = has_timer_state
 	$"%SidePickerDialogScreen".show()

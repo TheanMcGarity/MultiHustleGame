@@ -25,7 +25,32 @@ var turn_time = 30
 var p1_turn_time = 30
 var p2_turn_time = 30
 
+# Active timer mode for the current match. One of:
+#   "default" — old default: per-turn timer that resets each turn (turn_time secs)
+#   "none"    — no timer at all
+#   "chess"   — chess clock: total bank per player (turn_time mins), MIN_TURN_TIME refresh
+#   "increment" — chess clock that grows by increment_per_turn each turn; debt on run-out
+# Replaces the old `chess_timer` bool — old replays normalize via Utils on
+# match-ready. `chess_timer` is kept as a derived "is there a persistent
+# per-player bank?" bool used for state save/restore gates.
+var timer_mode = "default"
 var chess_timer = false
+
+# Increment-mode "debt" tracker. Running out adds increment to debt and resets
+# the bank to increment, so the player can finish the turn — but they pay
+# back via leftover bank at lock-in on subsequent (non-run-out) turns.
+var p1_debt = 0.0
+var p2_debt = 0.0
+
+# Flag set when a player runs out of time in increment mode. Used twice:
+#   1) end_turn_for skips the lock-in pay-debt step (run-out turns don't pay)
+#   2) on_player_actionable's _apply_increment skips the next-turn +increment
+#      add (the "you don't gain any time the next turn" penalty)
+# Cleared once both have run (i.e. at the start of the turn AFTER the run-out
+# turn). Saved with chess_timer_state so replay-challenge restore keeps the
+# penalty intact across resumed matches.
+var p1_just_ran_out = false
+var p2_just_ran_out = false
 
 var draw_bg_circle = false
 
@@ -237,8 +262,7 @@ func _on_music_button_toggled(on):
 func _on_master_slider_changed(value):
 	AudioServer.set_bus_volume_db(0, linear2db(value))
 	$"%OptionsSoundPlayer".bus = "Master"
-	$"%OptionsSoundPlayer".pitch_variation = 0
-	$"%OptionsSoundPlayer".streams = [load("res://sound/ui/button_hover3.wav")]
+	$"%OptionsSoundPlayer".stream = load("res://sound/ui/button_hover3.wav")
 	$"%OptionsSoundPlayer".play()
 	Global.master_value = value
 	Global.save_options()
@@ -246,8 +270,7 @@ func _on_master_slider_changed(value):
 func _on_fx_slider_changed(value):
 	AudioServer.set_bus_volume_db(1, linear2db(value))
 	$"%OptionsSoundPlayer".bus = "Fx"
-	$"%OptionsSoundPlayer".pitch_variation = 0.1
-	$"%OptionsSoundPlayer".streams = [load("res://sound/common/explosion2.wav")]
+	$"%OptionsSoundPlayer".stream = load("res://sound/common/explosion2.wav")
 	$"%OptionsSoundPlayer".play()
 	Global.fx_value = value
 	Global.save_options()
@@ -255,8 +278,7 @@ func _on_fx_slider_changed(value):
 func _on_ui_slider_changed(value):
 	AudioServer.set_bus_volume_db(2, linear2db(value))
 	$"%OptionsSoundPlayer".bus = "UI"
-	$"%OptionsSoundPlayer".pitch_variation = 0
-	$"%OptionsSoundPlayer".streams = [load("res://sound/ui/button_hover3.wav")]
+	$"%OptionsSoundPlayer".stream = load("res://sound/ui/button_hover3.wav")
 	$"%OptionsSoundPlayer".play()
 	Global.ui_value = value
 	Global.save_options()
@@ -264,8 +286,7 @@ func _on_ui_slider_changed(value):
 func _on_music_slider_changed(value):
 	AudioServer.set_bus_volume_db(3, linear2db(value))
 	$"%OptionsSoundPlayer".bus = "UI"
-	$"%OptionsSoundPlayer".pitch_variation = 0
-	$"%OptionsSoundPlayer".streams = [load("res://sound/ui/button_hover3.wav")]
+	$"%OptionsSoundPlayer".stream = load("res://sound/ui/button_hover3.wav")
 	$"%OptionsSoundPlayer".play()
 	Global.music_value = value
 	Global.save_options()
@@ -470,16 +491,28 @@ func _on_quit_program_button_pressed():
 func _on_sync_timer_request(id, time):
 	if !chess_timer:
 		return
+	# sync_timer is only fired from end_turn_for — it's always a lock-in
+	# event. Pause the receiving timer immediately so it doesn't keep ticking
+	# in the gap between this RPC and the player_turn_ready signal that
+	# would have paused it. Without this, spectators/opponents would briefly
+	# see the bank tick down past the lock-in value (which the host froze on
+	# their side), and increment-mode turn-start computations would diverge.
 	if id == 1:
-		var paused = p1_turn_timer.paused
 		p1_turn_timer.start(time)
-		p1_turn_timer.paused = paused
+		p1_turn_timer.paused = true
+		# Explicitly update the label here — increment-mode _process freezes
+		# the label while the timer is paused, so without this the label
+		# stays at whatever local-time-tick value was rendered just before
+		# the sync arrived (typically a few seconds behind host).
+		if has_node("%P1TurnTimerLabel"):
+			$"%P1TurnTimerLabel".text = time_convert(int(floor(time)))
 		received_synced_time = true
 		emit_signal("received_synced_time")
 	elif id == 2:
-		var paused = p2_turn_timer.paused
 		p2_turn_timer.start(time)
-		p2_turn_timer.paused = paused
+		p2_turn_timer.paused = true
+		if has_node("%P2TurnTimerLabel"):
+			$"%P2TurnTimerLabel".text = time_convert(int(floor(time)))
 		received_synced_time = true
 		emit_signal("received_synced_time")
 
@@ -490,6 +523,10 @@ func get_chess_timer_state():
 		"p1_time_left": p1_turn_timer.time_left,
 		"p2_time_left": p2_turn_timer.time_left,
 		"turn_time": turn_time,
+		"p1_debt": p1_debt,
+		"p2_debt": p2_debt,
+		"p1_just_ran_out": p1_just_ran_out,
+		"p2_just_ran_out": p2_just_ran_out,
 	}
 
 func restore_chess_timer_state(state):
@@ -503,6 +540,11 @@ func restore_chess_timer_state(state):
 		var paused = p2_turn_timer.paused
 		p2_turn_timer.start(state.p2_time_left)
 		p2_turn_timer.paused = paused
+	# Old replays predate debt tracking; default to 0 so they restore cleanly.
+	p1_debt = float(state.get("p1_debt", 0))
+	p2_debt = float(state.get("p2_debt", 0))
+	p1_just_ran_out = bool(state.get("p1_just_ran_out", false))
+	p2_just_ran_out = bool(state.get("p2_just_ran_out", false))
 
 func sync_timer(player_id):
 	if Network.multiplayer_active:
@@ -528,11 +570,22 @@ func init(game):
 	setup_action_buttons()
 	if Network.multiplayer_active or SteamLobby.SPECTATING:
 		game.connect("playback_requested", self, "_on_game_playback_requested")
-		$"%P1TurnTimerLabel".show()
-		$"%P2TurnTimerLabel".show()
 		$"%ChatWindow".show()
 	game_started = false
-	chess_timer = game.match_data.has("chess_timer") and game.match_data.chess_timer
+	timer_mode = game.match_data.get("timer_mode", "default")
+	# Show timer UI only when there's actually a timer running. "none" hides
+	# the labels entirely so the screen stays clean for untimed matches.
+	var show_timer = (Network.multiplayer_active or SteamLobby.SPECTATING) and timer_mode != "none"
+	$"%P1TurnTimerLabel".visible = show_timer
+	$"%P2TurnTimerLabel".visible = show_timer
+	# Persistent-bank modes carry timer state across turns and need
+	# save/restore. "default" is per-turn (no persistence) and "none" has no
+	# timer at all, so neither participates in chess_timer_state.
+	chess_timer = timer_mode == "chess" or timer_mode == "increment"
+	p1_debt = 0.0
+	p2_debt = 0.0
+	p1_just_ran_out = false
+	p2_just_ran_out = false
 	# Clear stale snapshot from any previous match — _process will repopulate
 	# this every frame while chess_timer is on. Non-chess-timer matches leave
 	# it null so saves don't bake in inapplicable state.
@@ -673,18 +726,37 @@ func on_player_actionable():
 
 		print("starting turn timer")
 #		if $"%P1ActionButtons".any_available_actions and $"%P2ActionButtons".any_available_actions:
-		if !game_started:
+		if timer_mode == "none":
+			# No timer mode: skip all timer setup entirely.
+			pass
+		elif !game_started:
 #		if p1_turn_timer.is_stopped():
-			if chess_timer:
-				if is_instance_valid(game):
+			if is_instance_valid(game):
+				# MIN_TURN_TIME doubles as the "low time" warning threshold
+				# for the bar flash + outta-time sound. Chess pulls it from
+				# turn_min_length; increment uses the increment itself (= one
+				# turn's worth of time, so the warning fires when you've used
+				# this turn's increment).
+				if timer_mode == "chess":
 					MIN_TURN_TIME = game.match_data.turn_min_length
+				elif timer_mode == "increment":
+					MIN_TURN_TIME = game.match_data.get("increment_per_turn", 0)
 			p1_turn_timer.start()
 			p2_turn_timer.start()
 			game_started = true
 		else:
-			if !chess_timer:
+			if timer_mode == "default":
 				p1_turn_timer.start(turn_time)
 				p2_turn_timer.start(turn_time)
+			elif timer_mode == "increment":
+				_apply_increment(1)
+				_apply_increment(2)
+				# Increment mode: each turn's bank can re-cross MIN_TURN_TIME,
+				# so re-arm the low-time warning sound. Without this the
+				# `p1_time_run_out` gate latches after the first turn's
+				# warning and never plays again.
+				p1_time_run_out = false
+				p2_time_run_out = false
 			else:
 				if p1_turn_timer.time_left < MIN_TURN_TIME:
 					p1_turn_timer.start(MIN_TURN_TIME)
@@ -692,14 +764,19 @@ func on_player_actionable():
 					p2_turn_timer.start(MIN_TURN_TIME)
 
 
-		p1_turn_timer.paused = false
-		p2_turn_timer.paused = false
+		if timer_mode != "none":
+			p1_turn_timer.paused = false
+			p2_turn_timer.paused = false
 #		if game.current_tick != timer_sync_tick:
 #			timer_sync_tick = game.current_tick
 #			sync_timer(Network.player_id)
 #			if !received_synced_time:
 #				yield(self, "received_synced_time")
 #				received_synced_time = false
+		# Show the bars even in None mode — value stays at the default 1.0 so
+		# they render as a full circle, and end_turn_for hides them on lock-in.
+		# That gives spectators a "still thinking" indicator without showing
+		# countdown text.
 		$"%P1TurnTimerBar".show()
 		$"%P2TurnTimerBar".show()
 
@@ -715,6 +792,25 @@ func on_player_actionable():
 #			turn_timer.start(turn_time)
 
 func _on_turn_timer_timeout(player_id):
+		# Increment mode: bank ran out. Add a full increment to debt, reset
+		# the bank to increment so the player keeps a non-zero clock, set the
+		# just_ran_out flag so end_turn_for skips pay-debt and the next turn
+		# skips +increment, then auto-lock like default mode.
+		if timer_mode == "increment":
+			var inc = float(game.match_data.get("increment_per_turn", 0))
+			if player_id == 1:
+				p1_debt += inc
+				p1_just_ran_out = true
+				p1_turn_timer.start(inc)
+				if Network.player_id == player_id:
+					$"%P1ActionButtons".timeout()
+			else:
+				p2_debt += inc
+				p2_just_ran_out = true
+				p2_turn_timer.start(inc)
+				if Network.player_id == player_id:
+					$"%P2ActionButtons".timeout()
+			return
 		if player_id == 1:
 			if Network.player_id == player_id:
 				$"%P1ActionButtons".timeout()
@@ -724,9 +820,47 @@ func _on_turn_timer_timeout(player_id):
 		else:
 			if Network.player_id == player_id:
 				$"%P2ActionButtons".timeout()
-				p1_turn_timer.wait_time = MIN_TURN_TIME
-				p1_turn_timer.start()
-				p1_turn_timer.paused = true
+				p2_turn_timer.wait_time = MIN_TURN_TIME
+				p2_turn_timer.start()
+				p2_turn_timer.paused = true
+
+# Apply per-turn increment AND pay debt at the start of the player's turn.
+# Done together at turn start (instead of pay-debt at lock-in) so:
+#   1) the label between turns shows the player's actual lock-in bank, not
+#      the post-pay-debt remainder (which flashes a confusingly-small value)
+#   2) spectator + host stay in sync — both run this on the same network-
+#      synced bank value at turn start, so debt and bank end up matching
+#      regardless of who computed what at lock-in
+# Order:
+#   - !just_ran_out + debt > 0: pay debt with leftover bank, deduct from both
+#   - debt > 0 (still): reset bank to increment ("in debt → no growth")
+#   - debt == 0: bank += increment (normal Fischer increment)
+#   - just_ran_out: clear the flag, skip the pay-debt step (the run-out is
+#     the punishment — you don't immediately pay off the debt you just took)
+func _apply_increment(player_id):
+	if !is_instance_valid(game) or !game.match_data:
+		return
+	var inc = float(game.match_data.get("increment_per_turn", 0))
+	var timer = p1_turn_timer if player_id == 1 else p2_turn_timer
+	var bank = timer.time_left
+	if player_id == 1:
+		if !p1_just_ran_out and p1_debt > 0:
+			var paid = min(bank, p1_debt)
+			p1_debt -= paid
+			bank -= paid
+		p1_just_ran_out = false
+	else:
+		if !p2_just_ran_out and p2_debt > 0:
+			var paid = min(bank, p2_debt)
+			p2_debt -= paid
+			bank -= paid
+		p2_just_ran_out = false
+	var debt = p1_debt if player_id == 1 else p2_debt
+	if debt > 0:
+		bank = inc
+	else:
+		bank = bank + inc
+	timer.start(bank)
 func pause():
 	$"%PausePanel".visible = !$"%PausePanel".visible
 	if $"%PausePanel".visible:
@@ -859,6 +993,10 @@ func _process(delta):
 			"p1_time_left": p1_turn_timer.time_left,
 			"p2_time_left": p2_turn_timer.time_left,
 			"turn_time": turn_time,
+			"p1_debt": p1_debt,
+			"p2_debt": p2_debt,
+			"p1_just_ran_out": p1_just_ran_out,
+			"p2_just_ran_out": p2_just_ran_out,
 		}
 		game.match_data["chess_timer_state"] = state
 		# Mirror to ReplayManager so save-replay paths that don't share the
@@ -867,13 +1005,37 @@ func _process(delta):
 		# likely to be the "live witness" feeding a replay challenge later.
 		ReplayManager.chess_timer_state = state
 
+	# Increment mode: freeze the label between turns. Once a player locks in,
+	# the timer is paused and the displayed value should stay at whatever it
+	# read at lock-in until the next turn's _apply_increment kicks the timer
+	# again. Without this, host/spectator timing differences in the
+	# sync-then-pause window would briefly show the bank ticking past the
+	# lock-in value, which the user reads as "wrong by a few seconds".
 	var p1_old_text = $"%P1TurnTimerLabel".text
-	$"%P1TurnTimerLabel".text = time_convert(int(floor(p1_turn_timer.time_left)))
+	if !(timer_mode == "increment" and p1_turn_timer.is_paused()):
+		$"%P1TurnTimerLabel".text = time_convert(int(floor(p1_turn_timer.time_left)))
 	var p1_different_text = p1_old_text != $"%P1TurnTimerLabel".text
 
 	var p2_old_text = $"%P2TurnTimerLabel".text
-	$"%P2TurnTimerLabel".text = time_convert(int(floor(p2_turn_timer.time_left)))
+	if !(timer_mode == "increment" and p2_turn_timer.is_paused()):
+		$"%P2TurnTimerLabel".text = time_convert(int(floor(p2_turn_timer.time_left)))
 	var p2_different_text = p2_old_text != $"%P2TurnTimerLabel".text
+
+	# Debt indicator: only meaningful in increment mode, shown red below the
+	# main timer when the player has owed time. Hidden otherwise so chess and
+	# untimed matches stay clean.
+	var p1_debt_label = $"%P1TurnDebtLabel"
+	var p2_debt_label = $"%P2TurnDebtLabel"
+	if timer_mode == "increment" and $"%P1TurnTimerLabel".visible:
+		p1_debt_label.visible = p1_debt > 0
+		if p1_debt > 0:
+			p1_debt_label.text = "-" + time_convert(int(ceil(p1_debt)))
+		p2_debt_label.visible = p2_debt > 0
+		if p2_debt > 0:
+			p2_debt_label.text = "-" + time_convert(int(ceil(p2_debt)))
+	else:
+		p1_debt_label.visible = false
+		p2_debt_label.visible = false
 
 	if $"%VersionLabel".visible:
 		$"%VersionLabel".text = "version " + Global.VERSION
@@ -888,10 +1050,22 @@ func _process(delta):
 		opponent_id = (you_id % 2) + 1
 
 	if is_instance_valid(game):
-		if !p1_turn_timer.is_paused():
+		# None mode: pin bar value at 1.0 so the bars stay full (= "still
+		# thinking" indicator). The timer's never started, so is_paused() is
+		# false (stopped != paused) and the normal update path below would
+		# set bar.value = 0/turn_time = 0 — empty bar — which is wrong here.
+		if timer_mode == "none":
+			$"%P1TurnTimerBar".value = 1.0
+			$"%P2TurnTimerBar".value = 1.0
+		elif !p1_turn_timer.is_paused():
 	#		if !turns_taken[1]:
 				var bar = $"%P1TurnTimerBar"
-				bar.value = p1_turn_timer.time_left / turn_time
+				# Increment mode: each turn's starting bank is the timer's
+				# current wait_time (timer.start(t) sets wait_time = t), so
+				# the bar fills based on this turn's bank rather than the
+				# fixed match-wide turn_time.
+				var denom = p1_turn_timer.wait_time if timer_mode == "increment" else turn_time
+				bar.value = p1_turn_timer.time_left / denom if denom > 0 else 1.0
 				if p1_turn_timer.time_left < MIN_TURN_TIME:
 					bar.visible = Utils.wave(-1, 1, 0.064) > 0
 					if p1_different_text and you_id == 1 and p1_turn_timer.time_left:
@@ -899,10 +1073,11 @@ func _process(delta):
 							if !chess_timer or !p1_time_run_out:
 								p1_time_run_out = true
 								$"%P1OuttaTimeSound".play()
-		if !p2_turn_timer.is_paused():
+		if timer_mode != "none" and !p2_turn_timer.is_paused():
 	#		if !turns_taken[2]:
 				var bar = $"%P2TurnTimerBar"
-				bar.value = p2_turn_timer.time_left / turn_time
+				var denom = p2_turn_timer.wait_time if timer_mode == "increment" else turn_time
+				bar.value = p2_turn_timer.time_left / denom if denom > 0 else 1.0
 				if p2_turn_timer.time_left < MIN_TURN_TIME:
 					bar.visible = Utils.wave(-1, 1, 0.064) > 0
 					if p2_different_text and you_id == 2:

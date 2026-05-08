@@ -183,6 +183,7 @@ func _on_received_spectator_match_data(data):
 	_on_match_ready(data)
 
 func _on_match_ready(data):
+	Utils.normalize_timer_settings(data)
 	match_data = data
 	has_submitted_a_turn = false
 	last_backup_tick = -1
@@ -542,9 +543,21 @@ func setup_game_deferred(singleplayer, data):
 	
 	if game.start_game(singleplayer, data) is bool:
 		return
-	if data.has("turn_time"):
-		if !Network.undo or (data.has("chess_timer") and !data.chess_timer):
-			ui_layer.set_turn_time(data.turn_time, (data.has("chess_timer") and data.chess_timer))
+	var timer_mode = data.get("timer_mode", "default")
+	# "none" mode skips timer setup entirely. Other modes need set_turn_time
+	# to seed the timer's wait_time. Undo path keeps the existing chess clock
+	# running — only re-init the timer when we're not in chess mode.
+	if timer_mode != "none":
+		if !Network.undo or timer_mode != "chess":
+			if timer_mode == "increment":
+				# Starting bank is max(starting_time, increment) per spec.
+				# Normalize already bumps starting up to increment, but keep
+				# max() explicit so the rule is visible at the call site.
+				var starting = int(data.get("increment_starting_time", 60))
+				var inc = int(data.get("increment_per_turn", 10))
+				ui_layer.set_turn_time(int(max(starting, inc)), false)
+			elif data.has("turn_time"):
+				ui_layer.set_turn_time(data.turn_time, timer_mode == "chess")
 		else:
 			ui_layer.start_timers()
 	ui_layer.init(game)

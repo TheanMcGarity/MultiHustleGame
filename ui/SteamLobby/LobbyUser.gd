@@ -102,8 +102,12 @@ func _show_owner_popup():
 		_owner_popup.add_item("Transfer Ownership", 0)
 		_owner_popup.connect("id_pressed", self, "_on_owner_popup_id_pressed")
 		add_child(_owner_popup)
+	# Set position via rect_global_position and call popup() with no args —
+	# Popup.popup(Rect2) in 3.5 forces set_size(bounds.size), so passing a 0×0
+	# rect collapses the menu instead of letting it auto-size to its items.
 	var avatar_rect = $"%AvatarIcon".get_global_rect()
-	_owner_popup.popup(Rect2(avatar_rect.position + Vector2(0, avatar_rect.size.y), Vector2(0, 0)))
+	_owner_popup.rect_global_position = avatar_rect.position + Vector2(0, avatar_rect.size.y)
+	_owner_popup.popup()
 
 func _on_owner_popup_id_pressed(id: int):
 	if id == 0 and member != null:

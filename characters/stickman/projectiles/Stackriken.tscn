@@ -46,7 +46,8 @@ max_fall_speed = "1000"
 extra_state_variables = "return_x
 return_y
 force_x
-force_y"
+force_y
+refresh_amount"
 damages_own_team = true
 has_projectile_parry_window = false
 movable = false

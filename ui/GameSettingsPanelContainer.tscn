@@ -37,13 +37,25 @@ margin_bottom = 421.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ChessTimer" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+[node name="TimerModeContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
 margin_right = 155.0
 margin_bottom = 12.0
+
+[node name="TimerModeLabel" type="Label" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/TimerModeContainer"]
+margin_right = 30.0
+margin_bottom = 11.0
+text = "Timer"
+
+[node name="TimerMode" type="OptionButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/TimerModeContainer"]
+unique_name_in_owner = true
+margin_left = 31.0
+margin_right = 155.0
+margin_bottom = 12.0
+hint_tooltip = "None: untimed turns. Chess: total clock per player. Increment: clock that gains time each turn."
 size_flags_horizontal = 3
-size_flags_vertical = 3
-text = "Chess Timer"
+items = [ "Default", null, false, 0, null, "None", null, false, 1, null, "Chess Clock", null, false, 2, null, "Increment", null, false, 3, null ]
+selected = 0
 
 [node name="TurnLengthContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
@@ -84,9 +96,53 @@ unique_name_in_owner = true
 margin_left = 100.0
 margin_right = 155.0
 margin_bottom = 11.0
-hint_tooltip = "Set a timer for each player (in minutes). It counts down during each turn."
+hint_tooltip = "Min seconds each turn — when bank dips below this, restore to this so each turn has at least this much time."
 size_flags_horizontal = 3
 min_value = 1.0
+max_value = 999999.0
+value = 10.0
+
+[node name="IncrementStartingContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 37.0
+margin_right = 155.0
+margin_bottom = 48.0
+
+[node name="IncrementStartingLabel" type="Label" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/IncrementStartingContainer"]
+margin_right = 80.0
+margin_bottom = 11.0
+text = "Starting Time (sec)"
+
+[node name="IncrementStarting" type="SpinBox" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/IncrementStartingContainer"]
+unique_name_in_owner = true
+margin_left = 81.0
+margin_right = 155.0
+margin_bottom = 11.0
+hint_tooltip = "Starting time bank for each player (in seconds)."
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 999999.0
+value = 60.0
+
+[node name="IncrementPerTurnContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 49.0
+margin_right = 155.0
+margin_bottom = 60.0
+
+[node name="IncrementPerTurnLabel" type="Label" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/IncrementPerTurnContainer"]
+margin_right = 95.0
+margin_bottom = 11.0
+text = "Per Turn Time (sec)"
+
+[node name="IncrementPerTurn" type="SpinBox" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/IncrementPerTurnContainer"]
+unique_name_in_owner = true
+margin_left = 96.0
+margin_right = 155.0
+margin_bottom = 11.0
+hint_tooltip = "Time added to each player's bank at the start of every turn (in seconds)."
+size_flags_horizontal = 3
+min_value = 0.0
 max_value = 999999.0
 value = 10.0
 

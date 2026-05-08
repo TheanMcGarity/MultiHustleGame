@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.60-steam-unstable"
+var VERSION = "1.9.61-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -315,6 +315,7 @@ func get_default_player_data():
 	return {
 		"username": "",
 		"last_style": "",
+		"last_game_format": "",
 		"options" : {
 			"music_enabled": true,
 			"freeze_ghost_prediction": true,

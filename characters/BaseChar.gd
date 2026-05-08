@@ -699,66 +699,47 @@ func _update_aura_threshold_trackers(particle, settings: Dictionary):
 # trigger condition into `any_active`, then optionally inverts via the
 # `triggers_inverted` flag (so the aura is normally on and goes OFF while a
 # trigger is active). When dynamic_triggers is off, always emit.
+# Static config for _aura_trigger_active. Each entry describes one trigger:
+#   enable: the bool setting key that turns this trigger on
+#   linger: the int setting key that holds its linger/duration window
+#   default: fallback if `linger` isn't in `settings` (matches old code)
+#   source: which object owns the tracker tick — "self", "particle", or
+#           "opponent" (opponent falls back to never-active if no opponent)
+#   tick: property name on `source` holding the most-recent-active tick
+# Const so it allocates once at script-load, not on every call.
+const _TRIGGER_ACTIVE_ROWS = [
+	{enable="trigger_during_combo", linger="trigger_during_combo_linger", default=0, source="self", tick="style_aura_combo_active_tick"},
+	{enable="trigger_while_being_comboed", linger="trigger_while_being_comboed_linger", default=0, source="self", tick="style_aura_being_comboed_tick"},
+	{enable="trigger_during_melee_attacks", linger="trigger_during_melee_attacks_linger", default=0, source="self", tick="style_aura_melee_attack_tick"},
+	{enable="trigger_low_health", linger="trigger_low_health_linger", default=0, source="particle", tick="style_aura_low_health_tick"},
+	{enable="trigger_high_health", linger="trigger_high_health_linger", default=0, source="particle", tick="style_aura_high_health_tick"},
+	{enable="trigger_super_level", linger="trigger_super_level_linger", default=0, source="particle", tick="style_aura_super_level_tick"},
+	{enable="trigger_after_take_damage", linger="trigger_after_take_damage_duration", default=30, source="self", tick="style_aura_got_hit_tick"},
+	{enable="trigger_after_opponent_take_damage", linger="trigger_after_opponent_take_damage_duration", default=30, source="opponent", tick="style_aura_got_hit_tick"},
+	{enable="trigger_after_spawn_projectile", linger="trigger_after_spawn_projectile_duration", default=30, source="self", tick="style_aura_projectile_spawn_tick"},
+	{enable="trigger_projectiles_active", linger="trigger_projectiles_active_linger", default=0, source="self", tick="style_aura_projectiles_active_tick"},
+	{enable="trigger_after_perfect_parry", linger="trigger_after_perfect_parry_duration", default=30, source="self", tick="style_aura_perfect_parry_tick"},
+	{enable="trigger_after_burst", linger="trigger_after_burst_duration", default=30, source="self", tick="style_aura_burst_tick"},
+	{enable="trigger_action_type", linger="trigger_action_type_linger", default=0, source="particle", tick="style_aura_action_type_tick"},
+	{enable="trigger_during_install", linger="trigger_during_install_linger", default=0, source="self", tick="style_aura_install_super_tick"},
+]
+
 func _aura_trigger_active(particle, settings: Dictionary) -> bool:
 	if not settings.get("dynamic_triggers", false):
 		return true
 	var any_active = false
-	if settings.get("trigger_during_combo", false):
-		var linger = int(settings.get("trigger_during_combo_linger", 0))
-		if current_tick - style_aura_combo_active_tick <= linger:
+	for row in _TRIGGER_ACTIVE_ROWS:
+		if not settings.get(row.enable, false):
+			continue
+		var source
+		match row.source:
+			"self": source = self
+			"particle": source = particle
+			"opponent": source = opponent if is_instance_valid(opponent) else null
+		var tick = source.get(row.tick) if source else -100000
+		if current_tick - tick <= int(settings.get(row.linger, row.default)):
 			any_active = true
-	if not any_active and settings.get("trigger_while_being_comboed", false):
-		var linger = int(settings.get("trigger_while_being_comboed_linger", 0))
-		if current_tick - style_aura_being_comboed_tick <= linger:
-			any_active = true
-	if not any_active and settings.get("trigger_during_melee_attacks", false):
-		var linger = int(settings.get("trigger_during_melee_attacks_linger", 0))
-		if current_tick - style_aura_melee_attack_tick <= linger:
-			any_active = true
-	if not any_active and settings.get("trigger_low_health", false):
-		var linger = int(settings.get("trigger_low_health_linger", 0))
-		if current_tick - particle.style_aura_low_health_tick <= linger:
-			any_active = true
-	if not any_active and settings.get("trigger_high_health", false):
-		var linger = int(settings.get("trigger_high_health_linger", 0))
-		if current_tick - particle.style_aura_high_health_tick <= linger:
-			any_active = true
-	if not any_active and settings.get("trigger_super_level", false):
-		var linger = int(settings.get("trigger_super_level_linger", 0))
-		if current_tick - particle.style_aura_super_level_tick <= linger:
-			any_active = true
-	if not any_active and settings.get("trigger_after_take_damage", false):
-		var dur = int(settings.get("trigger_after_take_damage_duration", 30))
-		if current_tick - style_aura_got_hit_tick <= dur:
-			any_active = true
-	if not any_active and settings.get("trigger_after_opponent_take_damage", false):
-		var dur = int(settings.get("trigger_after_opponent_take_damage_duration", 30))
-		if is_instance_valid(opponent) and current_tick - opponent.style_aura_got_hit_tick <= dur:
-			any_active = true
-	if not any_active and settings.get("trigger_after_spawn_projectile", false):
-		var dur = int(settings.get("trigger_after_spawn_projectile_duration", 30))
-		if current_tick - style_aura_projectile_spawn_tick <= dur:
-			any_active = true
-	if not any_active and settings.get("trigger_projectiles_active", false):
-		var linger = int(settings.get("trigger_projectiles_active_linger", 0))
-		if current_tick - style_aura_projectiles_active_tick <= linger:
-			any_active = true
-	if not any_active and settings.get("trigger_after_perfect_parry", false):
-		var dur = int(settings.get("trigger_after_perfect_parry_duration", 30))
-		if current_tick - style_aura_perfect_parry_tick <= dur:
-			any_active = true
-	if not any_active and settings.get("trigger_after_burst", false):
-		var dur = int(settings.get("trigger_after_burst_duration", 30))
-		if current_tick - style_aura_burst_tick <= dur:
-			any_active = true
-	if not any_active and settings.get("trigger_action_type", false):
-		var linger = int(settings.get("trigger_action_type_linger", 0))
-		if current_tick - particle.style_aura_action_type_tick <= linger:
-			any_active = true
-	if not any_active and settings.get("trigger_during_install", false):
-		var linger = int(settings.get("trigger_during_install_linger", 0))
-		if current_tick - style_aura_install_super_tick <= linger:
-			any_active = true
+			break
 	if settings.get("triggers_inverted", false):
 		return not any_active
 	return any_active
@@ -776,40 +757,52 @@ func _aura_trigger_active(particle, settings: Dictionary) -> bool:
 #
 # EVENT_WINDOW = 1 covers the off-by-one between events fired during
 # state_tick() (pre-`current_tick++`) and _apply_aura_state (post-increment).
+# Static config for _aura_trigger_event_fired. Each entry describes one
+# rising-edge trigger:
+#   enable: bool setting key that turns this trigger on
+#   name: dedupe key into particle._consumed_event_ticks (one consumption
+#         slot per logical event so a single rising edge fires at most once)
+#   source: which object owns the started_tick — "self", "particle",
+#           "opponent" (opponent falls back to never-fired if no opponent)
+#   tick: property name on `source` holding the rising-edge tick
+# Const so it allocates once at script-load. New triggers slot in as a
+# single line.
+const _TRIGGER_EVENT_ROWS = [
+	{enable="trigger_during_combo", name="combo", source="self", tick="style_aura_combo_started_tick"},
+	{enable="trigger_while_being_comboed", name="being_comboed", source="self", tick="style_aura_being_comboed_started_tick"},
+	{enable="trigger_during_melee_attacks", name="melee_attack", source="self", tick="style_aura_melee_attack_started_tick"},
+	{enable="trigger_low_health", name="low_health", source="particle", tick="style_aura_low_health_started_tick"},
+	{enable="trigger_high_health", name="high_health", source="particle", tick="style_aura_high_health_started_tick"},
+	{enable="trigger_super_level", name="super_level", source="particle", tick="style_aura_super_level_started_tick"},
+	{enable="trigger_after_take_damage", name="got_hit", source="self", tick="style_aura_got_hit_tick"},
+	{enable="trigger_after_opponent_take_damage", name="opp_got_hit", source="opponent", tick="style_aura_got_hit_tick"},
+	{enable="trigger_after_spawn_projectile", name="projectile_spawn", source="self", tick="style_aura_projectile_spawn_tick"},
+	{enable="trigger_projectiles_active", name="projectiles_active", source="self", tick="style_aura_projectiles_first_active_tick"},
+	{enable="trigger_after_perfect_parry", name="perfect_parry", source="self", tick="style_aura_perfect_parry_tick"},
+	{enable="trigger_after_burst", name="burst", source="self", tick="style_aura_burst_tick"},
+]
+
 func _aura_trigger_event_fired(particle, settings: Dictionary) -> bool:
 	if not settings.get("dynamic_triggers", false):
 		return false
 	var EVENT_WINDOW = 1
-	# Each entry: (settings_key, "trigger_name", started_tick).
-	# The trigger_name is the dict key on particle._consumed_event_ticks.
-	var checks = [
-		["trigger_during_combo", "combo", style_aura_combo_started_tick],
-		["trigger_while_being_comboed", "being_comboed", style_aura_being_comboed_started_tick],
-		["trigger_during_melee_attacks", "melee_attack", style_aura_melee_attack_started_tick],
-		["trigger_low_health", "low_health", particle.style_aura_low_health_started_tick],
-		["trigger_high_health", "high_health", particle.style_aura_high_health_started_tick],
-		["trigger_super_level", "super_level", particle.style_aura_super_level_started_tick],
-		["trigger_after_take_damage", "got_hit", style_aura_got_hit_tick],
-		["trigger_after_spawn_projectile", "projectile_spawn", style_aura_projectile_spawn_tick],
-		["trigger_projectiles_active", "projectiles_active", style_aura_projectiles_first_active_tick],
-		["trigger_after_perfect_parry", "perfect_parry", style_aura_perfect_parry_tick],
-		["trigger_after_burst", "burst", style_aura_burst_tick],
-	]
-	# opponent.got_hit lives on the other character; only consult if valid.
-	if is_instance_valid(opponent):
-		checks.append(["trigger_after_opponent_take_damage", "opp_got_hit", opponent.style_aura_got_hit_tick])
-	for entry in checks:
-		var setting_key = entry[0]
-		var event_name = entry[1]
-		var started_tick = entry[2]
-		if not settings.get(setting_key, false):
+	for row in _TRIGGER_EVENT_ROWS:
+		if not settings.get(row.enable, false):
 			continue
+		var source
+		match row.source:
+			"self": source = self
+			"particle": source = particle
+			"opponent": source = opponent if is_instance_valid(opponent) else null
+		if source == null:
+			continue
+		var started_tick = source.get(row.tick)
 		if current_tick - started_tick > EVENT_WINDOW:
 			continue
 		# Already consumed this exact rising edge — wait for the next one.
-		if particle._consumed_event_ticks.get(event_name, -100000) == started_tick:
+		if particle._consumed_event_ticks.get(row.name, -100000) == started_tick:
 			continue
-		particle._consumed_event_ticks[event_name] = started_tick
+		particle._consumed_event_ticks[row.name] = started_tick
 		return true
 	return false
 

@@ -19,6 +19,18 @@ onready var hurtbox_height = hurtbox.height
 var block_hits = BLOCK_HITS
 
 func _frame_1():
+	# Stackriken.hit_by clamps current_tick back to 0 on every hit, so the
+	# state advances back through tick=1 again and _frame_1 re-fires. Skip
+	# everything on those re-fires — re-applying the spawn force stacks on
+	# top of the hit's set_vel and flips the flight direction, and resetting
+	# the homing target (return_x/y) to the fighter's *current* position
+	# changes where move() pulls the Stackriken back toward. The ghost sim
+	# is spawned past _frame_1 so it never saw either side effect, hence
+	# the prediction-vs-actual divergence.
+	# host.refresh_amount starts at REFRESH_AMOUNT and decrements per hit;
+	# anything below that signals a post-hit re-fire.
+	if host.refresh_amount < host.REFRESH_AMOUNT:
+		return
 	var fighter = host.get_fighter()
 	if fighter:
 		host.return_x = fighter.get_pos().x

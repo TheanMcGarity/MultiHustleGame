@@ -229,6 +229,7 @@ func load_replay(path):
 	_strip_spectator_data(match_data)
 	if !match_data.has("mod_data"):
 		match_data["mod_data"] = {}
+	Utils.normalize_timer_settings(match_data)
 	return match_data
 
 func force_ints(dict):
