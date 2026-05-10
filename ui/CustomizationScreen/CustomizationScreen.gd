@@ -741,6 +741,8 @@ func _on_character_button_pressed(button):
 	button.set_pressed_no_signal(true)
 	var character: Fighter = button.character_scene.instance()
 	add_child(character)
+	$"%StaticSprite".material = character.sprite.material
+	$"%MovingSprite".material = character.sprite.material
 	var character_texture = character.sprite.frames.get_frame("Wait", 0)
 	var character_texture2 = character.character_portrait2
 	$"%StaticSprite".get_material().set_shader_param("use_extra_color_1", character.use_extra_color_1)

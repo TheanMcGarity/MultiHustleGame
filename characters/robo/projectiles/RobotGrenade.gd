@@ -15,11 +15,11 @@ const ARM_TIME_ON_OPPONENT_HIT = 4
 # across the stage with their own attacks. Opponent hits stay on the
 # baseline.
 const KNOCKBACK_MULTIPLIER = "1.5"
-const CREATOR_KNOCKBACK_MULTIPLIER = "2.2"
+const CREATOR_KNOCKBACK_MULTIPLIER = "1.9"
 # DI influence amount when the attacker steers the bomb via their DI.
 # Creator gets a boosted value so their own DI has more pull on the bomb
 # than an opponent's DI does.
-const CREATOR_DI_INFLUENCE = "8"
+const CREATOR_DI_INFLUENCE = "12"
 # Boosted air- and fall-speed caps applied while the creator's hit is still
 # propelling the bomb through the air. Stay in effect until the bomb lands
 # or the opponent hits it — opponent hits revert to the scene defaults.
