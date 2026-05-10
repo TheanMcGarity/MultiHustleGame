@@ -13,6 +13,7 @@ const SILLY_ITEM_CHANCES = {
 	preload("res://characters/wizard/projectiles/telekinesis/TelekinesisBomb.tscn"): 3,
 	preload("res://characters/wizard/projectiles/telekinesis/TelekinesisTire.tscn"): 5,
 	preload("res://characters/wizard/projectiles/telekinesis/TelekinesisFruit.tscn"): 3,
+	preload("res://characters/wizard/projectiles/telekinesis/TelekinesisIce.tscn"): 3,
 }
 
 const NON_BOULDER_CHANCE = 15

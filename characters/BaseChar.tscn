@@ -1,4 +1,4 @@
-[gd_scene load_steps=199 format=2]
+[gd_scene load_steps=200 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -197,6 +197,7 @@
 [ext_resource path="res://sound/common/ex5.wav" type="AudioStream" id=195]
 [ext_resource path="res://sound/common/ex3.wav" type="AudioStream" id=196]
 [ext_resource path="res://sound/common/ex2.wav" type="AudioStream" id=197]
+[ext_resource path="res://characters/states/Frozen.gd" type="Script" id=198]
 
 [sub_resource type="SpriteFrames" id=3]
 animations = [ {
@@ -408,6 +409,20 @@ animations = [ {
 
 [node name="BaseChar" groups=["Fighter"] instance=ExtResource( 3 )]
 script = ExtResource( 1 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 gravity = "0.5"
 max_air_speed = "13"
 max_fall_speed = "8"
@@ -1951,6 +1966,13 @@ particle_scene = ExtResource( 154 )
 particle_position = Vector2( 0, -16 )
 spawn_particle_on_enter = true
 enter_sfx = ExtResource( 141 )
+
+[node name="Frozen" type="Node2D" parent="StateMachine" index="57"]
+script = ExtResource( 198 )
+endless = true
+busy_interrupt_type = 1
+interrupt_into_string = "Grounded
+Aerial"
 
 [node name="YouLabel" type="Label" parent="." index="5"]
 visible = false

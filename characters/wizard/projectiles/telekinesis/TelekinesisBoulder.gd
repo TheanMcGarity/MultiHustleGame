@@ -8,6 +8,8 @@ export(PackedScene) var disable_obj
 export(PackedScene) var disable_particle
 export var rumble = true
 export var no_hitlag = true
+export var disable_on_block = false
+
 
 func disable():
 	disable_action()
@@ -33,6 +35,10 @@ func disable_action():
 
 func hit_action(obj):
 	pass
+
+func on_got_blocked():
+	if disable_on_block:
+		disable()
 
 func tick():
 	.tick()

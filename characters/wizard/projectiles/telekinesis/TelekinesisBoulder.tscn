@@ -79,6 +79,7 @@ disable_obj = null
 disable_particle = ExtResource( 9 )
 rumble = true
 no_hitlag = true
+disable_on_block = false
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 4 )

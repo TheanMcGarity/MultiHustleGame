@@ -51,6 +51,7 @@ var juke_pips = 2
 var juke_dir_x = "0"
 var juke_dir_y = "0"
 var juke_ticks = 0
+var air_vaults = 0
 var up_juke_ticks = 0
 #var juke_dir_type = ""
 var juked_this_turn = false
@@ -258,6 +259,9 @@ func tick():
 				reset_momentum()
 	elif juke_startup_ticks > 0:
 		juke_startup_ticks -= 1
+
+	if is_grounded():
+		air_vaults = 0
 
 	if penalty_ticks > 0:
 		juke_pips = 0
