@@ -11,7 +11,7 @@ func _frame_0():
 			obj.disable()
 		host.prediction_effect()
 
-func _frame_2():
+func _frame_6():
 	if end:
 		return
 	var obj = host.spawn_object(PROJECTILE_SCENE, 0, 0)

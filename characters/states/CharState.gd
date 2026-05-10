@@ -326,7 +326,12 @@ func _enter_shared():
 		var dir = host.get_move_dir()
 		if dir == 0 or dir == host.get_opponent_dir():
 			host.add_penalty(-8)
-		if !host.gained_whiff_meter:
+		# Hurt states (HurtGrounded/HurtAerial) sometimes carry a conditional
+		# self-hitbox — Cowboy uses one to swat his own attack out of the air
+		# during HurtAerial. That hitbox isn't an "attack" the player is
+		# launching, so it shouldn't grant whiff meter (or the wrong-direction
+		# penalty above stays as-is — that's an active attempt at an attack).
+		if !is_hurt_state and !host.gained_whiff_meter:
 			host.gained_whiff_meter = true
 			host.gain_super_meter(fixed.round(fixed.mul(str(WHIFF_SUPER_GAIN), whiff_meter_gain_multiplier)))
 

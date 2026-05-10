@@ -9,6 +9,28 @@ const DI_DEGRADATION_PER_HIT = "0.0"
 const NUDGE_DISTANCE = 10
 const ARM_TIME_REDUCTION_ON_HIT = 5
 const ARM_TIME_ON_OPPONENT_HIT = 4
+# Knockback multiplier applied on top of `hitbox.knockback` when the bomb
+# is hit. Default for any attacker; CREATOR variant kicks in when the
+# Robot who threw the bomb attacks it themselves so they can chase it
+# across the stage with their own attacks. Opponent hits stay on the
+# baseline.
+const KNOCKBACK_MULTIPLIER = "1.5"
+const CREATOR_KNOCKBACK_MULTIPLIER = "2.2"
+# DI influence amount when the attacker steers the bomb via their DI.
+# Creator gets a boosted value so their own DI has more pull on the bomb
+# than an opponent's DI does.
+const CREATOR_DI_INFLUENCE = "8"
+# Boosted air- and fall-speed caps applied while the creator's hit is still
+# propelling the bomb through the air. Stay in effect until the bomb lands
+# or the opponent hits it — opponent hits revert to the scene defaults.
+# Tunable independently so the boost's horizontal vs vertical feel can be
+# tweaked separately.
+const CREATOR_BOOSTED_AIR_SPEED = "19"
+const CREATOR_BOOSTED_FALL_SPEED = "16"
+
+# Tracked in extra_state_variables so rollback / replay restore preserves
+# whether the bomb is currently riding the creator's air-speed boost.
+var creator_air_speed_boosted = false
 
 onready var my_hitbox = $StateMachine/Active/Hitbox
 onready var active_indicator = $Flip/ActiveIndicator
@@ -40,6 +62,20 @@ func tick():
 			explode()
 		elif ticks_left <= ACTIVATE_TIME:
 			activate()
+	# Creator's air-speed boost ends the moment the bomb lands. Idempotent —
+	# safe to call every tick while grounded, only re-pushes chara state on
+	# the actual transition out of the boost.
+	if creator_air_speed_boosted and is_grounded():
+		_clear_creator_air_speed_boost()
+	# Cap upward velocity to the horizontal air-speed limit. The chara backend
+	# only enforces a fall-speed (downward) cap natively, so without this an
+	# uppercut could shoot the bomb straight up at speeds well above the
+	# horizontal cap. Mirrors max_air_speed (= boosted while creator hits).
+	var up_cap = CREATOR_BOOSTED_AIR_SPEED if creator_air_speed_boosted else max_air_speed
+	var neg_cap = fixed.mul(up_cap, "-1")
+	var vel = get_vel()
+	if fixed.lt(vel.y, neg_cap):
+		set_vel(vel.x, neg_cap)
 
 func activate():
 	if active:
@@ -72,17 +108,29 @@ func hit_by(hitbox):
 			set_vel(fixed.mul(vel.x, "-1"), vel.y)
 		else:
 			reset_momentum()
-			var dir = fixed.normalized_vec_times(get_hitbox_x_dir(hitbox), hitbox.dir_y, fixed.mul(hitbox.knockback, "1.5"))
+			# Resolve the attacker up-front so we can pick the creator-vs-
+			# opponent knockback multiplier. Creator's own attacks get
+			# amplified knockback (and DI further down) so Robot can pilot
+			# his own bomb around — opponents still see baseline values.
+			var host = hitbox.host
+			var host_object = obj_from_name(host) if host != null else null
+			var attacker_is_creator = is_instance_valid(host_object) and host_object.id == id
+			var knockback_mul = CREATOR_KNOCKBACK_MULTIPLIER if attacker_is_creator else KNOCKBACK_MULTIPLIER
+			var dir = fixed.normalized_vec_times(get_hitbox_x_dir(hitbox), hitbox.dir_y, fixed.mul(hitbox.knockback, knockback_mul))
 			if is_grounded() and fixed.gt(dir.y, "0"):
 				dir.y = fixed.mul(dir.y, "-1")
 			change_state("Active")
 			apply_force(dir.x, dir.y)
 			var nudge = fixed.normalized_vec_times(get_hitbox_x_dir(hitbox), hitbox.dir_y, str(NUDGE_DISTANCE))
 			move_directly(nudge.x, nudge.y)
-			var host = hitbox.host
 			if host:
 				my_hitbox.hit_objects.append(host)
-			var host_object = obj_from_name(host)
+			# Creator hit → arm the air-speed boost until landing or an
+			# opponent hits the bomb. Opponent hit while boosted clears it.
+			if attacker_is_creator:
+				_apply_creator_air_speed_boost()
+			elif creator_air_speed_boosted:
+				_clear_creator_air_speed_boost()
 			if host_object:
 				var player_object = host_object.get_owner()
 				var player = player_object.obj_name
@@ -104,13 +152,16 @@ func hit_by(hitbox):
 				if host != player:
 					my_hitbox.hit_objects.append(player)
 				else:
-					var di_amount = fixed.mul(fixed.sub("1.0", fixed.mul(DI_DEGRADATION_PER_HIT, str(hits_chained))), DI_INFLUENCE)
+					# DI pull on the bomb. Creator gets the boosted influence
+					# so their own DI moves the bomb more than an opponent's.
+					var di_influence = CREATOR_DI_INFLUENCE if attacker_is_creator else DI_INFLUENCE
+					var di_amount = fixed.mul(fixed.sub("1.0", fixed.mul(DI_DEGRADATION_PER_HIT, str(hits_chained))), di_influence)
 					if fixed.lt(di_amount, "0"):
 						di_amount = "0"
 #					print(di_amount)
 					var di_force = xy_to_dir(host_object.current_di.x, host_object.current_di.y, di_amount)
 					apply_force(fixed.mul(di_force.x, DI_HORIZONTAL_MODIFIER), di_force.y)
-				
+
 				if active:
 					if host_object.id != id:
 						ticks_left = Utils.int_min(ticks_left, ARM_TIME_ON_OPPONENT_HIT)
@@ -147,3 +198,17 @@ func disable():
 	creator.grenade_object = null
 	creator.magnetize_opponent = false
 	creator.magnetize_opponent_blocked = false
+
+# Push the boosted air- and fall-speed caps to the chara backend (the
+# GD-side `max_air_speed` / `max_fall_speed` fields stay at scene defaults,
+# so reverting just means re-pushing them). Mirrors the pattern Wizard.tick
+# uses for spark-explosion speed bumps.
+func _apply_creator_air_speed_boost():
+	creator_air_speed_boosted = true
+	chara.set_max_air_speed(CREATOR_BOOSTED_AIR_SPEED)
+	chara.set_max_fall_speed(CREATOR_BOOSTED_FALL_SPEED)
+
+func _clear_creator_air_speed_boost():
+	creator_air_speed_boosted = false
+	chara.set_max_air_speed(max_air_speed)
+	chara.set_max_fall_speed(max_fall_speed)

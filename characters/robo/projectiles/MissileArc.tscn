@@ -20,6 +20,20 @@ animations = [ {
 
 [node name="BaseProjectile" instance=ExtResource( 1 )]
 script = ExtResource( 4 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 gravity = "0.2"
 air_friction = "0.1"
 max_air_speed = "100"

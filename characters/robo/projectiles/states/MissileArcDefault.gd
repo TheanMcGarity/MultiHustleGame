@@ -101,6 +101,9 @@ func _tick():
 			host.apply_force_relative(fixed.mul(dir_vec.x, descent_force), fixed.mul(dir_vec.y, descent_force))
 			descent_force = fixed.add(descent_force, descent_force_increase)
 			_update_rotation_from_velocity()
+			var vel = host.get_vel()
+			if fixed.gt(vel.y, "0"):
+				host.has_projectile_parry_window = false
 		if current_tick % 5 == 0:
 			host.play_sound("FlySound")
 	if host.get_pos().y >= 0 and current_tick > 1 and flying:
