@@ -48,7 +48,6 @@ func _enter_tree():
 	is_hurt_state = true
 
 func _enter():
-	host.spawn_particle_effect(PARTICLE, host.get_center_position_float())
 	duration = DEFAULT_DURATION
 	freeze_forces = false
 	hitbox = null
@@ -85,6 +84,10 @@ func _enter():
 	# exit so the style stays intact.
 	mat.set_shader_param("use_extra_color_1", false)
 	mat.set_shader_param("use_extra_color_2", false)
+
+func _frame_0():
+	host.release_opponent()
+	host.spawn_particle_effect(PARTICLE, host.get_center_position_float())
 
 func _tick():
 	if freeze_forces:

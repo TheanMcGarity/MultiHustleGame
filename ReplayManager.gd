@@ -1,6 +1,6 @@
 extends Node
 
-const MAX_BACKUPS = 10
+const MAX_BACKUPS = 30
 
 var frames = {
 	1: {},
