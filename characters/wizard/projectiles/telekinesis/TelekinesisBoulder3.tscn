@@ -71,6 +71,18 @@ plus_frames = 4
 knockback = "9.0"
 hard_knockdown = true
 
+[node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
+__meta__ = {
+"_editor_description_": ""
+}
+width = 12
+height = 11
+damage = 120
+hitlag_ticks = 9
+plus_frames = 4
+knockback = "9.0"
+hard_knockdown = true
+
 [node name="Hitbox" parent="StateMachine/Drop" index="0"]
 hard_knockdown = true
 

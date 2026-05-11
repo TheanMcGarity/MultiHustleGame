@@ -50,6 +50,7 @@ no_hitlag = false
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 3 )
+frame = 1
 playing = true
 
 [node name="ParticleEffect" parent="Flip/Particles" index="0"]
@@ -72,6 +73,17 @@ speed = "9"
 bounces = 6
 
 [node name="Hitbox" parent="StateMachine/Launch" index="0"]
+damage = 95
+hitstun_ticks = 15
+hitlag_ticks = 4
+plus_frames = 2
+knockback = "6.0"
+grounded_hit_state = "HurtGrounded"
+
+[node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
+__meta__ = {
+"_editor_description_": ""
+}
 damage = 95
 hitstun_ticks = 15
 hitlag_ticks = 4

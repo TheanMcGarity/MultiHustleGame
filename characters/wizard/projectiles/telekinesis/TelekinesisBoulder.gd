@@ -3,6 +3,12 @@ extends BaseProjectile
 class_name TelekinesisProjectile
 
 var launched = false
+# Set when the projectile takes a perfect parry. BaseChar.gd only routes
+# host.on_got_parried() through the perfect-parry branch (see ~line 1876),
+# so the regular-block path never sets this. Used by Launch.gd's is_usable
+# to gate redirect — once the opponent perfect-parried the rock, the wizard
+# can't keep steering it.
+var got_perfect_parried = false
 
 export(PackedScene) var disable_obj
 export(PackedScene) var disable_particle
@@ -10,6 +16,15 @@ export var rumble = true
 export var no_hitlag = true
 export var disable_on_block = false
 
+func _ready():
+	# BaseProjectile._ready isn't auto-chained — call it so its own
+	# state_variables get registered, then add ours.
+	._ready()
+	state_variables.append_array(["got_perfect_parried"])
+
+func on_got_parried():
+	.on_got_parried()
+	got_perfect_parried = true
 
 func disable():
 	disable_action()

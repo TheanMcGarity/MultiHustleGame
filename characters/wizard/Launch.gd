@@ -31,5 +31,9 @@ func is_usable():
 			return false
 		if !redirect and in_flight:
 			return false
+		# A perfect parry consumes the wizard's right to redirect — the
+		# opponent earned the parry, no do-over by steering it back.
+		if redirect and obj.get("got_perfect_parried"):
+			return false
 	return host.boulder_projectile != null and .is_usable()
 #	return host.boulder_projectile != null and (!redirect or host.hover_left >= host.TK_HOVER_AMOUNT) and .is_usable()
