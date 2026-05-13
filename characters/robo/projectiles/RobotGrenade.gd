@@ -9,28 +9,30 @@ const DI_DEGRADATION_PER_HIT = "0.0"
 const NUDGE_DISTANCE = 10
 const ARM_TIME_REDUCTION_ON_HIT = 5
 const ARM_TIME_ON_OPPONENT_HIT = 4
-# Knockback multiplier applied on top of `hitbox.knockback` when the bomb
-# is hit. Default for any attacker; CREATOR variant kicks in when the
-# Robot who threw the bomb attacks it themselves so they can chase it
-# across the stage with their own attacks. Opponent hits stay on the
-# baseline.
+# Knockback multiplier applied on top of `hitbox.knockback` for any
+# attacker. Creator no longer gets a knockback multiplier of their own —
+# the escalation now comes from the tiered hit-counter speed boost below.
 const KNOCKBACK_MULTIPLIER = "1.5"
-const CREATOR_KNOCKBACK_MULTIPLIER = "1.9"
 # DI influence amount when the attacker steers the bomb via their DI.
 # Creator gets a boosted value so their own DI has more pull on the bomb
 # than an opponent's DI does.
 const CREATOR_DI_INFLUENCE = "12"
-# Boosted air- and fall-speed caps applied while the creator's hit is still
-# propelling the bomb through the air. Stay in effect until the bomb lands
-# or the opponent hits it — opponent hits revert to the scene defaults.
-# Tunable independently so the boost's horizontal vs vertical feel can be
-# tweaked separately.
-const CREATOR_BOOSTED_AIR_SPEED = "19"
-const CREATOR_BOOSTED_FALL_SPEED = "16"
+# Per-tier air- and fall-speed caps, indexed by creator hit count in the
+# current bounce sequence. tier_index = clamp(hit_count, 1, CAP) - 1.
+# Tier 1 (= 1 hit) matches scene base so the first hit just primes the
+# counter. Subsequent tiers ramp up — 75% / 125% / 150% of the prior
+# single-hit boost reference (19 air, 16 fall) — so the creator builds
+# speed by juggling. Reset by any opponent hit, or by GROUNDED_RESET_FRAMES
+# consecutive grounded ticks (= done bouncing).
+const CREATOR_TIER_AIR_SPEEDS = ["12", "14.25", "23.75", "28.5"]
+const CREATOR_TIER_FALL_SPEEDS = ["15", "15", "20", "24"]
+const CREATOR_HIT_COUNT_CAP = 4
+const GROUNDED_RESET_FRAMES = 60
 
 # Tracked in extra_state_variables so rollback / replay restore preserves
-# whether the bomb is currently riding the creator's air-speed boost.
-var creator_air_speed_boosted = false
+# the creator's hit-stack and the grounded-debounce counter.
+var creator_hit_count = 0
+var grounded_frames = 0
 
 onready var my_hitbox = $StateMachine/Active/Hitbox
 onready var active_indicator = $Flip/ActiveIndicator
@@ -62,16 +64,21 @@ func tick():
 			explode()
 		elif ticks_left <= ACTIVATE_TIME:
 			activate()
-	# Creator's air-speed boost ends the moment the bomb lands. Idempotent —
-	# safe to call every tick while grounded, only re-pushes chara state on
-	# the actual transition out of the boost.
-	if creator_air_speed_boosted and is_grounded():
-		_clear_creator_air_speed_boost()
+	# Creator's hit-stack speed boost decays once the bomb has been grounded
+	# for GROUNDED_RESET_FRAMES consecutive ticks — i.e., it's done bouncing.
+	# Brief touches don't reset, so a low bounce keeps the boost alive.
+	if creator_hit_count > 0:
+		if is_grounded():
+			grounded_frames += 1
+			if grounded_frames >= GROUNDED_RESET_FRAMES:
+				_clear_creator_hit_speed_boost()
+		else:
+			grounded_frames = 0
 	# Cap upward velocity to the horizontal air-speed limit. The chara backend
 	# only enforces a fall-speed (downward) cap natively, so without this an
 	# uppercut could shoot the bomb straight up at speeds well above the
-	# horizontal cap. Mirrors max_air_speed (= boosted while creator hits).
-	var up_cap = CREATOR_BOOSTED_AIR_SPEED if creator_air_speed_boosted else max_air_speed
+	# horizontal cap. Mirrors the active tier's air-speed cap.
+	var up_cap = _current_air_speed_cap()
 	var neg_cap = fixed.mul(up_cap, "-1")
 	var vel = get_vel()
 	if fixed.lt(vel.y, neg_cap):
@@ -111,14 +118,13 @@ func hit_by(hitbox):
 		else:
 			reset_momentum()
 			# Resolve the attacker up-front so we can pick the creator-vs-
-			# opponent knockback multiplier. Creator's own attacks get
-			# amplified knockback (and DI further down) so Robot can pilot
-			# his own bomb around — opponents still see baseline values.
+			# opponent path for the speed-boost stack and DI influence. Knockback
+			# multiplier is the same for everyone — the creator's edge now
+			# comes from the stacking speed tiers + boosted DI, not knockback.
 			var host = hitbox.host
 			var host_object = obj_from_name(host) if host != null else null
 			var attacker_is_creator = is_instance_valid(host_object) and host_object.id == id
-			var knockback_mul = CREATOR_KNOCKBACK_MULTIPLIER if attacker_is_creator else KNOCKBACK_MULTIPLIER
-			var dir = fixed.normalized_vec_times(get_hitbox_x_dir(hitbox), hitbox.dir_y, fixed.mul(hitbox.knockback, knockback_mul))
+			var dir = fixed.normalized_vec_times(get_hitbox_x_dir(hitbox), hitbox.dir_y, fixed.mul(hitbox.knockback, KNOCKBACK_MULTIPLIER))
 			if is_grounded() and fixed.gt(dir.y, "0"):
 				dir.y = fixed.mul(dir.y, "-1")
 			change_state("Active")
@@ -127,12 +133,16 @@ func hit_by(hitbox):
 			move_directly(nudge.x, nudge.y)
 			if host:
 				my_hitbox.hit_objects.append(host)
-			# Creator hit → arm the air-speed boost until landing or an
-			# opponent hits the bomb. Opponent hit while boosted clears it.
+			# Creator hit → bump the hit counter (capped) and apply the next
+			# speed tier. Reset the grounded debounce so a fresh hit isn't
+			# treated as "still grounded" on the very next tick. Opponent hit
+			# while the stack is active wipes it back to base.
 			if attacker_is_creator:
-				_apply_creator_air_speed_boost()
-			elif creator_air_speed_boosted:
-				_clear_creator_air_speed_boost()
+				creator_hit_count = Utils.int_min(creator_hit_count + 1, CREATOR_HIT_COUNT_CAP)
+				grounded_frames = 0
+				_apply_creator_hit_speed_boost()
+			elif creator_hit_count > 0:
+				_clear_creator_hit_speed_boost()
 			if host_object:
 				var player_object = host_object.get_owner()
 				var player = player_object.obj_name
@@ -201,16 +211,26 @@ func disable():
 	creator.magnetize_opponent = false
 	creator.magnetize_opponent_blocked = false
 
-# Push the boosted air- and fall-speed caps to the chara backend (the
-# GD-side `max_air_speed` / `max_fall_speed` fields stay at scene defaults,
-# so reverting just means re-pushing them). Mirrors the pattern Wizard.tick
-# uses for spark-explosion speed bumps.
-func _apply_creator_air_speed_boost():
-	creator_air_speed_boosted = true
-	chara.set_max_air_speed(CREATOR_BOOSTED_AIR_SPEED)
-	chara.set_max_fall_speed(CREATOR_BOOSTED_FALL_SPEED)
+# Push the current tier's air- and fall-speed caps to the chara backend.
+# tier_index = clamp(hit_count, 1, CAP) - 1 — caller must have already
+# bumped creator_hit_count. Mirrors Wizard.tick's spark-explosion pattern.
+func _apply_creator_hit_speed_boost():
+	var tier = Utils.int_min(creator_hit_count, CREATOR_HIT_COUNT_CAP) - 1
+	if tier < 0:
+		return
+	chara.set_max_air_speed(CREATOR_TIER_AIR_SPEEDS[tier])
+	chara.set_max_fall_speed(CREATOR_TIER_FALL_SPEEDS[tier])
 
-func _clear_creator_air_speed_boost():
-	creator_air_speed_boosted = false
+func _clear_creator_hit_speed_boost():
+	creator_hit_count = 0
+	grounded_frames = 0
 	chara.set_max_air_speed(max_air_speed)
 	chara.set_max_fall_speed(max_fall_speed)
+
+# Air-speed cap reflecting the active tier — falls back to the scene
+# default when no creator hits are stacked.
+func _current_air_speed_cap():
+	var tier = Utils.int_min(creator_hit_count, CREATOR_HIT_COUNT_CAP) - 1
+	if tier < 0:
+		return max_air_speed
+	return CREATOR_TIER_AIR_SPEEDS[tier]
