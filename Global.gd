@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.69-steam-unstable"
+var VERSION = "1.9.70-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true

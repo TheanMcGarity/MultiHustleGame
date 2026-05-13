@@ -418,6 +418,7 @@ var aura_particles: Array = []
 var aura_entries: Array = []
 var aura_particle = null
 var aura_particle_2 = null
+var aura_particle_3 = null
 # Style-only event tick trackers — used exclusively by aura dynamic-trigger
 # evaluation. NOT read by gameplay logic. Keep in state_variables so replays
 # and rollback resync them along with everything else.
@@ -932,6 +933,7 @@ func apply_style(style):
 				aura_entries.append(entry)
 			aura_particle = aura_particles[0] if aura_particles.size() > 0 else null
 			aura_particle_2 = aura_particles[1] if aura_particles.size() > 1 else null
+			aura_particle_3 = aura_particles[2] if aura_particles.size() > 2 else null
 		if style.has("hitspark"):
 			if style.hitspark == "custom":
 				# Custom hitsparks share one template; per-style config rides
@@ -970,6 +972,7 @@ func reset_aura():
 	aura_entries.clear()
 	aura_particle = null
 	aura_particle_2 = null
+	aura_particle_3 = null
 
 func reset_style():
 	reset_color()
