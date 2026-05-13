@@ -113,7 +113,6 @@ func init(game):
 	p1_air_movement_label.text = p1.air_option_bar_name
 	p2_air_movement_label.text = p2.air_option_bar_name
 	
-	
 
 	if Network.multiplayer_active and !SteamLobby.SPECTATING:
 		$"%P1Username".text = Network.pid_to_username(1)

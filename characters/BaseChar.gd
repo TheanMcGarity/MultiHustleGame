@@ -284,6 +284,10 @@ var got_blocked = false
 var block_used_air_movement = false
 
 var di_enabled = true
+# When on, a positively-prorated opener (damage_proration > 0) makes the
+# victim's DI scaling behave as if the combo were that many hits deeper —
+# +2 proration means DI starts where it would normally be on hit 3.
+var prorated_di = true
 var turbo_mode = false
 var extremely_turbo_mode = false
 var infinite_resources = false
@@ -1424,7 +1428,11 @@ func increment_opponent_combo(hitbox):
 	if hitbox.increment_combo:
 		opponent.incr_combo(will_scale, projectile, will_scale and projectile and hitbox.scale_combo, hitbox.combo_scaling_amount)
 		if opponent.combo_count <= 1 and hitbox.scale_combo:
-			opponent.combo_proration = hitbox.damage_proration
+			# Cap at MAX_STALES so absurdly-prorated openers (some moves use
+			# values like 900000 to nuke damage scaling instantly) saturate
+			# at the normal combo damage cap instead of overflowing into the
+			# prorated-DI or stale-damage math downstream.
+			opponent.combo_proration = Utils.int_min(hitbox.damage_proration, MAX_STALES)
 			if opponent.combo_count == 1 and old_count == 0 and opponent.air_movements_left < opponent.num_air_movements:
 				opponent.air_movements_left += 1
 
@@ -2027,11 +2035,26 @@ func release_opponent():
 func on_attack_blocked():
 	pass
 
-func get_di_scaling(brace=true):
+func get_di_scaling(brace=true, lookahead=0):
 	if brace and hit_out_of_brace:
 		return "0"
 	var max_extra_di = fixed.sub(max_di_scaling, min_di_scaling)
-	var scaling_amount = str(Utils.int_clamp(opponent.combo_count, 0, di_combo_limit))
+	# `lookahead` lets the UI ask "what would this be on the NEXT hit?" —
+	# combo_count increments during hit_by before HurtAerial._enter reads
+	# DI, so the actually-applied value is always one notch ahead of what
+	# the planning panel sees. Pass lookahead=1 for the predictive display.
+	#
+	# Treat positively-prorated openers as if the combo were that many hits
+	# in already — but only kicks in from the SECOND hit onward. The opener
+	# itself shouldn't benefit from its own proration (matches the existing
+	# damage-staling formula at combo_stale_damage which also gates on
+	# combo_count > 1). Proration is capped at MAX_STALES so absurd values
+	# (some moves use 900000) just saturate at the normal scaling ceiling.
+	var effective_count = opponent.combo_count + lookahead
+	var di_count = effective_count
+	if prorated_di and effective_count > 1 and opponent.combo_proration > 0:
+		di_count += Utils.int_min(opponent.combo_proration, MAX_STALES)
+	var scaling_amount = str(Utils.int_clamp(di_count, 0, di_combo_limit))
 	var scaling_ratio = fixed.div(scaling_amount, str(di_combo_limit))
 	var total_extra_scaling = fixed.mul(max_extra_di, scaling_ratio)
 	var total = fixed.add(min_di_scaling, total_extra_scaling)

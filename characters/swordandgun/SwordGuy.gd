@@ -28,6 +28,11 @@ var lasso_projectile = null
 var after_image_object = null
 var used_aerial_h_slash = false
 var used_aerial_l_slice = false
+# One-per-combo gate for LightningSlice's ground bounce. Set true when LS
+# connects on a fighter; LightningSlice._frame_0 reads this to disable
+# air_ground_bounce on subsequent hits in the same combo. Reset by
+# reset_combo() below — matches main-branch's "once per combo" buff.
+var lightning_slice_ground_bounced = false
 var has_gun = true
 var gun_projectile = null
 var consecutive_shots = 1
@@ -334,6 +339,11 @@ func on_state_started(state):
 
 func should_free_cancel_allow_grounded_and_aerial_states():
 	return current_state().state_name != "QuickerDraw" and .should_free_cancel_allow_grounded_and_aerial_states()
+
+func reset_combo():
+	.reset_combo()
+	# Re-arm LightningSlice's once-per-combo ground-bounce gate.
+	lightning_slice_ground_bounced = false
 
 func _draw():
 	._draw()

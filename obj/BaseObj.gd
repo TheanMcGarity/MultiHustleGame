@@ -350,6 +350,13 @@ func copy_to(o: BaseObj):
 	# resync above (same problem class — _enter side effects in copy_to).
 	var vel = get_vel()
 	o.set_vel(vel.x, vel.y)
+	# Force a data refresh on the ghost after the vel sync. `set_vel` writes
+	# directly to chara, but `get_vel()` reads from the cached `data` snapshot
+	# that only refreshes on update_data(). Without this, downstream code in
+	# BaseChar.copy_to / state.copy_hurtbox_states / etc. that reads o.get_vel
+	# (or any other data field) sees stale pre-set_vel values, which manifested
+	# as ghost prediction not picking up projectile knockback at turn start.
+	o.update_data()
 #	o.update_data()
 	for state in state_machine.queued_states:
 		o.state_machine.queued_states.append(state)
@@ -567,11 +574,23 @@ func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vec
 	obj.tick()
 	var facing = -1 if dir.x < 0 else 1
 	obj.position = pos
-	if facing < 0:
+	# Hitsparks default to a 180° rotation when facing left so symmetric
+	# sprites read correctly mirrored. Custom hitsparks can opt into a pure
+	# horizontal flip instead (no rotation) — useful for asymmetric art where
+	# the rotation feels wrong. Flag rides on the custom_hitspark_config dict.
+	var flip_only = facing < 0 and cfg is Dictionary and cfg.get("flip_when_facing_left", false)
+	if facing < 0 and not flip_only:
 		obj.rotation = (dir * Vector2(-1, -1)).angle()
 	else:
 		obj.rotation = dir.angle()
 	obj.scale.x = facing
+	# Propagate `facing` to any CustomTrailParticle children — same hook the
+	# aura path uses (BaseChar._apply_aura_state) to flip gravity_x and the
+	# emission angle when the character faces left. Without this, hitspark
+	# particles always emit as if facing right regardless of the hit dir.
+	for child in obj.get_children():
+		if child is CustomTrailParticle:
+			child.facing = facing
 	remove_child(obj)
 
 	emit_signal("particle_effect_spawned", obj)
@@ -705,9 +724,16 @@ func apply_force_relative(x, y):
 
 func apply_forces():
 	chara.apply_forces()
-	
+	# Physics integrate consumed any pending forces and updated chara vel —
+	# refresh the data cache so any get_vel/get_pos read in the same tick
+	# (or downstream consumers in the same call chain) sees fresh values.
+	if initialized:
+		update_data()
+
 func apply_forces_no_limit():
 	chara.apply_forces_no_limit()
+	if initialized:
+		update_data()
 
 func set_gravity_modifier(modifier: String):
 	chara.set_gravity_modifier(modifier)

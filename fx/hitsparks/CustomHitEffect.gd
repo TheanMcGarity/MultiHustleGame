@@ -1,14 +1,14 @@
 extends ParticleEffect
 
 # Config dict applied in _ready. Schema matches what the customization screen
-# stores: {sprite: <name or "">, show_particles: bool, particles: <dict>}.
+# stores: {sprite, show_particles, particles, show_particles_2, particles_2,
+# flip_when_facing_left}. The two particle slots map onto the two
+# CustomTrailParticle children — slot 0 to CustomTrailParticle, slot 1 to
+# CustomTrailParticle2. Either can be disabled independently.
 # Set by the spawner BEFORE add_child so _ready sees it.
 var custom_config = null
 
 func _ready():
-	# ParticleEffect's _ready is what initializes the AnimatedSprite tick
-	# state and the lifetime timer — call it explicitly since GDScript doesn't
-	# auto-chain when you override _ready.
 	._ready()
 	if custom_config is Dictionary:
 		_apply_config(custom_config)
@@ -18,8 +18,6 @@ func _apply_config(config):
 	var animated = get_node_or_null("AnimatedSprite")
 	if animated:
 		if sprite_name == "":
-			# (none) — empty SpriteFrames so ParticleEffect.tick's
-			# get_frame_count() doesn't NPE, hidden so nothing flashes.
 			var empty := SpriteFrames.new()
 			animated.frames = empty
 			animated.visible = false
@@ -28,20 +26,25 @@ func _apply_config(config):
 			if frames:
 				animated.frames = frames
 			animated.scale = Custom.HITSPARK_SPRITE_SCALES.get(sprite_name, Vector2(1, 1))
-	var particle = get_node_or_null("CustomTrailParticle")
-	if particle:
-		var show_particles = bool(config.get("show_particles", false))
-		var particle_settings = config.get("particles", null)
-		if show_particles and particle_settings is Dictionary:
-			# Now that we're in the tree, particle.particles (onready) is set
-			# and load_settings runs without NPE-ing on color_ramp etc.
-			# auto_start_on_ready also doubles as the "hitspark, keep
-			# processing" flag — without it, CustomTrailParticle's
-			# _physics_process auto-disables non-burst-clone particles every
-			# frame in-game and our burst gets killed before it's visible.
-			particle.no_preprocess = true
-			particle.auto_start_on_ready = true
-			particle.load_settings(particle_settings)
-			particle.start_emitting()
-		else:
-			particle.queue_free()
+	_apply_particle_slot(
+		get_node_or_null("CustomTrailParticle"),
+		bool(config.get("show_particles", false)),
+		config.get("particles", null))
+	_apply_particle_slot(
+		get_node_or_null("CustomTrailParticle2"),
+		bool(config.get("show_particles_2", false)),
+		config.get("particles_2", null))
+
+func _apply_particle_slot(particle, show, settings):
+	if particle == null:
+		return
+	if show and settings is Dictionary:
+		# auto_start_on_ready doubles as the "hitspark, keep processing" flag —
+		# without it, CustomTrailParticle's _physics_process auto-disables
+		# non-burst-clone particles every frame in-game.
+		particle.no_preprocess = true
+		particle.auto_start_on_ready = true
+		particle.load_settings(settings)
+		particle.start_emitting()
+	else:
+		particle.queue_free()

@@ -6,6 +6,8 @@ var no_juke_pips = false
 
 func hit_by(hitbox):
 	.hit_by(hitbox)
+	if hitbox.throw:
+		return
 	if objs_map.has(hitbox.host):
 		var host = objs_map[hitbox.host]
 		if host:

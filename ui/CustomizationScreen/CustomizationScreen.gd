@@ -14,11 +14,23 @@ var custom_particles = []
 var selected_hitspark = "bash"
 # Sprite name for the advanced/custom hitspark editor — "" maps to (none).
 var custom_hitspark_sprite := ""
-# Particle settings for the advanced/custom hitspark editor. Same dict shape
-# as the aura settings cache — populated from $"%HitsparkParticles".get_settings()
-# on edit, applied via load_settings on style load.
-var custom_hitspark_particles = null
-var custom_hitspark_show_particles := false
+# Two parallel slots, same shape as the aura cache: each entry is either a
+# settings dict (last value the user touched) or null. Slot 0 maps to the
+# legacy `particles` / `show_particles` config fields, slot 1 to
+# `particles_2` / `show_particles_2`.
+const HITSPARK_PARTICLE_SLOT_COUNT = 2
+var custom_hitspark_particles = [null, null]
+var custom_hitspark_show_particles = [false, false]
+var current_hitspark_particle_slot := 0
+var hitspark_particle_slot_tabs: Tabs = null
+var copy_hitspark_particles_button: Button = null
+var paste_hitspark_particles_button: Button = null
+var hitspark_particles_clipboard = null
+var loading_hitspark_particle_slot := false
+# When true, left-facing hitspark spawns are just horizontally mirrored
+# (scale.x = -1) instead of also rotated 180°. Useful for asymmetric sprites
+# where the rotation reads "upside down" rather than "mirrored".
+var custom_hitspark_flip_when_facing_left := false
 var loading_hitspark_particles := false
 
 var workshop_preview_image: Image = null
@@ -65,6 +77,7 @@ const CLAIM_BUTTON_RIGHT_EDGE := 522.0
 
 func get_style_data():
 	save_current_aura_slot()
+	save_current_hitspark_particle_slot()
 	var auras := []
 	for i in range(AURA_SLOT_COUNT):
 		auras.append({"show": aura_show[i], "settings": aura_settings_cache[i]})
@@ -194,6 +207,30 @@ func init():
 		loading_hitspark_particles = false
 	if has_node("%ShowHitsparkParticles"):
 		$"%ShowHitsparkParticles".connect("toggled", self, "_on_show_hitspark_particles_toggled")
+	if has_node("%HitsparkParticleSlotTabsContainer"):
+		hitspark_particle_slot_tabs = Tabs.new()
+		hitspark_particle_slot_tabs.theme = preload("res://theme.tres")
+		hitspark_particle_slot_tabs.tab_align = Tabs.ALIGN_LEFT
+		hitspark_particle_slot_tabs.size_flags_horizontal = SIZE_EXPAND_FILL
+		for i in range(HITSPARK_PARTICLE_SLOT_COUNT):
+			hitspark_particle_slot_tabs.add_tab("Particles %d" % (i + 1))
+		hitspark_particle_slot_tabs.current_tab = 0
+		hitspark_particle_slot_tabs.connect("tab_changed", self, "_on_hitspark_particle_slot_tab_changed")
+		$"%HitsparkParticleSlotTabsContainer".add_child(hitspark_particle_slot_tabs)
+	if has_node("%HitsparkCopyPasteRow"):
+		copy_hitspark_particles_button = Button.new()
+		copy_hitspark_particles_button.text = "copy particles"
+		copy_hitspark_particles_button.hint_tooltip = "Copy this slot's particle settings to the clipboard."
+		copy_hitspark_particles_button.connect("pressed", self, "_on_copy_hitspark_particles_pressed")
+		$"%HitsparkCopyPasteRow".add_child(copy_hitspark_particles_button)
+		paste_hitspark_particles_button = Button.new()
+		paste_hitspark_particles_button.text = "paste particles"
+		paste_hitspark_particles_button.hint_tooltip = "Paste the clipboard's particles into this slot (overwrites)."
+		paste_hitspark_particles_button.disabled = true
+		paste_hitspark_particles_button.connect("pressed", self, "_on_paste_hitspark_particles_pressed")
+		$"%HitsparkCopyPasteRow".add_child(paste_hitspark_particles_button)
+	if has_node("%HitsparkFlipWhenFacingLeft"):
+		$"%HitsparkFlipWhenFacingLeft".connect("toggled", self, "_on_hitspark_flip_when_facing_left_toggled")
 	$"%TrailSettings".connect("settings_changed", self, "_on_trail_settings_changed")
 	$"%ShowAura".connect("pressed", self, "_on_show_aura_pressed")
 	aura_slot_tabs = Tabs.new()
@@ -401,20 +438,29 @@ func load_style(style):
 		# show — so the OptionButton reflects the saved value even if the style
 		# is currently a Simple preset.
 		var custom_cfg = style.get("custom_hitspark", null) if style is Dictionary else null
+		custom_hitspark_particles = [null, null]
+		custom_hitspark_show_particles = [false, false]
 		if custom_cfg is Dictionary:
 			custom_hitspark_sprite = str(custom_cfg.get("sprite", ""))
-			var saved_particles = custom_cfg.get("particles", null)
-			if saved_particles is Dictionary:
-				custom_hitspark_particles = saved_particles
-			else:
-				custom_hitspark_particles = null
-			custom_hitspark_show_particles = bool(custom_cfg.get("show_particles", false))
+			var saved_p0 = custom_cfg.get("particles", null)
+			if saved_p0 is Dictionary:
+				custom_hitspark_particles[0] = saved_p0
+			var saved_p1 = custom_cfg.get("particles_2", null)
+			if saved_p1 is Dictionary:
+				custom_hitspark_particles[1] = saved_p1
+			custom_hitspark_show_particles[0] = bool(custom_cfg.get("show_particles", false))
+			custom_hitspark_show_particles[1] = bool(custom_cfg.get("show_particles_2", false))
+			custom_hitspark_flip_when_facing_left = bool(custom_cfg.get("flip_when_facing_left", false))
 		else:
 			custom_hitspark_sprite = ""
-			custom_hitspark_particles = null
-			custom_hitspark_show_particles = false
+			custom_hitspark_flip_when_facing_left = false
+		current_hitspark_particle_slot = 0
+		if hitspark_particle_slot_tabs:
+			hitspark_particle_slot_tabs.current_tab = 0
 		if has_node("%ShowHitsparkParticles"):
-			$"%ShowHitsparkParticles".set_pressed_no_signal(custom_hitspark_show_particles)
+			$"%ShowHitsparkParticles".set_pressed_no_signal(custom_hitspark_show_particles[0])
+		if has_node("%HitsparkFlipWhenFacingLeft"):
+			$"%HitsparkFlipWhenFacingLeft".set_pressed_no_signal(custom_hitspark_flip_when_facing_left)
 		if has_node("%HitsparkSpriteOption"):
 			var sprite_idx = Custom.HITSPARK_SPRITE_NAMES.find(custom_hitspark_sprite)
 			if sprite_idx == -1:
@@ -422,7 +468,8 @@ func load_style(style):
 			$"%HitsparkSpriteOption".selected = sprite_idx
 		if has_node("%HitsparkParticles"):
 			loading_hitspark_particles = true
-			$"%HitsparkParticles".load_settings(custom_hitspark_particles if custom_hitspark_particles is Dictionary else _default_hitspark_particles())
+			var slot0 = custom_hitspark_particles[0]
+			$"%HitsparkParticles".load_settings(slot0 if slot0 is Dictionary else _default_hitspark_particles())
 			loading_hitspark_particles = false
 		var hs = style.hitspark.strip_edges() if style.has("hitspark") else "bash"
 		if hs == "custom":
@@ -465,9 +512,67 @@ func spawn_hitspark():
 func get_custom_hitspark_config() -> Dictionary:
 	return {
 		"sprite": custom_hitspark_sprite,
-		"show_particles": custom_hitspark_show_particles,
-		"particles": custom_hitspark_particles,
+		"show_particles": custom_hitspark_show_particles[0],
+		"particles": custom_hitspark_particles[0],
+		"show_particles_2": custom_hitspark_show_particles[1],
+		"particles_2": custom_hitspark_particles[1],
+		"flip_when_facing_left": custom_hitspark_flip_when_facing_left,
 	}
+
+func save_current_hitspark_particle_slot():
+	if loading_hitspark_particle_slot:
+		return
+	if !has_node("%HitsparkParticles"):
+		return
+	var slot = current_hitspark_particle_slot
+	custom_hitspark_particles[slot] = $"%HitsparkParticles".get_settings()
+	if has_node("%ShowHitsparkParticles"):
+		custom_hitspark_show_particles[slot] = $"%ShowHitsparkParticles".pressed
+
+func switch_hitspark_particle_slot(slot):
+	save_current_hitspark_particle_slot()
+	current_hitspark_particle_slot = posmod(slot, HITSPARK_PARTICLE_SLOT_COUNT)
+	loading_hitspark_particle_slot = true
+	if has_node("%ShowHitsparkParticles"):
+		$"%ShowHitsparkParticles".set_pressed_no_signal(custom_hitspark_show_particles[current_hitspark_particle_slot])
+	if has_node("%HitsparkParticles"):
+		loading_hitspark_particles = true
+		var s = custom_hitspark_particles[current_hitspark_particle_slot]
+		$"%HitsparkParticles".load_settings(s if s is Dictionary else _default_hitspark_particles())
+		loading_hitspark_particles = false
+	loading_hitspark_particle_slot = false
+	if hitspark_particle_slot_tabs:
+		hitspark_particle_slot_tabs.current_tab = current_hitspark_particle_slot
+	spawn_hitspark()
+
+func _on_hitspark_particle_slot_tab_changed(tab):
+	switch_hitspark_particle_slot(tab)
+
+func _on_copy_hitspark_particles_pressed():
+	save_current_hitspark_particle_slot()
+	var slot_settings = custom_hitspark_particles[current_hitspark_particle_slot]
+	if slot_settings is Dictionary:
+		hitspark_particles_clipboard = slot_settings.duplicate(true)
+		if paste_hitspark_particles_button:
+			paste_hitspark_particles_button.disabled = false
+
+func _on_paste_hitspark_particles_pressed():
+	if !(hitspark_particles_clipboard is Dictionary):
+		return
+	loading_hitspark_particle_slot = true
+	custom_hitspark_particles[current_hitspark_particle_slot] = hitspark_particles_clipboard.duplicate(true)
+	custom_hitspark_show_particles[current_hitspark_particle_slot] = true
+	if has_node("%ShowHitsparkParticles"):
+		$"%ShowHitsparkParticles".set_pressed_no_signal(true)
+	if has_node("%HitsparkParticles"):
+		loading_hitspark_particles = true
+		$"%HitsparkParticles".load_settings(custom_hitspark_particles[current_hitspark_particle_slot])
+		loading_hitspark_particles = false
+	loading_hitspark_particle_slot = false
+	_mark_style_modified()
+	selected_hitspark = "custom"
+	spawn_hitspark()
+	update_warning()
 
 # Default particle settings used when a style first switches to the custom
 # hitspark and there's nothing saved yet. Hitsparks are bursts, so default
@@ -495,9 +600,9 @@ func _on_custom_hitspark_sprite_selected(idx):
 	update_warning()
 
 func _on_hitspark_particles_changed(settings):
-	if loading_hitspark_particles:
+	if loading_hitspark_particles or loading_hitspark_particle_slot:
 		return
-	custom_hitspark_particles = settings
+	custom_hitspark_particles[current_hitspark_particle_slot] = settings
 	_mark_style_modified()
 	# Touching the particle editor implies the user is on the custom hitspark.
 	selected_hitspark = "custom"
@@ -505,13 +610,23 @@ func _on_hitspark_particles_changed(settings):
 	update_warning()
 
 func _on_show_hitspark_particles_toggled(on):
-	if custom_hitspark_show_particles == on:
+	if loading_hitspark_particle_slot:
 		return
-	custom_hitspark_show_particles = on
+	if custom_hitspark_show_particles[current_hitspark_particle_slot] == on:
+		return
+	custom_hitspark_show_particles[current_hitspark_particle_slot] = on
 	_mark_style_modified()
 	selected_hitspark = "custom"
 	spawn_hitspark()
 	update_warning()
+
+func _on_hitspark_flip_when_facing_left_toggled(on):
+	if custom_hitspark_flip_when_facing_left == on:
+		return
+	custom_hitspark_flip_when_facing_left = on
+	_mark_style_modified()
+	selected_hitspark = "custom"
+	spawn_hitspark()
 
 func _on_hitspark_tab_changed(tab):
 	# Tab 0 = Simple (one of the named presets), tab 1 = Advanced (custom).

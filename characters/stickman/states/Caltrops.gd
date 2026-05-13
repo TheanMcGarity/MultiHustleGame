@@ -7,6 +7,12 @@ const OBJ_POS_X = 5
 const OBJ_POS_Y = -16
 
 
+func enter():
+	interruptible_on_opponent_turn = false
+
+func _frame_14():
+	interruptible_on_opponent_turn = true
+
 func _frame_6():
 	for i in range(3):
 		var obj = host.spawn_object(preload("res://characters/stickman/projectiles/Caltrops.tscn"), OBJ_POS_X, OBJ_POS_Y)

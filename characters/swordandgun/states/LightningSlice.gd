@@ -19,6 +19,15 @@ func is_usable():
 
 func _frame_0():
 	stall = false
+	# Gate the hitbox's ground-bounce on a per-combo flag held by the
+	# attacker — first LightningSlice in a combo gets the bounce, subsequent
+	# hits don't. Re-armed by SwordGuy.reset_combo when the combo ends.
+	# Property set on the hitbox NODE so HitboxData snapshots it at hit time.
+	hitbox.air_ground_bounce = !host.lightning_slice_ground_bounced
+
+func _on_hit_something(obj, _hitbox):
+	if obj.is_in_group("Fighter"):
+		host.lightning_slice_ground_bounced = true
 
 func _frame_1():
 	var vel = host.get_vel()

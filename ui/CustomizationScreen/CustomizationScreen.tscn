@@ -98,7 +98,7 @@ scroll_horizontal_enabled = false
 
 [node name="StyleCreditsList" type="VBoxContainer" parent="StyleCreditsScroll"]
 unique_name_in_owner = true
-margin_right = 109.0
+margin_right = 103.0
 size_flags_horizontal = 3
 custom_constants/separation = 4
 
@@ -120,8 +120,6 @@ margin_bottom = 175.0
 
 [node name="CharacterButtonContainer" type="HBoxContainer" parent="ScrollContainer"]
 unique_name_in_owner = true
-margin_right = 365.0
-margin_bottom = 61.0
 grow_horizontal = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -142,7 +140,7 @@ scroll_horizontal_enabled = false
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/ScrollContainer2"]
 margin_right = 201.0
-margin_bottom = 1513.0
+margin_bottom = 1419.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
@@ -337,29 +335,52 @@ margin_right = 201.0
 margin_bottom = 12.0
 
 [node name="Label" type="Label" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection/HitsparkTabs/Advanced/SpriteRow"]
-margin_right = 36.0
+margin_right = 34.0
 margin_bottom = 11.0
 text = "Sprite: "
 
 [node name="HitsparkSpriteOption" type="OptionButton" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection/HitsparkTabs/Advanced/SpriteRow"]
 unique_name_in_owner = true
-margin_left = 37.0
+margin_left = 35.0
 margin_right = 201.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
 
+[node name="HitsparkFlipWhenFacingLeft" type="CheckButton" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection/HitsparkTabs/Advanced"]
+unique_name_in_owner = true
+margin_top = 13.0
+margin_right = 104.0
+margin_bottom = 25.0
+hint_tooltip = "When the hitspark spawns on a left-facing hit, just mirror the sprite horizontally instead of rotating 180° + mirroring (default). Useful for asymmetric sprites where the rotation feels wrong."
+size_flags_horizontal = 0
+text = "flip on left-facing"
+
+[node name="HitsparkParticleSlotTabsContainer" type="HBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection/HitsparkTabs/Advanced"]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_right = 201.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 0, 14 )
+
 [node name="ShowHitsparkParticles" type="CheckButton" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection/HitsparkTabs/Advanced"]
 unique_name_in_owner = true
-margin_top = 17.0
-margin_right = 201.0
-margin_bottom = 29.0
+margin_top = 41.0
+margin_right = 94.0
+margin_bottom = 53.0
 size_flags_horizontal = 0
 text = "show particles"
 
+[node name="HitsparkCopyPasteRow" type="HBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection/HitsparkTabs/Advanced"]
+unique_name_in_owner = true
+margin_top = 54.0
+margin_right = 201.0
+margin_bottom = 54.0
+
 [node name="HitsparkParticles" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection/HitsparkTabs/Advanced" instance=ExtResource( 6 )]
 unique_name_in_owner = true
-margin_top = 34.0
+margin_top = 55.0
 margin_right = 201.0
+margin_bottom = 1389.0
 
 [node name="AuraSection" type="VBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer"]
 margin_top = 112.0

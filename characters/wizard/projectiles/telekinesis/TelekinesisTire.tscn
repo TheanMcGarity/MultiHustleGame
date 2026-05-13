@@ -50,7 +50,6 @@ no_hitlag = false
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 3 )
-frame = 1
 playing = true
 
 [node name="ParticleEffect" parent="Flip/Particles" index="0"]

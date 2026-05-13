@@ -9,6 +9,11 @@ var launched = false
 # to gate redirect — once the opponent perfect-parried the rock, the wizard
 # can't keep steering it.
 var got_perfect_parried = false
+# Set when the projectile is push-blocked (specifically the push variant —
+# regular block leaves redirect intact). Same redirect-gate rationale as
+# perfect parry: a successful push-block is a defensive resource win, the
+# wizard shouldn't get to steer through it.
+var got_push_blocked = false
 
 export(PackedScene) var disable_obj
 export(PackedScene) var disable_particle
@@ -20,11 +25,15 @@ func _ready():
 	# BaseProjectile._ready isn't auto-chained — call it so its own
 	# state_variables get registered, then add ours.
 	._ready()
-	state_variables.append_array(["got_perfect_parried"])
+	state_variables.append_array(["got_perfect_parried", "got_push_blocked"])
 
 func on_got_parried():
 	.on_got_parried()
 	got_perfect_parried = true
+
+func on_got_push_blocked():
+	.on_got_push_blocked()
+	got_push_blocked = true
 
 func disable():
 	disable_action()

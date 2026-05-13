@@ -111,7 +111,6 @@ screenshake_frames = 4
 hit_sound = ExtResource( 5 )
 dir_y = "0.75"
 knockback = "8.5"
-grounded_hit_state = "HurtAerial"
 minimum_grounded_frames = 3
 knockdown = true
 knockdown_extends_hitstun = false

@@ -103,6 +103,8 @@ func can_hit_cancel(fighter):
 func hit_by(hitbox):
 	.hit_by(hitbox)
 	if hitbox:
+		if hitbox.throw:
+			return
 		if hitbox.hitbox_type == Hitbox.HitboxType.Flip:
 			var vel = get_vel()
 			set_vel(fixed.mul(vel.x, "-1"), vel.y)
