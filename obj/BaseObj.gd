@@ -348,8 +348,11 @@ func copy_to(o: BaseObj):
 	# OTHER character's chara, so we need each obj's copy_to to also pin its
 	# own vel from live state at the end. Pairs with the post-_enter invul
 	# resync above (same problem class — _enter side effects in copy_to).
-	var vel = get_vel()
-	o.set_vel(vel.x, vel.y)
+	# Read straight from chara via get_data() — self.data is the cached
+	# snapshot and may not reflect mid-copy_to chara writes, so get_vel()
+	# would feed stale numbers into the ghost.
+	var live_object_data = get_data().object_data
+	o.set_vel(live_object_data.vel_x, live_object_data.vel_y)
 	# Force a data refresh on the ghost after the vel sync. `set_vel` writes
 	# directly to chara, but `get_vel()` reads from the cached `data` snapshot
 	# that only refreshes on update_data(). Without this, downstream code in
@@ -727,13 +730,13 @@ func apply_forces():
 	# Physics integrate consumed any pending forces and updated chara vel —
 	# refresh the data cache so any get_vel/get_pos read in the same tick
 	# (or downstream consumers in the same call chain) sees fresh values.
-	if initialized:
-		update_data()
+#	if initialized:
+#		update_data()
 
 func apply_forces_no_limit():
 	chara.apply_forces_no_limit()
-	if initialized:
-		update_data()
+#	if initialized:
+#		update_data()
 
 func set_gravity_modifier(modifier: String):
 	chara.set_gravity_modifier(modifier)

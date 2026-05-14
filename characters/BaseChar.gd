@@ -288,6 +288,11 @@ var di_enabled = true
 # victim's DI scaling behave as if the combo were that many hits deeper —
 # +2 proration means DI starts where it would normally be on hit 3.
 var prorated_di = true
+# Gates when the prorated-DI boost is allowed to apply. The opener and any
+# follow-up hits that land in the SAME turn as the opener (multi-hit
+# starters) get unprorated DI. Flips to true at the next turn start, so
+# only hits in turn N+1 and beyond see the proration scaling boost.
+var combo_proration_ready = false
 var turbo_mode = false
 var extremely_turbo_mode = false
 var infinite_resources = false
@@ -1023,7 +1028,7 @@ func can_unlock_achievements():
 func _ready():
 	sprite.animation = "Wait"
 	state_variables.append_array(
-		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_projectiles_active_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick", "style_aura_install_super_tick", "style_aura_manual_action_pending", "style_aura_in_manual_state"]
+		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "combo_proration_ready", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_projectiles_active_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick", "style_aura_install_super_tick", "style_aura_manual_action_pending", "style_aura_in_manual_state"]
 	)
 	add_to_group("Fighter")
 	connect("got_hit", self, "on_got_hit")
@@ -1275,6 +1280,7 @@ func reset_combo():
 	combo_damage = 0
 	hitstun_decay_combo_count = 0
 	combo_proration = 0
+	combo_proration_ready = false
 	combo_moves_used = {}
 	burst_cancel_combo = false
 	combo_supers = 0
@@ -1659,14 +1665,6 @@ func hit_by(hitbox, force_hit=false):
 #				increment_opponent_combo(hitbox)
 				if !self_hit:
 					opponent.incr_combo(hitbox.scale_combo, false, false, hitbox.combo_scaling_amount)
-					# Mirror the combo_proration latch from increment_opponent_combo
-					# (which we skip for ThrowHit). Without this, throw catch boxes
-					# with damage_proration on them (Ninja's ForwardThrow=+2, etc.)
-					# get their proration silently dropped — the release-throw's
-					# launched_by then sees combo_proration=0 and DI scaling lands
-					# without the proration boost.
-					if opponent.combo_count <= 1 and hitbox.scale_combo:
-						opponent.combo_proration = Utils.int_min(hitbox.damage_proration, MAX_STALES)
 			Hitbox.HitboxType.OffensiveBurst:
 				opponent.hitstun_decay_combo_count = 0
 #				opponent.combo_proration = Utils.int_min(opponent.combo_proration, 0)
@@ -2071,7 +2069,11 @@ func get_di_scaling(brace=true, lookahead=0):
 	# (some moves use 900000) just saturate at the normal scaling ceiling.
 	var effective_count = opponent.combo_count + lookahead
 	var di_count = effective_count
-	if prorated_di and effective_count > 1 and opponent.combo_proration > 0:
+	# combo_proration_ready gates the boost to hits in turn N+1+ of the
+	# combo — opener's-turn hits (including the rest of a multi-hit
+	# starter) don't get prorated DI.
+	if prorated_di and effective_count > 1 and opponent.combo_proration > 0 \
+			and opponent.combo_proration_ready:
 		di_count += Utils.int_min(opponent.combo_proration, MAX_STALES)
 	var scaling_amount = str(Utils.int_clamp(di_count, 0, di_combo_limit))
 	var scaling_ratio = fixed.div(scaling_amount, str(di_combo_limit))
@@ -2443,7 +2445,13 @@ func turn_end_effects():
 	pass
 
 func turn_start_effects():
-	pass
+	# Once a full turn has passed since the combo opener landed, the
+	# prorated-DI scaling boost is allowed to apply. This keeps multi-hit
+	# starters that resolve entirely within the opener's turn from being
+	# DI'd against — the boost only kicks in starting from the next turn
+	# of the combo.
+	if combo_count > 0 and combo_proration > 0:
+		combo_proration_ready = true
 
 func toggle_quit_graphic(on=null):
 	if on == null:

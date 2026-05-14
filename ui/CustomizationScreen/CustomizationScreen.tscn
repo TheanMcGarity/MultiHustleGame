@@ -301,6 +301,11 @@ margin_bottom = 107.0
 script = ExtResource( 8 )
 section_title = "Hit Spark"
 
+[node name="HitsparkConfigCopyPasteRow" type="HBoxContainer" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection"]
+unique_name_in_owner = true
+margin_right = 201.0
+margin_bottom = 0.0
+
 [node name="HitsparkTabs" type="TabContainer" parent="Panel/ScrollContainer2/VBoxContainer/HitsparkSection"]
 unique_name_in_owner = true
 margin_right = 201.0

@@ -26,6 +26,11 @@ var hitspark_particle_slot_tabs: Tabs = null
 var copy_hitspark_particles_button: Button = null
 var paste_hitspark_particles_button: Button = null
 var hitspark_particles_clipboard = null
+# Full-hitspark clipboard — covers sprite, both particle slots, the flip
+# toggle. Separate from the per-slot particles clipboard above.
+var copy_hitspark_button: Button = null
+var paste_hitspark_button: Button = null
+var hitspark_clipboard = null
 var loading_hitspark_particle_slot := false
 # When true, left-facing hitspark spawns are just horizontally mirrored
 # (scale.x = -1) instead of also rotated 180°. Useful for asymmetric sprites
@@ -220,15 +225,27 @@ func init():
 	if has_node("%HitsparkCopyPasteRow"):
 		copy_hitspark_particles_button = Button.new()
 		copy_hitspark_particles_button.text = "copy particles"
-		copy_hitspark_particles_button.hint_tooltip = "Copy this slot's particle settings to the clipboard."
+		copy_hitspark_particles_button.hint_tooltip = "Copy this slot's particle settings."
 		copy_hitspark_particles_button.connect("pressed", self, "_on_copy_hitspark_particles_pressed")
 		$"%HitsparkCopyPasteRow".add_child(copy_hitspark_particles_button)
 		paste_hitspark_particles_button = Button.new()
 		paste_hitspark_particles_button.text = "paste particles"
-		paste_hitspark_particles_button.hint_tooltip = "Paste the clipboard's particles into this slot (overwrites)."
+		paste_hitspark_particles_button.hint_tooltip = "Paste particles into this slot."
 		paste_hitspark_particles_button.disabled = true
 		paste_hitspark_particles_button.connect("pressed", self, "_on_paste_hitspark_particles_pressed")
 		$"%HitsparkCopyPasteRow".add_child(paste_hitspark_particles_button)
+	if has_node("%HitsparkConfigCopyPasteRow"):
+		copy_hitspark_button = Button.new()
+		copy_hitspark_button.text = "copy hitspark"
+		copy_hitspark_button.hint_tooltip = "Copy the whole hitspark config."
+		copy_hitspark_button.connect("pressed", self, "_on_copy_hitspark_pressed")
+		$"%HitsparkConfigCopyPasteRow".add_child(copy_hitspark_button)
+		paste_hitspark_button = Button.new()
+		paste_hitspark_button.text = "paste hitspark"
+		paste_hitspark_button.hint_tooltip = "Paste the saved hitspark config."
+		paste_hitspark_button.disabled = true
+		paste_hitspark_button.connect("pressed", self, "_on_paste_hitspark_pressed")
+		$"%HitsparkConfigCopyPasteRow".add_child(paste_hitspark_button)
 	if has_node("%HitsparkFlipWhenFacingLeft"):
 		$"%HitsparkFlipWhenFacingLeft".connect("toggled", self, "_on_hitspark_flip_when_facing_left_toggled")
 	$"%TrailSettings".connect("settings_changed", self, "_on_trail_settings_changed")
@@ -571,6 +588,52 @@ func _on_paste_hitspark_particles_pressed():
 	loading_hitspark_particle_slot = false
 	_mark_style_modified()
 	selected_hitspark = "custom"
+	spawn_hitspark()
+	update_warning()
+
+func _on_copy_hitspark_pressed():
+	hitspark_clipboard = get_custom_hitspark_config().duplicate(true)
+	if paste_hitspark_button:
+		paste_hitspark_button.disabled = false
+
+func _on_paste_hitspark_pressed():
+	if !(hitspark_clipboard is Dictionary):
+		return
+	loading_hitspark_particle_slot = true
+	custom_hitspark_sprite = str(hitspark_clipboard.get("sprite", ""))
+	custom_hitspark_flip_when_facing_left = bool(hitspark_clipboard.get("flip_when_facing_left", false))
+	custom_hitspark_particles = [null, null]
+	custom_hitspark_show_particles = [false, false]
+	var p0 = hitspark_clipboard.get("particles", null)
+	if p0 is Dictionary:
+		custom_hitspark_particles[0] = p0.duplicate(true)
+	var p1 = hitspark_clipboard.get("particles_2", null)
+	if p1 is Dictionary:
+		custom_hitspark_particles[1] = p1.duplicate(true)
+	custom_hitspark_show_particles[0] = bool(hitspark_clipboard.get("show_particles", false))
+	custom_hitspark_show_particles[1] = bool(hitspark_clipboard.get("show_particles_2", false))
+	current_hitspark_particle_slot = 0
+	if hitspark_particle_slot_tabs:
+		hitspark_particle_slot_tabs.current_tab = 0
+	if has_node("%ShowHitsparkParticles"):
+		$"%ShowHitsparkParticles".set_pressed_no_signal(custom_hitspark_show_particles[0])
+	if has_node("%HitsparkFlipWhenFacingLeft"):
+		$"%HitsparkFlipWhenFacingLeft".set_pressed_no_signal(custom_hitspark_flip_when_facing_left)
+	if has_node("%HitsparkSpriteOption"):
+		var sprite_idx = Custom.HITSPARK_SPRITE_NAMES.find(custom_hitspark_sprite)
+		if sprite_idx == -1:
+			sprite_idx = 0
+		$"%HitsparkSpriteOption".selected = sprite_idx
+	if has_node("%HitsparkParticles"):
+		loading_hitspark_particles = true
+		var slot0 = custom_hitspark_particles[0]
+		$"%HitsparkParticles".load_settings(slot0 if slot0 is Dictionary else _default_hitspark_particles())
+		loading_hitspark_particles = false
+	loading_hitspark_particle_slot = false
+	if has_node("%HitsparkTabs"):
+		$"%HitsparkTabs".current_tab = 1
+	selected_hitspark = "custom"
+	_mark_style_modified()
 	spawn_hitspark()
 	update_warning()
 

@@ -26,6 +26,7 @@ func _frame_0():
 	hitbox.air_ground_bounce = !host.lightning_slice_ground_bounced
 
 func _on_hit_something(obj, _hitbox):
+	._on_hit_something(obj, _hitbox)
 	if obj.is_in_group("Fighter"):
 		host.lightning_slice_ground_bounced = true
 
