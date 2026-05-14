@@ -91,6 +91,14 @@ hint_tooltip = "Stop emitting once a player has been KO'd (the match ended)."
 pressed = true
 text = "disable on KO"
 
+[node name="HideWhenInactive" type="CheckButton" parent="TriggersSection"]
+unique_name_in_owner = true
+margin_top = 13.0
+margin_right = 212.0
+margin_bottom = 25.0
+hint_tooltip = "Also hide the particle when inactive, not just stop emission."
+text = "hide when inactive"
+
 [node name="DynamicTriggers" type="CheckButton" parent="TriggersSection"]
 unique_name_in_owner = true
 margin_top = 13.0

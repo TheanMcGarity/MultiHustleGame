@@ -418,6 +418,7 @@ var aura_particles: Array = []
 var aura_entries: Array = []
 var aura_particle = null
 var aura_particle_2 = null
+var aura_particle_3 = null
 # Style-only event tick trackers — used exclusively by aura dynamic-trigger
 # evaluation. NOT read by gameplay logic. Keep in state_variables so replays
 # and rollback resync them along with everything else.
@@ -875,6 +876,14 @@ func _apply_aura_state(particle, entry: Dictionary):
 			particle.particles_flipped.one_shot = false
 		if particle.particles.emitting != should_emit:
 			particle.particles.emitting = should_emit
+	# "hide when inactive" toggles the whole particle's visibility on top of
+	# the emission gate, so in-flight particles vanish instantly (instead of
+	# coasting out their lifetime after emission stops). Off by default — the
+	# old behavior is to leave already-emitted particles visible.
+	if settings.get("hide_when_inactive", false):
+		particle.visible = should_emit
+	elif not particle.visible:
+		particle.visible = true
 
 func is_ivy():
 	if SteamLobby.SPECTATING or !Network.multiplayer_active:
@@ -932,6 +941,7 @@ func apply_style(style):
 				aura_entries.append(entry)
 			aura_particle = aura_particles[0] if aura_particles.size() > 0 else null
 			aura_particle_2 = aura_particles[1] if aura_particles.size() > 1 else null
+			aura_particle_3 = aura_particles[2] if aura_particles.size() > 2 else null
 		if style.has("hitspark"):
 			if style.hitspark == "custom":
 				# Custom hitsparks share one template; per-style config rides
@@ -970,6 +980,7 @@ func reset_aura():
 	aura_entries.clear()
 	aura_particle = null
 	aura_particle_2 = null
+	aura_particle_3 = null
 
 func reset_style():
 	reset_color()
@@ -1648,6 +1659,14 @@ func hit_by(hitbox, force_hit=false):
 #				increment_opponent_combo(hitbox)
 				if !self_hit:
 					opponent.incr_combo(hitbox.scale_combo, false, false, hitbox.combo_scaling_amount)
+					# Mirror the combo_proration latch from increment_opponent_combo
+					# (which we skip for ThrowHit). Without this, throw catch boxes
+					# with damage_proration on them (Ninja's ForwardThrow=+2, etc.)
+					# get their proration silently dropped — the release-throw's
+					# launched_by then sees combo_proration=0 and DI scaling lands
+					# without the proration boost.
+					if opponent.combo_count <= 1 and hitbox.scale_combo:
+						opponent.combo_proration = Utils.int_min(hitbox.damage_proration, MAX_STALES)
 			Hitbox.HitboxType.OffensiveBurst:
 				opponent.hitstun_decay_combo_count = 0
 #				opponent.combo_proration = Utils.int_min(opponent.combo_proration, 0)

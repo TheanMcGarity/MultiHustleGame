@@ -43,6 +43,7 @@ onready var settings_map = {
 	$"%Shape": "shape",
 	$"%Speed Scale": "speed_scale",
 	$"%DisableOnKO": "disable_on_ko",
+	$"%HideWhenInactive": "hide_when_inactive",
 	$"%CapFramerate": "cap_framerate",
 	$"%Framerate": "framerate",
 	$"%DynamicTriggers": "dynamic_triggers",
@@ -419,6 +420,13 @@ func _ready():
 		_build_dynamic_one_shot_button()
 		_build_action_type_trigger()
 		_build_during_install_trigger()
+		# TriggersInverted (label "hide on trigger") lives in the .tscn so its
+		# state survives editor re-saves, but the programmatically-built triggers
+		# above are appended after it. Bump it to the end so it stays at the
+		# bottom of the dynamic-triggers list visually.
+		if has_node("%TriggersInverted"):
+			var inv = $"%TriggersInverted"
+			inv.get_parent().move_child(inv, inv.get_parent().get_child_count() - 1)
 	if emission_shape_button:
 		emission_shape_button.connect("item_selected", self, "_on_emission_shape_changed")
 	var shapes = CustomTrailParticle.get_shapes()
