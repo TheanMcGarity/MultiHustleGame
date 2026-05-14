@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.74-steam-unstable"
+var VERSION = "1.9.76-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -46,6 +46,34 @@ var forfeit_buttons_enabled = false
 var auto_fc = true
 var ghost_speed = 2
 var allow_save_default = true
+# Personalization options.
+# custom_name overrides the auto-generated username in legacy multiplayer and
+# singleplayer (Steam matches use the Steam profile name). Empty = use default.
+# name_hue / name_saturation drive get_name_color() — applied to the
+# username everywhere it's rendered (chat, healthbars, lobby lists) but only
+# while name_color_customized is true. Both 0..1.
+var custom_name = ""
+var name_hue = 0.0
+var name_saturation = 0.5
+# True only when the user has actively picked a color. Reset button clears
+# this so display sites fall back to the engine default tint (white/theme).
+# Without this, hue=0 / sat=1 sliders would render every name bright red on
+# first launch instead of leaving them alone.
+var name_color_customized = false
+# Manual "do not disturb" toggle. When true the user's steam lobby status
+# stays "busy" instead of "idle" (challengable becomes unchallengable),
+# matching the behavior of someone temporarily busy mid-challenge.
+var lobby_busy_mode = false
+# Replay-browser version filter. One of REPLAY_VERSION_MODES.
+# "all"  — show all replays regardless of version
+# "warn" — show all, but flag/confirm different-version replays
+# "same" — hide replays from other versions outright
+const REPLAY_VERSION_MODES = ["all", "warn", "same"]
+var replay_version_mode = "warn"
+# Persistent chat block list — Array of stringified steam_ids. JSON doesn't
+# round-trip 64-bit ints reliably so we serialize as strings and convert at
+# the call sites (SteamLobby helpers).
+var blocked_users := []
 
 var winws_detected = false
 
@@ -265,6 +293,45 @@ func add_dir_contents(dir: Directory, files: Array, directories: Array, recursiv
 func save_username(username: String):
 	save_player_data({"username": username})
 
+# Returns the user's display name in legacy multiplayer / singleplayer. Steam
+# matches use the Steam profile name and ignore this. Pass a fallback (the
+# auto-generated/random name) that's used when custom_name is empty.
+func get_display_name(fallback: String = "") -> String:
+	return custom_name if custom_name != "" else fallback
+
+# Tint for the user's name everywhere it's shown (chat sender, healthbar
+# label, lobby challenger/match lists). Returns the resolved Color only when
+# the user has actively picked one — call sites should check
+# `has_name_color()` first and fall back to their existing default tint.
+func has_name_color() -> bool:
+	return name_color_customized
+
+func get_name_color() -> Color:
+	return Color.from_hsv(name_hue, name_saturation, 1.0)
+
+# Push the local user's color into Steam lobby member data so other clients
+# can read it via get_remote_name_color. Empty string when uncustomized so
+# remote clients fall back to their default tint logic.
+func publish_name_color():
+	if SteamLobby.LOBBY_ID == 0:
+		return
+	var hex = get_name_color().to_html(false) if has_name_color() else ""
+	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "name_color", hex)
+
+# Returns the Color a remote user has chosen, or null if they haven't
+# customized (callers fall back to the default tint). For the local user
+# this just delegates to has_name_color() / get_name_color() since they
+# might not have published yet this session.
+func get_remote_name_color(steam_id):
+	if steam_id == SteamHustle.STEAM_ID:
+		return get_name_color() if has_name_color() else null
+	if SteamLobby.LOBBY_ID == 0:
+		return null
+	var hex = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "name_color")
+	if hex == "":
+		return null
+	return Color("#" + hex)
+
 func save_option(value, option):
 	set(option, value)
 	save_options()
@@ -308,6 +375,13 @@ func save_options():
 			"ui_value" : ui_value,
 			"music_value" : music_value,
 			"allow_save_default": allow_save_default,
+			"replay_version_mode": replay_version_mode,
+			"blocked_users": blocked_users,
+			"custom_name": custom_name,
+			"name_hue": name_hue,
+			"name_saturation": name_saturation,
+			"name_color_customized": name_color_customized,
+			"lobby_busy_mode": lobby_busy_mode,
 		}
 	})
 
@@ -348,6 +422,13 @@ func get_default_player_data():
 			"ui_value" : 1.0,
 			"music_value" : 1.0,
 			"allow_save_default": true,
+			"replay_version_mode": "warn",
+			"blocked_users": [],
+			"custom_name": "",
+			"name_hue": 0.0,
+			"name_saturation": 0.5,
+			"name_color_customized": false,
+			"lobby_busy_mode": false,
 		}
 	}
 

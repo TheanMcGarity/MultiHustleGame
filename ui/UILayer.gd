@@ -2,6 +2,7 @@ extends CanvasLayer
 
 onready var p1_action_buttons = $"%P1ActionButtons"
 onready var p2_action_buttons = $"%P2ActionButtons"
+var _name_color_publish_timer: Timer
 
 signal singleplayer_started()
 signal multiplayer_started()
@@ -146,6 +147,25 @@ func _ready():
 	$"%P2ActionButtons".connect("turn_ended", self, "end_turn_for", [2])
 	$"%ShowAutosavedReplays".connect("pressed", self, "_on_view_replays_button_pressed")
 	$"%ShowBackupReplays".connect("pressed", self, "_on_view_replays_button_pressed")
+	if has_node("%ReplaySearchEdit"):
+		$"%ReplaySearchEdit".connect("text_changed", self, "_on_replay_search_changed")
+	if has_node("%VersionModeButton"):
+		$"%VersionModeButton".connect("pressed", self, "_on_version_mode_pressed")
+	_refresh_version_mode_label()
+	if has_node("%NoMissingCharactersToggle"):
+		$"%NoMissingCharactersToggle".connect("toggled", self, "_on_replay_filter_toggle_changed")
+	# Confirm "dialogs" are instances of the shared Window scene (same one
+	# the options menu uses). Show via .show() / hide via .hide(); buttons
+	# are wired manually instead of going through ConfirmationDialog's
+	# get_ok()/get_cancel() pair.
+	if has_node("%MissingConfirmButton"):
+		$"%MissingConfirmButton".connect("pressed", self, "_on_missing_char_confirmed")
+	if has_node("%MissingCancelButton"):
+		$"%MissingCancelButton".connect("pressed", self, "_on_missing_char_cancelled")
+	if has_node("%OldVersionConfirmButton"):
+		$"%OldVersionConfirmButton".connect("pressed", self, "_on_old_version_confirmed")
+	if has_node("%OldVersionCancelButton"):
+		$"%OldVersionCancelButton".connect("pressed", self, "_on_old_version_cancelled")
 	$"%DiscordButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [DISCORD_URL])
 	$"%IvySlyLinkButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [IVY_SLY_URL])
 	$"%WishlistButton".connect("pressed", Steam, "activateGameOverlayToWebPage", [STEAM_URL])
@@ -189,6 +209,31 @@ func _ready():
 	$"%MusicSlider".set_value(Global.music_value)
 	AudioServer.set_bus_volume_db(3, linear2db(Global.music_value))
 	$"%MusicSlider".connect("value_changed", self, "_on_music_slider_changed")
+	# Personalization tab wiring. Block signals while seeding initial values
+	# so the loaded state doesn't get re-saved as a fresh customization (and
+	# so name_color_customized stays false for fresh installs).
+	$"%CustomName".text = Global.custom_name
+	$"%CustomName".connect("text_changed", self, "_on_custom_name_changed")
+	$"%CustomNameReset".connect("pressed", self, "_on_custom_name_reset_pressed")
+	$"%NameHueSlider".set_block_signals(true)
+	$"%NameHueSlider".set_value(Global.name_hue)
+	$"%NameHueSlider".set_block_signals(false)
+	$"%NameHueSlider".connect("value_changed", self, "_on_name_hue_changed")
+	$"%NameSaturationSlider".set_block_signals(true)
+	$"%NameSaturationSlider".set_value(Global.name_saturation)
+	$"%NameSaturationSlider".set_block_signals(false)
+	$"%NameSaturationSlider".connect("value_changed", self, "_on_name_saturation_changed")
+	$"%NameColorReset".connect("pressed", self, "_on_name_color_reset_pressed")
+	# Slider value_changed fires per pixel-step while dragging, so saving +
+	# publishing on every emit floods Steam lobby data with RPCs during a
+	# drag. Debounce: restart this timer on each change, only persist + push
+	# after the user has settled.
+	_name_color_publish_timer = Timer.new()
+	_name_color_publish_timer.wait_time = 0.25
+	_name_color_publish_timer.one_shot = true
+	_name_color_publish_timer.connect("timeout", self, "_on_name_color_publish_due")
+	add_child(_name_color_publish_timer)
+	_refresh_name_color_preview()
 #	$"%LightModeButton".set_pressed_no_signal(Global.light_mode)
 #	$"%LightModeButton".connect("toggled", self, "_on_light_mode_toggled")
 	$"%FullscreenButton".set_pressed_no_signal(Global.fullscreen)
@@ -291,6 +336,71 @@ func _on_music_slider_changed(value):
 	Global.music_value = value
 	Global.save_options()
 
+func _on_custom_name_changed(text):
+	Global.custom_name = text
+	# Legacy multiplayer pulls from Network.player_name when launching a
+	# match; mirror the change so the user's chosen name applies without
+	# them having to re-open the legacy lobby.
+	if text != "":
+		Network.player_name = text
+	Global.save_options()
+
+func _on_custom_name_reset_pressed():
+	$"%CustomName".text = ""
+	Global.custom_name = ""
+	Global.save_options()
+
+func _on_name_hue_changed(value):
+	Global.name_hue = value
+	Global.name_color_customized = true
+	_refresh_name_color_preview()
+	if _name_color_publish_timer:
+		_name_color_publish_timer.start()
+
+func _on_name_saturation_changed(value):
+	Global.name_saturation = value
+	Global.name_color_customized = true
+	_refresh_name_color_preview()
+	if _name_color_publish_timer:
+		_name_color_publish_timer.start()
+
+func _on_name_color_publish_due():
+	Global.save_options()
+	Global.publish_name_color()
+
+func _on_name_color_reset_pressed():
+	# Move the sliders back to their defaults AND unset the customization
+	# flag — display sites then fall back to whatever default tint they
+	# would have used pre-customization. Signal-block the slider writes so
+	# they don't immediately re-set the flag.
+	$"%NameHueSlider".set_block_signals(true)
+	$"%NameHueSlider".set_value(0.0)
+	$"%NameHueSlider".set_block_signals(false)
+	$"%NameSaturationSlider".set_block_signals(true)
+	$"%NameSaturationSlider".set_value(0.5)
+	$"%NameSaturationSlider".set_block_signals(false)
+	Global.name_hue = 0.0
+	Global.name_saturation = 0.5
+	Global.name_color_customized = false
+	Global.save_options()
+	Global.publish_name_color()
+	_refresh_name_color_preview()
+
+func _refresh_name_color_preview():
+	# Preview always shows the Steam profile name — the legacy multiplayer
+	# name field is just the override used outside of Steam multiplayer, not
+	# what shows in Steam lobbies / matches where the color actually applies.
+	var name_text = "preview"
+	if SteamHustle.STARTED and SteamHustle.STEAM_ID:
+		var steam_name = Steam.getFriendPersonaName(SteamHustle.STEAM_ID)
+		if steam_name is String and steam_name != "":
+			name_text = steam_name
+	$"%NameColorPreview".text = name_text
+	if Global.has_name_color():
+		$"%NameColorPreview".add_color_override("font_color", Global.get_name_color())
+	else:
+		$"%NameColorPreview".remove_color_override("font_color")
+
 func _on_fullscreen_button_toggled(on):
 	Global.set_fullscreen(on)
 
@@ -373,12 +483,16 @@ func load_replays():
 		var button = preload("res://ui/ReplayWindow/ReplayButton.tscn").instance()
 		add_child(button)
 		button.setup(replay_map, key)
-		button.connect("pressed", self, "_on_replay_button_pressed", [button.path])
+		button.connect("pressed", self, "_on_replay_button_pressed", [button])
 		buttons.append(button)
 		remove_child(button)
 	buttons.sort_custom(self, "sort_replays")
 	for button in buttons:
 		$"%ReplayContainer".add_child(button)
+	# Apply the current search filter against names immediately — matchup data
+	# fills in asynchronously below, so we refilter after each batch to pick up
+	# matchup-based matches as they arrive.
+	_apply_replay_filter()
 	for i in range(len(buttons)):
 		if !is_instance_valid(self):
 			break
@@ -390,6 +504,7 @@ func load_replays():
 		button.show_data()
 		if i % 10 == 0:
 			yield(button, "data_updated")
+			_apply_replay_filter()
 
 func _on_reset_zoom_pressed():
 	if is_instance_valid(game):
@@ -411,7 +526,157 @@ func set_turn_time(time, minutes=false):
 func sort_replays(a, b):
 	return a.modified > b.modified
 
-func _on_replay_button_pressed(path):
+func _on_replay_search_changed(_text):
+	_apply_replay_filter()
+
+func _on_replay_filter_toggle_changed(_pressed):
+	_apply_replay_filter()
+
+func _apply_replay_filter():
+	if !has_node("%ReplayContainer"):
+		return
+	var query = $"%ReplaySearchEdit".text if has_node("%ReplaySearchEdit") else ""
+	query = query.strip_edges()
+	# Compile the query as a regex too — if it parses, that's an additional
+	# match path; substring still works either way so users don't need to know
+	# regex to filter by name.
+	var rx = null
+	if query != "":
+		var candidate = RegEx.new()
+		if candidate.compile(query) == OK:
+			rx = candidate
+	var same_version_only = Global.replay_version_mode == "same"
+	var no_missing = has_node("%NoMissingCharactersToggle") and $"%NoMissingCharactersToggle".pressed
+	for child in $"%ReplayContainer".get_children():
+		var name_text = ""
+		var matchup_text = ""
+		var btn = child.get_node_or_null("%Button")
+		if btn:
+			name_text = btn.text
+		var matchup = child.get_node_or_null("%MatchupLabel")
+		if matchup:
+			matchup_text = matchup.text
+		var visible_now = _replay_matches_query(name_text, matchup_text, query, rx)
+		# Version + missing-character filters only kick in once show_data has
+		# populated those fields. Buttons whose data hasn't loaded yet (empty
+		# version) stay visible — they'll refilter on the next batch yield.
+		if visible_now and same_version_only and child.get("version") != null and child.version != "":
+			if child.version != Global.VERSION:
+				visible_now = false
+		if visible_now and no_missing and child.get("has_missing_character"):
+			visible_now = false
+		child.visible = visible_now
+	_refresh_replay_button_colors()
+
+func _replay_matches_query(name_text: String, matchup_text: String, query: String, rx) -> bool:
+	if query == "":
+		return true
+	var haystack = name_text + "\n" + matchup_text
+	if haystack.findn(query) != -1:
+		return true
+	if rx != null and rx.search(haystack) != null:
+		return true
+	return false
+
+var _pending_missing_char_replay = null
+var _pending_old_version_replay = null
+
+const VERSION_MODE_COLORS = {
+	"all": Color(1, 1, 1, 1),
+	"warn": Color(1, 0.85, 0.2, 1),
+	"same": Color(1, 0.4, 0.4, 1),
+}
+
+func _on_replay_button_pressed(replay_button):
+	if !is_instance_valid(replay_button):
+		return
+	# Missing-character replays always confirm — game.gd::setup would fail
+	# to load the character anyway, so we stop the cliff dive before it
+	# happens. Old-version warning only kicks in for "warn" mode (which
+	# leaves them visible); "same" mode already hides them so we never see
+	# the click here.
+	if replay_button.has_missing_character:
+		_pending_missing_char_replay = replay_button.path
+		if has_node("%MissingCharConfirmDialog"):
+			$"%MissingCharConfirmDialog".show()
+		return
+	if Global.replay_version_mode == "warn" and replay_button.version != "" \
+			and replay_button.version != Global.VERSION:
+		_pending_old_version_replay = replay_button.path
+		if has_node("%OldVersionConfirmDialog"):
+			$"%OldVersionConfirmDialog".show()
+		return
+	_load_replay_from_button(replay_button.path)
+
+func _on_missing_char_confirmed():
+	var path = _pending_missing_char_replay
+	_pending_missing_char_replay = null
+	if has_node("%MissingCharConfirmDialog"):
+		$"%MissingCharConfirmDialog".hide()
+	if path != null:
+		_load_replay_from_button(path)
+
+func _on_missing_char_cancelled():
+	_pending_missing_char_replay = null
+	if has_node("%MissingCharConfirmDialog"):
+		$"%MissingCharConfirmDialog".hide()
+
+func _on_old_version_confirmed():
+	var path = _pending_old_version_replay
+	_pending_old_version_replay = null
+	if has_node("%OldVersionConfirmDialog"):
+		$"%OldVersionConfirmDialog".hide()
+	if path != null:
+		_load_replay_from_button(path)
+
+func _on_old_version_cancelled():
+	_pending_old_version_replay = null
+	if has_node("%OldVersionConfirmDialog"):
+		$"%OldVersionConfirmDialog".hide()
+
+func _on_version_mode_pressed():
+	# Cycle "all" → "warn" → "same" → "all" …
+	var i = Global.REPLAY_VERSION_MODES.find(Global.replay_version_mode)
+	i = posmod(i + 1, Global.REPLAY_VERSION_MODES.size())
+	Global.replay_version_mode = Global.REPLAY_VERSION_MODES[i]
+	Global.save_options()
+	_refresh_version_mode_label()
+	# "warn" tints non-current-version buttons yellow; "same" hides them;
+	# "all" shows them with no decoration — refresh both the button colors
+	# and the visibility filter.
+	_refresh_replay_button_colors()
+	_apply_replay_filter()
+
+func _refresh_version_mode_label():
+	if !has_node("%VersionModeLabel"):
+		return
+	var mode = Global.replay_version_mode
+	var label = $"%VersionModeLabel"
+	label.text = mode
+	var col = VERSION_MODE_COLORS.get(mode, Color.white)
+	label.add_color_override("font_color", col)
+
+func _refresh_replay_button_colors():
+	if !has_node("%ReplayContainer"):
+		return
+	for child in $"%ReplayContainer".get_children():
+		# Modulate the whole row (VBoxContainer) so the inner Button, the
+		# matchup label, and the version label all pick up the tint via
+		# Godot's parent-modulate propagation.
+		if child.has_missing_character:
+			# Missing-char red always wins; that's a guaranteed-broken replay,
+			# not just a version mismatch.
+			child.modulate = Color(1, 0.45, 0.45)
+		elif child.version != "" and child.version != Global.VERSION:
+			# Always yellow for different-version replays, regardless of
+			# whether the current mode happens to hide them. "same" mode
+			# never shows them so it's a no-op there; "all"/"warn" both get
+			# the visual cue.
+			child.modulate = VERSION_MODE_COLORS["warn"]
+		else:
+			child.modulate = Color(1, 1, 1, 1)
+
+func _load_replay_from_button(path):
 	var match_data = ReplayManager.load_replay(path)
 	$"%ReplayWindow".hide()
 	if replay_picker_for_challenge:

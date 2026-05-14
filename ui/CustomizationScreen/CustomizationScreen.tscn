@@ -356,7 +356,7 @@ unique_name_in_owner = true
 margin_top = 13.0
 margin_right = 104.0
 margin_bottom = 25.0
-hint_tooltip = "When the hitspark spawns on a left-facing hit, just mirror the sprite horizontally instead of rotating 180° + mirroring (default). Useful for asymmetric sprites where the rotation feels wrong."
+hint_tooltip = "On left-facing hits, mirror the sprite instead of rotating 180°."
 size_flags_horizontal = 0
 text = "flip on left-facing"
 

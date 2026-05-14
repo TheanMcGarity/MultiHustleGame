@@ -399,6 +399,11 @@ func save_player_style(player_id: int):
 	# Whole gate is short-circuited while the feature flag is off — saves
 	# proceed unconditionally and no permission prompts are emitted.
 	var src = player.applied_style
+	# `match_data.replay` is the frames-array for both pure replay viewing
+	# AND for live spectating (set in SteamLobby._on_spectate_request_accepted)
+	# — so checking it alone misclassifies spectators as replay viewers. Treat
+	# "no live peer to ask" as the real gate further down via in_lobby; here
+	# we only need is_replay to suppress saving-own bookkeeping.
 	var is_replay = match_data.get("replay", false) or match_data.get("replay_challenge", false)
 	# Spectators are never the "owner" — they're outside the match.
 	# Network.multiplayer_active (the getter) returns false for spectators,
@@ -407,12 +412,9 @@ func save_player_style(player_id: int):
 	var saving_own = !is_replay and !SteamLobby.SPECTATING and (!Network.multiplayer_active or Network.player_id == player_id)
 	var i_am_chain_owner = _is_chain_latest(src)
 	if Global.STYLE_SAVE_FEATURE_ENABLED and !saving_own and !i_am_chain_owner and src is Dictionary and !src.get("allow_others_save", true):
-		# Replays have no live owner to ask. Local matches have no remote
-		# peer. Otherwise we use broadcast_rpc so spectators can also send
-		# the request (regular rpc_ short-circuits when SPECTATING).
-		if is_replay:
-			$"%SaveReplayLabel".text = "p%d's style is not shareable" % player_id
-			return
+		# Real "no peer" gate: a pure replay file (no MP, no spectating) has
+		# no one to ask. Live MP fighters and live spectators do — both fall
+		# through to the broadcast_rpc request below.
 		var in_lobby = Network.multiplayer_active or SteamLobby.SPECTATING
 		if !in_lobby:
 			$"%SaveReplayLabel".text = "p%d's style is not shareable" % player_id
@@ -530,16 +532,32 @@ func setup_game_deferred(singleplayer, data):
 	Network.game = game
 	
 	if !data.has("user_data"):
+		var ud := {}
 		if Network.multiplayer_active:
-			data["user_data"] = {
-				"p1": Network.pid_to_username(1),
-				"p2": Network.pid_to_username(2),
-			}
+			ud["p1"] = Network.pid_to_username(1)
+			ud["p2"] = Network.pid_to_username(2)
+			# Snapshot both sides' name colors so replays reproduce them
+			# without depending on the original lobby still existing.
+			if Network.steam:
+				var p1_steam = SteamLobby.steam_id_for_match_side(1)
+				var p2_steam = SteamLobby.steam_id_for_match_side(2)
+				var p1_col = Global.get_remote_name_color(p1_steam) if p1_steam != 0 else null
+				var p2_col = Global.get_remote_name_color(p2_steam) if p2_steam != 0 else null
+				if p1_col != null:
+					ud["p1_color"] = p1_col.to_html(false)
+				if p2_col != null:
+					ud["p2_color"] = p2_col.to_html(false)
+			elif Global.has_name_color():
+				# Legacy MP: only know the local user's color. Apply it to
+				# the side they're playing.
+				ud["p" + str(Network.player_id) + "_color"] = Global.get_name_color().to_html(false)
 		else:
-			data["user_data"] = {
-				"p1": Global.get_player_data().username,
-				"p2": _format_p2_name(data.selected_characters[2]["name"]),
-			}
+			ud["p1"] = Global.get_player_data().username
+			ud["p2"] = _format_p2_name(data.selected_characters[2]["name"])
+			# Singleplayer: user controls P1.
+			if Global.has_name_color():
+				ud["p1_color"] = Global.get_name_color().to_html(false)
+		data["user_data"] = ud
 	
 	if game.start_game(singleplayer, data) is bool:
 		return

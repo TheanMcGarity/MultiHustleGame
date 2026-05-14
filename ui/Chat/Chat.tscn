@@ -183,3 +183,9 @@ stream = ExtResource( 9 )
 volume_db = -15.0
 pitch_scale = 1.5
 bus = "UI"
+
+[node name="ChatSoundOtherTab" type="AudioStreamPlayer" parent="." index="2"]
+stream = ExtResource( 9 )
+volume_db = -30.0
+pitch_scale = 1.5
+bus = "UI"

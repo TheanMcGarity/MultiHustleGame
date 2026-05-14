@@ -2084,20 +2084,6 @@ func get_di_scaling(brace=true, lookahead=0):
 	total = fixed.mul(total, di_modifier)
 	return total
 
-# Display-friendly DI scaling for the planning panel. The smallest value
-# get_di_scaling ever applies to an actual hit is its combo_count=1 result,
-# not its combo_count=0 result — hit_by increments combo_count before
-# HurtAerial._enter reads DI, so no hit is ever resolved at the bare
-# min_di_scaling. Rebase the display so "1.0x" reads as the true floor,
-# and lookahead=1 so the number you see at planning time is what'll
-# actually apply if you get hit this turn.
-func get_displayed_di_scaling():
-	var raw = get_di_scaling(false, 1)
-	var min_extra = fixed.div(fixed.sub(max_di_scaling, min_di_scaling), str(di_combo_limit))
-	var min_applied = fixed.add(min_di_scaling, min_extra)
-	min_applied = fixed.mul(min_applied, di_modifier)
-	return float(raw) / float(min_applied)
-
 func can_guard_break():
 	return true
 
@@ -2445,13 +2431,7 @@ func turn_end_effects():
 	pass
 
 func turn_start_effects():
-	# Once a full turn has passed since the combo opener landed, the
-	# prorated-DI scaling boost is allowed to apply. This keeps multi-hit
-	# starters that resolve entirely within the opener's turn from being
-	# DI'd against — the boost only kicks in starting from the next turn
-	# of the combo.
-	if combo_count > 0 and combo_proration > 0:
-		combo_proration_ready = true
+	pass
 
 func toggle_quit_graphic(on=null):
 	if on == null:
@@ -2770,6 +2750,7 @@ func on_state_interruptable(state=null):
 	else:
 		dummy_interruptable = true
 		refresh_prediction = true
+	_arm_prorated_di()
 
 func on_state_hit_cancellable(projectile=false, state=null):
 	if !dummy:
@@ -2777,6 +2758,17 @@ func on_state_hit_cancellable(projectile=false, state=null):
 		refresh_prediction = true
 		if projectile:
 			projectile_hit_cancelling = true
+	_arm_prorated_di()
+
+# Any "you can pick a new action now" event after the combo opener landed
+# arms the prorated-DI boost — applies to both interrupt-cancellable and
+# hit-cancellable openers, and fires off either player's actionable
+# moment (whichever comes first) so the victim's DI wheel reads true.
+func _arm_prorated_di():
+	if combo_count > 0 and combo_proration > 0:
+		combo_proration_ready = true
+	elif opponent and opponent.combo_count > 0 and opponent.combo_proration > 0:
+		opponent.combo_proration_ready = true
 
 func get_fighter():
 	return self

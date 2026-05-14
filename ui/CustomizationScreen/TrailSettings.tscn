@@ -361,7 +361,7 @@ unique_name_in_owner = true
 margin_top = 94.0
 margin_right = 212.0
 margin_bottom = 106.0
-hint_tooltip = "For Hands/Feet: mirror the flip on the second limb. With this on, if the left limb's flip is set the right limb's flip is the opposite."
+hint_tooltip = "For Hands/Feet: mirror the flip on the second limb."
 pressed = true
 text = "mirror flip on other limb"
 
@@ -370,7 +370,7 @@ unique_name_in_owner = true
 margin_top = 107.0
 margin_right = 212.0
 margin_bottom = 119.0
-hint_tooltip = "When on, the aura rotates and flips with the attached limb. When off, only the limb's position is used (default)."
+hint_tooltip = "Aura rotates and flips with the attached limb."
 text = "rotate with limb"
 
 [node name="ConsistentSide" type="CheckButton" parent="PositionSection"]
@@ -378,7 +378,7 @@ unique_name_in_owner = true
 margin_top = 120.0
 margin_right = 212.0
 margin_bottom = 132.0
-hint_tooltip = "When on, Left/Right limb auras swap when the character faces left so the aura stays on the same side of the screen (e.g. a LeftHand aura always appears on the screen-left limb)."
+hint_tooltip = "Left/Right auras swap to stay on the same screen side when facing left."
 pressed = true
 text = "consistent side"
 

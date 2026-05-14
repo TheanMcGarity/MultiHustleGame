@@ -39,6 +39,12 @@ func _read_P2P_Packet_custom(readable):
 
 func _receive_challenge(fromData, match_settings):
 	var steam_id = fromData[0]
+	# Blocked users get a silent decline before any of the mod handshake runs
+	# (the cl_port override bypasses the parent's gate, so we re-check here).
+	print("[block] cl_port _receive_challenge from ", steam_id, " is_blocked=", is_blocked(steam_id), " block_list=", Global.blocked_users)
+	if is_blocked(steam_id):
+		_send_P2P_Packet(steam_id, {"challenge_declined": SteamHustle.STEAM_ID})
+		return
 	var serverMods = fromData[1]
 	var charMods = fromData[2]
 	Network.steam_oppChars = charMods

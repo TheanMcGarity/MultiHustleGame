@@ -6,7 +6,8 @@ const PROMPT_RED := Color("#dd3333")
 
 const TAB_MATCH = 0
 const TAB_LOBBY = 1
-const TAB_TITLES = ["match", "lobby"]
+const TAB_PLAYERS = 2
+const TAB_TITLES = ["match", "lobby", "players"]
 
 export var force_mute_on_hide = false
 
@@ -23,8 +24,23 @@ var pending_style_request := false
 # the larger child) so the small tab gets a phantom scroll range to nowhere.
 var match_scroll: ScrollContainer
 var match_container: VBoxContainer
+# Players tab — third sibling scroll, holds the per-lobby member rows.
+var players_scroll: ScrollContainer
+var players_container: VBoxContainer
 var unread_match := false
 var unread_lobby := false
+var unread_players := false
+# Latched in _update_tabs_visibility so the first transition from
+# idle → fighting/spectating auto-switches the user to the match tab.
+var _was_in_match := false
+# Steam-ID → steam_name map of users currently spectating the local user's
+# match (whichever match they're fighting in or spectating). Diffed against
+# the latest scan in _refresh_match_spectators() to post join/leave events.
+var _known_match_spectators := {}
+# Tracks which match_key the spectator set above corresponds to. On a match
+# change we silently re-populate so the new match's existing spectators
+# don't all read as fresh "started spectating" events.
+var _known_spectators_match_key := ""
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -37,18 +53,21 @@ func _ready():
 	Network.connect("match_ready", self, "_on_match_ready")
 	SteamLobby.connect("chat_message_received", self, "on_steam_chat_message_received")
 	SteamLobby.connect("lobby_data_update", self, "_on_lobby_data_update")
+	SteamLobby.connect("user_block_state_changed", self, "_on_user_block_state_changed")
+	SteamLobby.connect("chat_history_synced", self, "_on_chat_history_synced")
 	if static_:
 		$"%ShowButton".hide()
 	SteamLobby.connect("user_joined", self, "_on_user_joined")
 	SteamLobby.connect("user_left", self, "_on_user_left")
 	_setup_tabs()
+	_rebuild_player_list()
 #	toggle()
 
 func _setup_tabs():
 	var lobby_scroll = $"%ScrollContainer"
 	var parent = lobby_scroll.get_parent()
-	# Mirror the lobby ScrollContainer's sizing so the match tab feels
-	# identical when active.
+	# Mirror the lobby ScrollContainer's sizing so the match + players tabs
+	# feel identical when active.
 	match_scroll = ScrollContainer.new()
 	match_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	match_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -60,8 +79,22 @@ func _setup_tabs():
 	match_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	match_scroll.add_child(match_container)
 	match_scroll.hide()
+	# Players tab — same sibling layout as lobby + match scrolls so the
+	# Tabs strip just toggles visibility between them.
+	players_scroll = ScrollContainer.new()
+	players_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	players_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	players_scroll.rect_min_size = lobby_scroll.rect_min_size
+	parent.add_child(players_scroll)
+	parent.move_child(players_scroll, match_scroll.get_index() + 1)
+	players_container = VBoxContainer.new()
+	players_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	players_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	players_scroll.add_child(players_container)
+	players_scroll.hide()
 	$"%Tabs".add_tab(TAB_TITLES[TAB_MATCH])
 	$"%Tabs".add_tab(TAB_TITLES[TAB_LOBBY])
+	$"%Tabs".add_tab(TAB_TITLES[TAB_PLAYERS])
 	# Inactive tab text needs to read clearly as backgrounded vs the active
 	# one — Tabs ships with a fairly light bg color by default that doesn't
 	# contrast much against the active tab.
@@ -69,13 +102,38 @@ func _setup_tabs():
 	$"%Tabs".connect("tab_changed", self, "_on_tab_changed")
 	$"%TabButton".connect("toggled", self, "_on_tab_button_toggled")
 	_update_tabs_visibility()
+	# Main.tscn gets torn down on every match exit (Global.reload), but the
+	# SteamLobby autoload keeps the chat record. Replay it so the user sees
+	# the same lobby + current-match history they had before reloading.
+	_replay_chat_history()
+	# Player-list ticker — lobby member status (player_id / opponent_id /
+	# spectating_id) doesn't always emit lobby_data_update on every transition,
+	# so refresh on a low-frequency timer to keep the list and its colors
+	# accurate.
+	var player_list_timer := Timer.new()
+	player_list_timer.wait_time = 0.5
+	player_list_timer.autostart = true
+	player_list_timer.connect("timeout", self, "_rebuild_player_list")
+	add_child(player_list_timer)
+	# Enforce a minimum grabber height — by default Godot 3's scrollbar
+	# computes grabber = page/total * area, so a 300-line buffer makes the
+	# grabber a couple pixels tall and impossible to grab. The grabber
+	# stylebox's get_minimum_size() acts as the floor; give it ~20px of
+	# vertical content margin.
+	for sc in [$"%ScrollContainer", match_scroll, players_scroll]:
+		if sc == null:
+			continue
+		_apply_min_grabber_height(sc.get_v_scrollbar(), 20)
 
 func _on_tab_button_toggled(_pressed):
 	_update_tabs_visibility()
 
 func _on_match_ready(_data):
 	pending_style_request = false
-	# Don't clear match_container — chat history survives the new match start.
+	# Rebuild the match tab from SteamLobby's persistent record. Same-pair
+	# rematches reuse the same match_key so history carries over; switching
+	# opponents brings up the new pair's history (or empty for a fresh one).
+	_rebuild_match_container_from_history()
 	_update_tabs_visibility()
 	if $"%Tabs".visible:
 		# Default to the match tab so match chat is visible the moment the
@@ -83,28 +141,48 @@ func _on_match_ready(_data):
 		$"%Tabs".current_tab = TAB_MATCH
 		_on_tab_changed(TAB_MATCH)
 
+var _last_known_match_key := ""
+
 func _on_lobby_data_update(_success=null, _lobby_id=null, _member_id=null):
-	# Status flips (back to idle when a match ends, etc.) come through here —
-	# refresh tab visibility so the strip hides itself when we return to the
-	# main lobby.
+	# Status flips (back to idle when a match ends, starting to spectate, etc.)
+	# come through here. Rebuild match container whenever the local user's
+	# current match changes so spectator-first-join sees the running match's
+	# backlog.
+	var key = SteamLobby.current_match_key()
+	if key != _last_known_match_key:
+		_last_known_match_key = key
+		_rebuild_match_container_from_history()
 	_update_tabs_visibility()
+	# Status changes (someone went from idle → fighting / spectating, etc.)
+	# affect the player-list colors, so refresh.
+	_rebuild_player_list()
 
 func _update_tabs_visibility():
 	var status = SteamLobby.get_status()
 	var in_match = status == "fighting" or status == "spectating"
-	# TabButton is the user's manual override — pressed hides the strip, but
-	# the active container still shows whatever tab was last on. Only
-	# relevant when there's actually a strip to toggle, so hide entirely
-	# outside of fighting/spectating (singleplayer and main lobby idle).
+	# Tabs are only useful in a match — the lobby UI already shows every
+	# player elsewhere, so the players tab would be redundant there, and
+	# lobby chat is the only chat with content. Hide the strip entirely.
 	$"%TabButton".visible = in_match
 	$"%Tabs".visible = in_match and not $"%TabButton".pressed
+	# First entry into a match (idle/lobby → fighting/spectating): jump to
+	# the match tab so the user sees match chat immediately instead of
+	# whatever tab they had open before.
+	if in_match and not _was_in_match:
+		$"%Tabs".current_tab = TAB_MATCH
+	_was_in_match = in_match
 	if not in_match:
 		# No match context — only the lobby scroll is on screen. Match-tab
 		# unread state would be invisible anyway, but clear it so a stale *
 		# doesn't reappear when the next match starts.
 		match_scroll.hide()
+		players_scroll.hide()
 		$"%ScrollContainer".show()
 		unread_match = false
+		# If we left the match while sitting on match or players, reset to
+		# lobby so the next show isn't stuck on an invisible tab.
+		if $"%Tabs".current_tab != TAB_LOBBY:
+			$"%Tabs".current_tab = TAB_LOBBY
 	else:
 		_apply_active_tab()
 	_refresh_tab_titles()
@@ -112,6 +190,8 @@ func _update_tabs_visibility():
 func _on_tab_changed(idx):
 	if idx == TAB_MATCH:
 		unread_match = false
+	elif idx == TAB_PLAYERS:
+		unread_players = false
 	else:
 		unread_lobby = false
 	_apply_active_tab()
@@ -124,20 +204,35 @@ func _on_tab_changed(idx):
 func _apply_active_tab():
 	var active = _active_category()
 	match_scroll.visible = active == "match"
+	players_scroll.visible = active == "players"
 	$"%ScrollContainer".visible = active == "lobby"
 
 func _active_scroll() -> ScrollContainer:
-	return match_scroll if _active_category() == "match" else $"%ScrollContainer" as ScrollContainer
+	var active = _active_category()
+	if active == "match":
+		return match_scroll
+	if active == "players":
+		return players_scroll
+	return $"%ScrollContainer" as ScrollContainer
 
 func _active_category() -> String:
 	# Idle/SP has no match context — everything routes to lobby. Otherwise
 	# go off current_tab regardless of whether the strip is currently shown,
 	# so TabButton can hide the strip without yanking the active container.
-	var status = SteamLobby.get_status()
-	var in_match = status == "fighting" or status == "spectating"
-	if not in_match:
+	if SteamLobby.LOBBY_ID == 0:
 		return "lobby"
-	return "match" if $"%Tabs".current_tab == TAB_MATCH else "lobby"
+	match $"%Tabs".current_tab:
+		TAB_MATCH:
+			# Match tab is disabled when not in a match; treat that as lobby
+			# so any self-echo falls through to a visible container.
+			var status = SteamLobby.get_status()
+			if status == "fighting" or status == "spectating":
+				return "match"
+			return "lobby"
+		TAB_PLAYERS:
+			return "players"
+		_:
+			return "lobby"
 
 func _container_for(category):
 	return match_container if category == "match" else $"%MessageContainer"
@@ -145,16 +240,24 @@ func _container_for(category):
 func _refresh_tab_titles():
 	$"%Tabs".set_tab_title(TAB_MATCH, ("*" if unread_match else "") + TAB_TITLES[TAB_MATCH])
 	$"%Tabs".set_tab_title(TAB_LOBBY, ("*" if unread_lobby else "") + TAB_TITLES[TAB_LOBBY])
+	# Players tab intentionally has no unread marker — the title widens the
+	# Tabs strip more than the * is worth. Spectator events still surface
+	# via the grey :: line in the match tab.
+	$"%Tabs".set_tab_title(TAB_PLAYERS, TAB_TITLES[TAB_PLAYERS])
 
 # Decide which tab a message belongs to. Returns "" for messages that aren't
 # for us at all (e.g. a different match's chatter when we're in our own).
 func _categorize_message(steam_id) -> String:
+	# Categorize self-echoes the same way we'd categorize someone else with
+	# our exact status — so the tab we render in matches both the storage
+	# bucket and what every other client renders for us. Otherwise a fighter
+	# on the lobby tab would render their own message in lobby while other
+	# clients render it in match.
+	var sender_status: String
 	if steam_id == SteamHustle.STEAM_ID:
-		# Our own echo — show it in whichever tab we're typing in so what we
-		# just sent is visible regardless of which audience actually receives
-		# it (Steam broadcasts; recipient-side filtering decides who sees).
-		return _active_category()
-	var sender_status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")
+		sender_status = SteamLobby.get_status()
+	else:
+		sender_status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")
 	if sender_status == "idle" or sender_status == "busy":
 		return "lobby"
 	# Sender is fighting or spectating. Reuse the match-membership filter to
@@ -166,9 +269,27 @@ func _categorize_message(steam_id) -> String:
 
 func _on_user_joined(user):
 	god_message(user + " joined.")
+	_rebuild_player_list()
 
 func _on_user_left(user):
 	god_message(user + " left.")
+	_rebuild_player_list()
+
+func _on_user_block_state_changed(_steam_id):
+	# Mute/block coloring is part of the player list rendering. Re-render so
+	# the row reflects the new state. Also future messages from this user
+	# will already be filtered in on_steam_chat_message_received.
+	_rebuild_player_list()
+	# Filter their existing messages out of the visible containers now —
+	# otherwise muting would only affect new messages, leaving the back-log
+	# (and any history pushed since) visible.
+	_rebuild_lobby_container_from_history()
+	_rebuild_match_container_from_history()
+
+func _on_chat_history_synced():
+	# Owner pushed their history to us after we joined — replay both
+	# containers so messages from before we joined show up.
+	_replay_chat_history()
 
 func line_edit_focus():
 	$"%LineEdit".grab_focus()
@@ -180,7 +301,7 @@ func is_muted():
 func on_chat_message_received(player_id: int, message: String):
 	var color = "ff333d" if player_id == 2 else "1d8df5"
 #	print("here")
-	var text = ProfanityFilter.filter(("<[color=#%s]" % [color]) + Network.pid_to_username(player_id) + "[/color]>: " + message)
+	var text = ProfanityFilter.filter(("<[color=#%s]" % [color]) + Network.pid_to_username(player_id) + "[/color]> " + message)
 	var node = RichTextLabel.new()
 	node.bbcode_enabled = true
 	node.append_bbcode(text)
@@ -195,7 +316,10 @@ func on_chat_message_received(player_id: int, message: String):
 	$"%ScrollContainer".scroll_vertical = 10000000000000000
 
 func god_message(message: String):
-	$"ChatSound".play()
+	# Respect the chat-wide mute toggle for the join/leave + system notice
+	# sounds — direct $"ChatSound".play() bypassed it, which is what the
+	# "mute button doesn't work" complaint was actually pointing at.
+	play_chat_sound()
 	var node = RichTextLabel.new()
 	var text = ProfanityFilter.filter(":: " + message)
 	node.bbcode_enabled = true
@@ -210,31 +334,223 @@ func play_chat_sound():
 	if !is_muted():
 		$"ChatSound".play()
 
-func on_steam_chat_message_received(steam_id: int, message: String):
-	var category = _categorize_message(steam_id)
-	if category == "":
-		return
-	var color = "ff333d" if (Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "player_id") == "2") else "1d8df5"
+# Returns the chat color hex for a user: p2 red, p1 blue, spectators gray,
+# self-spectator slightly brighter. Players currently idle in the lobby get
+# the blue (p1) tint since legacy chat already used that as the fallback.
+# A user's published Personalization name color (set via Settings →
+# Personalization, broadcast through Steam lobby member data) overrides
+# every other rule.
+func _color_for_steam_user(steam_id: int) -> String:
+	var custom = Global.get_remote_name_color(steam_id)
+	if custom != null:
+		return custom.to_html(false)
 	var sender_status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")
 	if sender_status == "spectating":
-		color = "999999"
-		if steam_id == SteamHustle.STEAM_ID:
-			color = "DDDDDD"
+		return "DDDDDD" if steam_id == SteamHustle.STEAM_ID else "999999"
+	var pid = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "player_id")
+	if pid == "2":
+		return "ff333d"
+	return "1d8df5"
 
-	var steam_name = Steam.getFriendPersonaName(steam_id)
+# Returns the player-list color for a user. Active fighters always show
+# their p1/p2 side color so the list reads as a clear "who's playing
+# right now" board — the personalization color is for everyone else
+# (idle, spectating, busy) where the side tint doesn't apply.
+func _player_list_color(steam_id: int) -> Color:
+	var status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")
+	if status == "fighting":
+		var pid = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "player_id")
+		if pid == "2":
+			return Color("ff333d")
+		return Color("1d8df5")
+	var custom = Global.get_remote_name_color(steam_id)
+	if custom != null:
+		return custom
+	return Color.white
 
-	var text = ProfanityFilter.filter(("<[color=#%s]" % [color]) + steam_name + "[/color]>: " + message)
+func _apply_min_grabber_height(scrollbar, min_h: int):
+	if scrollbar == null:
+		return
+	# Inherit whatever the current theme's grabber looks like — we only need
+	# to bump its minimum size, not restyle it. Walk the stylebox slots and
+	# copy each into a duplicate with the bigger content_margins applied.
+	for slot in ["grabber", "grabber_highlight", "grabber_pressed"]:
+		var src_style = scrollbar.get_stylebox(slot, "VScrollBar")
+		var style = src_style.duplicate() if src_style != null else StyleBoxFlat.new()
+		var pad = min_h / 2
+		style.content_margin_top = pad
+		style.content_margin_bottom = pad
+		scrollbar.add_stylebox_override(slot, style)
+
+func _rebuild_player_list():
+	if players_container == null:
+		return
+	for child in players_container.get_children():
+		players_container.remove_child(child)
+		child.queue_free()
+	if SteamLobby.LOBBY_ID == 0:
+		_known_match_spectators.clear()
+		_known_spectators_match_key = ""
+		return
+	for member in SteamLobby.LOBBY_MEMBERS:
+		# Players tab is match-scoped: only show the fighters of the current
+		# match + their spectators (same set chat messages route through).
+		# Reuses the existing can_get_messages_from_user gate so this list
+		# matches who you'd actually see in match chat.
+		if not SteamLobby.can_get_messages_from_user(member.steam_id):
+			continue
+		var btn = Button.new()
+		var label = member.steam_name
+		if SteamLobby.is_blocked(member.steam_id):
+			label = "[X] " + label
+		elif SteamLobby.is_muted(member.steam_id):
+			label = "[M] " + label
+		btn.text = label
+		btn.flat = true
+		btn.clip_text = true
+		btn.align = Button.ALIGN_LEFT
+		btn.add_color_override("font_color", _player_list_color(member.steam_id))
+		btn.connect("pressed", self, "_on_player_list_button_pressed", [member.steam_id, btn])
+		players_container.add_child(btn)
+	# Piggyback on the same refresh cadence — covers both lobby_data_update
+	# (event-driven) and the 0.5s timer (fallback for changes that don't fire).
+	_refresh_match_spectators()
+
+# Scan LOBBY_MEMBERS for users spectating the local user's current match,
+# diff against the last scan, post grey :: join/leave events to match chat
+# and mark the players tab unread.
+func _refresh_match_spectators():
+	var my_match_key = SteamLobby.current_match_key()
+	if my_match_key == "":
+		_known_match_spectators.clear()
+		_known_spectators_match_key = ""
+		return
+	var new_set := {}
+	for member in SteamLobby.LOBBY_MEMBERS:
+		if member.steam_id == SteamHustle.STEAM_ID:
+			# Our own spectate transitions are obvious from being IN the
+			# match tab; skip the self-event.
+			continue
+		var status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, member.steam_id, "status")
+		if status != "spectating":
+			continue
+		if SteamLobby.match_key_for_user(member.steam_id) != my_match_key:
+			continue
+		new_set[member.steam_id] = member.steam_name
+	if my_match_key != _known_spectators_match_key:
+		# Match changed (or first scan for this match) — silently seed so
+		# we don't spam join events for spectators who were already there.
+		_known_match_spectators = new_set
+		_known_spectators_match_key = my_match_key
+		return
+	for sid in new_set:
+		if not (sid in _known_match_spectators):
+			# Joins read brighter than leaves so "someone's watching" lands
+			# with a bit more weight than "they wandered off".
+			_post_spectator_event(new_set[sid] + " started spectating", "aaaaaa")
+	for sid in _known_match_spectators:
+		if not (sid in new_set):
+			_post_spectator_event(_known_match_spectators[sid] + " stopped spectating", "777777")
+	_known_match_spectators = new_set
+
+func _post_spectator_event(text, color_hex: String = "888888"):
+	if match_container == null:
+		return
 	var node = RichTextLabel.new()
 	node.bbcode_enabled = true
+	node.append_bbcode("[color=#" + color_hex + "]:: " + ProfanityFilter.filter(text) + "[/color]")
+	node.fit_content_height = true
+	match_container.call_deferred("add_child", node)
+	# Spectator events live in the match scrollback, so the match tab is the
+	# one that gets the unread marker. Players tab is intentionally left
+	# unmarked (its title would be too wide for the strip with a *).
+	if $"%Tabs".current_tab != TAB_MATCH:
+		unread_match = true
+	_refresh_tab_titles()
+
+func _on_chat_meta_clicked(meta):
+	# bbcode urls come back as Variant — convert defensively. The url payload
+	# is the sender's steam_id stringified.
+	var steam_id = int(str(meta))
+	if steam_id == 0:
+		return
+	_show_user_actions_popup(steam_id, get_global_mouse_position())
+
+func _on_player_list_button_pressed(steam_id: int, src_btn: Button):
+	var pos = src_btn.get_global_rect().position + Vector2(0, src_btn.get_global_rect().size.y)
+	_show_user_actions_popup(steam_id, pos)
+
+var _user_actions_popup: PopupMenu = null
+var _user_actions_target: int = 0
+
+func _show_user_actions_popup(steam_id: int, global_pos: Vector2):
+	if steam_id == SteamHustle.STEAM_ID:
+		# No point poking at yourself — opens nothing.
+		return
+	if _user_actions_popup == null:
+		_user_actions_popup = PopupMenu.new()
+		_user_actions_popup.connect("id_pressed", self, "_on_user_actions_popup_id_pressed")
+		add_child(_user_actions_popup)
+	_user_actions_target = steam_id
+	_user_actions_popup.clear()
+	_user_actions_popup.add_item("Open Steam Profile", 0)
+	_user_actions_popup.add_item("Unmute" if SteamLobby.is_muted(steam_id) else "Mute", 1)
+	_user_actions_popup.add_item("Unblock" if SteamLobby.is_blocked(steam_id) else "Block", 2)
+	_user_actions_popup.rect_global_position = global_pos
+	_user_actions_popup.popup()
+
+func _on_user_actions_popup_id_pressed(id: int):
+	var steam_id = _user_actions_target
+	if steam_id == 0:
+		return
+	match id:
+		0:
+			Steam.activateGameOverlayToUser("steamid", steam_id)
+		1:
+			SteamLobby.set_muted(steam_id, not SteamLobby.is_muted(steam_id))
+		2:
+			SteamLobby.set_blocked(steam_id, not SteamLobby.is_blocked(steam_id))
+
+func _render_steam_message(steam_id: int, message: String, category: String, silent: bool):
+	var color = _color_for_steam_user(steam_id)
+	var steam_name = Steam.getFriendPersonaName(steam_id)
+	# Wrap the name in a [url=steam_id] so meta_clicked fires with the id.
+	# bbcode escaping isn't a real concern here — steam names go through the
+	# profanity filter and the steam_id is numeric.
+	var name_bbcode = "[url=%d][color=#%s]%s[/color][/url]" % [steam_id, color, steam_name]
+	var text = ProfanityFilter.filter("<" + name_bbcode + "> " + message)
+	var node = RichTextLabel.new()
+	node.bbcode_enabled = true
+	# RichTextLabel underlines [url] content by default; the click affordance
+	# is the cursor change + color, no need for the underline on top of that.
+	node.meta_underlined = false
 	node.append_bbcode(text)
 	node.fit_content_height = true
-
+	node.connect("meta_clicked", self, "_on_chat_meta_clicked")
 	var container = _container_for(category)
-	container.call_deferred("add_child", node)
-
-	# Sound only plays when the message lands in the tab that's currently on
-	# screen — chatter in the other tab is signaled by the * marker instead.
-	# Self-echoes never play sound (matches existing behavior).
+	# Defensive dedup — if a recent child has the same (steam_id, message)
+	# meta, this is a double-render (e.g. a state-change rebuild firing
+	# after an owner sync that included the same entries). Checking just
+	# the previous child wasn't enough because god_messages / spectator
+	# events get interleaved and break the back-to-back assumption; scan
+	# the last DEDUP_WINDOW children instead.
+	var count = container.get_child_count()
+	var dedup_start = int(max(0, count - 20))
+	for i in range(dedup_start, count):
+		var existing = container.get_child(i)
+		if existing.has_meta("chat_steam_id") and existing.has_meta("chat_message"):
+			if existing.get_meta("chat_steam_id") == steam_id and existing.get_meta("chat_message") == message:
+				node.queue_free()
+				return
+	node.set_meta("chat_steam_id", steam_id)
+	node.set_meta("chat_message", message)
+	# Always immediate add_child. call_deferred raced with the rebuild path
+	# (state change clears the container before the deferred add resolves).
+	container.add_child(node)
+	# Sound + unread markers only apply to live messages, not the history
+	# replay/rebuild path.
+	if silent:
+		return
 	var is_active = category == _active_category()
 	if is_active and steam_id != SteamHustle.STEAM_ID:
 		play_chat_sound()
@@ -244,11 +560,102 @@ func on_steam_chat_message_received(steam_id: int, message: String):
 		else:
 			unread_lobby = true
 		_refresh_tab_titles()
-
 	yield(get_tree(), 'idle_frame')
 	yield(get_tree(), 'idle_frame')
 	if is_active:
 		_active_scroll().scroll_vertical = 10000000000000000
+
+func _replay_chat_history():
+	# Containers are always derived from SteamLobby's history record — never
+	# accumulated from live messages alone. Rebuild both at every state
+	# change so we can't end up with dupes from a stale live render + a
+	# replay covering the same entries.
+	_rebuild_lobby_container_from_history()
+	_rebuild_match_container_from_history()
+	_last_known_match_key = SteamLobby.current_match_key()
+	# Defer scroll-to-bottom until layout has settled (RichTextLabel needs a
+	# frame to resolve its fit_content_height before scroll_vertical resolves
+	# to the real max).
+	yield(get_tree(), "idle_frame")
+	yield(get_tree(), "idle_frame")
+	if has_node("%ScrollContainer"):
+		$"%ScrollContainer".scroll_vertical = 10000000000000000
+	if match_scroll:
+		match_scroll.scroll_vertical = 10000000000000000
+
+func _rebuild_lobby_container_from_history():
+	if not has_node("%MessageContainer"):
+		return
+	var c = $"%MessageContainer"
+	for child in c.get_children():
+		c.remove_child(child)
+		child.queue_free()
+	for entry in SteamLobby.lobby_chat_history:
+		# Skip muted / blocked users' entries on rebuild too, otherwise past
+		# messages from a freshly-muted user keep reappearing on every state
+		# change / sync / rejoin even though new messages are dropped.
+		if entry.steam_id != SteamHustle.STEAM_ID and SteamLobby.is_silenced(entry.steam_id):
+			continue
+		_render_steam_message(entry.steam_id, entry.message, "lobby", true)
+
+func _rebuild_match_container_from_history():
+	if match_container == null:
+		return
+	for child in match_container.get_children():
+		match_container.remove_child(child)
+		child.queue_free()
+	var key = SteamLobby.current_match_key()
+	if key == "" or not SteamLobby.match_chat_history.has(key):
+		return
+	for entry in SteamLobby.match_chat_history[key]:
+		if entry.steam_id != SteamHustle.STEAM_ID and SteamLobby.is_silenced(entry.steam_id):
+			continue
+		_render_steam_message(entry.steam_id, entry.message, "match", true)
+
+func on_steam_chat_message_received(steam_id: int, message: String, scope: String = ""):
+	# Silenced users (transient mute or persistent block) get dropped entirely
+	# — no display, no history, no sound. Self-echoes always come through so
+	# the user can see what they just sent.
+	if steam_id != SteamHustle.STEAM_ID and SteamLobby.is_silenced(steam_id):
+		return
+	# Storage scope: explicit override from the JSON wrapper wins; otherwise
+	# default to "your match status decides" so a fighter's match-chat
+	# messages land in match_chat_history[match_key] for spectator sync.
+	var storage_scope = "lobby"
+	var storage_match_key = ""
+	if scope == "lobby":
+		storage_scope = "lobby"
+	elif scope == "match":
+		storage_scope = "match"
+		storage_match_key = SteamLobby.match_key_for_user(steam_id) if steam_id != SteamHustle.STEAM_ID else SteamLobby.current_match_key()
+	elif steam_id == SteamHustle.STEAM_ID:
+		var my_status = SteamLobby.get_status()
+		if my_status == "fighting" or my_status == "spectating":
+			storage_scope = "match"
+			storage_match_key = SteamLobby.current_match_key()
+	else:
+		var sender_status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")
+		if sender_status == "fighting" or sender_status == "spectating":
+			storage_scope = "match"
+			storage_match_key = SteamLobby.match_key_for_user(steam_id)
+	SteamLobby.record_chat_message(steam_id, message, storage_scope, storage_match_key)
+	# Display category mirrors an explicit scope override; otherwise the
+	# membership-aware categorizer decides (handles cross-match filtering).
+	var category
+	if scope == "lobby":
+		category = "lobby"
+	elif scope == "match":
+		# Only show in our match tab if it's actually our match (or if we're
+		# the sender — self-echoes always display somewhere).
+		if steam_id == SteamHustle.STEAM_ID or SteamLobby.can_get_messages_from_user(steam_id):
+			category = "match"
+		else:
+			category = ""
+	else:
+		category = _categorize_message(steam_id)
+	if category == "":
+		return
+	_render_steam_message(steam_id, message, category, false)
 
 func unfocus_line_edit():
 	$"%LineEdit".release_focus()
@@ -305,7 +712,15 @@ func send_message(message):
 	if !Network.steam:
 		Network.rpc_("send_chat_message", [Network.player_id, message])
 	else:
-		SteamLobby.send_chat_message(message)
+		# Tag the message scope when typing from the lobby tab while in a
+		# match — without this, the receiver's default "sender status decides"
+		# rule would route it to match chat. Empty scope falls through to that
+		# default and stays as raw text on the wire (old-patch compatible).
+		var scope = ""
+		var status = SteamLobby.get_status()
+		if (status == "fighting" or status == "spectating") and _active_category() == "lobby":
+			scope = "lobby"
+		SteamLobby.send_chat_message(message, scope)
 
 func _on_style_save_request_received(target_player_id, requester_id, requester_name, style_name):
 	# Only the targeted *fighter* gets prompted. Spectators may share a

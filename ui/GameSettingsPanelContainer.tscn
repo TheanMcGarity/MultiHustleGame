@@ -97,7 +97,7 @@ unique_name_in_owner = true
 margin_left = 100.0
 margin_right = 155.0
 margin_bottom = 11.0
-hint_tooltip = "Min seconds each turn — when bank dips below this, restore to this so each turn has at least this much time."
+hint_tooltip = "Min seconds each turn — restored when the bank dips below this."
 size_flags_horizontal = 3
 min_value = 1.0
 max_value = 999999.0
@@ -122,7 +122,6 @@ margin_bottom = 11.0
 hint_tooltip = "Starting time bank for each player (in seconds)."
 size_flags_horizontal = 3
 max_value = 999999.0
-value = 60.0
 
 [node name="IncrementPerTurnContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
@@ -143,7 +142,7 @@ margin_bottom = 11.0
 hint_tooltip = "Time added to each player's bank at the start of every turn (in seconds)."
 size_flags_horizontal = 3
 max_value = 999999.0
-value = 10.0
+value = 7.0
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 margin_top = 61.0

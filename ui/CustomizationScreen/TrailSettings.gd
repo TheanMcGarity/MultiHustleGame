@@ -150,7 +150,7 @@ func _build_flip_shape_button():
 	flip_option.add_item("none", FLIP_OPTION_NONE)
 	flip_option.add_item("all", FLIP_OPTION_ALL)
 	flip_option.add_item("random", FLIP_OPTION_RANDOM)
-	flip_option.hint_tooltip = "How to flip asymmetric particle shapes (arrow, triangle, heart, etc.). 'all' mirrors every particle horizontally; 'random' mirrors about half. Has no visible effect on symmetric shapes."
+	flip_option.hint_tooltip = "How asymmetric particle shapes are mirrored."
 	flip_row.add_child(flip_option)
 	parent.add_child(flip_row)
 	if row:
@@ -261,7 +261,6 @@ func _build_during_install_trigger():
 	during_install_button.name = "TriggerDuringInstall"
 	during_install_button.unique_name_in_owner = true
 	during_install_button.text = "  during install"
-	during_install_button.hint_tooltip = "Active while a character-specific install super is running (Wizard's Orb, Mutant's Beast, SwordGuy's 1000 Cuts, etc.)."
 	parent.add_child(during_install_button)
 	during_install_linger = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
 	during_install_linger.name = "TriggerDuringInstallLinger"

@@ -25,6 +25,13 @@ func init(member):
 #	if $"%AvatarIcon".texture == null:
 	Steam.getPlayerAvatar(Steam.AVATAR_MEDIUM, member.steam_id)
 	$"%Username".text = member.steam_name
+	# Apply any user's published Personalization name color (broadcast via
+	# Steam lobby member data) so every row tints with its owner's color.
+	var custom = Global.get_remote_name_color(member.steam_id)
+	if custom != null:
+		$"%Username".add_color_override("font_color", custom)
+	else:
+		$"%Username".remove_color_override("font_color")
 	self.member = member
 	$"%OwnerIcon".visible = false
 	$"%ChallengeButton".hide()
@@ -88,20 +95,36 @@ func _on_avatar_gui_input(event: InputEvent):
 		return
 	if member == null:
 		return
-	# Only the lobby owner can hand off ownership, and only to a *different*
-	# user.
-	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) != SteamHustle.STEAM_ID:
-		return
-	if member.steam_id == SteamHustle.STEAM_ID:
-		return
 	_show_owner_popup()
+
+const _ACTION_PROFILE = 0
+const _ACTION_MUTE = 1
+const _ACTION_BLOCK = 2
+const _ACTION_TRANSFER = 3
+const _ACTION_SET_BUSY = 4
 
 func _show_owner_popup():
 	if _owner_popup == null:
 		_owner_popup = PopupMenu.new()
-		_owner_popup.add_item("Transfer Ownership", 0)
 		_owner_popup.connect("id_pressed", self, "_on_owner_popup_id_pressed")
 		add_child(_owner_popup)
+	# Rebuild items each open — labels flip on mute/block/busy state, and
+	# the Transfer Ownership entry is only available to the lobby owner.
+	_owner_popup.clear()
+	if member.steam_id == SteamHustle.STEAM_ID:
+		# Self-row: only the busy-mode toggle. Profile/mute/block/transfer
+		# don't make sense pointed at yourself.
+		_owner_popup.add_item(
+			"Set Status: Idle" if Global.lobby_busy_mode else "Set Status: Busy",
+			_ACTION_SET_BUSY
+		)
+	else:
+		_owner_popup.add_item("Open Steam Profile", _ACTION_PROFILE)
+		_owner_popup.add_item("Unmute" if SteamLobby.is_muted(member.steam_id) else "Mute", _ACTION_MUTE)
+		_owner_popup.add_item("Unblock" if SteamLobby.is_blocked(member.steam_id) else "Block", _ACTION_BLOCK)
+		if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID:
+			_owner_popup.add_separator()
+			_owner_popup.add_item("Transfer Ownership", _ACTION_TRANSFER)
 	# Set position via rect_global_position and call popup() with no args —
 	# Popup.popup(Rect2) in 3.5 forces set_size(bounds.size), so passing a 0×0
 	# rect collapses the menu instead of letting it auto-size to its items.
@@ -110,5 +133,18 @@ func _show_owner_popup():
 	_owner_popup.popup()
 
 func _on_owner_popup_id_pressed(id: int):
-	if id == 0 and member != null:
-		Steam.setLobbyOwner(SteamLobby.LOBBY_ID, member.steam_id)
+	if member == null:
+		return
+	match id:
+		_ACTION_PROFILE:
+			Steam.activateGameOverlayToUser("steamid", member.steam_id)
+		_ACTION_MUTE:
+			SteamLobby.set_muted(member.steam_id, not SteamLobby.is_muted(member.steam_id))
+		_ACTION_BLOCK:
+			SteamLobby.set_blocked(member.steam_id, not SteamLobby.is_blocked(member.steam_id))
+		_ACTION_TRANSFER:
+			Steam.setLobbyOwner(SteamLobby.LOBBY_ID, member.steam_id)
+		_ACTION_SET_BUSY:
+			Global.lobby_busy_mode = not Global.lobby_busy_mode
+			Global.save_options()
+			SteamLobby.apply_busy_mode()

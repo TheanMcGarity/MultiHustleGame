@@ -195,7 +195,7 @@ unique_name_in_owner = true
 margin_left = 84.0
 margin_right = 248.0
 margin_bottom = 24.0
-hint_tooltip = "Mark this limb as absent on this sprite (e.g. character is partly off-screen, the limb is hidden, etc.)"
+hint_tooltip = "Mark this limb as absent on this sprite."
 text = "no limb on this sprite"
 
 [node name="Spacer" type="Control" parent="VBox/BodyRow/CenterCol/ButtonRow"]

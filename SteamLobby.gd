@@ -9,7 +9,7 @@ signal join_lobby_failed(reason)
 signal join_lobby_success()
 signal lobby_created()
 signal retrieved_lobby_members(members)
-signal chat_message_received(user, message)
+signal chat_message_received(user, message, scope)
 signal quit_on_rematch()
 signal received_match_settings()
 signal handshake_made()
@@ -150,6 +150,23 @@ func get_lobby_member(steam_id):
 func get_player_id(steam_id):
 	return Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "player_id")
 
+# Returns the steam_id of whoever's on side `player_id` in the local user's
+# current match — local user or opponent for fighters, or the spectated
+# pair when spectating. 0 if it can't be resolved.
+func steam_id_for_match_side(player_id: int) -> int:
+	if LOBBY_ID == 0:
+		return 0
+	if SPECTATING and SPECTATING_ID != 0:
+		var watched_side = get_player_id(SPECTATING_ID)
+		if watched_side == str(player_id):
+			return SPECTATING_ID
+		var opp_str = get_opponent(SPECTATING_ID)
+		return int(opp_str) if opp_str != "" else 0
+	# Fighter: our player_id matches us, the opposite side is OPPONENT_ID.
+	if Network.player_id == player_id:
+		return SteamHustle.STEAM_ID
+	return OPPONENT_ID
+
 func get_opponent(steam_id):
 	return Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "opponent_id")
 
@@ -243,7 +260,7 @@ func authenticate_with(steam_id):
 func decline_challenge():
 	var steam_id = CHALLENGER_STEAM_ID
 	_send_P2P_Packet(steam_id, {"challenge_declined": SteamHustle.STEAM_ID})
-	Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+	Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
 	CHALLENGER_STEAM_ID = 0
 
 func quit_match():
@@ -254,7 +271,7 @@ func quit_match():
 			_send_P2P_Packet(OPPONENT_ID, {
 				"match_quit": true
 			})
-		Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+		Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
 		Steam.setLobbyMemberData(LOBBY_ID, "character", "")
 		Steam.setLobbyMemberData(LOBBY_ID, "game_started", "false")
 		if REMATCHING_ID == 0:
@@ -281,6 +298,11 @@ func leave_Lobby() -> void:
 		REMATCHING_ID = 0
 		# Wipe the Steam lobby ID then display the default lobby ID and player list title
 		LOBBY_ID = 0
+		# Chat history is per-lobby; this is the only point where we actually
+		# severed the lobby connection (quit_match / exit_match_from_button do
+		# not call this), so clearing here keeps the buffer alive across match
+		# in/out toggles but drops it when the user really leaves the lobby.
+		clear_chat_history()
 
 		# Close session with all users
 		for MEMBER in LOBBY_MEMBERS:
@@ -304,17 +326,17 @@ func leave_Lobby() -> void:
 	AUTH_USERS.clear()
 	OPPONENT_ID = 0
 
-func send_chat_message(message: String) -> void:
-	# Get the entered chat message
+func send_chat_message(message: String, scope: String = "") -> void:
 	message = message.strip_edges()
-	# If there is even a message
-	if message.length() > 0:
-		# Pass the message to Steam
-		var SENT: bool = Steam.sendLobbyChatMsg(LOBBY_ID, message)
-		
-		# Was it sent successfully?
-		if not SENT:
-			print("ERROR: Chat message failed to send.")
+	if message.length() == 0:
+		return
+	# Always wrap outgoing messages in the versioned JSON envelope so receivers
+	# get a uniform shape. Receive side still falls back to raw text if the
+	# parse fails (old-patch clients sending unwrapped messages still work).
+	var payload = JSON.print({"v": 1, "text": message, "scope": scope})
+	var SENT: bool = Steam.sendLobbyChatMsg(LOBBY_ID, payload)
+	if not SENT:
+		print("ERROR: Chat message failed to send.")
 
 
 func spectate_forfeit(player_id):
@@ -380,9 +402,15 @@ func cancel_challenge():
 		_send_P2P_Packet(CHALLENGING_STEAM_ID, {"challenge_cancelled": SteamHustle.STEAM_ID})
 	CHALLENGING_STEAM_ID = 0
 	OPPONENT_ID = 0
-	Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+	Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
 
 func _receive_challenge(steam_id, match_settings):
+	# Blocked users get the same silent decline as a busy player would —
+	# they can't distinguish the reasons, so it's just "not available".
+	print("[block] _receive_challenge from ", steam_id, " is_blocked=", is_blocked(steam_id), " block_list=", Global.blocked_users)
+	if is_blocked(steam_id):
+		_send_P2P_Packet(steam_id, {"challenge_declined": SteamHustle.STEAM_ID})
+		return
 	if Steam.getLobbyMemberData(LOBBY_ID, SteamHustle.STEAM_ID, "status") != "idle":
 		_send_P2P_Packet(steam_id, {"player_busy": null})
 		return
@@ -393,6 +421,9 @@ func _receive_challenge(steam_id, match_settings):
 	emit_signal("received_challenge", CHALLENGER_STEAM_ID)
 
 func _receive_replay_challenge(steam_id, replay_data, challenger_side):
+	if is_blocked(steam_id):
+		_send_P2P_Packet(steam_id, {"replay_challenge_declined": SteamHustle.STEAM_ID})
+		return
 	if Steam.getLobbyMemberData(LOBBY_ID, SteamHustle.STEAM_ID, "status") != "idle":
 		_send_P2P_Packet(steam_id, {"player_busy": null})
 		return
@@ -420,7 +451,7 @@ func accept_replay_challenge():
 func decline_replay_challenge():
 	var steam_id = CHALLENGER_STEAM_ID
 	_send_P2P_Packet(steam_id, {"replay_challenge_declined": SteamHustle.STEAM_ID})
-	Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+	Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
 	CHALLENGER_STEAM_ID = 0
 	REPLAY_FULL_DATA = null
 	REPLAY_CHALLENGER_SIDE = 0
@@ -437,7 +468,7 @@ func decline_replay_challenge_with_reason(reason, detail=null):
 		"replay_decline_reason": reason,
 		"replay_decline_detail": detail,
 	})
-	Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+	Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
 	CHALLENGER_STEAM_ID = 0
 	REPLAY_FULL_DATA = null
 	REPLAY_CHALLENGER_SIDE = 0
@@ -459,7 +490,7 @@ func _setup_replay_game_vs(steam_id):
 func _on_challenge_declined(member_id):
 	if member_id != CHALLENGING_STEAM_ID:
 		return
-	Steam.setLobbyMemberData(LOBBY_ID, "status", "idle")
+	Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
 	emit_signal("challenge_declined")
 	SETTINGS_LOCKED = false
 	CHALLENGING_STEAM_ID = 0
@@ -584,6 +615,59 @@ func _read_P2P_Packet():
 			pass
 		if readable.has("request_match_settings"):
 			_send_P2P_Packet(readable.request_match_settings, {"match_settings_updated":MATCH_SETTINGS})
+		if readable.has("request_chat_history"):
+			# Only the lobby owner answers — keeps the source of truth clear
+			# and avoids every member shipping their (possibly truncated) view.
+			if LOBBY_OWNER == SteamHustle.STEAM_ID:
+				_send_P2P_Packet(readable.request_chat_history, {"chat_history_response": {
+					"lobby": lobby_chat_history,
+					"match": match_chat_history,
+				}})
+		if readable.has("chat_history_response"):
+			# Only honor the response if it came from the current lobby owner.
+			if PACKET_SENDER == LOBBY_OWNER:
+				var payload = readable.chat_history_response
+				if payload is Dictionary:
+					if payload.get("lobby") is Array:
+						# Merge: owner's snapshot is the canonical "before"
+						# portion; any live entries we already received during
+						# the gap go on the tail. Dedup against the recent
+						# window of the snapshot so a message that's in BOTH
+						# (owner saw it before snapshotting) doesn't dupe.
+						lobby_chat_history = _merge_history(payload.lobby, lobby_chat_history, CHAT_HISTORY_LOBBY_MAX)
+					if payload.get("match") is Dictionary:
+						# Same merge per match bucket. Local buckets the owner
+						# didn't send through are kept (rare — usually owner
+						# has everything).
+						for key in payload.match:
+							var owner_entries = payload.match[key]
+							var local_entries = match_chat_history.get(key, [])
+							if owner_entries is Array:
+								match_chat_history[key] = _merge_history(owner_entries, local_entries, CHAT_HISTORY_MATCH_MAX)
+					emit_signal("chat_history_synced")
+		if readable.has("request_match_history"):
+			# Only one of the two fighters in the match answers — they're the
+			# canonical record holders for it. Spectators don't reply (would
+			# echo a partial view).
+			var key = readable.get("match_key", "")
+			if key != "" and key == current_match_key() \
+					and get_status() == "fighting" \
+					and match_chat_history.has(key):
+				_send_P2P_Packet(readable.request_match_history, {"match_history_response": {
+					"match_key": key,
+					"entries": match_chat_history[key],
+				}})
+		if readable.has("match_history_response"):
+			# Trust only the host of the match we're currently spectating —
+			# anyone else replying is either stale or spoofing.
+			if PACKET_SENDER == SPECTATING_ID:
+				var payload = readable.match_history_response
+				if payload is Dictionary and payload.get("entries") is Array:
+					var key = str(payload.get("match_key", ""))
+					if key != "":
+						var local_entries = match_chat_history.get(key, [])
+						match_chat_history[key] = _merge_history(payload.entries, local_entries, CHAT_HISTORY_MATCH_MAX)
+						emit_signal("chat_history_synced")
 		if readable.has("message"):
 			if readable.message == "handshake":
 				emit_signal("handshake_made")
@@ -699,6 +783,9 @@ func _validate_Auth_Session(ticket: Dictionary, steam_id: int) -> void:
 				Global.reload()
 
 func _on_received_spectate_request(steam_id):
+	if is_blocked(steam_id):
+		_send_P2P_Packet(steam_id, {"spectate_declined": null})
+		return
 	if Steam.getLobbyMemberData(LOBBY_ID, SteamHustle.STEAM_ID, "status") == "fighting" and is_instance_valid(Network.game):
 		_add_spectator(steam_id)
 	else:
@@ -724,7 +811,7 @@ func _on_spectate_sync_timers(data):
 
 func _stop_spectating():
 	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "spectating_id", "")
-	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "status", "idle")
+	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "status", _idle_status())
 #	ReplayManager.init()
 	SPECTATING = false
 	SPECTATING_ID = 0
@@ -747,6 +834,10 @@ func _on_spectate_request_accepted(data):
 	SPECTATING_ID = data.spectate_accept
 	SPECTATOR_MATCH_DATA = data.match_data
 	ReplayManager.frames = data.replay
+	# Pull the match host's chat backlog so we see the conversation that
+	# happened in the match before we started spectating. Mirrors the
+	# lobby-join → request_chat_history flow.
+	request_match_history(SPECTATING_ID, current_match_key())
 	emit_signal("received_spectator_match_data", data.match_data)
 
 func _on_received_spectator_replay(replay):
@@ -766,12 +857,17 @@ func _setup_game_vs(steam_id):
 
 func _get_default_lobby_member_data():
 	return {
-		"status": "idle", # idle, fighting, busy, spectating
+		"status": _idle_status(), # idle, fighting, busy, spectating
 		"opponent_id": "",
 		"player_id": "",
 		"spectating_id": "",
 		"character": "",
-		"game_started": "false"
+		"game_started": "false",
+		# Local user's Personalization name-color tint, broadcast so other
+		# clients can render this user's name with the same color in their
+		# chat, lobby list, and healthbar. Empty string when the user hasn't
+		# customized (display sites fall back to default).
+		"name_color": Global.get_name_color().to_html(false) if Global.has_name_color() else "",
 	}
 
 # A user's information has changed
@@ -812,9 +908,17 @@ func _on_Lobby_Created(connect: int, lobby_id: int):
 	print("Allowing Steam to relay backup: " + str(RELAY))
 
 func _on_Lobby_Message(lobby_id: int, user: int, message: String, chat_type: int):
-	if lobby_id == LOBBY_ID:
-		emit_signal("chat_message_received", user, message)
-	pass
+	if lobby_id != LOBBY_ID:
+		return
+	# Try to unwrap the versioned JSON envelope; raw text (old-patch clients
+	# or new clients without a scope override) falls through with scope="".
+	var text = message
+	var scope = ""
+	var parsed = JSON.parse(message)
+	if parsed.error == OK and parsed.result is Dictionary and parsed.result.get("v") == 1:
+		text = str(parsed.result.get("text", ""))
+		scope = str(parsed.result.get("scope", ""))
+	emit_signal("chat_message_received", user, text, scope)
 
 func request_match_settings():
 	_send_P2P_Packet(LOBBY_OWNER, {"request_match_settings": SteamHustle.STEAM_ID})
@@ -849,7 +953,11 @@ func _on_Lobby_Joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		
 		if LOBBY_OWNER != SteamHustle.STEAM_ID:
 			request_match_settings()
-		
+			# Pull the owner's chat record so we see messages from before we
+			# joined. Owner holds the canonical history (and broadcasts it to
+			# new joiners) — same pattern as request_match_settings.
+			request_chat_history()
+
 		emit_signal("join_lobby_success")
 
 	# Else it failed for some reason
@@ -972,6 +1080,13 @@ func _send_P2P_Packet(target: int, packet_data: Dictionary) -> void:
 		Steam.sendP2PPacket(target, DATA, SEND_TYPE, CHANNEL)
 
 func _on_Lobby_Data_Update(success, lobby_id, member_id):
+	# Ownership transfers come through as lobby data updates; refresh the
+	# cached owner so request/response gates (`PACKET_SENDER == LOBBY_OWNER`)
+	# track the new owner instead of staying stuck on the original one.
+	if LOBBY_ID != 0:
+		var live_owner = Steam.getLobbyOwner(LOBBY_ID)
+		if live_owner != 0 and live_owner != LOBBY_OWNER:
+			LOBBY_OWNER = live_owner
 	emit_signal("lobby_data_update", success, lobby_id, member_id)
 
 func _on_P2P_Session_Connect_Fail(steamID: int, session_error: int) -> void:
@@ -1010,6 +1125,193 @@ func _on_P2P_Session_Connect_Fail(steamID: int, session_error: int) -> void:
 
 func get_status():
 	return Steam.getLobbyMemberData(LOBBY_ID, SteamHustle.STEAM_ID, "status")
+
+# Status to write whenever code wants to flip the user back to "available
+# for whatever's next" — respects the manual Do-Not-Disturb toggle in
+# Global.lobby_busy_mode so the user stays unchallengable across match
+# ends, challenge declines, etc.
+func _idle_status() -> String:
+	return "busy" if Global.lobby_busy_mode else "idle"
+
+# Apply Global.lobby_busy_mode to the current Steam status. Only flips when
+# we're not actively in a fighting / spectating state — those are owned by
+# the match flow and shouldn't be overridden.
+func apply_busy_mode():
+	if LOBBY_ID == 0:
+		return
+	var current = get_status()
+	if current == "idle" or current == "busy":
+		Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
+
+# --- Chat history (persists across Global.reload, cleared on full lobby leave)
+# Stored on the SteamLobby autoload because Main.tscn (and the Chat node) get
+# torn down when a player exits a match. Lobby chat lives in one bucket;
+# match chats are bucketed by a stable match_key so a spectator who first
+# joins a match later can replay everything that happened in it.
+const CHAT_HISTORY_LOBBY_MAX = 1000
+const CHAT_HISTORY_MATCH_MAX = 300
+var lobby_chat_history := []
+var match_chat_history := {}
+
+# Stable key for the match between two steam_ids, regardless of order.
+func match_key_for(a: int, b: int) -> String:
+	if a == 0 or b == 0:
+		return ""
+	if a < b:
+		return str(a) + "_" + str(b)
+	return str(b) + "_" + str(a)
+
+# Match the LOCAL user is currently in (fighting or spectating). "" if idle.
+func current_match_key() -> String:
+	if LOBBY_ID == 0:
+		return ""
+	var status = get_status()
+	if status == "fighting":
+		return match_key_for(SteamHustle.STEAM_ID, OPPONENT_ID)
+	if status == "spectating":
+		var spec_opp_str = Steam.getLobbyMemberData(LOBBY_ID, SPECTATING_ID, "opponent_id")
+		var spec_opp = int(spec_opp_str) if spec_opp_str != "" else 0
+		return match_key_for(SPECTATING_ID, spec_opp)
+	return ""
+
+# Match key the given user is currently in. "" for idle/busy or unknown.
+func match_key_for_user(steam_id: int) -> String:
+	if LOBBY_ID == 0:
+		return ""
+	var status = Steam.getLobbyMemberData(LOBBY_ID, steam_id, "status")
+	if status == "fighting":
+		var opp_str = Steam.getLobbyMemberData(LOBBY_ID, steam_id, "opponent_id")
+		var opp = int(opp_str) if opp_str != "" else 0
+		return match_key_for(steam_id, opp)
+	if status == "spectating":
+		var spec_str = Steam.getLobbyMemberData(LOBBY_ID, steam_id, "spectating_id")
+		var spec_id = int(spec_str) if spec_str != "" else 0
+		if spec_id == 0:
+			return ""
+		var spec_opp_str = Steam.getLobbyMemberData(LOBBY_ID, spec_id, "opponent_id")
+		var spec_opp = int(spec_opp_str) if spec_opp_str != "" else 0
+		return match_key_for(spec_id, spec_opp)
+	return ""
+
+# Append a chat entry. `scope` is "lobby" or "match"; for "match", `match_key`
+# names the bucket. Each bucket has its own ring-cap so a long-running lobby
+# can't grow memory unbounded.
+func record_chat_message(steam_id: int, message: String, scope: String, match_key: String = ""):
+	var entry = {"steam_id": steam_id, "message": message}
+	if scope == "match":
+		if match_key == "":
+			return
+		if !match_chat_history.has(match_key):
+			match_chat_history[match_key] = []
+		var arr = match_chat_history[match_key]
+		arr.append(entry)
+		while arr.size() > CHAT_HISTORY_MATCH_MAX:
+			arr.pop_front()
+	else:
+		lobby_chat_history.append(entry)
+		while lobby_chat_history.size() > CHAT_HISTORY_LOBBY_MAX:
+			lobby_chat_history.pop_front()
+
+func clear_chat_history():
+	lobby_chat_history.clear()
+	match_chat_history.clear()
+
+# Emitted when a freshly-joined user has received history from the owner —
+# Chat.gd reacts by rebuilding all containers from the (now-populated) record.
+signal chat_history_synced
+
+# Ask the lobby owner for their stored history so newly-joined users see
+# what was said before they arrived. Owner replies with their lobby record
+# plus all match buckets they're holding.
+func request_chat_history():
+	if LOBBY_OWNER == 0 or LOBBY_OWNER == SteamHustle.STEAM_ID:
+		return
+	_send_P2P_Packet(LOBBY_OWNER, {"request_chat_history": SteamHustle.STEAM_ID})
+
+# Spectator-side mirror — ask the match host (the user we're spectating)
+# for the in-progress match's chat backlog.
+func request_match_history(host_id: int, match_key: String):
+	if host_id == 0 or host_id == SteamHustle.STEAM_ID or match_key == "":
+		return
+	_send_P2P_Packet(host_id, {"request_match_history": SteamHustle.STEAM_ID, "match_key": match_key})
+
+# Dedup helper for the merge step. Two entries collide when their (steam_id,
+# message) pair matches. Limited to the last `window` entries of `history`
+# so a legitimate identical message from earlier in the session isn't
+# wrongly collapsed.
+func _history_contains_recent(history: Array, entry, window: int = 50) -> bool:
+	var start = int(max(0, history.size() - window))
+	for i in range(start, history.size()):
+		var h = history[i]
+		if h.steam_id == entry.steam_id and h.message == entry.message:
+			return true
+	return false
+
+# Merge `incoming` (owner's snapshot — older entries) with `local` (live
+# messages we received between request and response — newer entries),
+# preserving any local entries the owner hadn't seen yet. Caps the result.
+func _merge_history(incoming: Array, local: Array, cap: int) -> Array:
+	var merged = incoming.duplicate()
+	for entry in local:
+		if not _history_contains_recent(merged, entry, 50):
+			merged.append(entry)
+	while merged.size() > cap:
+		merged.pop_front()
+	return merged
+
+# --- Chat mute / block
+# Mute is transient (this session only); blocks are persisted in
+# Global.blocked_users. Both drop the user's messages from display and
+# from the chat history store.
+signal user_block_state_changed(steam_id)
+
+var muted_users := {}  # steam_id -> true; transient
+
+func is_muted(steam_id: int) -> bool:
+	return muted_users.has(steam_id)
+
+func set_muted(steam_id: int, on: bool):
+	if on:
+		muted_users[steam_id] = true
+	else:
+		muted_users.erase(steam_id)
+	emit_signal("user_block_state_changed", steam_id)
+
+func is_blocked(steam_id: int) -> bool:
+	# Compare against str(entry) so a stored int or string both register —
+	# JSON round-trips, hand-edits, or older saves could leave the list in
+	# either shape, and a quiet false here lets a blocked user slip through
+	# every gate (challenge / replay-challenge / spectate request).
+	if not (Global.blocked_users is Array):
+		return false
+	var as_str = str(steam_id)
+	for entry in Global.blocked_users:
+		if str(entry) == as_str:
+			return true
+	return false
+
+func set_blocked(steam_id: int, on: bool):
+	var key = str(steam_id)
+	print("[block] set_blocked steam_id=", steam_id, " key=", key, " on=", on, " before=", Global.blocked_users)
+	if on:
+		if not is_blocked(steam_id):
+			Global.blocked_users.append(key)
+	else:
+		# Erase any entry that stringifies to the same id, regardless of how
+		# it was stored (str vs int) — paired with the loose is_blocked check.
+		var i = 0
+		while i < Global.blocked_users.size():
+			if str(Global.blocked_users[i]) == key:
+				Global.blocked_users.remove(i)
+			else:
+				i += 1
+	Global.save_options()
+	print("[block] set_blocked after=", Global.blocked_users)
+	emit_signal("user_block_state_changed", steam_id)
+
+# True if any silencing (mute or block) is active for this user.
+func is_silenced(steam_id: int) -> bool:
+	return is_muted(steam_id) or is_blocked(steam_id)
 
 func can_get_messages_from_user(steam_id):
 	if steam_id == SteamHustle.STEAM_ID:

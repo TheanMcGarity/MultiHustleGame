@@ -686,12 +686,14 @@ func activate(refresh=true):
 #	reset_prediction()
 #	_get_opposite_buttons().reset_prediction()
 	if is_instance_valid(fighter):
-		# get_displayed_di_scaling does the lookahead-by-one AND rescales so
-		# "1.0x" reads as the minimum DI that ever actually applies to a hit
-		# (the combo_count=1 floor — neutral hits all start there because of
-		# the pre-_enter combo_count increment). No more "1.0x" → "1.3x"
-		# discontinuity when a combo begins.
-		$"%DI".set_label("DI" + " x%.1f" % fighter.get_displayed_di_scaling())
+		# Show the raw scaling only when being comboed — otherwise the "x1.3"
+		# the combo_count=1 floor would show in neutral reads as misleading
+		# (no DI is ever actually applied with combo_count=0 since the
+		# pre-_enter increment guarantees a hit starts at combo_count=1).
+		if fighter.opponent and fighter.opponent.combo_count > 0:
+			$"%DI".set_label("DI" + " x%.1f" % float(fighter.get_di_scaling(false, 1)))
+		else:
+			$"%DI".set_label("DI")
 		if is_instance_valid(game) and game.show_last_di_state:
 			$"%DI".set_last_di(fighter.current_di)
 		else:

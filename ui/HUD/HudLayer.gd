@@ -122,6 +122,45 @@ func init(game):
 			$"%P1Username".text = game.match_data.user_data.p1
 		if game.match_data.user_data.has("p2"):
 			$"%P2Username".text = game.match_data.user_data.p2
+	# Personalization name-color: in Steam matches, each side's color comes
+	# from that side's published lobby member data so both fighters render
+	# in their own picked color (including for spectators). In legacy MP /
+	# SP / replay there's no broadcast channel, so just color the local
+	# user's side from Global.
+	$"%P1Username".remove_color_override("font_color")
+	$"%P2Username".remove_color_override("font_color")
+	# Saved replays bring their own color snapshot in user_data — that's the
+	# source of truth for replay playback (live lobby data may not exist
+	# anymore). Prefer it over the live lookup, fall back to live for matches
+	# where it wasn't recorded (older replays).
+	var ud = game.match_data.get("user_data", {}) if game.match_data else {}
+	var p1_color = null
+	var p2_color = null
+	if ud.get("p1_color") is String and ud.p1_color != "":
+		p1_color = Color("#" + ud.p1_color)
+	if ud.get("p2_color") is String and ud.p2_color != "":
+		p2_color = Color("#" + ud.p2_color)
+	if p1_color == null or p2_color == null:
+		if Network.steam:
+			var p1_steam = SteamLobby.steam_id_for_match_side(1)
+			var p2_steam = SteamLobby.steam_id_for_match_side(2)
+			if p1_color == null and p1_steam != 0:
+				p1_color = Global.get_remote_name_color(p1_steam)
+			if p2_color == null and p2_steam != 0:
+				p2_color = Global.get_remote_name_color(p2_steam)
+		elif !SteamLobby.SPECTATING and Global.has_name_color():
+			# Network.player_id defaults to 2 and is only set in actual MP
+			# setup paths. Treat non-multiplayer as "you are P1" so vs-CPU
+			# shows the user's color on their character.
+			var my_side = Network.player_id if Network.multiplayer_active else 1
+			if my_side == 1 and p1_color == null:
+				p1_color = Global.get_name_color()
+			elif my_side == 2 and p2_color == null:
+				p2_color = Global.get_name_color()
+	if p1_color != null:
+		$"%P1Username".add_color_override("font_color", p1_color)
+	if p2_color != null:
+		$"%P2Username".add_color_override("font_color", p2_color)
 	
 	$"%P1ShowStyle".set_pressed_no_signal(true)
 	$"%P2ShowStyle".set_pressed_no_signal(true)

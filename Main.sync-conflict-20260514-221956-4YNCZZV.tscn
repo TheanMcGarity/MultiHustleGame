@@ -2746,7 +2746,7 @@ size_flags_vertical = 3
 [node name="CustomNameLabel" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
 margin_right = 220.0
 margin_bottom = 11.0
-text = "Legacy Multiplayer/Character Name"
+text = "Legacy Multiplayer Name"
 
 [node name="CustomNameRow" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
 margin_top = 12.0
@@ -2757,6 +2757,7 @@ margin_bottom = 24.0
 unique_name_in_owner = true
 margin_right = 190.0
 margin_bottom = 12.0
+hint_tooltip = "Used in legacy multiplayer and singleplayer. Leave blank for the default."
 size_flags_horizontal = 3
 
 [node name="CustomNameReset" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer/CustomNameRow"]
