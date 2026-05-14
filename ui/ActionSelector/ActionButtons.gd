@@ -686,13 +686,12 @@ func activate(refresh=true):
 #	reset_prediction()
 #	_get_opposite_buttons().reset_prediction()
 	if is_instance_valid(fighter):
-		# Lookahead=1 mid-combo so the label shows what DI scaling would
-		# actually apply to the next incoming hit — combo_count increments
-		# before the hurt state reads DI, so without the lookahead the
-		# picker trails one hit behind. Outside of an active combo there's
-		# no "next combo hit" to predict; just show base 1.0x.
-		var di_lookahead = 1 if (fighter.opponent and fighter.opponent.combo_count > 0) else 0
-		$"%DI".set_label("DI" + " x%.1f" % float(fighter.get_di_scaling(false, di_lookahead)))
+		# get_displayed_di_scaling does the lookahead-by-one AND rescales so
+		# "1.0x" reads as the minimum DI that ever actually applies to a hit
+		# (the combo_count=1 floor — neutral hits all start there because of
+		# the pre-_enter combo_count increment). No more "1.0x" → "1.3x"
+		# discontinuity when a combo begins.
+		$"%DI".set_label("DI" + " x%.1f" % fighter.get_displayed_di_scaling())
 		if is_instance_valid(game) and game.show_last_di_state:
 			$"%DI".set_last_di(fighter.current_di)
 		else:

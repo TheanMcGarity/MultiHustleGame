@@ -37,10 +37,10 @@ var workshop_preview_image: Image = null
 
 var hitspark_scene = null
 
-const AURA_SLOT_COUNT = 3
+const AURA_SLOT_COUNT = 2
 var current_aura_slot = 0
-var aura_show = [false, false, false]
-var aura_settings_cache = [null, null, null]
+var aura_show = [false, false]
+var aura_settings_cache = [null, null]
 var aura_slot_tabs: Tabs = null
 var copy_aura_button: Button = null
 var paste_aura_button: Button = null

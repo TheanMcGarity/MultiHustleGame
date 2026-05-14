@@ -35,13 +35,12 @@ func swap_left_right_limb(name: String) -> String:
 		return "Left" + name.substr(5)
 	return name
 
-# Caps on internal particle count when expanding the aura array. Up to 3
-# single-limb auras and up to 6 internal particles total (every slot could be
-# a pair attach, so 3 slots × 2 limbs = 6). Anyone trying to stack >3
-# single-limb auras will have the extras silently ignored — they need pair
-# attaches (Hands/Feet) to actually use their later slots.
-const MAX_AURA_SINGLES = 3
-const MAX_AURA_INTERNAL = 6
+# Caps on internal particle count when expanding the aura array. Up to 2
+# single-limb auras and up to 4 internal particles total. Anyone trying to
+# stack >2 single-limb auras will have the extras silently ignored — they
+# need pair attaches (Hands/Feet) to actually use their later slots.
+const MAX_AURA_SINGLES = 2
+const MAX_AURA_INTERNAL = 4
 
 # Returns true if the attach_limb string spawns a pair of particles.
 func is_pair_attach(attach_limb: String) -> bool:
