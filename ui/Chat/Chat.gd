@@ -237,6 +237,19 @@ func _active_category() -> String:
 func _container_for(category):
 	return match_container if category == "match" else $"%MessageContainer"
 
+# Only auto-scroll a chat scroll container to its bottom when the user is
+# already pinned there (within SCROLL_STICK_PX). If they've scrolled up to
+# read history, a new message shouldn't yank them back down.
+const SCROLL_STICK_PX = 5
+
+func _at_bottom(scroll: ScrollContainer) -> bool:
+	if scroll == null:
+		return true
+	var sb = scroll.get_v_scrollbar()
+	if sb == null:
+		return true
+	return sb.value + sb.page >= sb.max_value - SCROLL_STICK_PX
+
 func _refresh_tab_titles():
 	$"%Tabs".set_tab_title(TAB_MATCH, ("*" if unread_match else "") + TAB_TITLES[TAB_MATCH])
 	$"%Tabs".set_tab_title(TAB_LOBBY, ("*" if unread_lobby else "") + TAB_TITLES[TAB_LOBBY])
@@ -308,12 +321,14 @@ func on_chat_message_received(player_id: int, message: String):
 	node.fit_content_height = true
 	if !(player_id == Network.player_id):
 		play_chat_sound()
+	var stick = _at_bottom($"%ScrollContainer")
 	$"%MessageContainer".call_deferred("add_child", node)
 	if $"%MessageContainer".get_child_count() + 1 > MAX_LINES:
 		$"%MessageContainer".call_deferred("remove_child", $"%MessageContainer".get_child(0))
 	yield(get_tree(), 'idle_frame')
 	yield(get_tree(), 'idle_frame')
-	$"%ScrollContainer".scroll_vertical = 10000000000000000
+	if stick:
+		$"%ScrollContainer".scroll_vertical = 10000000000000000
 
 func god_message(message: String):
 	# Respect the chat-wide mute toggle for the join/leave + system notice
@@ -325,10 +340,12 @@ func god_message(message: String):
 	node.bbcode_enabled = true
 	node.append_bbcode(text)
 	node.fit_content_height = true
+	var stick = _at_bottom(_active_scroll())
 	_container_for(_active_category()).call_deferred("add_child", node)
 	yield(get_tree(), 'idle_frame')
 	yield(get_tree(), 'idle_frame')
-	_active_scroll().scroll_vertical = 10000000000000000
+	if stick:
+		_active_scroll().scroll_vertical = 10000000000000000
 
 func play_chat_sound():
 	if !is_muted():
@@ -392,13 +409,42 @@ func _rebuild_player_list():
 		_known_match_spectators.clear()
 		_known_spectators_match_key = ""
 		return
+	# Players tab is match-scoped: only show the fighters of the current
+	# match + their spectators (same set chat messages route through).
+	# Reuses the existing can_get_messages_from_user gate so this list
+	# matches who you'd actually see in match chat.
+	# Pin p1 to row 1, p2 to row 2, and — if the local user is spectating
+	# this match — slot them in at row 3 ahead of the rest. Other
+	# spectators keep their natural LOBBY_MEMBERS order below.
+	var p1_id = SteamLobby.steam_id_for_match_side(1)
+	var p2_id = SteamLobby.steam_id_for_match_side(2)
+	var local_id = SteamHustle.STEAM_ID
+	var p1_member = null
+	var p2_member = null
+	var local_member = null
+	var rest = []
 	for member in SteamLobby.LOBBY_MEMBERS:
-		# Players tab is match-scoped: only show the fighters of the current
-		# match + their spectators (same set chat messages route through).
-		# Reuses the existing can_get_messages_from_user gate so this list
-		# matches who you'd actually see in match chat.
 		if not SteamLobby.can_get_messages_from_user(member.steam_id):
 			continue
+		if p1_member == null and member.steam_id == p1_id:
+			p1_member = member
+		elif p2_member == null and member.steam_id == p2_id:
+			p2_member = member
+		elif local_member == null and member.steam_id == local_id \
+				and local_id != p1_id and local_id != p2_id:
+			local_member = member
+		else:
+			rest.append(member)
+	var ordered = []
+	if p1_member != null:
+		ordered.append(p1_member)
+	if p2_member != null:
+		ordered.append(p2_member)
+	if local_member != null:
+		ordered.append(local_member)
+	for m in rest:
+		ordered.append(m)
+	for member in ordered:
 		var btn = Button.new()
 		var label = member.steam_name
 		if SteamLobby.is_blocked(member.steam_id):
@@ -409,6 +455,7 @@ func _rebuild_player_list():
 		btn.flat = true
 		btn.clip_text = true
 		btn.align = Button.ALIGN_LEFT
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		btn.add_color_override("font_color", _player_list_color(member.steam_id))
 		btn.connect("pressed", self, "_on_player_list_button_pressed", [member.steam_id, btn])
 		players_container.add_child(btn)
@@ -476,6 +523,21 @@ func _on_chat_meta_clicked(meta):
 		return
 	_show_user_actions_popup(steam_id, get_global_mouse_position())
 
+func _on_chat_meta_hover_started(_meta, label):
+	if is_instance_valid(label):
+		label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		# Show the underline only while hovered so the name reads as a link.
+		# meta_underlined is the property RichTextLabel uses to decide whether
+		# [url] regions get an underline; flipping it here applies to the
+		# whole label, but since we only have one [url] (the sender's name)
+		# per message that's the desired scope.
+		label.meta_underlined = true
+
+func _on_chat_meta_hover_ended(_meta, label):
+	if is_instance_valid(label):
+		label.mouse_default_cursor_shape = Control.CURSOR_ARROW
+		label.meta_underlined = false
+
 func _on_player_list_button_pressed(steam_id: int, src_btn: Button):
 	var pos = src_btn.get_global_rect().position + Vector2(0, src_btn.get_global_rect().size.y)
 	_show_user_actions_popup(steam_id, pos)
@@ -489,6 +551,7 @@ func _show_user_actions_popup(steam_id: int, global_pos: Vector2):
 		return
 	if _user_actions_popup == null:
 		_user_actions_popup = PopupMenu.new()
+		_user_actions_popup.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		_user_actions_popup.connect("id_pressed", self, "_on_user_actions_popup_id_pressed")
 		add_child(_user_actions_popup)
 	_user_actions_target = steam_id
@@ -527,6 +590,11 @@ func _render_steam_message(steam_id: int, message: String, category: String, sil
 	node.append_bbcode(text)
 	node.fit_content_height = true
 	node.connect("meta_clicked", self, "_on_chat_meta_clicked")
+	# Pointing-hand on hover over the username [url] meta so it reads as
+	# clickable. meta_hover_started/ended fire when the mouse crosses a
+	# [url] region; we flip the whole label's cursor for the duration.
+	node.connect("meta_hover_started", self, "_on_chat_meta_hover_started", [node])
+	node.connect("meta_hover_ended", self, "_on_chat_meta_hover_ended", [node])
 	var container = _container_for(category)
 	# Defensive dedup — if a recent child has the same (steam_id, message)
 	# meta, this is a double-render (e.g. a state-change rebuild firing
@@ -544,6 +612,10 @@ func _render_steam_message(steam_id: int, message: String, category: String, sil
 				return
 	node.set_meta("chat_steam_id", steam_id)
 	node.set_meta("chat_message", message)
+	# Capture stickiness BEFORE the add_child — once the container grows, the
+	# scrollbar's max_value shifts and the "are we at the bottom" check would
+	# read against the new content.
+	var stick = _at_bottom(_active_scroll())
 	# Always immediate add_child. call_deferred raced with the rebuild path
 	# (state change clears the container before the deferred add resolves).
 	container.add_child(node)
@@ -562,7 +634,7 @@ func _render_steam_message(steam_id: int, message: String, category: String, sil
 		_refresh_tab_titles()
 	yield(get_tree(), 'idle_frame')
 	yield(get_tree(), 'idle_frame')
-	if is_active:
+	if is_active and stick:
 		_active_scroll().scroll_vertical = 10000000000000000
 
 func _replay_chat_history():
