@@ -64,6 +64,13 @@ const PARRY_KNOCKBACK_DIVISOR = "3"
 
 const PARRY_COMBO_SCALING = "0.85"
 var parry_combo_scaling = PARRY_COMBO_SCALING
+# Separate combo-damage scaling applied after parrying a Burst specifically.
+# Burst parries route through their own flag so this can be tuned
+# independently of the regular parry_combo_scaling — useful when Burst
+# parry needs to feel different from a normal hit parry (default mirrors
+# the regular scaling so existing balance is unchanged out of the box).
+const BURST_PARRY_COMBO_SCALING = "0.85"
+var burst_parry_combo_scaling = BURST_PARRY_COMBO_SCALING
 const PARRY_GROUNDED_KNOCKBACK_DIVISOR = "1.5"
 const PUSH_BLOCK_FORCE = "-10"
 const PUSH_BLOCK_DIST = "220"
@@ -461,6 +468,10 @@ var in_blockstring = false
 var brace_enabled = false
 
 var parry_combo = false
+# Mirror of parry_combo, but set only when the parried hit was a Burst.
+# Combo_stale_damage checks this first so burst_parry_combo_scaling
+# applies in place of parry_combo_scaling for the rest of the combo.
+var parried_burst_combo = false
 
 var feinting = false
 var clashing = false
@@ -1028,7 +1039,7 @@ func can_unlock_achievements():
 func _ready():
 	sprite.animation = "Wait"
 	state_variables.append_array(
-		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "combo_proration_ready", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_projectiles_active_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick", "style_aura_install_super_tick", "style_aura_manual_action_pending", "style_aura_in_manual_state"]
+		["current_di", "current_nudge", "got_blocked", "super_meter_used_recently", "super_meter_grace_ticks", "parry_combo", "parried_burst_combo", "busy", "air_option_bar", "air_option_bar_max", "blocked_last_turn", "burst_cancel_combo", "in_blockstring", "knockback_taken_modifier", "block_used_air_movement", "last_parry_tick", "grounded_last_frame", "wakeup_throw_immunity_ticks", "sadness_immunity_ticks", "blockstun_ticks", "guard_broken_this_turn", "counterhit_this_turn", "gained_whiff_meter", "feint_parriable", "brace_enabled", "turn_frames", "last_turn_block", "parry_chip_divisor", "parry_knockback_divisor", "feinted_last", "hit_out_of_brace", "brace_effect_applied_yet", "braced_attack", "blocked_hitbox_plus_frames", "visible_combo_count", "melee_attack_combo_scaling_applied", "projectile_hit_cancelling", "used_buffer", "max_di_scaling", "min_di_scaling", "last_input", "penalty_buffer", "buffered_input", "use_buffer", "was_my_turn", "combo_supers", "penalty_ticks", "can_nudge", "buffer_moved_backward", "wall_slams", "moved_backward", "moved_forward", "buffer_moved_forward", "used_air_dodge", "refresh_prediction", "clipping_wall", "has_hyper_armor", "hit_during_armor", "colliding_with_opponent", "clashing", "last_pos", "penalty", "hitstun_decay_combo_count", "touching_wall", "feinting", "feints", "lowest_tick", "is_color_active", "blocked_last_hit", "combo_proration", "combo_proration_ready", "state_changed","nudge_amount", "initiative_effect", "reverse_state", "combo_moves_used", "parried_last_state", "initiative", "last_vel", "last_aerial_vel", "trail_hp", "always_perfect_parry", "parried", "got_parried", "parried_this_frame", "grounded_hits_taken", "on_the_ground", "hitlag_applied", "combo_damage", "burst_enabled", "di_enabled", "turbo_mode", "infinite_resources", "one_hit_ko", "dummy_interruptable", "air_movements_left", "super_meter", "supers_available", "parried", "parried_hitboxes", "burst_meter", "bursts_available", "style_aura_got_hit_tick", "style_aura_projectile_spawn_tick", "style_aura_projectiles_active_tick", "style_aura_combo_active_tick", "style_aura_being_comboed_tick", "style_aura_melee_attack_tick", "style_aura_burst_tick", "style_aura_perfect_parry_tick", "style_aura_install_super_tick", "style_aura_manual_action_pending", "style_aura_in_manual_state"]
 	)
 	add_to_group("Fighter")
 	connect("got_hit", self, "on_got_hit")
@@ -1291,6 +1302,7 @@ func reset_combo():
 	opponent.braced_attack = false
 	opponent.brace_effect_applied_yet = false
 	parry_combo = false
+	parried_burst_combo = false
 	if lose_one_air_option_in_neutral and num_air_movements == air_movements_left:
 			refresh_air_movements()
 
@@ -1722,7 +1734,12 @@ func block_hitbox(hitbox, force_parry=false, force_block=false, ignore_guard_bre
 			last_parry_tick = current_tick
 			style_aura_perfect_parry_tick = current_tick
 			if !hitbox.block_punishable and !projectile:
-				parry_combo = true
+				# Burst parries route to their own combo-scaling flag so
+				# burst_parry_combo_scaling can be tuned independently.
+				if hitbox.hitbox_type == Hitbox.HitboxType.Burst:
+					parried_burst_combo = true
+				else:
+					parry_combo = true
 		else:
 			blocked_last_hit = true
 			blocked_last_turn = true
@@ -1970,8 +1987,13 @@ func take_damage(damage:int, minimum=0, meter_gain_modifier="1.0", combo_scaling
 	damage = Utils.int_max(combo_stale_damage(damage, combo_scaling_offset, self_hit), 1)
 	damage = Utils.int_max(damage, minimum)
 	damage = Utils.int_max(guts_stale_damage(damage), 1)
-	if !self_hit and opponent.parry_combo:
-		damage = fixed.round(fixed.mul(str(damage), parry_combo_scaling))
+	if !self_hit:
+		# burst_parry_combo wins over parry_combo when both could in
+		# theory be set — but the parry path only sets one of the two.
+		if opponent.parried_burst_combo:
+			damage = fixed.round(fixed.mul(str(damage), burst_parry_combo_scaling))
+		elif opponent.parry_combo:
+			damage = fixed.round(fixed.mul(str(damage), parry_combo_scaling))
 	damage = fixed.round(fixed.mul(str(damage), get_penalty_damage_modifier()))
 	var meter_gain = fixed.round(fixed.mul(str(damage / DAMAGE_SUPER_GAIN_DIVISOR), meter_gain_modifier))
 

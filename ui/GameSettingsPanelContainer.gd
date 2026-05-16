@@ -39,6 +39,7 @@ onready var settings_nodes = {
 	"asymmetrical_clashing": $"%AsymmetricalClashing",
 	"global_damage_modifier": $"%DamageModifier",
 	"parry_combo_scaling": $"%ParryComboScalingMeter",
+	"burst_parry_combo_scaling": $"%BurstParryComboScalingMeter",
 	"prediction_enabled": $"%PredictionEnabled",
 	"has_ceiling": $"%CeilingEnabled",
 	"global_hitstun_modifier": $"%HitstunModifier",
@@ -71,6 +72,7 @@ var float_to_string = [
 	"p1_starting_meter",
 	"p2_starting_meter",
 	"parry_combo_scaling",
+	"burst_parry_combo_scaling",
 ]
 
 func _ready():
@@ -384,6 +386,10 @@ func _on_GravityModifier_value_changed(value):
 
 func _on_ParryComboScalingMeter_value_changed(value):
 	$"%ParryComboScalingValueLabel".text = str(value)
+
+
+func _on_BurstParryComboScalingMeter_value_changed(value):
+	$"%BurstParryComboScalingValueLabel".text = str(value)
 
 
 func _on_StartingMeter_value_changed(value):
