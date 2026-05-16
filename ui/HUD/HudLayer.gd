@@ -75,7 +75,7 @@ var p2_prev_super = 0
 # doesn't spam lobby_data_update on every client.
 var _last_published_hp_pct := -1
 var _last_hp_publish_msec := 0
-const HP_PUBLISH_MIN_INTERVAL_MS = 250
+const HP_PUBLISH_MIN_INTERVAL_MS = 3000
 
 func _ready():
 	hide()
