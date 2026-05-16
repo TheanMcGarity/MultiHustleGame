@@ -579,7 +579,14 @@ func setup_game_deferred(singleplayer, data):
 				# max() explicit so the rule is visible at the call site.
 				var starting = int(data.get("increment_starting_time", 60))
 				var inc = int(data.get("increment_per_turn", 10))
-				ui_layer.set_turn_time(int(max(starting, inc)), false)
+				var bank = int(max(starting, inc))
+				# Cap to increment_max_time if set (in minutes; 0 = no cap).
+				# Matches the per-turn cap inside _apply_increment so the
+				# initial bank can't sit above the running limit.
+				var max_minutes = int(data.get("increment_max_time", 0))
+				if max_minutes > 0:
+					bank = int(min(bank, max_minutes * 60))
+				ui_layer.set_turn_time(bank, false)
 			elif data.has("turn_time"):
 				ui_layer.set_turn_time(data.turn_time, timer_mode == "chess")
 		else:

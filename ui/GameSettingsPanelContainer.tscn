@@ -144,6 +144,25 @@ size_flags_horizontal = 3
 max_value = 999999.0
 value = 7.0
 
+[node name="IncrementMaxTimeContainer" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_right = 155.0
+margin_bottom = 12.0
+
+[node name="IncrementMaxTimeLabel" type="Label" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/IncrementMaxTimeContainer"]
+margin_right = 93.0
+margin_bottom = 11.0
+text = "Max Time (min)"
+
+[node name="IncrementMaxTime" type="SpinBox" parent="VBoxContainer/ScrollContainer/GameSettingsContainer/IncrementMaxTimeContainer"]
+unique_name_in_owner = true
+margin_left = 94.0
+margin_right = 155.0
+margin_bottom = 11.0
+hint_tooltip = "Cap on each player's bank in minutes; 0 = no cap."
+size_flags_horizontal = 3
+max_value = 999999.0
+
 [node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 margin_top = 61.0
 margin_right = 155.0

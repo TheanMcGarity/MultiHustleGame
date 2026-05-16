@@ -34,6 +34,7 @@ onready var settings_nodes = {
 	"timer_mode": $"%TimerMode",
 	"increment_starting_time": $"%IncrementStarting",
 	"increment_per_turn": $"%IncrementPerTurn",
+	"increment_max_time": $"%IncrementMaxTime",
 	"extremely_turbo_mode": $"%ExtremelyTurboMode",
 	"clashing_enabled": $"%ClashingEnabled",
 	"asymmetrical_clashing": $"%AsymmetricalClashing",
@@ -210,6 +211,7 @@ func update_menu():
 	$"%TurnMinLengthContainer".visible = mode == "chess"
 	$"%IncrementStartingContainer".visible = mode == "increment"
 	$"%IncrementPerTurnContainer".visible = mode == "increment"
+	$"%IncrementMaxTimeContainer".visible = mode == "increment"
 	if mode == "chess":
 		$"%TurnLengthLabel".text = "Turn Clock (min)"
 	else:

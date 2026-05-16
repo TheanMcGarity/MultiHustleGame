@@ -1125,6 +1125,13 @@ func _apply_increment(player_id):
 		bank = inc
 	else:
 		bank = bank + inc
+	# Hard cap on accumulated bank. Setting stored in minutes for the panel,
+	# applied in seconds here. 0 means uncapped (the default).
+	var max_minutes = float(game.match_data.get("increment_max_time", 0))
+	if max_minutes > 0:
+		var max_sec = max_minutes * 60.0
+		if bank > max_sec:
+			bank = max_sec
 	timer.start(bank)
 func pause():
 	$"%PausePanel".visible = !$"%PausePanel".visible
