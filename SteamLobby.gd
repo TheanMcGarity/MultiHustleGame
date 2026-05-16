@@ -1546,11 +1546,21 @@ func _user_left_lobby(steam_id):
 	Network.player_disconnected(steam_id)
 	pass
 
+var _last_published_match_settings_json := ""
+
 func update_match_settings(match_settings, id=0):
 	MATCH_SETTINGS = match_settings
 	print("updating settings")
 	if am_i_lobby_owner():
-		Steam.setLobbyData(LOBBY_ID, "match_settings_json", JSON.print(match_settings))
+		# Dedup writes — _on_lobby_data_update refires update_lobby_data
+		# on every lobby_data_update event, and our own setLobbyData
+		# triggers one, so without this guard we get a tight write loop
+		# that hammers the lobby and clobbers transient state like
+		# busy/idle button presses.
+		var serialized = JSON.print(match_settings)
+		if serialized != _last_published_match_settings_json:
+			_last_published_match_settings_json = serialized
+			Steam.setLobbyData(LOBBY_ID, "match_settings_json", serialized)
 	_send_P2P_Packet(id, {"match_settings_updated": match_settings})
 	pass
 
