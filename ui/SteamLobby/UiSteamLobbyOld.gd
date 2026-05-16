@@ -36,6 +36,17 @@ func _ready():
 	$"%SidePickerCancelButton".connect("pressed", self, "_on_side_picker_cancel_pressed")
 #	user_list.connect("item_selected", self, "_on_user_selected")
 	$"%GameSettingsPanelContainer".init(false)
+	# SteamLobby.tscn ships with placeholder LobbyMatch/LobbyUser nodes
+	# as design-time dummies. Without removing them here, any code that
+	# iterates MatchList/UserList children before the first rebuild (e.g.
+	# the cl_port `_process` hitting `game.p1.character`) NPEs on the
+	# uninit'd dummies. Previously the rebuild on this line did it for
+	# us — but now the rebuild gates on is_visible_in_tree (false at
+	# _ready time), so we clean up explicitly first.
+	for child in $"%UserList".get_children():
+		child.free()
+	for child in $"%MatchList".get_children():
+		child.free()
 	_on_retrieved_lobby_members(SteamLobby.LOBBY_MEMBERS)
 	yield(get_tree(), "idle_frame")
 	handshake_made = false
