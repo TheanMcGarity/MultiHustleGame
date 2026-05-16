@@ -170,14 +170,6 @@ func init():
 		$"%GameSettingsPanelContainer".init(false)
 		$"%GameSettingsPanelContainer".disable()
 		if !handshake_made:
-			# Always show the loading screen and ALWAYS wait on the
-			# received_match_settings signal — never trust MATCH_SETTINGS
-			# as "already in hand" since the fast-path may have seeded
-			# it with stale data from a previous owner. The fast-path
-			# emit is call_deferred so it fires next idle frame (after
-			# this yield registers), so new-patch joiners still get a
-			# quick flash. No timeout — if the owner never responds the
-			# user can hit Back to leave.
 			$"%LoadingLobbyRect".show()
 			yield(SteamLobby, "received_match_settings")
 			$"%LoadingLobbyRect".hide()
