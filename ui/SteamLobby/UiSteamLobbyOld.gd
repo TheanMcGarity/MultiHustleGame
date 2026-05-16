@@ -177,6 +177,12 @@ func init():
 	else:
 		$"%GameSettingsPanelContainer".init(false)
 		$"%GameSettingsPanelContainer"._on_received_match_settings(SteamLobby.MATCH_SETTINGS, true)
+		# Publish current settings to lobby data so fresh-lobby joiners
+		# can fast-path past the P2P request stall. Without this, the
+		# owner only writes on the first slider change, so joining a
+		# lobby where the owner hasn't touched settings yet falls back
+		# to the slow P2P round-trip.
+		$"%GameSettingsPanelContainer".update_lobby_data()
 	$"%RoomCode".text = SteamLobby.get_lobby_code()
 	$"%RoomCode".modulate = Color(SteamLobby.get_lobby_code())
 	if Steam.getLobbyData(SteamLobby.LOBBY_ID, "version") != Global.VERSION:
