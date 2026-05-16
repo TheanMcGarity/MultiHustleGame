@@ -180,12 +180,14 @@ func init():
 			# it with stale data from a previous owner. The fast-path
 			# emit is call_deferred so it fires next idle frame (after
 			# this yield registers), so new-patch joiners still get a
-			# quick flash. The 3s timer is a safety backstop so a missed
-			# response doesn't strand the user on the loading screen.
+			# quick flash. The timer is a safety backstop so a missed
+			# response doesn't strand the user on the loading screen —
+			# generous (10s) because the P2P round-trip on old-patch
+			# owners can take 3–5s after NAT punch.
 			$"%LoadingLobbyRect".show()
 			_initial_settings_received = false
 			SteamLobby.connect("received_match_settings", self, "_on_initial_settings_received", [], CONNECT_ONESHOT)
-			var timer = get_tree().create_timer(3.0)
+			var timer = get_tree().create_timer(10.0)
 			while not _initial_settings_received and timer.time_left > 0:
 				yield(get_tree(), "idle_frame")
 			if SteamLobby.is_connected("received_match_settings", self, "_on_initial_settings_received"):
