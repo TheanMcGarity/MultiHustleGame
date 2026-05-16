@@ -60,11 +60,6 @@ func _ready():
 	SteamLobby.connect("lobby_data_update", self, "_on_lobby_data_update")
 
 func _on_lobby_data_update(_a=null, _b=null, _c=null):
-	# Skip refreshes when offscreen (player is in a match) — hp_pct
-	# publishes every 250ms during fights and this handler was eating
-	# ~20ms/frame across all LobbyMatch instances for no visible effect.
-	if not is_visible_in_tree():
-		return
 	_refresh_spectator_count()
 	_refresh_health()
 
