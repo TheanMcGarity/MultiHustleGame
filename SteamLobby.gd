@@ -1025,30 +1025,6 @@ func _on_Lobby_Message(lobby_id: int, user: int, message: String, chat_type: int
 	emit_signal("chat_message_received", user, text, scope)
 
 func request_match_settings():
-	# Fast-path: the owner publishes the current settings to lobby data on
-	# every update (see update_match_settings), so joiners can read it
-	# instantly via getLobbyData instead of waiting on a P2P round-trip.
-	# The P2P path can stall for seconds while the joiner ↔ owner session
-	# establishes (NAT traversal etc.) — that's the "Requesting lobby
-	# data..." stall users have been complaining about. defer the emit
-	# so the UI's `yield(SteamLobby, "received_match_settings")` has a
-	# chance to register before the signal fires.
-	# The "match_settings_owner" stamp must match the *current* lobby
-	# owner — otherwise this is stale data from a previous new-patch
-	# owner who left, with the lobby now run by an older-patch owner
-	# who never overwrites the key. Treat any mismatch / missing stamp
-	# the same as no fast-path data and fall back to P2P.
-	var owner_str = Steam.getLobbyData(LOBBY_ID, "match_settings_owner")
-	var json_str = Steam.getLobbyData(LOBBY_ID, "match_settings_json")
-	if json_str != "" and owner_str != "" and int(owner_str) == LOBBY_OWNER:
-		var parsed = JSON.parse(json_str)
-		if parsed.error == OK and parsed.result is Dictionary:
-			MATCH_SETTINGS = parsed.result
-			call_deferred("emit_signal", "received_match_settings", MATCH_SETTINGS)
-			return
-	# Fall back to the original P2P request when the owner hasn't populated
-	# lobby data yet (e.g. very-old-client owner who doesn't publish, or
-	# a race window right after lobby creation).
 	_send_P2P_Packet(LOBBY_OWNER, {"request_match_settings": SteamHustle.STEAM_ID})
 	
 func am_i_lobby_owner() -> bool:
@@ -1559,34 +1535,9 @@ func _user_left_lobby(steam_id):
 	Network.player_disconnected(steam_id)
 	pass
 
-var _last_published_match_settings_json := ""
-
 func update_match_settings(match_settings, id=0):
-	print("updating settings")
-	# Dedup: UiSteamLobbyOld._on_lobby_data_update fires this on every
-	# lobby_data_update event, including the one our own setLobbyData
-	# triggers — without a guard that creates a write→event→write loop
-	# (visible as constant lobby UI refresh, hover-state flicker, and
-	# wasted bandwidth). Skip the publish + P2P if the payload matches
-	# the last one we sent.
-	var serialized = JSON.print(match_settings)
-	if serialized == _last_published_match_settings_json:
-		MATCH_SETTINGS = match_settings
-		return
-	_last_published_match_settings_json = serialized
 	MATCH_SETTINGS = match_settings
-	# Publish to lobby data so future joiners can fast-path past the
-	# "Requesting lobby data..." stall (see request_match_settings).
-	# Only the owner is authoritative; bail if we're a non-owner caller.
-	# Settings dict serializes well under Steam's 4KB key limit.
-	# Also stamp current owner id — fast-path consumer rejects the data
-	# if the stamp doesn't match the *current* LOBBY_OWNER, so stale
-	# settings left behind by a previous new-patch owner don't get
-	# served to joiners when the current owner is on an older patch
-	# (which never overwrites the key).
-	if am_i_lobby_owner():
-		Steam.setLobbyData(LOBBY_ID, "match_settings_json", serialized)
-		Steam.setLobbyData(LOBBY_ID, "match_settings_owner", str(LOBBY_OWNER))
+	print("updating settings")
 	_send_P2P_Packet(id, {"match_settings_updated": match_settings})
 	pass
 
