@@ -1025,6 +1025,17 @@ func _on_Lobby_Message(lobby_id: int, user: int, message: String, chat_type: int
 	emit_signal("chat_message_received", user, text, scope)
 
 func request_match_settings():
+	# Fast-path: owner publishes settings to lobby data on every change
+	# (see update_match_settings), so joiners can read directly instead
+	# of waiting on a P2P round-trip. call_deferred so the UI's yield on
+	# `received_match_settings` has time to register before we emit.
+	var json_str = Steam.getLobbyData(LOBBY_ID, "match_settings_json")
+	if json_str != "":
+		var parsed = JSON.parse(json_str)
+		if parsed.error == OK and parsed.result is Dictionary:
+			MATCH_SETTINGS = parsed.result
+			call_deferred("emit_signal", "received_match_settings", MATCH_SETTINGS)
+			return
 	_send_P2P_Packet(LOBBY_OWNER, {"request_match_settings": SteamHustle.STEAM_ID})
 	
 func am_i_lobby_owner() -> bool:
@@ -1538,6 +1549,8 @@ func _user_left_lobby(steam_id):
 func update_match_settings(match_settings, id=0):
 	MATCH_SETTINGS = match_settings
 	print("updating settings")
+	if am_i_lobby_owner():
+		Steam.setLobbyData(LOBBY_ID, "match_settings_json", JSON.print(match_settings))
 	_send_P2P_Packet(id, {"match_settings_updated": match_settings})
 	pass
 
