@@ -4840,6 +4840,8 @@ fast_falling
 hover_left
 flame_wave_cooldown
 orb_projectile
+orb_duration
+orb_accumulator
 can_flame_wave
 can_vile_clutch
 current_orb_push
