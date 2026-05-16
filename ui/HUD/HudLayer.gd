@@ -210,6 +210,11 @@ func _publish_local_hp_pct():
 		return
 	if SteamLobby.LOBBY_ID == 0:
 		return
+	# Don't broadcast during post-game replay — the live match is over,
+	# spectators in the lobby would see HP rewind/flicker as the replay
+	# plays back.
+	if is_instance_valid(game) and game.is_in_replay:
+		return
 	var local_fighter
 	if Network.player_id == 1:
 		local_fighter = p1
