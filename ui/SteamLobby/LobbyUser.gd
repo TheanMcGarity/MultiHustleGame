@@ -228,6 +228,11 @@ func _refresh_block_mute_prefix(steam_id: int):
 	inner_hbox.move_child(lbl, 1)
 
 func _on_lobby_data_update(_a=null, _b=null, _c=null):
+	# Skip when offscreen — lobby_data_update fires constantly during
+	# matches from hp_pct publishes, and there's no point re-styling a
+	# button no one can see.
+	if not is_visible_in_tree():
+		return
 	_refresh_self_button()
 
 func _on_user_block_state_changed(_steam_id=null):

@@ -214,6 +214,14 @@ func _on_challenger_cancelled():
 		SteamLobby.set_status("idle")
 
 func _on_retrieved_lobby_members(members):
+	# Skip the full UserList/MatchList rebuild when the lobby UI isn't
+	# visible (i.e. we're in a match). lobby_data_update fires constantly
+	# during matches because both fighters publish hp_pct every 250ms,
+	# and rebuilding the lists offscreen burns ~40ms/frame for nothing.
+	# SPECTATORS still updates via SteamLobby._get_Lobby_Members which
+	# runs unconditionally in UiSteamLobbyOld._on_lobby_data_update.
+	if not is_visible_in_tree():
+		return
 	$"%LobbyLabel".text = Steam.getLobbyData(SteamLobby.LOBBY_ID, "name")
 	users.clear()
 	for child in $"%UserList".get_children():
