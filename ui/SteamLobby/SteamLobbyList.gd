@@ -111,10 +111,17 @@ func _on_lobby_match_list_received(lobbies):
 			charloader_enabled  = "N/A" 
 		
 		var lobby_max_members: int = Steam.getLobbyMemberLimit(lobby)
-		
+
 		# Get the current number of members
 		var lobby_num_members: int = Steam.getNumLobbyMembers(lobby)
-		
+
+		# "full" toggle: when off, drop lobbies at member cap from the
+		# list. lobby_max_members can come back as 0 from Steam (transient
+		# lookup miss) — treat that as "not full" so the entry doesn't
+		# vanish on a flaky query.
+		if !$"%FilterFullButton".pressed and lobby_max_members > 0 and lobby_num_members >= lobby_max_members:
+			continue
+
 		var lobby_entry = preload("res://ui/SteamLobby/LobbyEntry.tscn").instance()
 		lobby_list.add_child(lobby_entry)
 		lobby_entry.connect("selected", self, "_on_lobby_clicked", [lobby_entry])
@@ -150,6 +157,9 @@ func _on_lobby_clicked(entry):
 			lobby.deselect()
 	if entry.lobby_data.version != Global.VERSION:
 		error("Mismatched versions. Make sure your game is fully updated, or you have the same mods enabled.")
+		return
+	if entry.lobby_data.max_players > 0 and entry.lobby_data.player_count >= entry.lobby_data.max_players:
+		error("This lobby is full.")
 		return
 	selected_lobby = entry.lobby_id
 	SteamLobby.join_lobby(entry.lobby_id)
