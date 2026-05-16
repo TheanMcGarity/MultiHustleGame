@@ -291,10 +291,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-margin_left = 32.0
-margin_top = 1.0
-margin_right = 226.0
-margin_bottom = 52.0
+margin_left = 33.0
+margin_right = 225.0
+margin_bottom = 67.0
 align = 1
 valign = 1
 autowrap = true
@@ -434,13 +433,13 @@ flat = true
 
 [node name="CodeSearch" type="LineEdit" parent="."]
 unique_name_in_owner = true
-margin_left = 372.0
-margin_top = -17.0
-margin_right = 494.0
+margin_left = 409.0
+margin_top = -18.0
+margin_right = 495.0
 margin_bottom = -1.0
 align = 1
 max_length = 6
-placeholder_text = "search by lobby code"
+placeholder_text = "search by code"
 caret_blink = true
 caret_blink_speed = 0.5
 
@@ -451,7 +450,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = -37.0
-margin_top = -285.0
+margin_top = -286.0
 margin_bottom = -269.0
 size_flags_horizontal = 0
 text = "search"
@@ -462,14 +461,25 @@ margin_left = 41.0
 margin_top = -17.0
 margin_right = 129.0
 margin_bottom = -1.0
+rect_pivot_offset = Vector2( 29, 8 )
 pressed = true
 text = "same version"
 
-[node name="SortButton" type="OptionButton" parent="."]
+[node name="FilterFullButton" type="CheckButton" parent="."]
 unique_name_in_owner = true
 margin_left = 130.0
 margin_top = -17.0
 margin_right = 166.0
+margin_bottom = -1.0
+rect_pivot_offset = Vector2( 29, 8 )
+pressed = true
+text = "full"
+
+[node name="SortButton" type="OptionButton" parent="."]
+unique_name_in_owner = true
+margin_left = 167.0
+margin_top = -17.0
+margin_right = 203.0
 margin_bottom = -1.0
 text = "sort by player count"
 clip_text = true
@@ -478,30 +488,30 @@ selected = 0
 
 [node name="CustomCharLabel" type="Label" parent="."]
 unique_name_in_owner = true
-margin_left = 189.0
+margin_left = 229.0
 margin_top = -19.0
-margin_right = 285.0
-margin_bottom = -2.0
+margin_right = 325.0
+margin_bottom = -1.0
 text = "custom characters"
 valign = 1
 clip_text = true
 
 [node name="CustomCharOn" type="CheckBox" parent="."]
 unique_name_in_owner = true
-margin_left = 286.0
-margin_top = -19.0
-margin_right = 328.0
-margin_bottom = -2.0
+margin_left = 325.0
+margin_top = -18.0
+margin_right = 367.0
+margin_bottom = -1.0
 pressed = true
 text = "on"
 clip_text = true
 
 [node name="CustomCharOff" type="CheckBox" parent="."]
 unique_name_in_owner = true
-margin_left = 329.0
-margin_top = -19.0
-margin_right = 371.0
-margin_bottom = -2.0
+margin_left = 367.0
+margin_top = -18.0
+margin_right = 409.0
+margin_bottom = -1.0
 pressed = true
 text = "off"
 clip_text = true
@@ -528,6 +538,7 @@ size_flags_horizontal = 0
 text = "refresh"
 
 [node name="Label" type="Label" parent="."]
+visible = false
 margin_left = 275.0
 margin_top = 275.0
 margin_right = 637.0
@@ -613,6 +624,7 @@ text = "okey dokey"
 [connection signal="text_entered" from="CodeSearch" to="." method="_on_CodeSearch_text_entered"]
 [connection signal="pressed" from="SearchButton" to="." method="_on_SearchButton_pressed"]
 [connection signal="toggled" from="FilterIncompatibleButton" to="." method="_on_FilterIncompatibleButton_toggled"]
+[connection signal="toggled" from="FilterFullButton" to="." method="_on_FilterIncompatibleButton_toggled"]
 [connection signal="item_selected" from="SortButton" to="." method="_on_SortButton_item_selected"]
 [connection signal="toggled" from="CustomCharOn" to="." method="_on_CustomCharOn_toggled"]
 [connection signal="toggled" from="CustomCharOff" to="." method="_on_CustomCharOff_toggled"]

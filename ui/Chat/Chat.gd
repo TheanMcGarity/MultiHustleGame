@@ -125,6 +125,14 @@ func _setup_tabs():
 		if sc == null:
 			continue
 		_apply_min_grabber_height(sc.get_v_scrollbar(), 20)
+		# Track "should follow new messages" as state — recomputing it from
+		# value/max_value on each message fails the moment content first
+		# overflows the viewport (value still 0, but max > page means we'd
+		# read as NOT-at-bottom even though the user never scrolled). Each
+		# scrollbar value_changed updates the cached flag, so user scrolls
+		# turn it off and scrolling back to bottom turns it back on.
+		sc.set_meta("at_bottom", true)
+		sc.get_v_scrollbar().connect("value_changed", self, "_on_scroll_value_changed", [sc])
 
 func _on_tab_button_toggled(_pressed):
 	_update_tabs_visibility()
@@ -184,9 +192,22 @@ func _update_tabs_visibility():
 		# lobby so the next show isn't stuck on an invisible tab.
 		if $"%Tabs".current_tab != TAB_LOBBY:
 			$"%Tabs".current_tab = TAB_LOBBY
+		else:
+			# Already on lobby tab — current_tab assignment above is a no-op,
+			# so _on_tab_changed won't fire and won't snap to bottom. The lobby
+			# container was just unhidden after being offscreen during the
+			# match, so its scroll has dropped to the top; jump back to the
+			# latest message manually.
+			_scroll_lobby_to_bottom_deferred()
 	else:
 		_apply_active_tab()
 	_refresh_tab_titles()
+
+func _scroll_lobby_to_bottom_deferred():
+	yield(get_tree(), "idle_frame")
+	yield(get_tree(), "idle_frame")
+	if has_node("%ScrollContainer"):
+		$"%ScrollContainer".scroll_vertical = 10000000000000000
 
 func _on_tab_changed(idx):
 	if idx == TAB_MATCH:
@@ -198,7 +219,10 @@ func _on_tab_changed(idx):
 	_apply_active_tab()
 	_refresh_tab_titles()
 	# Snap to bottom of the newly-revealed scroll so the latest message is
-	# in view. Defer one frame so layout has settled before clamping.
+	# in view. Defer two frames — one frame isn't always enough for the
+	# RichTextLabel children's fit_content_height to resolve, which makes
+	# scroll_vertical clamp short of the real bottom.
+	yield(get_tree(), 'idle_frame')
 	yield(get_tree(), 'idle_frame')
 	_active_scroll().scroll_vertical = 10000000000000000
 
@@ -239,17 +263,31 @@ func _container_for(category):
 	return match_container if category == "match" else $"%MessageContainer"
 
 # Only auto-scroll a chat scroll container to its bottom when the user is
-# already pinned there (within SCROLL_STICK_PX). If they've scrolled up to
-# read history, a new message shouldn't yank them back down.
+# already pinned there (within SCROLL_STICK_PX). State is cached as meta on
+# the ScrollContainer; _on_scroll_value_changed refreshes it whenever the
+# user actually moves the bar, so it survives content-driven max_value
+# growth (which would otherwise make `value+page < max` and break stickiness
+# the moment chat first overflows the viewport).
 const SCROLL_STICK_PX = 5
 
 func _at_bottom(scroll: ScrollContainer) -> bool:
 	if scroll == null:
 		return true
+	return scroll.get_meta("at_bottom", true)
+
+func _on_scroll_value_changed(_v, scroll: ScrollContainer):
+	if scroll == null:
+		return
 	var sb = scroll.get_v_scrollbar()
 	if sb == null:
-		return true
-	return sb.value + sb.page >= sb.max_value - SCROLL_STICK_PX
+		scroll.set_meta("at_bottom", true)
+		return
+	# No overflow (max <= page) — treat as sticky so the next overflow keeps
+	# scrolling automatically instead of stranding the user at the top.
+	if sb.max_value <= sb.page:
+		scroll.set_meta("at_bottom", true)
+		return
+	scroll.set_meta("at_bottom", sb.value + sb.page >= sb.max_value - SCROLL_STICK_PX)
 
 func _refresh_tab_titles():
 	$"%Tabs".set_tab_title(TAB_MATCH, ("*" if unread_match else "") + TAB_TITLES[TAB_MATCH])
@@ -494,11 +532,13 @@ func _refresh_match_spectators():
 	for sid in new_set:
 		if not (sid in _known_match_spectators):
 			# Joins read brighter than leaves so "someone's watching" lands
-			# with a bit more weight than "they wandered off".
-			_post_spectator_event(new_set[sid] + " started spectating", "aaaaaa")
+			# with a bit more weight than "they wandered off". Arrow form is
+			# IRC-style — direction tells you join vs leave at a glance, no
+			# trailing "started/stopped spectating" needed.
+			_post_spectator_event("--> " + new_set[sid], "aaaaaa")
 	for sid in _known_match_spectators:
 		if not (sid in new_set):
-			_post_spectator_event(_known_match_spectators[sid] + " stopped spectating", "777777")
+			_post_spectator_event("<-- " + _known_match_spectators[sid], "777777")
 	_known_match_spectators = new_set
 
 func _post_spectator_event(text, color_hex: String = "888888"):
@@ -506,7 +546,7 @@ func _post_spectator_event(text, color_hex: String = "888888"):
 		return
 	var node = RichTextLabel.new()
 	node.bbcode_enabled = true
-	node.append_bbcode("[color=#" + color_hex + "]:: " + ProfanityFilter.filter(text) + "[/color]")
+	node.append_bbcode("[color=#" + color_hex + "]" + ProfanityFilter.filter(text) + "[/color]")
 	node.fit_content_height = true
 	match_container.call_deferred("add_child", node)
 	# Spectator events live in the match scrollback, so the match tab is the

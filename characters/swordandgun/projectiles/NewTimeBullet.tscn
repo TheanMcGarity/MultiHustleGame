@@ -21,6 +21,20 @@ animations = [ {
 
 [node name="NewBullet" instance=ExtResource( 10 )]
 script = ExtResource( 2 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 max_fall_speed = "15"
 extra_state_variables = "dir_x
 dir_y
@@ -34,7 +48,6 @@ last_hit_by
 no_draw_ticks"
 has_projectile_parry_window = false
 deletes_other_projectiles = false
-free_cancel_on_hit = false
 projectile_immune = true
 color = Color( 1, 0.486275, 0.121569, 1 )
 
@@ -90,6 +103,7 @@ chip_damage_modifier = "0.75"
 hitstun_ticks = 18
 hitlag_ticks = 6
 victim_hitlag = 9
+damage_proration = 1
 di_modifier = "0.7"
 plus_frames = 2
 hit_sound = ExtResource( 1 )
@@ -115,6 +129,7 @@ chip_damage_modifier = "0.75"
 hitstun_ticks = 18
 hitlag_ticks = 6
 victim_hitlag = 9
+damage_proration = 1
 di_modifier = "0.7"
 plus_frames = 2
 hit_sound = ExtResource( 1 )
@@ -140,6 +155,7 @@ chip_damage_modifier = "0.75"
 hitstun_ticks = 18
 hitlag_ticks = 6
 victim_hitlag = 9
+damage_proration = 1
 di_modifier = "0.7"
 plus_frames = 2
 hit_sound = ExtResource( 1 )

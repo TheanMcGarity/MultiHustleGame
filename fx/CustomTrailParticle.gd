@@ -15,6 +15,23 @@ var start_alpha = 1.0
 var end_alpha = 1.0
 var start_scale = 1.0
 var end_scale = 1.0
+# Position of the "halfway" point for each interpolation curve. 0.5 is the
+# linear default (no skew); lower values pack the transition into the start,
+# higher values stretch it toward the end. Color and alpha share one Gradient
+# in CPUParticles2D but can have independent midpoints — we sample at both
+# breakpoints when they differ.
+var color_midpoint = 0.5
+var alpha_midpoint = 0.5
+var scale_midpoint = 0.5
+# Per-axis scale applied to this Node2D (the whole emitter rig — both the
+# normal and flipped particles + any attached sprite). Distinct from
+# start_scale / end_scale which control the per-particle scale curve.
+var transform_scale_x = 1.0
+var transform_scale_y = 1.0
+# Extra rotation added on top of whatever tick() computes (limb rotation /
+# facing-flip / zero). Stored in degrees for UI sanity; converted to radians
+# at apply time since Node2D.rotation is radians.
+var transform_rotation = 0.0
 
 var default_gravity_x = 0
 var facing = 1
@@ -52,6 +69,12 @@ var custom_set = {
 	"gravity_y": "set_gravity_y",
 	"start_alpha": "set_start_alpha",
 	"end_alpha": "set_end_alpha",
+	"color_midpoint": "set_color_midpoint",
+	"alpha_midpoint": "set_alpha_midpoint",
+	"scale_midpoint": "set_scale_midpoint",
+	"transform_scale_x": "set_transform_scale_x",
+	"transform_scale_y": "set_transform_scale_y",
+	"transform_rotation": "set_transform_rotation",
 	"x_offset": "set_x_offset",
 	"y_offset": "set_y_offset",
 	"lifetime": "set_lifetime",
@@ -114,6 +137,12 @@ static func get_default():
 		"end_color": Color.white,
 		"start_scale": 1.0,
 		"end_scale": 1.0,
+		"color_midpoint": 0.5,
+		"alpha_midpoint": 0.5,
+		"scale_midpoint": 0.5,
+		"transform_scale_x": 1.0,
+		"transform_scale_y": 1.0,
+		"transform_rotation": 0.0,
 		"x_offset": 0.0,
 		"y_offset": 0.0,
 		"scale_amount_random": 0.0,
@@ -586,14 +615,19 @@ var default_y_offset = 0.0
 
 func tick():
 	.tick()
+	# tick() rewrites scale.x every frame to apply facing/flip — fold the
+	# user's transform_scale_x in here so it doesn't get stomped (and apply
+	# transform_scale_y too while we have the node in hand).
+	var extra_rotation = deg2rad(transform_rotation)
 	if attached_to_limb:
-		rotation = attached_rotation
+		rotation = attached_rotation + extra_rotation
 		# scale.x mirrors first (before rotation in T*R*S), so facing left
 		# flips the aura horizontally without introducing a 180° rotation.
 		var flipped = attached_limb_flipped
 		if facing == -1:
 			flipped = !flipped
-		scale.x = -1 if flipped else 1
+		scale.x = (-1 if flipped else 1) * transform_scale_x
+		scale.y = transform_scale_y
 		particles.gravity.x = default_gravity_x
 		particles.angle = default_angle
 		# Apply the offset in aura-local space — parent rotation/scale will
@@ -602,16 +636,18 @@ func tick():
 		particles.position.x = -default_x_offset if facing == -1 else default_x_offset
 		particles.position.y = default_y_offset
 	elif flip_with_character:
-		rotation = 0.0
-		scale.x = 1
+		rotation = extra_rotation
+		scale.x = transform_scale_x
+		scale.y = transform_scale_y
 		particles.gravity.x = default_gravity_x * facing
 		particles.angle = 360 - default_angle if facing == -1 else default_angle
 		particles.position.x = default_x_offset
 	else:
-		rotation = 0.0
+		rotation = extra_rotation
 		particles.gravity.x = default_gravity_x
 		particles.angle = default_angle
-		scale.x = facing
+		scale.x = facing * transform_scale_x
+		scale.y = transform_scale_y
 		particles.position.x = default_x_offset
 	_sync_flipped_transient()
 	if frames_since_last_burst < BURST_COOLDOWN_FRAMES:
@@ -661,12 +697,76 @@ func set_end_alpha(a):
 	update_color()
 
 func update_color():
+	# Build a Gradient that interpolates color + alpha from start to end with
+	# possibly-separate midpoint skews. Adjacent gradient points interpolate
+	# linearly, so when alpha_midpoint != color_midpoint we sample at both
+	# breakpoints — that's enough to exactly reconstruct the piecewise-linear
+	# skewed curve (which has corners only at 0, alpha_m, color_m, and 1).
 	var gradient = Gradient.new()
-	gradient.set_color(0, start_color)
-	gradient.set_color(1, end_color)
+	var alpha_m = clamp(alpha_midpoint, 0.001, 0.999)
+	var color_m = clamp(color_midpoint, 0.001, 0.999)
+	gradient.set_offset(0, 0.0)
+	gradient.set_color(0, _skewed_color_alpha(0.0, color_m, alpha_m))
+	gradient.set_offset(1, 1.0)
+	gradient.set_color(1, _skewed_color_alpha(1.0, color_m, alpha_m))
+	if abs(color_m - 0.5) > 0.0001 or abs(alpha_m - 0.5) > 0.0001:
+		# Insert a breakpoint at each midpoint. When they're equal, only one
+		# point gets added (the second add_point on the same offset would be
+		# redundant but harmless).
+		var inner_positions = [color_m] if abs(color_m - alpha_m) < 0.0001 else _sorted_distinct([color_m, alpha_m])
+		for t in inner_positions:
+			gradient.add_point(t, _skewed_color_alpha(t, color_m, alpha_m))
 	particles.color_ramp = gradient
 	if particles_flipped:
 		particles_flipped.color_ramp = gradient
+
+func _skewed_color_alpha(t: float, color_m: float, alpha_m: float) -> Color:
+	var c = start_color.linear_interpolate(end_color, _skew(t, color_m))
+	c.a = lerp(start_color.a, end_color.a, _skew(t, alpha_m))
+	return c
+
+# Piecewise-linear skew: maps t in [0,1] to a position in [0,1] such that t=m
+# lands at 0.5. Drives both color/alpha gradients and the scale curve so the
+# user-facing midpoint slider has the same meaning across all three.
+func _skew(t: float, m: float) -> float:
+	if t <= m:
+		return (t / m) * 0.5
+	return 0.5 + ((t - m) / (1.0 - m)) * 0.5
+
+func _sorted_distinct(arr: Array) -> Array:
+	arr.sort()
+	var out := []
+	for v in arr:
+		if out.size() == 0 or abs(out[-1] - v) > 0.0001:
+			out.append(v)
+	return out
+
+func set_color_midpoint(m):
+	color_midpoint = m
+	update_color()
+
+func set_alpha_midpoint(m):
+	alpha_midpoint = m
+	update_color()
+
+func set_scale_midpoint(m):
+	scale_midpoint = m
+	update_scale()
+
+func set_transform_scale_x(s):
+	transform_scale_x = s
+	scale = Vector2(transform_scale_x, transform_scale_y)
+
+func set_transform_scale_y(s):
+	transform_scale_y = s
+	scale = Vector2(transform_scale_x, transform_scale_y)
+
+func set_transform_rotation(r):
+	transform_rotation = r
+	# tick() reapplies rotation every frame; this immediate assignment only
+	# matters for stationary previews / customization screens where tick()
+	# might not be running.
+	rotation = deg2rad(r)
 
 func set_start_scale(sc):
 	start_scale = sc
@@ -686,7 +786,19 @@ func update_scale():
 		end = end_scale / max_
 	particles.scale_amount = max_
 	curve.add_point(Vector2(0, start))
+	var sm = clamp(scale_midpoint, 0.001, 0.999)
+	if abs(sm - 0.5) > 0.0001:
+		# Non-default midpoint — insert a knee at (m, midpoint_value) so the
+		# curve bends. Default (0.5) stays as a 2-point curve, matching
+		# pre-midpoint behavior exactly.
+		curve.add_point(Vector2(sm, (start + end) * 0.5))
 	curve.add_point(Vector2(1, end))
+	# Force linear tangents on every point so segments are straight lines —
+	# Godot's Curve defaults to cubic Hermite, which would bow the segments
+	# and visually contradict the piecewise-linear meaning of the midpoint.
+	for i in range(curve.get_point_count()):
+		curve.set_point_left_mode(i, Curve.TANGENT_LINEAR)
+		curve.set_point_right_mode(i, Curve.TANGENT_LINEAR)
 	particles.scale_amount_curve = curve
 	if particles_flipped:
 		particles_flipped.scale_amount = max_
