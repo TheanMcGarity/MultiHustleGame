@@ -55,6 +55,7 @@ func _ready():
 	SteamLobby.connect("lobby_data_update", self, "_on_lobby_data_update")
 	SteamLobby.connect("user_block_state_changed", self, "_on_user_block_state_changed")
 	SteamLobby.connect("chat_history_synced", self, "_on_chat_history_synced")
+	SteamLobby.connect("chat_history_loading_changed", self, "_on_chat_history_loading_changed")
 	if static_:
 		$"%ShowButton".hide()
 	SteamLobby.connect("user_joined", self, "_on_user_joined")
@@ -557,7 +558,10 @@ func _show_user_actions_popup(steam_id: int, global_pos: Vector2):
 	_user_actions_target = steam_id
 	_user_actions_popup.clear()
 	_user_actions_popup.add_item("Open Steam Profile", 0)
-	_user_actions_popup.add_item("Unmute" if SteamLobby.is_muted(steam_id) else "Mute", 1)
+	# Hide mute when the user is already blocked — block is a strict superset
+	# of mute, so a separate toggle would just be confusing.
+	if not SteamLobby.is_blocked(steam_id):
+		_user_actions_popup.add_item("Unmute" if SteamLobby.is_muted(steam_id) else "Mute", 1)
 	_user_actions_popup.add_item("Unblock" if SteamLobby.is_blocked(steam_id) else "Block", 2)
 	_user_actions_popup.rect_global_position = global_pos
 	_user_actions_popup.popup()
@@ -669,6 +673,7 @@ func _rebuild_lobby_container_from_history():
 		if entry.steam_id != SteamHustle.STEAM_ID and SteamLobby.is_silenced(entry.steam_id):
 			continue
 		_render_steam_message(entry.steam_id, entry.message, "lobby", true)
+	_apply_loading_indicator(c, SteamLobby.loading_lobby_chat_history)
 
 func _rebuild_match_container_from_history():
 	if match_container == null:
@@ -677,12 +682,44 @@ func _rebuild_match_container_from_history():
 		match_container.remove_child(child)
 		child.queue_free()
 	var key = SteamLobby.current_match_key()
-	if key == "" or not SteamLobby.match_chat_history.has(key):
+	if key != "" and SteamLobby.match_chat_history.has(key):
+		for entry in SteamLobby.match_chat_history[key]:
+			if entry.steam_id != SteamHustle.STEAM_ID and SteamLobby.is_silenced(entry.steam_id):
+				continue
+			_render_steam_message(entry.steam_id, entry.message, "match", true)
+	_apply_loading_indicator(match_container, SteamLobby.loading_match_chat_history)
+
+# "loading messages..." pinned to the top of a container while we're waiting
+# on history sync. Added/removed in place — re-runs on every rebuild and on
+# the chat_history_loading_changed signal so it stays in sync with state.
+const _LOADING_NODE_NAME = "ChatLoadingIndicator"
+
+func _apply_loading_indicator(container, loading: bool):
+	if container == null:
 		return
-	for entry in SteamLobby.match_chat_history[key]:
-		if entry.steam_id != SteamHustle.STEAM_ID and SteamLobby.is_silenced(entry.steam_id):
-			continue
-		_render_steam_message(entry.steam_id, entry.message, "match", true)
+	var existing = null
+	if container.has_node(_LOADING_NODE_NAME):
+		existing = container.get_node(_LOADING_NODE_NAME)
+	if not loading:
+		if existing != null:
+			container.remove_child(existing)
+			existing.free()
+		return
+	if existing != null:
+		container.move_child(existing, 0)
+		return
+	var lbl = Label.new()
+	lbl.name = _LOADING_NODE_NAME
+	lbl.text = "loading messages..."
+	lbl.add_color_override("font_color", Color("888888"))
+	container.add_child(lbl)
+	container.move_child(lbl, 0)
+
+func _on_chat_history_loading_changed():
+	if has_node("%MessageContainer"):
+		_apply_loading_indicator($"%MessageContainer", SteamLobby.loading_lobby_chat_history)
+	if match_container != null:
+		_apply_loading_indicator(match_container, SteamLobby.loading_match_chat_history)
 
 func on_steam_chat_message_received(steam_id: int, message: String, scope: String = ""):
 	# Silenced users (transient mute or persistent block) get dropped entirely

@@ -196,6 +196,9 @@ margin_left = 0.0
 margin_top = 0.0
 margin_right = 219.0
 margin_bottom = 40.0
+__meta__ = {
+"_edit_vertical_guides_": [ 285.0, 355.0, 319.0 ]
+}
 
 [node name="LobbyMatch2" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/MatchListPanel/ScrollContainer/MatchList" instance=ExtResource( 6 )]
 anchor_left = 0.0
@@ -206,6 +209,9 @@ margin_left = 0.0
 margin_top = 41.0
 margin_right = 219.0
 margin_bottom = 81.0
+__meta__ = {
+"_edit_vertical_guides_": [ 285.0, 355.0, 319.0 ]
+}
 
 [node name="LobbyMatch3" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/MatchListPanel/ScrollContainer/MatchList" instance=ExtResource( 6 )]
 anchor_left = 0.0
@@ -216,6 +222,9 @@ margin_left = 0.0
 margin_top = 82.0
 margin_right = 219.0
 margin_bottom = 122.0
+__meta__ = {
+"_edit_vertical_guides_": [ 285.0, 355.0, 319.0 ]
+}
 
 [node name="LobbyMatch4" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/MatchListPanel/ScrollContainer/MatchList" instance=ExtResource( 6 )]
 anchor_left = 0.0
@@ -226,6 +235,9 @@ margin_left = 0.0
 margin_top = 123.0
 margin_right = 219.0
 margin_bottom = 163.0
+__meta__ = {
+"_edit_vertical_guides_": [ 285.0, 355.0, 319.0 ]
+}
 
 [node name="LobbyMatch5" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/MatchListPanel/ScrollContainer/MatchList" instance=ExtResource( 6 )]
 anchor_left = 0.0
@@ -236,6 +248,9 @@ margin_left = 0.0
 margin_top = 164.0
 margin_right = 219.0
 margin_bottom = 204.0
+__meta__ = {
+"_edit_vertical_guides_": [ 285.0, 355.0, 319.0 ]
+}
 
 [node name="NoMatchesLabel" type="Label" parent="MarginContainer/HBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/MarginContainer/VBoxContainer/HBoxContainer/MatchListPanel"]
 unique_name_in_owner = true

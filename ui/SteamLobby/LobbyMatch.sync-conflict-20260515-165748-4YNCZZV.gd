@@ -18,35 +18,7 @@ func init(member1, member2):
 	$"%P2Character".text = member2.character
 	p1 = member1
 	p2 = member2
-	
-#	var rng = BetterRng.new()
-#	rng.randomize()
-#	$"%HealthP1".value = rng.randi_range(0, 100)
-#	$"%HealthP2".value = rng.randi_range(0, 100)
-	print($"%HealthP1".value)
-	
 	_refresh_spectator_count()
-	_refresh_health()
-# Pull live hp percents from each fighter's lobby member data and apply to
-# HealthP1 / HealthP2. min_value is -1 on both bars (so 0% still shows ~1
-# pixel) — keep it that way. If either side isn't publishing hp data,
-# treat the match as having no health info and hide both bars together
-# so they don't go visually asymmetric.
-func _refresh_health():
-	if p1 == null or p2 == null or SteamLobby.LOBBY_ID == 0:
-#		$"%HealthP1".hide()
-#		$"%HealthP2".hide()
-		return
-	var p1_str = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, p1.steam_id, "hp_pct")
-	var p2_str = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, p2.steam_id, "hp_pct")
-	if p1_str == "" or p2_str == "":
-#		$"%HealthP1".hide()
-#		$"%HealthP2".hide()
-		return
-	$"%HealthP1".show()
-	$"%HealthP2".show()
-	$"%HealthP1".value = int(p1_str)
-	$"%HealthP2".value = int(p2_str)
 
 func _apply_name_color(label, steam_id):
 	var custom = Global.get_remote_name_color(steam_id)
@@ -61,7 +33,6 @@ func _ready():
 
 func _on_lobby_data_update(_a=null, _b=null, _c=null):
 	_refresh_spectator_count()
-	_refresh_health()
 
 func _refresh_spectator_count():
 	if p1 == null or p2 == null or SteamLobby.LOBBY_ID == 0:

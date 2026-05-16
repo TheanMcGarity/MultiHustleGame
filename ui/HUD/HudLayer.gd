@@ -68,6 +68,15 @@ var p2_effects = []
 var p1_prev_super = 0
 var p2_prev_super = 0
 
+# Last hp_pct we wrote to Steam lobby member data for the local fighter,
+# and the os-msec timestamp it was written at. Together they cap writes
+# to "when the integer percent changes AND at least HP_PUBLISH_MIN_INTERVAL_MS
+# has elapsed" so a heavy combo that flips several percents per frame
+# doesn't spam lobby_data_update on every client.
+var _last_published_hp_pct := -1
+var _last_hp_publish_msec := 0
+const HP_PUBLISH_MIN_INTERVAL_MS = 250
+
 func _ready():
 	hide()
 	$"%WinLabel".hide()
@@ -191,6 +200,35 @@ func on_game_won(winner):
 func super_speed_scale(ticks):
 	return 15 * (15 / float(ticks))
 
+# Publish the local fighter's current hp percent (0..100) to Steam lobby
+# member data so other lobby members can render it on the LobbyMatch panel.
+# Only the local fighter (not spectators, not other-side players) writes;
+# skipped entirely outside steam multiplayer. Dedup on the integer percent
+# keeps writes down to "once per visible hp change" instead of every tick.
+func _publish_local_hp_pct():
+	if not Network.steam or not Network.multiplayer_active or SteamLobby.SPECTATING:
+		return
+	if SteamLobby.LOBBY_ID == 0:
+		return
+	var local_fighter
+	if Network.player_id == 1:
+		local_fighter = p1
+	elif Network.player_id == 2:
+		local_fighter = p2
+	else:
+		return
+	if local_fighter == null or local_fighter.MAX_HEALTH <= 0:
+		return
+	var pct = int(max(local_fighter.get_visual_hp(), 0) * 100 / local_fighter.MAX_HEALTH)
+	if pct == _last_published_hp_pct:
+		return
+	var now = OS.get_ticks_msec()
+	if now - _last_hp_publish_msec < HP_PUBLISH_MIN_INTERVAL_MS:
+		return
+	_last_published_hp_pct = pct
+	_last_hp_publish_msec = now
+	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "hp_pct", str(pct))
+
 func drain_health_trail(trail, drain_value):
 	if drain_value < trail.value:
 		trail.value -= TRAIL_DRAIN_RATE
@@ -207,6 +245,7 @@ func _physics_process(_delta):
 
 		p1_healthbar.value = max(p1.get_visual_hp(), 0)
 		p2_healthbar.value = max(p2.get_visual_hp(), 0)
+		_publish_local_hp_pct()
 		if p2_prev_super < p2.supers_available:
 			p2_super_meter.value = p2.MAX_SUPER_METER
 			active_p2_super_meter.value = p2.MAX_SUPER_METER

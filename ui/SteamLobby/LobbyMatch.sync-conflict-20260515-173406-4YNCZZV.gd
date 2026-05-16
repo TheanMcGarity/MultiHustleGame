@@ -18,15 +18,9 @@ func init(member1, member2):
 	$"%P2Character".text = member2.character
 	p1 = member1
 	p2 = member2
-	
-#	var rng = BetterRng.new()
-#	rng.randomize()
-#	$"%HealthP1".value = rng.randi_range(0, 100)
-#	$"%HealthP2".value = rng.randi_range(0, 100)
-	print($"%HealthP1".value)
-	
 	_refresh_spectator_count()
 	_refresh_health()
+
 # Pull live hp percents from each fighter's lobby member data and apply to
 # HealthP1 / HealthP2. min_value is -1 on both bars (so 0% still shows ~1
 # pixel) — keep it that way. If either side isn't publishing hp data,
@@ -34,14 +28,14 @@ func init(member1, member2):
 # so they don't go visually asymmetric.
 func _refresh_health():
 	if p1 == null or p2 == null or SteamLobby.LOBBY_ID == 0:
-#		$"%HealthP1".hide()
-#		$"%HealthP2".hide()
+		$"%HealthP1".hide()
+		$"%HealthP2".hide()
 		return
 	var p1_str = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, p1.steam_id, "hp_pct")
 	var p2_str = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, p2.steam_id, "hp_pct")
 	if p1_str == "" or p2_str == "":
-#		$"%HealthP1".hide()
-#		$"%HealthP2".hide()
+		$"%HealthP1".hide()
+		$"%HealthP2".hide()
 		return
 	$"%HealthP1".show()
 	$"%HealthP2".show()

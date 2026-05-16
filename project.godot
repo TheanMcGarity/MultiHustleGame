@@ -502,7 +502,6 @@ SteamLobby="*res://cl_port/SteamLobby.gd"
 Custom="*res://Custom.gd"
 Hotkeys="*res://Hotkeys.gd"
 ModOverride="*res://ModOverride.gd"
-Cursors="*res://Cursors.gd"
 
 [debug]
 

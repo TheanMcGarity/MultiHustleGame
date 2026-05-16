@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.76-steam-unstable"
+var VERSION = "1.9.77-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -63,6 +63,8 @@ var name_color_customized = false
 # Manual "do not disturb" toggle. When true the user's steam lobby status
 # stays "busy" instead of "idle" (challengable becomes unchallengable),
 # matching the behavior of someone temporarily busy mid-challenge.
+# Intentionally NOT persisted — every fresh launch (and every fresh lobby
+# join) starts you as idle. SteamLobby._on_Lobby_Joined resets this.
 var lobby_busy_mode = false
 # Replay-browser version filter. One of REPLAY_VERSION_MODES.
 # "all"  — show all replays regardless of version
@@ -381,7 +383,6 @@ func save_options():
 			"name_hue": name_hue,
 			"name_saturation": name_saturation,
 			"name_color_customized": name_color_customized,
-			"lobby_busy_mode": lobby_busy_mode,
 		}
 	})
 
@@ -428,7 +429,6 @@ func get_default_player_data():
 			"name_hue": 0.0,
 			"name_saturation": 0.5,
 			"name_color_customized": false,
-			"lobby_busy_mode": false,
 		}
 	}
 

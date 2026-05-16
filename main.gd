@@ -39,6 +39,12 @@ func _enter_tree():
 	pass
 
 func _ready():
+	# Re-enforce the busy-mode toggle every time Main initializes — exit-match
+	# calls Global.reload(), so even though SteamLobby (autoload) keeps the
+	# preference, the lobby member data could have been left as "fighting"
+	# or otherwise transient if a quit path skipped the _idle_status() reset.
+	if SteamLobby.LOBBY_ID != 0:
+		SteamLobby.apply_busy_mode()
 	ui_layer.connect("singleplayer_started", self, "_on_game_started", [true])
 	ui_layer.connect("loaded_replay", self, "_on_loaded_replay")
 	connect("game_started", ui_layer, "on_game_started")
