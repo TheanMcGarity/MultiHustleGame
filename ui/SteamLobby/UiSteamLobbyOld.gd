@@ -15,6 +15,10 @@ var pending_replay_path = ""
 var incoming_is_replay_challenge = false
 
 var handshake_made = false
+var _initial_settings_received = false
+
+func _on_initial_settings_received(_settings=null):
+	_initial_settings_received = true
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -159,7 +163,10 @@ func init():
 		Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "game_started", "false")
 		SteamLobby._setup_game_vs(SteamLobby.REMATCHING_ID)
 	else:
-		Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "status", "idle")
+		# Use _idle_status() instead of hardcoded "idle" — otherwise this
+		# clobbers the user's manual busy toggle every time the lobby UI
+		# re-inits (which happens after every match end).
+		Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "status", SteamLobby._idle_status())
 	$"%LoadingLobbyRect".hide()
 	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) != SteamHustle.STEAM_ID:
 		SteamLobby.request_match_settings()
@@ -167,8 +174,22 @@ func init():
 		$"%GameSettingsPanelContainer".init(false)
 		$"%GameSettingsPanelContainer".disable()
 		if !handshake_made:
+			# Always show the loading screen and ALWAYS wait on the
+			# received_match_settings signal — never trust MATCH_SETTINGS
+			# as "already in hand" since the fast-path may have seeded
+			# it with stale data from a previous owner. The fast-path
+			# emit is call_deferred so it fires next idle frame (after
+			# this yield registers), so new-patch joiners still get a
+			# quick flash. The 3s timer is a safety backstop so a missed
+			# response doesn't strand the user on the loading screen.
 			$"%LoadingLobbyRect".show()
-			yield(SteamLobby, "received_match_settings")
+			_initial_settings_received = false
+			SteamLobby.connect("received_match_settings", self, "_on_initial_settings_received", [], CONNECT_ONESHOT)
+			var timer = get_tree().create_timer(3.0)
+			while not _initial_settings_received and timer.time_left > 0:
+				yield(get_tree(), "idle_frame")
+			if SteamLobby.is_connected("received_match_settings", self, "_on_initial_settings_received"):
+				SteamLobby.disconnect("received_match_settings", self, "_on_initial_settings_received")
 			$"%LoadingLobbyRect".hide()
 			handshake_made = true
 	else:

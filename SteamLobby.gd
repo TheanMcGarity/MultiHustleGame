@@ -644,6 +644,7 @@ func _read_P2P_Packet():
 							var local_entries = match_chat_history.get(key, [])
 							if owner_entries is Array:
 								match_chat_history[key] = _merge_history(owner_entries, local_entries, CHAT_HISTORY_MATCH_MAX)
+					_set_lobby_history_loading(false)
 					emit_signal("chat_history_synced")
 		if readable.has("request_match_history"):
 			# Only one of the two fighters in the match answers — they're the
@@ -667,6 +668,7 @@ func _read_P2P_Packet():
 					if key != "":
 						var local_entries = match_chat_history.get(key, [])
 						match_chat_history[key] = _merge_history(payload.entries, local_entries, CHAT_HISTORY_MATCH_MAX)
+						_set_match_history_loading(false)
 						emit_signal("chat_history_synced")
 		if readable.has("message"):
 			if readable.message == "handshake":
@@ -715,7 +717,109 @@ func _read_P2P_Packet():
 func _read_P2P_Packet_custom(readable):
 	var sender = p2p_packet_sender
 
+# --- Lobby user actions popup (shared, lives on the autoload)
+# The popup used by LobbyUser avatar clicks was previously parented to each
+# LobbyUser, which got destroyed on every lobby member refresh — closing the
+# menu mid-interaction. Owning it here keeps it alive across UI churn; the
+# popup remembers its target via meta so handlers don't need the LobbyUser
+# instance.
+var _lobby_user_popup: PopupMenu
+
+const _LOBBY_POPUP_ACTION_PROFILE = 0
+const _LOBBY_POPUP_ACTION_MUTE = 1
+const _LOBBY_POPUP_ACTION_BLOCK = 2
+const _LOBBY_POPUP_ACTION_TRANSFER = 3
+
+signal lobby_user_popup_hidden(steam_id)
+
+func show_lobby_user_popup(global_pos: Vector2, steam_id: int):
+	# Parent into Main's UILayer (CanvasLayer) so the popup renders on the
+	# same layer as the rest of the lobby UI. Parenting to Main directly puts
+	# the popup at canvas_layer 0 — technically visible, just hidden behind
+	# every UI element drawn through UILayer. Falls back to the scene root if
+	# UILayer can't be found, and to the viewport root if there's no scene.
+	var desired_parent: Node = null
+	var scene = get_tree().current_scene
+	if scene != null and scene.has_node("UILayer"):
+		desired_parent = scene.get_node("UILayer")
+	if desired_parent == null:
+		desired_parent = scene
+	if desired_parent == null:
+		desired_parent = get_tree().get_root()
+	if _lobby_user_popup == null or not is_instance_valid(_lobby_user_popup):
+		_lobby_user_popup = PopupMenu.new()
+		_lobby_user_popup.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		_lobby_user_popup.set_as_toplevel(true)
+		# Explicit theme — popups inherit from parents in the Control tree, and
+		# Main doesn't carry the lobby theme, so without this the popup's bg
+		# panel renders invisible (input still works, you just can't see it).
+		_lobby_user_popup.theme = preload("res://theme.tres")
+		# Belt-and-suspenders: explicit dark panel stylebox in case the theme
+		# doesn't take. The bg_color matches the PopupMenu/styles/panel entry
+		# in theme.tres.
+		var panel_sb = StyleBoxFlat.new()
+		panel_sb.bg_color = Color(0.0784, 0.0784, 0.0784, 1)
+		panel_sb.border_width_left = 1
+		panel_sb.border_width_top = 1
+		panel_sb.border_width_right = 1
+		panel_sb.border_width_bottom = 1
+		panel_sb.border_color = Color.black
+		_lobby_user_popup.add_stylebox_override("panel", panel_sb)
+		_lobby_user_popup.connect("id_pressed", self, "_on_lobby_user_popup_id_pressed")
+		_lobby_user_popup.connect("popup_hide", self, "_on_lobby_user_popup_hide")
+		desired_parent.add_child(_lobby_user_popup)
+	elif _lobby_user_popup.get_parent() != desired_parent:
+		# Current scene swapped under us (e.g. match transition rebuilt Main).
+		# Reparent to the new scene before showing.
+		if _lobby_user_popup.get_parent() != null:
+			_lobby_user_popup.get_parent().remove_child(_lobby_user_popup)
+		desired_parent.add_child(_lobby_user_popup)
+	_lobby_user_popup.set_meta("target_steam_id", steam_id)
+	_lobby_user_popup.clear()
+	_lobby_user_popup.add_item("Open Steam Profile", _LOBBY_POPUP_ACTION_PROFILE)
+	if not is_blocked(steam_id):
+		_lobby_user_popup.add_item("Unmute" if is_muted(steam_id) else "Mute", _LOBBY_POPUP_ACTION_MUTE)
+	_lobby_user_popup.add_item("Unblock" if is_blocked(steam_id) else "Block", _LOBBY_POPUP_ACTION_BLOCK)
+	if Steam.getLobbyOwner(LOBBY_ID) == SteamHustle.STEAM_ID:
+		_lobby_user_popup.add_separator()
+		_lobby_user_popup.add_item("Transfer Ownership", _LOBBY_POPUP_ACTION_TRANSFER)
+	_lobby_user_popup.rect_global_position = global_pos
+	_lobby_user_popup.popup()
+
+func _on_lobby_user_popup_id_pressed(id: int):
+	if _lobby_user_popup == null or not _lobby_user_popup.has_meta("target_steam_id"):
+		return
+	var steam_id = int(_lobby_user_popup.get_meta("target_steam_id"))
+	match id:
+		_LOBBY_POPUP_ACTION_PROFILE:
+			Steam.activateGameOverlayToUser("steamid", steam_id)
+		_LOBBY_POPUP_ACTION_MUTE:
+			set_muted(steam_id, not is_muted(steam_id))
+		_LOBBY_POPUP_ACTION_BLOCK:
+			set_blocked(steam_id, not is_blocked(steam_id))
+		_LOBBY_POPUP_ACTION_TRANSFER:
+			Steam.setLobbyOwner(LOBBY_ID, steam_id)
+
+func _on_lobby_user_popup_hide():
+	if _lobby_user_popup == null or not _lobby_user_popup.has_meta("target_steam_id"):
+		return
+	emit_signal("lobby_user_popup_hidden", int(_lobby_user_popup.get_meta("target_steam_id")))
+
+func is_lobby_user_popup_open_for(steam_id: int) -> bool:
+	if _lobby_user_popup == null or not is_instance_valid(_lobby_user_popup):
+		return false
+	if not _lobby_user_popup.visible:
+		return false
+	if not _lobby_user_popup.has_meta("target_steam_id"):
+		return false
+	return int(_lobby_user_popup.get_meta("target_steam_id")) == steam_id
+
 func set_status(status):
+	# Callers everywhere use set_status("idle") to mean "we're done with the
+	# challenge/match flow." Honor the manual busy toggle here so those paths
+	# don't silently clobber the user's preference.
+	if status == "idle" and Global.lobby_busy_mode:
+		status = "busy"
 	Steam.setLobbyMemberData(LOBBY_ID, "status", status)
 
 # Callback from getting the auth ticket from Steam
@@ -921,6 +1025,30 @@ func _on_Lobby_Message(lobby_id: int, user: int, message: String, chat_type: int
 	emit_signal("chat_message_received", user, text, scope)
 
 func request_match_settings():
+	# Fast-path: the owner publishes the current settings to lobby data on
+	# every update (see update_match_settings), so joiners can read it
+	# instantly via getLobbyData instead of waiting on a P2P round-trip.
+	# The P2P path can stall for seconds while the joiner ↔ owner session
+	# establishes (NAT traversal etc.) — that's the "Requesting lobby
+	# data..." stall users have been complaining about. defer the emit
+	# so the UI's `yield(SteamLobby, "received_match_settings")` has a
+	# chance to register before the signal fires.
+	# The "match_settings_owner" stamp must match the *current* lobby
+	# owner — otherwise this is stale data from a previous new-patch
+	# owner who left, with the lobby now run by an older-patch owner
+	# who never overwrites the key. Treat any mismatch / missing stamp
+	# the same as no fast-path data and fall back to P2P.
+	var owner_str = Steam.getLobbyData(LOBBY_ID, "match_settings_owner")
+	var json_str = Steam.getLobbyData(LOBBY_ID, "match_settings_json")
+	if json_str != "" and owner_str != "" and int(owner_str) == LOBBY_OWNER:
+		var parsed = JSON.parse(json_str)
+		if parsed.error == OK and parsed.result is Dictionary:
+			MATCH_SETTINGS = parsed.result
+			call_deferred("emit_signal", "received_match_settings", MATCH_SETTINGS)
+			return
+	# Fall back to the original P2P request when the owner hasn't populated
+	# lobby data yet (e.g. very-old-client owner who doesn't publish, or
+	# a race window right after lobby creation).
 	_send_P2P_Packet(LOBBY_OWNER, {"request_match_settings": SteamHustle.STEAM_ID})
 	
 func am_i_lobby_owner() -> bool:
@@ -929,6 +1057,9 @@ func am_i_lobby_owner() -> bool:
 func _on_Lobby_Joined(lobby_id: int, _permissions: int, _locked: bool, response: int) -> void:
 	# If joining was successful
 	if response == 1:
+		# Reset to idle on every lobby join — busy mode is a transient
+		# preference for the current session, not something we persist.
+		Global.lobby_busy_mode = false
 		Network.start_steam_mp()
 		# Set this lobby ID as your lobby ID
 		LOBBY_ID = lobby_id
@@ -1139,9 +1270,13 @@ func _idle_status() -> String:
 func apply_busy_mode():
 	if LOBBY_ID == 0:
 		return
-	var current = get_status()
-	if current == "idle" or current == "busy":
-		Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
+	# Skip when the match flow actually owns our status — but check the local
+	# booleans, not get_status(). Steam's cache lags behind setLobbyMemberData,
+	# so reading "fighting" / "spectating" from the cache after the match has
+	# ended would silently swallow the toggle.
+	if OPPONENT_ID != 0 or SPECTATING:
+		return
+	Steam.setLobbyMemberData(LOBBY_ID, "status", _idle_status())
 
 # --- Chat history (persists across Global.reload, cleared on full lobby leave)
 # Stored on the SteamLobby autoload because Main.tscn (and the Chat node) get
@@ -1219,6 +1354,37 @@ func clear_chat_history():
 # Emitted when a freshly-joined user has received history from the owner —
 # Chat.gd reacts by rebuilding all containers from the (now-populated) record.
 signal chat_history_synced
+# Track whether we're waiting on a history reply so Chat.gd can show a
+# "loading messages..." indicator at the top of the relevant container until
+# the response arrives (or the timeout below clears the flag).
+signal chat_history_loading_changed
+var loading_lobby_chat_history := false
+var loading_match_chat_history := false
+const CHAT_HISTORY_LOADING_TIMEOUT := 8.0
+
+func is_chat_history_loading() -> bool:
+	return loading_lobby_chat_history or loading_match_chat_history
+
+func _set_lobby_history_loading(on: bool):
+	if loading_lobby_chat_history == on:
+		return
+	loading_lobby_chat_history = on
+	emit_signal("chat_history_loading_changed")
+
+func _set_match_history_loading(on: bool):
+	if loading_match_chat_history == on:
+		return
+	loading_match_chat_history = on
+	emit_signal("chat_history_loading_changed")
+
+# Fallback so the spinner doesn't get stuck forever if the owner / host never
+# replies (e.g. they're on an old patch without the handler, or they left).
+func _clear_chat_loading_after_timeout(which: String):
+	yield(get_tree().create_timer(CHAT_HISTORY_LOADING_TIMEOUT), "timeout")
+	if which == "lobby":
+		_set_lobby_history_loading(false)
+	elif which == "match":
+		_set_match_history_loading(false)
 
 # Ask the lobby owner for their stored history so newly-joined users see
 # what was said before they arrived. Owner replies with their lobby record
@@ -1227,6 +1393,8 @@ func request_chat_history():
 	if LOBBY_OWNER == 0 or LOBBY_OWNER == SteamHustle.STEAM_ID:
 		return
 	_send_P2P_Packet(LOBBY_OWNER, {"request_chat_history": SteamHustle.STEAM_ID})
+	_set_lobby_history_loading(true)
+	_clear_chat_loading_after_timeout("lobby")
 
 # Spectator-side mirror — ask the match host (the user we're spectating)
 # for the in-progress match's chat backlog.
@@ -1234,6 +1402,8 @@ func request_match_history(host_id: int, match_key: String):
 	if host_id == 0 or host_id == SteamHustle.STEAM_ID or match_key == "":
 		return
 	_send_P2P_Packet(host_id, {"request_match_history": SteamHustle.STEAM_ID, "match_key": match_key})
+	_set_match_history_loading(true)
+	_clear_chat_loading_after_timeout("match")
 
 # Dedup helper for the merge step. Two entries collide when their (steam_id,
 # message) pair matches. Limited to the last `window` entries of `history`
@@ -1296,6 +1466,10 @@ func set_blocked(steam_id: int, on: bool):
 	if on:
 		if not is_blocked(steam_id):
 			Global.blocked_users.append(key)
+		# Block is a superset of mute — drop the redundant mute entry so the
+		# UI doesn't have to reason about "blocked AND muted" as a separate
+		# state, and so unblocking later doesn't leave them silently muted.
+		muted_users.erase(steam_id)
 	else:
 		# Erase any entry that stringifies to the same id, regardless of how
 		# it was stored (str vs int) — paired with the loose is_blocked check.
@@ -1385,9 +1559,34 @@ func _user_left_lobby(steam_id):
 	Network.player_disconnected(steam_id)
 	pass
 
+var _last_published_match_settings_json := ""
+
 func update_match_settings(match_settings, id=0):
-	MATCH_SETTINGS = match_settings
 	print("updating settings")
+	# Dedup: UiSteamLobbyOld._on_lobby_data_update fires this on every
+	# lobby_data_update event, including the one our own setLobbyData
+	# triggers — without a guard that creates a write→event→write loop
+	# (visible as constant lobby UI refresh, hover-state flicker, and
+	# wasted bandwidth). Skip the publish + P2P if the payload matches
+	# the last one we sent.
+	var serialized = JSON.print(match_settings)
+	if serialized == _last_published_match_settings_json:
+		MATCH_SETTINGS = match_settings
+		return
+	_last_published_match_settings_json = serialized
+	MATCH_SETTINGS = match_settings
+	# Publish to lobby data so future joiners can fast-path past the
+	# "Requesting lobby data..." stall (see request_match_settings).
+	# Only the owner is authoritative; bail if we're a non-owner caller.
+	# Settings dict serializes well under Steam's 4KB key limit.
+	# Also stamp current owner id — fast-path consumer rejects the data
+	# if the stamp doesn't match the *current* LOBBY_OWNER, so stale
+	# settings left behind by a previous new-patch owner don't get
+	# served to joiners when the current owner is on an older patch
+	# (which never overwrites the key).
+	if am_i_lobby_owner():
+		Steam.setLobbyData(LOBBY_ID, "match_settings_json", serialized)
+		Steam.setLobbyData(LOBBY_ID, "match_settings_owner", str(LOBBY_OWNER))
 	_send_P2P_Packet(id, {"match_settings_updated": match_settings})
 	pass
 
