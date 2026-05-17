@@ -110,9 +110,30 @@ func shift():
 			add_penalty(15)
 
 func gain_super_meter(amount, stale_amount = "1.0"):
-	if cut_projectile:
+	if obj_from_name(cut_projectile):
 		amount = fixed.round(fixed.mul(str(amount), "0.5"))
+	# The time-projectile penalty fires while any of Cowboy's own time
+	# objects are alive — the frozen-round itself OR any NewTimeBullets
+	# his temporal_round spawned. Without _has_active_time_bullet the
+	# penalty stopped the moment the frozen round fired its bullet, even
+	# though that bullet was still in play.
+	if obj_from_name(temporal_round) or _has_active_time_bullet():
+		amount = fixed.round(fixed.mul(str(amount), "0.5"))
+
 	.gain_super_meter(amount, stale_amount)
+
+func _has_active_time_bullet() -> bool:
+	for obj_name_ in objs_map:
+		var obj = objs_map[obj_name_]
+		if not is_instance_valid(obj):
+			continue
+		if obj.disabled:
+			continue
+		if not obj.get("is_time_bullet"):
+			continue
+		if obj.creator == self:
+			return true
+	return false
 
 func start_1k_cuts_buff():
 	max_air_speed = MAX_AIR_SPEED_1KCUTS

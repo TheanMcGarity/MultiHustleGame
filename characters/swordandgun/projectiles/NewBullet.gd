@@ -8,6 +8,12 @@ const SPEED = "50"
 const NEW_BULLET = true
 
 export var color = Color("f2ff31")
+# Distinguishes NewTimeBullet (spawned by Cowboy's temporal_round) from the
+# regular NewBullet — same script + scene shape, so we tag the scene file
+# instead. SwordGuy.gain_super_meter reads this to keep the time-projectile
+# meter penalty active for as long as ANY of his NewTimeBullets exist, not
+# just the frozen-round itself.
+export var is_time_bullet = false
 
 var dir_x = "0"
 var dir_y = "0"
