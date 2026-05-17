@@ -783,14 +783,14 @@ func create_all_auras():
 			particle.load_settings(settings)
 			if attach_limb != "":
 				particle.position = _preview_aura_pos_from_entry(node, entry)
-				# Eyes: spread both particles around Head with per-eye y
-				# offsets. Offsets are stored in game-pixel units (same as
-				# the sprite, no extra scaling here).
+				# Eyes: fold per-eye spacing/y into default_x/y_offset so
+				# it rides the rotation pipeline (mirrors BaseChar).
 				if attach_limb == "Eyes":
 					var spacing = float(settings.get("attach_eye_spacing", 6))
-					var x_off = -spacing * 0.5 if pair_index == 0 else spacing * 0.5
-					var y_off = float(settings.get("attach_eye_left_y_offset", 0)) if pair_index == 0 else float(settings.get("attach_eye_right_y_offset", 0))
-					particle.position += Vector2(x_off, y_off)
+					var x_eye = -spacing * 0.5 if pair_index == 0 else spacing * 0.5
+					var y_eye = float(settings.get("attach_eye_left_y_offset", 0)) if pair_index == 0 else float(settings.get("attach_eye_right_y_offset", 0))
+					particle.default_x_offset += x_eye
+					particle.default_y_offset += y_eye
 				particle.attached_to_limb = true
 				if position_only:
 					particle.attached_rotation = 0.0

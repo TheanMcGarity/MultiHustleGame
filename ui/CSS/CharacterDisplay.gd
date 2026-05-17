@@ -60,19 +60,15 @@ func _create_display_particle(entry: Dictionary):
 	particle.load_settings(settings)
 	if attach_limb != "":
 		particle.position = _display_aura_pos(limb_entry)
-		# Eyes pair: spread the two particles horizontally around the head
-		# position and apply per-eye y offsets. Offsets are stored in
-		# texture-pixel units (same scale the rest of the game uses), so
-		# scale them by the portrait's display scale before adding to the
-		# already-scaled head position. flip_h mirrors `position` across
-		# the rect center inside `_display_aura_pos`, so the offset stays
-		# in display-space orientation — no extra sign flip needed here.
+		# Eyes: fold per-eye spacing/y into default_x/y_offset so it rides
+		# the rotation pipeline (mirrors the BaseChar approach).
 		if attach_limb == "Eyes":
 			var pair_idx = entry.get("pair_index", 0)
 			var spacing = float(settings.get("attach_eye_spacing", 6))
-			var x_off = -spacing * 0.5 if pair_idx == 0 else spacing * 0.5
-			var y_off = float(settings.get("attach_eye_left_y_offset", 0)) if pair_idx == 0 else float(settings.get("attach_eye_right_y_offset", 0))
-			particle.position += Vector2(x_off, y_off) * _display_scale()
+			var x_eye = -spacing * 0.5 if pair_idx == 0 else spacing * 0.5
+			var y_eye = float(settings.get("attach_eye_left_y_offset", 0)) if pair_idx == 0 else float(settings.get("attach_eye_right_y_offset", 0))
+			particle.default_x_offset += x_eye
+			particle.default_y_offset += y_eye
 		particle.attached_to_limb = true
 		if settings.get("attach_position_only", true):
 			particle.attached_rotation = 0.0
