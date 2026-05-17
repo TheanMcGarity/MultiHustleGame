@@ -647,8 +647,8 @@ func _update_style_aura_trackers():
 	if state and state.name == "Taunt":
 		style_aura_taunt_tick = current_tick
 	# Parry combo scaling is active while either parry_combo (regular
-	# parries) or parried_burst_combo (burst-parry chain) is non-zero.
-	if parry_combo > 0 or parried_burst_combo > 0:
+	# parries) or parried_burst_combo (burst-parry chain) is set.
+	if parry_combo or parried_burst_combo:
 		style_aura_parry_combo_tick = current_tick
 
 	# Rising-edge "event" markers used by one-shot mode. melee_attack_started
@@ -661,7 +661,7 @@ func _update_style_aura_trackers():
 	var being_comboed_now = is_instance_valid(opponent) and opponent.combo_count > 0
 	var projectiles_now = get_active_projectiles().size() > 0
 	var taunting_now = state and state.name == "Taunt"
-	var parry_combo_now = parry_combo > 0 or parried_burst_combo > 0
+	var parry_combo_now = parry_combo or parried_burst_combo
 	if _aura_rising_edge_initialized:
 		if combo_now and not was_combo_active_for_aura:
 			style_aura_combo_started_tick = current_tick
