@@ -6,6 +6,7 @@ const ATTACH_LIMB_OPTIONS := [
 	"Head",
 	"LeftHand", "RightHand", "Hands",
 	"LeftFoot", "RightFoot", "Feet",
+	"Eyes",
 ]
 # Old attach_limb values that map to the simplified set above. Body / Upper /
 # Lower fall through to "(none)" since there's no anatomical body limb anymore.
@@ -138,6 +139,9 @@ var during_taunt_button: CheckButton
 var during_taunt_linger
 var during_parry_combo_button: CheckButton
 var during_parry_combo_linger
+var eye_spacing_slider
+var eye_left_y_slider
+var eye_right_y_slider
 
 const ACTION_TYPE_OPTIONS := ["Movement", "Defense", "Attack", "Special", "Super"]
 
@@ -343,6 +347,55 @@ func _build_during_parry_combo_trigger():
 		parent.move_child(during_parry_combo_button, insert_at)
 		parent.move_child(during_parry_combo_linger, insert_at + 1)
 
+# Eye-attachment sub-controls — spacing between the two eyes and per-eye
+# vertical offset. Visible only when AttachLimb == "Eyes" (toggled in
+# _update_attach_visibility). Slotted right below the AttachLimb row so
+# the eye-specific settings group with the attach picker.
+func _build_eye_attach_widgets():
+	if not has_node("%AttachLimb"):
+		return
+	var anchor = $"%AttachLimb"
+	var anchor_row = anchor.get_parent()
+	if anchor_row == null:
+		return
+	var parent = anchor_row.get_parent()
+	if parent == null:
+		return
+	eye_spacing_slider = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	eye_spacing_slider.name = "EyeSpacing"
+	eye_spacing_slider.unique_name_in_owner = true
+	eye_spacing_slider.label_text = "Eye Spacing"
+	eye_spacing_slider.default_value = 6.0
+	eye_spacing_slider.min_value = 0.0
+	eye_spacing_slider.max_value = 40.0
+	eye_spacing_slider.step = 0.1
+	parent.add_child(eye_spacing_slider)
+	eye_left_y_slider = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	eye_left_y_slider.name = "EyeLeftYOffset"
+	eye_left_y_slider.unique_name_in_owner = true
+	eye_left_y_slider.label_text = "Left Eye Y Offset"
+	eye_left_y_slider.default_value = 0.0
+	eye_left_y_slider.min_value = -20.0
+	eye_left_y_slider.max_value = 20.0
+	eye_left_y_slider.step = 0.1
+	parent.add_child(eye_left_y_slider)
+	eye_right_y_slider = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	eye_right_y_slider.name = "EyeRightYOffset"
+	eye_right_y_slider.unique_name_in_owner = true
+	eye_right_y_slider.label_text = "Right Eye Y Offset"
+	eye_right_y_slider.default_value = 0.0
+	eye_right_y_slider.min_value = -20.0
+	eye_right_y_slider.max_value = 20.0
+	eye_right_y_slider.step = 0.1
+	parent.add_child(eye_right_y_slider)
+	settings_map[eye_spacing_slider] = "attach_eye_spacing"
+	settings_map[eye_left_y_slider] = "attach_eye_left_y_offset"
+	settings_map[eye_right_y_slider] = "attach_eye_right_y_offset"
+	var insert_at = anchor_row.get_position_in_parent() + 1
+	parent.move_child(eye_spacing_slider, insert_at)
+	parent.move_child(eye_left_y_slider, insert_at + 1)
+	parent.move_child(eye_right_y_slider, insert_at + 2)
+
 func load_settings(settings):
 	for setting in settings:
 		if setting in nodes_map:
@@ -487,6 +540,8 @@ func _ready():
 	# that bit the slider label_text overrides). Wire it directly here.
 	_build_flip_shape_button()
 	_build_emission_shape_widgets()
+	if enable_limb_attach:
+		_build_eye_attach_widgets()
 	if enable_triggers:
 		_build_dynamic_one_shot_button()
 		_build_action_type_trigger()
@@ -608,12 +663,22 @@ func _update_emission_visibility():
 
 func _update_attach_visibility():
 	var attached = $"%AttachLimb".selected > 0
+	var attach_text = ""
+	if $"%AttachLimb".selected >= 0:
+		attach_text = $"%AttachLimb".get_item_text($"%AttachLimb".selected)
+	var is_eyes = attach_text == "Eyes"
 	if has_node("%MirrorPair"):
 		$"%MirrorPair".visible = attached
 	if has_node("%PositionOnly"):
 		$"%PositionOnly".visible = attached
 	if has_node("%ConsistentSide"):
 		$"%ConsistentSide".visible = attached
+	if eye_spacing_slider:
+		eye_spacing_slider.visible = is_eyes
+	if eye_left_y_slider:
+		eye_left_y_slider.visible = is_eyes
+	if eye_right_y_slider:
+		eye_right_y_slider.visible = is_eyes
 
 func _on_trigger_toggled(_pressed):
 	_update_trigger_visibility()

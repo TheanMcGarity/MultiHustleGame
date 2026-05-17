@@ -7,6 +7,11 @@ const SUPPORTER_PACK = 2232850
 const ATTACH_PAIRS = {
 	"Hands": ["LeftHand", "RightHand"],
 	"Feet": ["LeftFoot", "RightFoot"],
+	# Eyes pair maps both indices to "Head" — the two particles share the
+	# head limb's position and the per-eye spacing / y-offset settings
+	# (attach_eye_spacing, attach_eye_left_y_offset, attach_eye_right_y_offset)
+	# are applied on top in BaseChar._apply_aura_state.
+	"Eyes": ["Head", "Head"],
 }
 
 # Renames from the older limb naming scheme. Applied at runtime so old saved

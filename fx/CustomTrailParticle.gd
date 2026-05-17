@@ -87,6 +87,7 @@ var custom_set = {
 static func get_shapes():
 	return {
 		"circle": preload("res://fx/particle_round_4x4.png"),
+		"ellipse": preload("res://fx/ellipse.png"),
 		"square": preload("res://fx/particle_square_4x4.png"),
 		"triangle": preload("res://fx/TriUp.png"),
 		"star": preload("res://fx/star.png"),
@@ -96,8 +97,10 @@ static func get_shapes():
 		"line": preload("res://fx/line.png"),
 		"diamond": preload("res://fx/diamond.png"),
 		"shine": preload("res://fx/four_point_star.png"),
+		"shine2": preload("res://fx/shine2.png"),
 		"elec": preload("res://fx/elec.png"),
 		"hollow circle": preload("res://fx/particle_round_hollow_4x4.png"),
+		"hollow ellipse": preload("res://fx/ellipse_hollow.png"),
 		"hollow square": preload("res://fx/particle_square_hollow_4x4.png"),
 		"checkerboard 1": preload("res://fx/checkerboard_1.png"),
 		"checkerboard 2": preload("res://fx/checkerboard_2.png"),
@@ -194,6 +197,9 @@ static func get_default():
 		"trigger_during_taunt_linger": 0,
 		"trigger_during_parry_combo": false,
 		"trigger_during_parry_combo_linger": 0,
+		"attach_eye_spacing": 6.0,
+		"attach_eye_left_y_offset": 0.0,
+		"attach_eye_right_y_offset": 0.0,
 	}
 
 static func get_setting_min(setting):

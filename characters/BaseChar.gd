@@ -885,6 +885,20 @@ func _apply_aura_state(particle, entry: Dictionary):
 			should_emit = false
 		else:
 			particle.position = _aura_position_for_limb(resolved)
+			# Eyes pair attach — both particles ride on Head; spread them
+			# horizontally and apply per-eye vertical offsets here. pair_index
+			# 0 = left eye, 1 = right eye in the character's frame. With
+			# attach_consistent_side on (the default) and the character
+			# facing left, negate the x offset so each eye stays on its
+			# screen side instead of swapping when the sprite mirrors.
+			if entry.get("attach_limb", "") == "Eyes":
+				var pair_idx = entry.get("pair_index", 0)
+				var spacing = float(settings.get("attach_eye_spacing", 6))
+				var x_off = -spacing * 0.5 if pair_idx == 0 else spacing * 0.5
+				var y_off = float(settings.get("attach_eye_left_y_offset", 0)) if pair_idx == 0 else float(settings.get("attach_eye_right_y_offset", 0))
+				if get_facing_int() == -1 and settings.get("attach_consistent_side", true):
+					x_off = -x_off
+				particle.position += Vector2(x_off, y_off)
 			particle.attached_to_limb = true
 			if settings.get("attach_position_only", true):
 				particle.attached_rotation = 0.0
