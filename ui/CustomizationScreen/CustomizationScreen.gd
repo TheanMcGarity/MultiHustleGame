@@ -776,6 +776,14 @@ func create_all_auras():
 			particle.load_settings(settings)
 			if attach_limb != "":
 				particle.position = _preview_aura_pos_from_entry(node, entry)
+				# Eyes: spread both particles around Head with per-eye y
+				# offsets. Offsets are stored in game-pixel units (same as
+				# the sprite, no extra scaling here).
+				if attach_limb == "Eyes":
+					var spacing = float(settings.get("attach_eye_spacing", 6))
+					var x_off = -spacing * 0.5 if pair_index == 0 else spacing * 0.5
+					var y_off = float(settings.get("attach_eye_left_y_offset", 0)) if pair_index == 0 else float(settings.get("attach_eye_right_y_offset", 0))
+					particle.position += Vector2(x_off, y_off)
 				particle.attached_to_limb = true
 				if position_only:
 					particle.attached_rotation = 0.0
@@ -783,7 +791,11 @@ func create_all_auras():
 				else:
 					particle.attached_rotation = _preview_aura_rotation_from_entry(entry)
 					var flipped = entry.get("flipped", false)
-					if pair_index == 1 and mirror_pair:
+					# Skip pair_mirror for Eyes — both eyes ride on the same
+					# Head limb, so flipping the second would invert its scale
+					# and make the global x_offset drift the two eyes in
+					# opposite directions, preventing off-center eye looks.
+					if attach_limb != "Eyes" and pair_index == 1 and mirror_pair:
 						flipped = !flipped
 					particle.attached_limb_flipped = flipped
 				particle.facing = 1

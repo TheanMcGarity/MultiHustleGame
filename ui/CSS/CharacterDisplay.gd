@@ -80,7 +80,8 @@ func _create_display_particle(entry: Dictionary):
 		else:
 			particle.attached_rotation = _display_aura_rotation(limb_entry)
 			var flipped = limb_entry.get("flipped", false)
-			if entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
+			# Skip pair_mirror for Eyes (see BaseChar._apply_aura_state for why).
+			if attach_limb != "Eyes" and entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
 				flipped = !flipped
 			particle.attached_limb_flipped = flipped
 		# Flipped portrait (P2) treated as facing left so x_offset mirrors.
