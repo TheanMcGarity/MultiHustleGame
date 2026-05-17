@@ -190,6 +190,8 @@ static func get_default():
 		"trigger_action_type_linger": 0,
 		"trigger_during_install": false,
 		"trigger_during_install_linger": 0,
+		"trigger_during_taunt": false,
+		"trigger_during_taunt_linger": 0,
 	}
 
 static func get_setting_min(setting):

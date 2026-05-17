@@ -134,6 +134,8 @@ var action_type_option: OptionButton
 var action_type_linger
 var during_install_button: CheckButton
 var during_install_linger
+var during_taunt_button: CheckButton
+var during_taunt_linger
 
 const ACTION_TYPE_OPTIONS := ["Movement", "Defense", "Attack", "Special", "Super"]
 
@@ -280,6 +282,30 @@ func _build_during_install_trigger():
 	settings_map[during_install_button] = "trigger_during_install"
 	settings_map[during_install_linger] = "trigger_during_install_linger"
 
+# "during Hustle (taunt)" trigger — active for the duration of the Taunt
+# state. Same shape as the install trigger.
+func _build_during_taunt_trigger():
+	if not has_node("%DynamicTriggers"):
+		return
+	var dt = $"%DynamicTriggers"
+	var parent = dt.get_parent() if dt else self
+	during_taunt_button = CheckButton.new()
+	during_taunt_button.name = "TriggerDuringTaunt"
+	during_taunt_button.unique_name_in_owner = true
+	during_taunt_button.text = "  during Hustle"
+	parent.add_child(during_taunt_button)
+	during_taunt_linger = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	during_taunt_linger.name = "TriggerDuringTauntLinger"
+	during_taunt_linger.unique_name_in_owner = true
+	during_taunt_linger.label_text = "Linger Duration"
+	during_taunt_linger.default_value = 0.0
+	during_taunt_linger.min_value = 0.0
+	during_taunt_linger.max_value = 120.0
+	during_taunt_linger.step = 1.0
+	parent.add_child(during_taunt_linger)
+	settings_map[during_taunt_button] = "trigger_during_taunt"
+	settings_map[during_taunt_linger] = "trigger_during_taunt_linger"
+
 func load_settings(settings):
 	for setting in settings:
 		if setting in nodes_map:
@@ -364,6 +390,8 @@ const TRIGGER_LABELS = {
 	"TriggerAfterPerfectParryDuration": "Duration",
 	"TriggerAfterBurstDuration": "Duration",
 	"TriggerProjectilesActiveLinger": "Linger Duration",
+	"TriggerDuringInstallLinger": "Linger Duration",
+	"TriggerDuringTauntLinger": "Linger Duration",
 	"AngularVelocity": "Angular Velocity",
 	"AngularVelocityRandom": "Angular Vel. Randomness",
 	"Damping": "Damping",
@@ -425,6 +453,7 @@ func _ready():
 		_build_dynamic_one_shot_button()
 		_build_action_type_trigger()
 		_build_during_install_trigger()
+		_build_during_taunt_trigger()
 		# TriggersInverted (label "hide on trigger") lives in the .tscn so its
 		# state survives editor re-saves, but the programmatically-built triggers
 		# above are appended after it. Bump it to the end so it stays at the
@@ -595,6 +624,10 @@ func _update_trigger_visibility():
 		during_install_button.visible = dt
 	if during_install_linger:
 		during_install_linger.visible = show_linger and during_install_button and during_install_button.pressed
+	if during_taunt_button:
+		during_taunt_button.visible = dt
+	if during_taunt_linger:
+		during_taunt_linger.visible = show_linger and during_taunt_button and during_taunt_button.pressed
 
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())
