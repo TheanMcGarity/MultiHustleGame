@@ -60,6 +60,19 @@ func _create_display_particle(entry: Dictionary):
 	particle.load_settings(settings)
 	if attach_limb != "":
 		particle.position = _display_aura_pos(limb_entry)
+		# Eyes pair: spread the two particles horizontally around the head
+		# position and apply per-eye y offsets. Offsets are stored in
+		# texture-pixel units (same scale the rest of the game uses), so
+		# scale them by the portrait's display scale before adding to the
+		# already-scaled head position. flip_h mirrors `position` across
+		# the rect center inside `_display_aura_pos`, so the offset stays
+		# in display-space orientation — no extra sign flip needed here.
+		if attach_limb == "Eyes":
+			var pair_idx = entry.get("pair_index", 0)
+			var spacing = float(settings.get("attach_eye_spacing", 6))
+			var x_off = -spacing * 0.5 if pair_idx == 0 else spacing * 0.5
+			var y_off = float(settings.get("attach_eye_left_y_offset", 0)) if pair_idx == 0 else float(settings.get("attach_eye_right_y_offset", 0))
+			particle.position += Vector2(x_off, y_off) * _display_scale()
 		particle.attached_to_limb = true
 		if settings.get("attach_position_only", true):
 			particle.attached_rotation = 0.0
@@ -103,6 +116,30 @@ func _display_limb_entry(limb_name):
 	if entry is Dictionary and entry.get("absent", false):
 		return null
 	return entry
+
+# Scale factor texture-pixel → display-pixel for the current portrait
+# under its stretch_mode. Used to scale eye-attach offsets (stored in
+# texture-pixel units) so they match the displayed limb-pixel scale.
+func _display_scale() -> float:
+	var rect = $"%CharacterPortrait"
+	var tex = rect.texture
+	if tex == null:
+		return 1.0
+	var rect_size = rect.rect_size
+	var tex_size = tex.get_size()
+	if tex_size.x <= 0 or tex_size.y <= 0:
+		return 1.0
+	match rect.stretch_mode:
+		TextureRect.STRETCH_KEEP, TextureRect.STRETCH_KEEP_CENTERED:
+			return 1.0
+		TextureRect.STRETCH_KEEP_ASPECT, TextureRect.STRETCH_KEEP_ASPECT_CENTERED:
+			return min(rect_size.x / tex_size.x, rect_size.y / tex_size.y)
+		TextureRect.STRETCH_KEEP_ASPECT_COVERED:
+			return max(rect_size.x / tex_size.x, rect_size.y / tex_size.y)
+		_:
+			# STRETCH_SCALE — x and y can diverge but eye offsets are
+			# symmetric on each axis, so average is the best single scalar.
+			return (rect_size.x / tex_size.x + rect_size.y / tex_size.y) * 0.5
 
 # Texture-pixel → TextureRect-local pixel. Picks the right scaling based on
 # the rect's stretch_mode. Mirrors the X axis when the portrait is flipped.
