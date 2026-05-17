@@ -25,6 +25,7 @@ var current_hitspark_particle_slot := 0
 var hitspark_particle_slot_tabs: Tabs = null
 var copy_hitspark_particles_button: Button = null
 var paste_hitspark_particles_button: Button = null
+var swap_hitspark_particles_button: Button = null
 var hitspark_particles_clipboard = null
 # Full-hitspark clipboard — covers sprite, both particle slots, the flip
 # toggle. Separate from the per-slot particles clipboard above.
@@ -49,6 +50,7 @@ var aura_settings_cache = [null, null, null]
 var aura_slot_tabs: Tabs = null
 var copy_aura_button: Button = null
 var paste_aura_button: Button = null
+var swap_aura_button: MenuButton = null
 var aura_clipboard = null
 var loading_aura_slot = false
 
@@ -159,6 +161,7 @@ func switch_aura_slot(slot):
 	loading_aura_slot = false
 	if aura_slot_tabs:
 		aura_slot_tabs.current_tab = current_aura_slot
+	_refresh_swap_aura_menu()
 	create_all_auras()
 
 func init():
@@ -234,6 +237,11 @@ func init():
 		paste_hitspark_particles_button.disabled = true
 		paste_hitspark_particles_button.connect("pressed", self, "_on_paste_hitspark_particles_pressed")
 		$"%HitsparkCopyPasteRow".add_child(paste_hitspark_particles_button)
+		swap_hitspark_particles_button = Button.new()
+		swap_hitspark_particles_button.text = "swap particles"
+		swap_hitspark_particles_button.hint_tooltip = "Swap the two hitspark particle slots."
+		swap_hitspark_particles_button.connect("pressed", self, "_on_swap_hitspark_particles_pressed")
+		$"%HitsparkCopyPasteRow".add_child(swap_hitspark_particles_button)
 	if has_node("%HitsparkConfigCopyPasteRow"):
 		copy_hitspark_button = Button.new()
 		copy_hitspark_button.text = "copy hitspark"
@@ -270,6 +278,12 @@ func init():
 	paste_aura_button.disabled = true
 	paste_aura_button.connect("pressed", self, "_on_paste_aura_pressed")
 	$"%AuraCopyPasteRow".add_child(paste_aura_button)
+	swap_aura_button = MenuButton.new()
+	swap_aura_button.text = "swap with..."
+	swap_aura_button.hint_tooltip = "Swap this aura slot's settings with another slot."
+	swap_aura_button.get_popup().connect("id_pressed", self, "_on_swap_aura_with_slot")
+	$"%AuraCopyPasteRow".add_child(swap_aura_button)
+	_refresh_swap_aura_menu()
 	$"%SaveButton".connect("pressed", self, "save_style")
 	$"%LoadStyleButton".connect("style_selected", self, "load_style")
 	$"%ExpandAllButton".connect("pressed", self, "_on_expand_all_pressed")
@@ -591,6 +605,30 @@ func _on_paste_hitspark_particles_pressed():
 	spawn_hitspark()
 	update_warning()
 
+func _on_swap_hitspark_particles_pressed():
+	# Save current UI state into the active slot first, then swap the two
+	# slots in-place and reload the current slot's view from the (now-
+	# swapped) cache.
+	save_current_hitspark_particle_slot()
+	var tmp_settings = custom_hitspark_particles[0]
+	var tmp_show = custom_hitspark_show_particles[0]
+	custom_hitspark_particles[0] = custom_hitspark_particles[1]
+	custom_hitspark_show_particles[0] = custom_hitspark_show_particles[1]
+	custom_hitspark_particles[1] = tmp_settings
+	custom_hitspark_show_particles[1] = tmp_show
+	loading_hitspark_particle_slot = true
+	if has_node("%ShowHitsparkParticles"):
+		$"%ShowHitsparkParticles".set_pressed_no_signal(custom_hitspark_show_particles[current_hitspark_particle_slot])
+	if has_node("%HitsparkParticles"):
+		loading_hitspark_particles = true
+		var s = custom_hitspark_particles[current_hitspark_particle_slot]
+		$"%HitsparkParticles".load_settings(s if s is Dictionary else _default_hitspark_particles())
+		loading_hitspark_particles = false
+	loading_hitspark_particle_slot = false
+	_mark_style_modified()
+	spawn_hitspark()
+	update_warning()
+
 func _on_copy_hitspark_pressed():
 	hitspark_clipboard = get_custom_hitspark_config().duplicate(true)
 	if paste_hitspark_button:
@@ -754,6 +792,38 @@ func _on_paste_aura_pressed():
 	$"%ShowAura".pressed = true
 	$"%TrailSettings".load_settings(aura_settings_cache[current_aura_slot])
 	loading_aura_slot = false
+	create_all_auras()
+
+# Rebuild the swap dropdown to list every other slot — called whenever
+# the current slot changes so the menu always excludes "this one".
+func _refresh_swap_aura_menu():
+	if swap_aura_button == null:
+		return
+	var menu = swap_aura_button.get_popup()
+	menu.clear()
+	for i in range(AURA_SLOT_COUNT):
+		if i == current_aura_slot:
+			continue
+		menu.add_item("Aura %d" % (i + 1), i)
+
+func _on_swap_aura_with_slot(other_slot: int):
+	if other_slot == current_aura_slot or other_slot < 0 or other_slot >= AURA_SLOT_COUNT:
+		return
+	save_current_aura_slot()
+	var tmp_settings = aura_settings_cache[current_aura_slot]
+	var tmp_show = aura_show[current_aura_slot]
+	aura_settings_cache[current_aura_slot] = aura_settings_cache[other_slot]
+	aura_show[current_aura_slot] = aura_show[other_slot]
+	aura_settings_cache[other_slot] = tmp_settings
+	aura_show[other_slot] = tmp_show
+	loading_aura_slot = true
+	$"%ShowAura".pressed = aura_show[current_aura_slot]
+	if aura_settings_cache[current_aura_slot] is Dictionary:
+		$"%TrailSettings".load_settings(aura_settings_cache[current_aura_slot])
+	else:
+		$"%TrailSettings".load_settings(CustomTrailParticle.get_default())
+	loading_aura_slot = false
+	_mark_style_modified()
 	create_all_auras()
 
 func create_all_auras():
