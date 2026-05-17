@@ -48,6 +48,14 @@ func _on_hit_something(obj, hitbox):
 		if was_neutral_hit:
 			host.cancel_opponent_hitstun_pending = true
 			host.cancel_opponent_hitstun_countdown = -1
+	# Chain to CharState so hit_yet / hit_fighter / hit_anything actually
+	# get set on hit. Without this, enable_interrupt's `if hit_fighter:
+	# queue_state_change(fallback_state)` path never fires, so an aerial
+	# Uppercut that stays airborne past iasa_at gets stuck in the state
+	# until landing instead of falling out into "Fall" at IASA. Pre-1.9.48
+	# there was no override here and CharState ran by default — adding the
+	# override without a super call regressed that.
+	._on_hit_something(obj, hitbox)
 
 func _tick():
 	host.apply_grav()
