@@ -118,6 +118,7 @@ custom_constants/hseparation = 5
 custom_styles/tab_fg = SubResource( 3 )
 custom_styles/tab_bg = SubResource( 3 )
 tab_align = 0
+scrolling_enabled = false
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/Contents/VBoxContainer" index="1"]
 unique_name_in_owner = true

@@ -1030,18 +1030,12 @@ func request_match_settings():
 	# of waiting on a P2P round-trip. call_deferred so the UI's yield on
 	# `received_match_settings` has time to register before we emit.
 	var json_str = Steam.getLobbyData(LOBBY_ID, "match_settings_json")
-	print("[fast-path] match_settings_json read len=", len(json_str), " head=", json_str.substr(0, 80))
 	if json_str != "":
 		var parsed = JSON.parse(json_str)
 		if parsed.error == OK and parsed.result is Dictionary:
-			print("[fast-path] HIT, keys=", parsed.result.keys())
 			MATCH_SETTINGS = parsed.result
 			call_deferred("emit_signal", "received_match_settings", MATCH_SETTINGS)
 			return
-		else:
-			print("[fast-path] PARSE FAIL err=", parsed.error)
-	else:
-		print("[fast-path] MISS — falling back to P2P")
 	_send_P2P_Packet(LOBBY_OWNER, {"request_match_settings": SteamHustle.STEAM_ID})
 	
 func am_i_lobby_owner() -> bool:
@@ -1565,7 +1559,6 @@ func update_match_settings(match_settings, id=0):
 		# busy/idle button presses.
 		var serialized = JSON.print(match_settings)
 		if serialized != _last_published_match_settings_json:
-			print("[fast-path] OWNER WRITE keys=", match_settings.keys(), " len=", len(serialized))
 			_last_published_match_settings_json = serialized
 			Steam.setLobbyData(LOBBY_ID, "match_settings_json", serialized)
 	_send_P2P_Packet(id, {"match_settings_updated": match_settings})

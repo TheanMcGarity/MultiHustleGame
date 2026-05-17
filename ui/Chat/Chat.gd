@@ -7,7 +7,7 @@ const PROMPT_RED := Color("#dd3333")
 const TAB_MATCH = 0
 const TAB_LOBBY = 1
 const TAB_PLAYERS = 2
-const TAB_TITLES = ["match", "lobby", "players"]
+const TAB_TITLES = ["match", "lobby", "users"]
 
 export var force_mute_on_hide = false
 

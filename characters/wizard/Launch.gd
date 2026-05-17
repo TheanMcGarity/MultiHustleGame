@@ -11,8 +11,8 @@ func _frame_3():
 		go()
 
 func go():
-	if redirect:
-		host.hover_left -= host.TK_LAUNCH_HOVER_AMOUNT
+#	if redirect:
+	host.hover_left -= host.TK_LAUNCH_HOVER_AMOUNT
 	var obj = host.obj_from_name(host.boulder_projectile)
 	if obj:
 		var dir = xy_to_dir(data.x, data.y)

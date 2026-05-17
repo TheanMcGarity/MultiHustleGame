@@ -89,6 +89,10 @@ hit_sound = ExtResource( 3 )
 knockback = "3.0"
 grounded_hit_state = "HurtGrounded"
 
+[node name="LaunchRedirect" parent="StateMachine" index="2"]
+disable_when_this_far_from_terrain = 2
+speed = "12"
+
 [node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
 __meta__ = {
 "_editor_description_": ""

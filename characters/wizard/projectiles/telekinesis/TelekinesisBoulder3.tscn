@@ -71,6 +71,9 @@ plus_frames = 4
 knockback = "9.0"
 hard_knockdown = true
 
+[node name="LaunchRedirect" parent="StateMachine" index="2"]
+speed = "11"
+
 [node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
 __meta__ = {
 "_editor_description_": ""

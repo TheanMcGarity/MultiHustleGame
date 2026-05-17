@@ -10,7 +10,7 @@ const OBJ_POS_Y = -16
 func enter():
 	interruptible_on_opponent_turn = false
 
-func _frame_14():
+func _frame_12():
 	interruptible_on_opponent_turn = true
 
 func _frame_6():

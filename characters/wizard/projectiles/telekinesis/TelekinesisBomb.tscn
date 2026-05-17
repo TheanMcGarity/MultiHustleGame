@@ -87,6 +87,11 @@ hit_bass_sound = null
 grounded_hit_state = "HurtGrounded"
 knockdown = false
 
+[node name="LaunchRedirect" parent="StateMachine" index="2"]
+anim_length = 8
+ticks_per_frame = 4
+loop_animation = true
+
 [node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
 __meta__ = {
 "_editor_description_": ""

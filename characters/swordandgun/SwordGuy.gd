@@ -124,7 +124,7 @@ func gain_super_meter(amount, stale_amount = "1.0"):
 	# penalty stopped the moment the frozen round fired its bullet, even
 	# though that bullet was still in play.
 	if obj_from_name(temporal_round) or _has_active_time_bullet():
-		amount = fixed.round(fixed.mul(str(amount), "0.05"))
+		amount = fixed.round(fixed.mul(str(amount), "0.5"))
 
 	.gain_super_meter(amount, stale_amount)
 

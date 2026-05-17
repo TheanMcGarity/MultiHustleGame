@@ -1,4 +1,4 @@
-[gd_scene load_steps=91 format=2]
+[gd_scene load_steps=92 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -75,6 +75,7 @@
 [ext_resource path="res://sound/ui/outtatime2.wav" type="AudioStream" id=73]
 [ext_resource path="res://ui/airoptionbar.png" type="Texture" id=74]
 [ext_resource path="res://ui/tiktok.png" type="Texture" id=75]
+[ext_resource path="res://ModWarningWindow.tscn" type="PackedScene" id=76]
 [ext_resource path="res://ui/burstp2_4.png" type="Texture" id=77]
 [ext_resource path="res://HotkeysTab.gd" type="Script" id=78]
 [ext_resource path="res://ui/Window/Window.gd" type="Script" id=201]
@@ -3392,6 +3393,10 @@ margin_left = -279.0
 margin_top = -121.0
 margin_right = -101.0
 margin_bottom = -9.0
+
+[node name="ModWarningWindow" parent="UILayer" instance=ExtResource( 76 )]
+unique_name_in_owner = true
+visible = false
 
 [node name="ResimRequestScreen" type="ColorRect" parent="UILayer"]
 visible = false
