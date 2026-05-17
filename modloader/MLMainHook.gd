@@ -135,12 +135,6 @@ func addMainMenuButton(_text):
 func _addModToggle(moddedState):
 	var modToggleBtn = $"%ModToggle"
 	modToggleBtn.pressed = moddedState
-	# Lock the toggle for the rest of this session when the version-
-	# transition gate force-disabled mods — flipping it back on now would
-	# write modsEnabled=true to modded.json but wouldn't reload mods, so
-	# the UI would lie. User can re-enable next launch.
-	if Global.mods_disabled_by_version_transition:
-		modToggleBtn.disabled = true
 	modToggleBtn.connect("pressed", self, "_toggle_mods_active", [modToggleBtn])
 	
 #needed
