@@ -887,18 +887,17 @@ func _apply_aura_state(particle, entry: Dictionary):
 			particle.position = _aura_position_for_limb(resolved)
 			# Eyes pair attach — fold the per-eye spacing/y into the
 			# particle's default_x/y_offset so it goes through the same
-			# tick() pipeline as the global offset: combined value lives
-			# inside the rotated/scaled particle Node2D, which means the
-			# eyes track the head's rotation when limb-rotation is on.
-			# pair_index 0 = left eye (-spacing/2 + left_y), pair_index 1
-			# = right eye (+spacing/2 + right_y) in head-local space.
+			# tick() pipeline as the global offset (rotation + scale).
+			# _apply_aura_state runs every frame, so SET the combined
+			# value from the saved base offsets — never += or the eye
+			# spacing accumulates each tick and the offset runs away.
 			if entry.get("attach_limb", "") == "Eyes":
 				var pair_idx = entry.get("pair_index", 0)
 				var spacing = float(settings.get("attach_eye_spacing", 6))
 				var x_eye = -spacing * 0.5 if pair_idx == 0 else spacing * 0.5
 				var y_eye = float(settings.get("attach_eye_left_y_offset", 0)) if pair_idx == 0 else float(settings.get("attach_eye_right_y_offset", 0))
-				particle.default_x_offset += x_eye
-				particle.default_y_offset += y_eye
+				particle.default_x_offset = float(settings.get("x_offset", 0)) + x_eye
+				particle.default_y_offset = float(settings.get("y_offset", 0)) + y_eye
 			particle.attached_to_limb = true
 			if settings.get("attach_position_only", true):
 				particle.attached_rotation = 0.0
