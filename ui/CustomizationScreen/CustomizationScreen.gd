@@ -716,15 +716,22 @@ func _physics_process(delta):
 #			particle.tick()
 
 func _on_trail_settings_changed(settings):
-	if !loading_aura_slot:
-		_mark_style_modified()
+	# Bail entirely during a slot load. load_settings fires value_changed
+	# on every control as it pushes the cached dict back in (~50+ signals
+	# in a row), and each one used to re-run get_settings() + queue an
+	# aura rebuild — the source of the tab-switch lag. switch_aura_slot
+	# already calls create_all_auras once at the end.
+	if loading_aura_slot:
+		return
+	_mark_style_modified()
 	save_current_aura_slot()
 	call_deferred("create_all_auras")
 	update_warning()
 
 func _on_show_aura_pressed():
-	if !loading_aura_slot:
-		_mark_style_modified()
+	if loading_aura_slot:
+		return
+	_mark_style_modified()
 	save_current_aura_slot()
 	call_deferred("create_all_auras")
 	update_warning()
