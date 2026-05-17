@@ -47,6 +47,12 @@ var stance_teleport_x = 0
 var detonating = false
 var shifting = false
 var temporal_round = null
+# Count of Cowboy's own NewTimeBullets currently in play. Incremented by
+# TemporalRoundDefault when it spawns the bullet; decremented by
+# NewBullet.disable when the bullet's `is_time_bullet` flag is set and its
+# creator is this Cowboy. Keeps gain_super_meter O(1) instead of walking
+# objs_map every call.
+var active_time_bullets: int = 0
 var drift_effect = false
 var fatal_cut_move_dir_x = 0
 var fatal_cut_move_dir_y = 0
@@ -118,22 +124,23 @@ func gain_super_meter(amount, stale_amount = "1.0"):
 	# penalty stopped the moment the frozen round fired its bullet, even
 	# though that bullet was still in play.
 	if obj_from_name(temporal_round) or _has_active_time_bullet():
-		amount = fixed.round(fixed.mul(str(amount), "0.5"))
+		amount = fixed.round(fixed.mul(str(amount), "0.05"))
 
 	.gain_super_meter(amount, stale_amount)
 
 func _has_active_time_bullet() -> bool:
-	for obj_name_ in objs_map:
-		var obj = objs_map[obj_name_]
-		if not is_instance_valid(obj):
-			continue
-		if obj.disabled:
-			continue
-		if not obj.get("is_time_bullet"):
-			continue
-		if obj.creator == self:
-			return true
-	return false
+	return active_time_bullets > 0
+
+# Called from TemporalRoundDefault when a NewTimeBullet spawns, and from
+# NewBullet.disable when one disables. Counter approach so gain_super_meter
+# doesn't have to walk every object in the match.
+func _register_time_bullet():
+	active_time_bullets += 1
+
+func _unregister_time_bullet():
+	active_time_bullets -= 1
+	if active_time_bullets < 0:
+		active_time_bullets = 0
 
 func start_1k_cuts_buff():
 	max_air_speed = MAX_AIR_SPEED_1KCUTS

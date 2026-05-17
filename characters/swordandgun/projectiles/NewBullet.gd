@@ -53,6 +53,14 @@ func _draw():
 		if to_local(last_pos_visual) == Vector2():
 			draw_circle(Vector2(), 6.0, color)
 
+func disable():
+	# Pair with TemporalRoundDefault's _register_time_bullet so the count
+	# stays accurate across ricochets, hit-cancels, end-of-life, etc.
+	# Idempotent on the SwordGuy side (clamps at 0).
+	if is_time_bullet and creator and creator.has_method("_unregister_time_bullet"):
+		creator._unregister_time_bullet()
+	.disable()
+
 func _on_hit_something(obj, hitbox):
 	._on_hit_something(obj, hitbox)
 	if obj == get_opponent():

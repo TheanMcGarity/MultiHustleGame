@@ -47,6 +47,11 @@ func f2():
 	var bullet = owned_fighter.spawn_object(BULLET_SCENE, my_pos.x, my_pos.y, true, null, false)
 	bullet.dir_x = dir.x
 	bullet.dir_y = dir.y
+	# Cowboy tracks active NewTimeBullets via a counter so gain_super_meter
+	# can do an O(1) check. Increment here at spawn; NewBullet.disable
+	# handles the decrement.
+	if owned_fighter.has_method("_register_time_bullet"):
+		owned_fighter._register_time_bullet()
 	host.play_sound("Shoot")
 	host.play_sound("ShootBass")
 	host.sprite.hide()
