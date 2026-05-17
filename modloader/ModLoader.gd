@@ -27,16 +27,19 @@ func _init():
 	file.close()
 
 	# Version-transition gate: first launch on a MOD_DISABLE_VERSIONS entry
-	# (with an existing save) skips mod loading this session regardless of
-	# what modded.json says, and logs the base version in player_data so
-	# the gate only fires once. The user's modsEnabled setting is NOT
-	# mutated — they get a one-session pause + a warning, then mods come
-	# back automatically next launch (or stay off if they had them off).
-	# UILayer.should_open_mod_warning_window reads the flag to show that
-	# warning.
+	# (with an existing save) skips mod loading this session and flips
+	# modsEnabled off in modded.json so the user has to deliberately
+	# re-enable for the next session. The base version is logged in
+	# player_data so the gate only fires once. UILayer.should_open_mod
+	# _warning_window reads the flag and shows the warning explaining
+	# the user can re-enable in options if they want.
 	if Global.should_disable_mods_for_version_transition():
 		Global.mods_disabled_by_version_transition = true
 		Global.mark_mod_sensitive_version_opened(Global.current_base_version())
+		mod_options.modsEnabled = false
+		file.open("user://modded.json", File.WRITE)
+		file.store_string(JSON.print(mod_options, "  "))
+		file.close()
 		return
 
 	if !mod_options.modsEnabled:
