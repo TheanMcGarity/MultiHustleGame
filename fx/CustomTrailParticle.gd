@@ -192,6 +192,8 @@ static func get_default():
 		"trigger_during_install_linger": 0,
 		"trigger_during_taunt": false,
 		"trigger_during_taunt_linger": 0,
+		"trigger_during_parry_combo": false,
+		"trigger_during_parry_combo_linger": 0,
 	}
 
 static func get_setting_min(setting):

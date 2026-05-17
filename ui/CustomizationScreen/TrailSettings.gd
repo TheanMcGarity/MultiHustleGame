@@ -136,6 +136,8 @@ var during_install_button: CheckButton
 var during_install_linger
 var during_taunt_button: CheckButton
 var during_taunt_linger
+var during_parry_combo_button: CheckButton
+var during_parry_combo_linger
 
 const ACTION_TYPE_OPTIONS := ["Movement", "Defense", "Attack", "Special", "Super"]
 
@@ -292,7 +294,7 @@ func _build_during_taunt_trigger():
 	during_taunt_button = CheckButton.new()
 	during_taunt_button.name = "TriggerDuringTaunt"
 	during_taunt_button.unique_name_in_owner = true
-	during_taunt_button.text = "  during Hustle"
+	during_taunt_button.text = "  during hustle"
 	parent.add_child(during_taunt_button)
 	during_taunt_linger = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
 	during_taunt_linger.name = "TriggerDuringTauntLinger"
@@ -305,6 +307,41 @@ func _build_during_taunt_trigger():
 	parent.add_child(during_taunt_linger)
 	settings_map[during_taunt_button] = "trigger_during_taunt"
 	settings_map[during_taunt_linger] = "trigger_during_taunt_linger"
+
+# "during parry combo" trigger — active while parry_combo or
+# parried_burst_combo is > 0 (i.e. the parry-combo damage scaling is
+# applied). Built at runtime + reparented to live right after the
+# After-Perfect-Parry duration slider so the UI grouping makes sense.
+func _build_during_parry_combo_trigger():
+	if not has_node("%DynamicTriggers"):
+		return
+	var dt = $"%DynamicTriggers"
+	var parent = dt.get_parent() if dt else self
+	during_parry_combo_button = CheckButton.new()
+	during_parry_combo_button.name = "TriggerDuringParryCombo"
+	during_parry_combo_button.unique_name_in_owner = true
+	during_parry_combo_button.text = "  during parry combo"
+	parent.add_child(during_parry_combo_button)
+	during_parry_combo_linger = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	during_parry_combo_linger.name = "TriggerDuringParryComboLinger"
+	during_parry_combo_linger.unique_name_in_owner = true
+	during_parry_combo_linger.label_text = "Linger Duration"
+	during_parry_combo_linger.default_value = 0.0
+	during_parry_combo_linger.min_value = 0.0
+	during_parry_combo_linger.max_value = 120.0
+	during_parry_combo_linger.step = 1.0
+	parent.add_child(during_parry_combo_linger)
+	settings_map[during_parry_combo_button] = "trigger_during_parry_combo"
+	settings_map[during_parry_combo_linger] = "trigger_during_parry_combo_linger"
+	# Reposition under the After-Perfect-Parry pair so the grouping reads
+	# as "everything parry-related, together". Falls through to the natural
+	# append order if the anchor node isn't in the tree (e.g. enable_triggers
+	# was flipped off and the section is gone).
+	var anchor = get_node_or_null("%TriggerAfterPerfectParryDuration")
+	if anchor and anchor.get_parent() == parent:
+		var insert_at = anchor.get_position_in_parent() + 1
+		parent.move_child(during_parry_combo_button, insert_at)
+		parent.move_child(during_parry_combo_linger, insert_at + 1)
 
 func load_settings(settings):
 	for setting in settings:
@@ -392,6 +429,7 @@ const TRIGGER_LABELS = {
 	"TriggerProjectilesActiveLinger": "Linger Duration",
 	"TriggerDuringInstallLinger": "Linger Duration",
 	"TriggerDuringTauntLinger": "Linger Duration",
+	"TriggerDuringParryComboLinger": "Linger Duration",
 	"AngularVelocity": "Angular Velocity",
 	"AngularVelocityRandom": "Angular Vel. Randomness",
 	"Damping": "Damping",
@@ -454,6 +492,7 @@ func _ready():
 		_build_action_type_trigger()
 		_build_during_install_trigger()
 		_build_during_taunt_trigger()
+		_build_during_parry_combo_trigger()
 		# TriggersInverted (label "hide on trigger") lives in the .tscn so its
 		# state survives editor re-saves, but the programmatically-built triggers
 		# above are appended after it. Bump it to the end so it stays at the
@@ -503,6 +542,10 @@ func _ready():
 			action_type_option.connect("item_selected", self, "_on_trigger_toggled")
 		if during_install_button:
 			during_install_button.connect("toggled", self, "_on_trigger_toggled")
+		if during_taunt_button:
+			during_taunt_button.connect("toggled", self, "_on_trigger_toggled")
+		if during_parry_combo_button:
+			during_parry_combo_button.connect("toggled", self, "_on_trigger_toggled")
 	_update_framerate_visibility()
 	_update_attach_visibility()
 	if enable_triggers:
@@ -628,6 +671,10 @@ func _update_trigger_visibility():
 		during_taunt_button.visible = dt
 	if during_taunt_linger:
 		during_taunt_linger.visible = show_linger and during_taunt_button and during_taunt_button.pressed
+	if during_parry_combo_button:
+		during_parry_combo_button.visible = dt
+	if during_parry_combo_linger:
+		during_parry_combo_linger.visible = show_linger and during_parry_combo_button and during_parry_combo_button.pressed
 
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())
