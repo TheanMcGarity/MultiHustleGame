@@ -943,6 +943,16 @@ func _on_character_button_pressed(button):
 	$"%MovingSprite".texture = character_texture2 if character_texture2 != null else character_texture
 	current_character_limb_data = character.get_limb_data() if character.has_method("get_limb_data") else {}
 	character.free()
+	# Re-push the user's current color state onto the freshly-assigned
+	# material — the new material starts with default shader params, so
+	# without this the previously-applied color/outline visibly resets
+	# on every character switch.
+	var mat = $"%StaticSprite".get_material()
+	mat.set_shader_param("color", character_color if character_color != null else Color.white)
+	mat.set_shader_param("extra_color_1", extra_color_1 if extra_color_1 != null else Color.white)
+	mat.set_shader_param("extra_color_2", extra_color_2 if extra_color_2 != null else Color.white)
+	mat.set_shader_param("outline_color", outline_color)
+	mat.set_shader_param("use_outline", $"%ShowOutline".pressed)
 	create_all_auras()
 
 func _process(delta):
