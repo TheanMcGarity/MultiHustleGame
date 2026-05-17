@@ -1003,6 +1003,13 @@ func apply_style(style):
 				# _apply_aura_state will start_emitting iff the resolved limb
 				# has data on the current sprite — otherwise it stays paused.
 				_apply_aura_state(particle, entry)
+				# Per-frame tick() is what pushes default_x_offset/y_offset
+				# into particles.position.x/y (the inner CPUParticles2D).
+				# Without an initial tick here, the first frame of emission
+				# uses particles.position.x = 0 — so any aura with a non-
+				# zero offset (and every Eyes aura) misplaces its first
+				# burst until the first game-tick loop catches up.
+				particle.tick()
 				if particle.show_behind_parent:
 					particle.z_index = -1
 				aura_particles.append(particle)
