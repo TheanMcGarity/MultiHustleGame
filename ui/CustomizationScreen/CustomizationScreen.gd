@@ -798,13 +798,16 @@ func create_all_auras():
 				else:
 					particle.attached_rotation = _preview_aura_rotation_from_entry(entry)
 					var flipped = entry.get("flipped", false)
-					# Skip pair_mirror for Eyes — both eyes ride on the same
-					# Head limb, so flipping the second would invert its scale
-					# and make the global x_offset drift the two eyes in
-					# opposite directions, preventing off-center eye looks.
-					if attach_limb != "Eyes" and pair_index == 1 and mirror_pair:
+					if pair_index == 1 and mirror_pair:
 						flipped = !flipped
 					particle.attached_limb_flipped = flipped
+					# See BaseChar — eyes' second particle gets the texture
+					# flip from pair_mirror, but the scale.x = -1 would also
+					# invert the user's global x_offset. Pre-negate it on
+					# this particle so the offset cancels back to matching
+					# direction with the first eye.
+					if attach_limb == "Eyes" and pair_index == 1 and mirror_pair:
+						particle.default_x_offset = -particle.default_x_offset
 				particle.facing = 1
 			else:
 				particle.position = Vector2()

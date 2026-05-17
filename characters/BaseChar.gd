@@ -906,12 +906,17 @@ func _apply_aura_state(particle, entry: Dictionary):
 			else:
 				particle.attached_rotation = _aura_rotation_for_limb(resolved)
 				var flipped = _aura_flipped_for_limb(resolved)
-				# Skip pair_mirror for Eyes — both eyes ride on the same Head
-				# limb, so flipping the second inverts its scale.x and makes
-				# the global x_offset push the eyes in opposite directions.
-				if entry.get("attach_limb", "") != "Eyes" and entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
+				if entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
 					flipped = !flipped
 				particle.attached_limb_flipped = flipped
+				# Eyes pair: pair_mirror legitimately flips the second eye's
+				# texture (asymmetric eye shapes), which is scale.x = -1 on
+				# that particle. That same scale.x would also mirror the
+				# user's global x_offset, drifting the two eyes apart when
+				# they should move together. Pre-negate default_x_offset on
+				# the mirrored particle so the scale.x flip cancels back.
+				if entry.get("attach_limb", "") == "Eyes" and entry.get("pair_index", 0) == 1 and settings.get("attach_pair_mirror", true):
+					particle.default_x_offset = -particle.default_x_offset
 			# Particles is a child of Flip, so Flip's scale.x mirror already
 			# handles the facing-flip. Pass facing = 1 to bypass tick's
 			# facing-based XOR which would otherwise double-flip.
