@@ -23,8 +23,23 @@ func _init():
 		
 	file.open("user://modded.json", File.READ)
 	var mod_options = JSON.parse(file.get_as_text()).result
-	
+
 	file.close()
+
+	# Version-transition gate: first launch on a MOD_DISABLE_VERSIONS entry
+	# (with an existing save) force-flips modsEnabled off in modded.json
+	# and skips mod loading this session regardless of what the file says.
+	# The base version is logged in player_data so this only fires once.
+	# UILayer.should_open_mod_warning_window reads the flag and shows the
+	# warning; MLMainHook reads it to disable the toggle button.
+	if Global.should_disable_mods_for_version_transition():
+		Global.mods_disabled_by_version_transition = true
+		Global.mark_mod_sensitive_version_opened(Global.current_base_version())
+		mod_options.modsEnabled = false
+		file.open("user://modded.json", File.WRITE)
+		file.store_string(JSON.print(mod_options, "  "))
+		file.close()
+		return
 
 	if !mod_options.modsEnabled:
 		return

@@ -2,10 +2,22 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.78-steam-unstable"
+var VERSION = "1.9.79-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
+
+# Base versions where the first launch with an existing save force-disables
+# mods (and force-flips `modsEnabled` off in modded.json). Each gets logged
+# in player_data.opened_mod_sensitive_versions so the disable only fires
+# once per version. Add new entries here when shipping a release that
+# could meaningfully break older mods.
+const MOD_DISABLE_VERSIONS = ["1.10.0"]
+
+# Set true by ModLoader._init when the version-transition check fires this
+# session — drives the mod warning window (UILayer.should_open_mod_warning
+# _window) and is read by MLMainHook to disable the toggle button.
+var mods_disabled_by_version_transition = false
 
 var audio_player
 var music_enabled = true
@@ -391,6 +403,11 @@ func get_default_player_data():
 		"username": "",
 		"last_style": "",
 		"last_game_format": "",
+		# Base versions (e.g. "1.10.0") the user has already launched on
+		# from MOD_DISABLE_VERSIONS. Once a version is logged here, the
+		# version-transition mod-disable check in ModLoader._init stops
+		# firing for that version.
+		"opened_mod_sensitive_versions": [],
 		"options" : {
 			"music_enabled": true,
 			"freeze_ghost_prediction": true,
@@ -477,3 +494,53 @@ func reload():
 	if character_select_node:
 		character_select_node.get_parent().remove_child(character_select_node)
 	get_tree().reload_current_scene()
+
+# Strip the build-channel suffix off VERSION so "1.10.0-steam-unstable"
+# compares cleanly against MOD_DISABLE_VERSIONS entries like "1.10.0".
+func current_base_version() -> String:
+	var v = VERSION
+	var dash = v.find("-")
+	if dash >= 0:
+		v = v.substr(0, dash)
+	return v
+
+# Reads playerdata.json directly (without going through get_player_data,
+# which creates it if missing) so we can detect "first launch with an
+# existing save" at ModLoader._init time, before Global._ready has had
+# a chance to materialize the file.
+func should_disable_mods_for_version_transition() -> bool:
+	var base = current_base_version()
+	if not (base in MOD_DISABLE_VERSIONS):
+		return false
+	var file = File.new()
+	# No existing save → fresh install, nothing to protect from a
+	# version transition.
+	if not file.file_exists("user://playerdata.json"):
+		return false
+	if file.open("user://playerdata.json", File.READ) != OK:
+		return false
+	var data = parse_json(file.get_as_text())
+	file.close()
+	if not (data is Dictionary):
+		return false
+	var opened = data.get("opened_mod_sensitive_versions", [])
+	if not (opened is Array):
+		return false
+	return not (base in opened)
+
+# Idempotent: appends the base version to opened_mod_sensitive_versions if
+# absent, then saves. Safe to call from ModLoader._init before Global._ready
+# runs because save_player_data reads the existing file and merges.
+func mark_mod_sensitive_version_opened(version: String):
+	var file = File.new()
+	var opened = []
+	if file.file_exists("user://playerdata.json"):
+		if file.open("user://playerdata.json", File.READ) == OK:
+			var data = parse_json(file.get_as_text())
+			file.close()
+			if data is Dictionary and data.get("opened_mod_sensitive_versions") is Array:
+				opened = data["opened_mod_sensitive_versions"]
+	if version in opened:
+		return
+	opened.append(version)
+	save_player_data({"opened_mod_sensitive_versions": opened})

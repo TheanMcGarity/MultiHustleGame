@@ -179,6 +179,9 @@ func _ready():
 	Network.connect("sync_timer_request", self, "_on_sync_timer_request")
 	Network.connect("check_players_ready", self, "check_players_ready")
 	Network.connect("force_open_action_buttons", self, "on_player_actionable")
+	
+	if should_open_mod_warning_window():
+		$"%ModWarningWindow".start()
 
 	SteamLobby.connect("join_lobby_success", self, "_on_join_lobby_success")
 	$"%OptionsContainer".hide()
@@ -282,7 +285,12 @@ func _ready():
 #	$"CharacterSelect".connect("opened", self, "reset_ui")
 	yield(get_tree(), "idle_frame")
 	
-
+func should_open_mod_warning_window():
+	# Only show the warning when ModLoader._init force-disabled mods this
+	# session because of a MOD_DISABLE_VERSIONS transition (first launch on
+	# the version with an existing save). Used to inform the user that
+	# their `Enable Mods` setting was flipped off.
+	return Global.mods_disabled_by_version_transition
 
 func _on_global_option_toggled(toggled, param):
 	Global.save_option(toggled, param)
@@ -819,6 +827,7 @@ func sync_timer(player_id):
 			if player_id == 2:
 				timer = p2_turn_timer
 			Network.sync_timer(player_id, timer.time_left)
+
 
 func id_to_action_buttons(player_id):
 	if player_id == 1:
