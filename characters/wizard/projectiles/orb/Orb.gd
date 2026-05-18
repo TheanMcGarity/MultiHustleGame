@@ -224,12 +224,16 @@ func disable():
 
 func spawn_lightning():
 	var pos = get_pos()
+	# Lightning sprite's top clips to the orb's y — it always spawns at
+	# the orb's current position and extends downward, instead of
+	# teleporting the orb up to LIGHTNING_Y like the old logic did.
 	var lightning_y = pos.y
 	if pos.y > -LIGHTNING_Y:
-		set_pos(pos.x, -LIGHTNING_Y)
-		var vel = get_vel()
-		set_vel(vel.x, LIGHTNING_PUSH_FORCE)
-		lightning_y = -LIGHTNING_Y
+		# Orb is below the canonical lightning ceiling — give it a small
+		# upward push per strike instead of snapping it to LIGHTNING_Y.
+		# apply_force accumulates so back-to-back strikes nudge it higher
+		# while gravity still pulls it back down between them.
+		apply_force("0", LIGHTNING_PUSH_FORCE)
 		spawn_particle_effect_relative(PUSH_PARTICLE)
 	spawn_object(LIGHTNING_SCENE, pos.x, lightning_y, false, null, false)
 	play_sound("Lightning")
