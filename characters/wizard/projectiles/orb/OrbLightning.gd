@@ -1,14 +1,17 @@
 extends BaseProjectile
 
-# Source frames are 512x512. The actual visible bolt occupies source-y
-# 256 (top) → BOLT_BOTTOM_SOURCE_Y (bottom), about 134 pixels of bolt
-# content surrounded by transparent canvas. We anchor source-y
-# BOLT_BOTTOM_SOURCE_Y to world y=0 (ground impact) and crop everything
-# in the source above the orb's spawn y so the rendered bolt visually
-# starts at the orb and ends at the ground.
+# Source frames are 512x512. The bolt content sits in source-y
+# BOLT_TOP_SOURCE_Y → BOLT_BOTTOM_SOURCE_Y (134 px tall), the rest of
+# the canvas is transparent. Top of the bolt always renders at the
+# orb's spawn y; bottom snaps to GROUND_ANCHOR_Y if the orb is low
+# enough to reach, otherwise lands in the air at spawn_y + BOLT_HEIGHT.
 const NATIVE_SPRITE_WIDTH = 512
-const NATIVE_SPRITE_HEIGHT = 512
+const BOLT_TOP_SOURCE_Y = 256
 const BOLT_BOTTOM_SOURCE_Y = 390
+const BOLT_HEIGHT = BOLT_BOTTOM_SOURCE_Y - BOLT_TOP_SOURCE_Y
+# World y the bolt's bottom anchors to when the orb is within reach of
+# the ground. Tune if the visual floor isn't at world y=0.
+const GROUND_ANCHOR_Y = 0
 
 func init(pos=null):
 	.init(pos)
@@ -22,33 +25,33 @@ func _fit_sprite_to_spawn_height():
 	if not sprite:
 		return
 	var spawn_y = get_pos().y
-	if spawn_y >= 0:
-		return  # orb at/below ground — nothing meaningful to draw
-	# Crop the top of the source so the bolt visually starts at orb.y:
-	#   world y at source-y N = spawn_y + (sprite.position.y) + (N - y_start)
-	# We want world y == 0 at source-y BOLT_BOTTOM_SOURCE_Y, so the
-	# sprite position.y compensates for any source-y rows we kept above
-	# the bolt (when orb is higher than the natural bolt top).
-	var y_start = int(max(0, spawn_y + BOLT_BOTTOM_SOURCE_Y))
-	var crop_height = BOLT_BOTTOM_SOURCE_Y - y_start
+	# Visible bolt height — capped at BOLT_HEIGHT so an orb above the
+	# bolt's natural reach gets the FULL bolt with its endpoint in the
+	# air (rather than stretched to the ground or held at the old min).
+	var vh = int(clamp(GROUND_ANCHOR_Y - spawn_y, 0, BOLT_HEIGHT))
 	sprite.centered = false
 	sprite.offset = Vector2(-NATIVE_SPRITE_WIDTH / 2.0, 0)
 	sprite.scale = Vector2(1, 1)
-	sprite.position = Vector2(0, max(0, -spawn_y - BOLT_BOTTOM_SOURCE_Y))
-	if crop_height > 0:
-		var frames_copy: SpriteFrames = sprite.frames.duplicate()
-		for anim in frames_copy.get_animation_names():
-			for i in range(frames_copy.get_frame_count(anim)):
-				var src = frames_copy.get_frame(anim, i)
-				if src == null:
-					continue
-				var atlas := AtlasTexture.new()
-				atlas.atlas = src
-				atlas.region = Rect2(0, y_start, NATIVE_SPRITE_WIDTH, crop_height)
-				frames_copy.set_frame(anim, i, atlas)
-		sprite.frames = frames_copy
-	# Particle effect anchored at the ground impact too — scene-relative
-	# offset was tuned for a fixed spawn height, remap per-instance.
+	sprite.position = Vector2(0, 0)
+	if vh <= 0:
+		sprite.visible = false
+		return
+	# Keep the BOTTOM `vh` source rows of the bolt — bolt-bottom
+	# (splash) is always preserved, top gets sliced when orb is low.
+	var y_start = BOLT_BOTTOM_SOURCE_Y - vh
+	var frames_copy: SpriteFrames = sprite.frames.duplicate()
+	for anim in frames_copy.get_animation_names():
+		for i in range(frames_copy.get_frame_count(anim)):
+			var src = frames_copy.get_frame(anim, i)
+			if src == null:
+				continue
+			var atlas := AtlasTexture.new()
+			atlas.atlas = src
+			atlas.region = Rect2(0, y_start, NATIVE_SPRITE_WIDTH, vh)
+			frames_copy.set_frame(anim, i, atlas)
+	sprite.frames = frames_copy
+	# Particle rides the bolt's endpoint — at GROUND_ANCHOR_Y when low,
+	# floating with the orb in the air when high.
 	var particle = get_node_or_null("Flip/Particles/ParticleEffect")
 	if particle:
-		particle.position.y = -spawn_y
+		particle.position.y = vh
