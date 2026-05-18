@@ -87,6 +87,19 @@ func on_got_push_blocked():
 	lock_cooldown = PUSH_BLOCK_LOCK_COOLDOWN
 	var dir_sign = get_fighter().opponent.get_opponent_dir()
 	apply_force(fixed.mul(str(dir_sign), PUSH_BACK_FORCE), "0")
+	# Push-blocking Orb's Sword sends the on_fire trajectory back at
+	# Wizard the same way push-blocking OrbFire does. Only Sword
+	# reverses here — Default / Lightning push-blocks fall through
+	# unchanged.
+	if current_state() and current_state().state_name == "Sword":
+		reverse_fire_direction()
+
+# Flips fire_direction_x/y so travel_towards_creator's on_fire branch
+# pushes the orb the opposite way. Called from this state's Sword
+# push-block and from OrbFire.on_got_push_blocked.
+func reverse_fire_direction():
+	fire_direction_x = fixed.mul(fire_direction_x, "-1")
+	fire_direction_y = fixed.mul(fire_direction_y, "-1")
 
 func travel_towards_creator():
 	if on_fire():
