@@ -97,7 +97,13 @@ func overlaps(box: CollisionBox):
 		return false
 	if box.width == 0 and box.height == 0:
 		return false
-	if get("IS_SWEPT") or box.get("IS_SWEPT"):
+	# A swept box's `self.overlaps(...)` runs its own segment-vs-rect (or
+	# segment-vs-segment) test — defer to it so normal-on-the-left calls
+	# (which would otherwise land in this base impl and short-circuit
+	# to false) still detect the collision.
+	if box.get("IS_SWEPT"):
+		return box.overlaps(self)
+	if get("IS_SWEPT"):
 		return false
 
 	var aabb1 = get_aabb()

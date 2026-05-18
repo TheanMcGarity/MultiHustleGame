@@ -69,20 +69,24 @@ func _seg_seg_intersect(start: int, delta: int, padding: int, n1: int, n2: int):
 	return near_time
 
 func _seg_rect_intersect(box: CollisionBox):
+	return _swept_aabb_intersect(x_facing() + pos_x, y + pos_y, to_x_facing(), to_y, box.get_aabb())
+
+# Continuous-collision core: segment starts at (start_x, start_y), moves
+# by (delta_x, delta_y) over t ∈ [0, 1], swept by self's (width, height)
+# half-extents. Tests against an `aabb` dict (x1, x2, y1, y2). Returns
+# the near_time of impact as a fixed-point string, or null if the swept
+# rect never enters the aabb. Used by:
+#   - _seg_rect_intersect (static aabb, self's own motion) for swept-
+#     hitbox vs static hurtbox/hitbox.
+#   - _seg_swept_intersect (relative motion, other's start aabb) for
+#     swept-vs-swept clash detection.
+func _swept_aabb_intersect(start_x: int, start_y: int, delta_x: int, delta_y: int, aabb: Dictionary):
 	var fixed: FixedMath = host.fixed
-
-	var start_x: int = x_facing() + pos_x
-	var start_y: int = y + pos_y
-
-	var aabb = box.get_aabb()
 
 	# segment starts inside rect
 	if start_x > aabb.x1 and start_x < aabb.x2 and start_y > aabb.y1 and start_y < aabb.y2:
 		return "0"
 
-	var delta_x: int = to_x_facing()
-	var delta_y: int = to_y
-	
 	var zero_y = delta_y == 0
 	var zero_x = delta_x == 0
 	# less strenuous tests if segment is straight
@@ -99,7 +103,7 @@ func _seg_rect_intersect(box: CollisionBox):
 				return null
 	# aabb intersection if segment is (0, 0)
 	elif zero_x and zero_y:
-		return _aabb_intersect(aabb)
+		return _aabb_intersect_at(start_x, start_y, aabb)
 
 	var near_x: int
 	var far_x: int
@@ -124,23 +128,54 @@ func _seg_rect_intersect(box: CollisionBox):
 
 	var near_time_x: String = fixed.mul(str(near_x - start_x), recip_x)
 	var far_time_y:  String = fixed.mul(str(far_y - start_y),  recip_y)
-	
+
 	if fixed.gt(near_time_x, far_time_y):
 		return null
-	
+
 	var near_time_y: String = fixed.mul(str(near_y - start_y), recip_y)
 	var far_time_x:  String = fixed.mul(str(far_x - start_x),  recip_x)
-	
+
 	if fixed.gt(near_time_y, far_time_x):
 		return null
-	
+
 	var near_time: String = _fixed_max(near_time_x, near_time_y)
 	var far_time:  String = _fixed_min(far_time_x, far_time_y)
-	
+
 	if fixed.ge(near_time, "1") or fixed.le(far_time, "0"):
 		return null
-		
+
 	return near_time
+
+# Static aabb-overlap test centered at (start_x, start_y) with self's
+# (width, height) half-extents — used by the zero-delta branch of the
+# swept-vs-swept variant, where the relative motion happens to cancel
+# out and both rects move in lockstep.
+func _aabb_intersect_at(start_x: int, start_y: int, aabb: Dictionary):
+	var x1 = start_x - width
+	var x2 = start_x + width
+	var y1 = start_y - height
+	var y2 = start_y + height
+	if x1 > aabb.x2 or x2 < aabb.x1 or y1 > aabb.y2 or y2 < aabb.y1:
+		return null
+	return "0"
+
+# Swept-vs-swept variant. Treat `other` as static at its start position
+# and have self move with the relative delta (self.delta - other.delta).
+# The Minkowski sum (self.width + other.width, etc.) falls out for free
+# because _swept_aabb_intersect inflates the aabb by self's size, and
+# we pass other's actual size as the aabb extent.
+func _seg_swept_intersect(other):
+	var other_start_x = other.x_facing() + other.pos_x
+	var other_start_y = other.y + other.pos_y
+	var aabb = {
+		"x1": other_start_x - other.width,
+		"x2": other_start_x + other.width,
+		"y1": other_start_y - other.height,
+		"y2": other_start_y + other.height,
+	}
+	var delta_x = to_x_facing() - other.to_x_facing()
+	var delta_y = to_y - other.to_y
+	return _swept_aabb_intersect(x_facing() + pos_x, y + pos_y, delta_x, delta_y, aabb)
 	
 func _seg_rect_test(box: CollisionBox):
 	return _seg_rect_intersect(box) != null
@@ -197,6 +232,8 @@ func get_aabb():
 func overlaps(box: CollisionBox):
 	if box.width == 0 and box.height == 0:
 		return false
+	if box.get("IS_SWEPT"):
+		return _seg_swept_intersect(box) != null
 	return _seg_rect_test(box)
 
 func box_draw():
