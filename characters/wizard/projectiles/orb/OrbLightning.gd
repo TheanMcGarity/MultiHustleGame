@@ -14,12 +14,13 @@ func on_got_push_blocked():
 	if creator and !creator.disabled:
 		creator.on_got_push_blocked()
 
-# Orb spawns this projectile at the orb's current y. Reposition + scale
-# the sprite so its top-left lands at the projectile's node position
-# (i.e., the orb's y) and its bottom lands at world y=0 — visually a
-# vertical bolt that grows/shrinks with how high the orb was when the
-# strike fired. centered=false anchors the sprite at top-left; offset.x
-# pulls it back by half-width so it stays horizontally centered.
+# Orb spawns this projectile at the orb's current y. We slice the top
+# off each animation frame by wrapping its texture in an AtlasTexture
+# pinned to the bottom `height` pixels — no vertical scaling, so the
+# bolt keeps its native proportions; the part of the sprite that would
+# have rendered above the orb's spawn y just isn't drawn. SpriteFrames
+# is duplicated per-instance so other lightnings (and any sprite
+# sharing the source SpriteFrames) aren't affected.
 func _fit_sprite_to_spawn_height():
 	if not sprite:
 		return
@@ -27,4 +28,17 @@ func _fit_sprite_to_spawn_height():
 	var height = -spawn_y if spawn_y < 0 else 0
 	sprite.centered = false
 	sprite.offset = Vector2(-NATIVE_SPRITE_WIDTH / 2.0, 0)
-	sprite.scale = Vector2(1, float(height) / float(NATIVE_SPRITE_HEIGHT))
+	sprite.scale = Vector2(1, 1)
+	if height <= 0 or height >= NATIVE_SPRITE_HEIGHT:
+		return
+	var frames_copy: SpriteFrames = sprite.frames.duplicate()
+	for anim in frames_copy.get_animation_names():
+		for i in range(frames_copy.get_frame_count(anim)):
+			var src = frames_copy.get_frame(anim, i)
+			if src == null:
+				continue
+			var atlas := AtlasTexture.new()
+			atlas.atlas = src
+			atlas.region = Rect2(0, NATIVE_SPRITE_HEIGHT - height, NATIVE_SPRITE_WIDTH, height)
+			frames_copy.set_frame(anim, i, atlas)
+	sprite.frames = frames_copy
