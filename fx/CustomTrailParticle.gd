@@ -82,6 +82,8 @@ var custom_set = {
 	"flip_with_character": "set_flip_with_character",
 	"framerate": "set_framerate",
 	"cap_framerate": "set_cap_framerate",
+	"custom_preprocess": "set_custom_preprocess",
+	"custom_preprocess_value": "set_custom_preprocess_value",
 }
 
 static func get_shapes():
@@ -157,6 +159,8 @@ static func get_default():
 		"damping_random": 0.0,
 		"cap_framerate": false,
 		"framerate": 60,
+		"custom_preprocess": false,
+		"custom_preprocess_value": 0.0,
 		"disable_on_ko": true,
 		"dynamic_triggers": false,
 		"dynamic_one_shot": false,
@@ -868,12 +872,32 @@ func set_y_offset(y):
 	if particles_flipped:
 		particles_flipped.position.y = y
 
+var custom_preprocess := false
+var custom_preprocess_value := 0.0
+
 func set_lifetime(lifetime):
 	particles.lifetime = lifetime
-	particles.preprocess = 0.0 if no_preprocess else lifetime
+	particles.preprocess = _preprocess_for(lifetime)
 	if particles_flipped:
 		particles_flipped.lifetime = lifetime
-		particles_flipped.preprocess = 0.0 if no_preprocess else lifetime
+		particles_flipped.preprocess = _preprocess_for(lifetime)
+
+# Compute the CPUParticles2D.preprocess value. custom_preprocess wins
+# when on (user-specified value); otherwise no_preprocess flag forces 0
+# (hitspark-burst flow), and the default is the particle's own lifetime
+# so a continuously-emitting aura looks "already running" on screen-load.
+func _preprocess_for(lifetime) -> float:
+	if custom_preprocess:
+		return custom_preprocess_value
+	return 0.0 if no_preprocess else lifetime
+
+func set_custom_preprocess(on):
+	custom_preprocess = on
+	set_lifetime(particles.lifetime)
+
+func set_custom_preprocess_value(value):
+	custom_preprocess_value = value
+	set_lifetime(particles.lifetime)
 
 func set_angle(angle):
 	default_angle = angle

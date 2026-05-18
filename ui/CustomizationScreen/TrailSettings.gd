@@ -142,6 +142,8 @@ var during_parry_combo_linger
 var eye_spacing_slider
 var eye_left_y_slider
 var eye_right_y_slider
+var custom_preprocess_button: CheckButton
+var custom_preprocess_slider
 
 const ACTION_TYPE_OPTIONS := ["Movement", "Defense", "Attack", "Special", "Super"]
 
@@ -396,6 +398,38 @@ func _build_eye_attach_widgets():
 	parent.move_child(eye_left_y_slider, insert_at + 1)
 	parent.move_child(eye_right_y_slider, insert_at + 2)
 
+# Custom-preprocess toggle + value slider — under "Particle Lifetime" in
+# the Lifetime section. When the toggle is off, preprocess defaults to
+# lifetime (continuous auras look already-running on load). When on, the
+# user-specified value is used instead.
+func _build_custom_preprocess_widgets():
+	if not has_node("%Particle Lifetime"):
+		return
+	var lifetime_node = $"%Particle Lifetime"
+	var parent = lifetime_node.get_parent()
+	if parent == null:
+		return
+	custom_preprocess_button = CheckButton.new()
+	custom_preprocess_button.name = "CustomPreprocess"
+	custom_preprocess_button.unique_name_in_owner = true
+	custom_preprocess_button.text = "custom preprocess"
+	custom_preprocess_button.hint_tooltip = "Override the auto-preprocess (which defaults to the particle lifetime, so continuous auras look already-running on load)."
+	parent.add_child(custom_preprocess_button)
+	custom_preprocess_slider = preload("res://ui/CustomizationScreen/SettingsSlider.tscn").instance()
+	custom_preprocess_slider.name = "CustomPreprocessValue"
+	custom_preprocess_slider.unique_name_in_owner = true
+	custom_preprocess_slider.label_text = "Preprocess Time"
+	custom_preprocess_slider.default_value = 0.0
+	custom_preprocess_slider.min_value = 0.0
+	custom_preprocess_slider.max_value = 10.0
+	custom_preprocess_slider.step = 0.01
+	parent.add_child(custom_preprocess_slider)
+	settings_map[custom_preprocess_button] = "custom_preprocess"
+	settings_map[custom_preprocess_slider] = "custom_preprocess_value"
+	var insert_at = lifetime_node.get_position_in_parent() + 1
+	parent.move_child(custom_preprocess_button, insert_at)
+	parent.move_child(custom_preprocess_slider, insert_at + 1)
+
 func load_settings(settings):
 	for setting in settings:
 		if setting in nodes_map:
@@ -441,6 +475,7 @@ func load_settings(settings):
 		$"%ConsistentSide".set_pressed_no_signal(settings.get("attach_consistent_side", true))
 	if has_node("%CapFramerate"):
 		_update_framerate_visibility()
+	_update_custom_preprocess_visibility()
 	if has_node("%AttachLimb"):
 		_update_attach_visibility()
 	if has_node("%DynamicTriggers"):
@@ -540,6 +575,7 @@ func _ready():
 	# that bit the slider label_text overrides). Wire it directly here.
 	_build_flip_shape_button()
 	_build_emission_shape_widgets()
+	_build_custom_preprocess_widgets()
 	if enable_limb_attach:
 		_build_eye_attach_widgets()
 	if enable_triggers:
@@ -602,6 +638,9 @@ func _ready():
 		if during_parry_combo_button:
 			during_parry_combo_button.connect("toggled", self, "_on_trigger_toggled")
 	_update_framerate_visibility()
+	if custom_preprocess_button:
+		custom_preprocess_button.connect("toggled", self, "_on_custom_preprocess_toggled")
+	_update_custom_preprocess_visibility()
 	_update_attach_visibility()
 	if enable_triggers:
 		_update_trigger_visibility()
@@ -642,6 +681,13 @@ func _on_cap_framerate_toggled(_pressed):
 
 func _update_framerate_visibility():
 	$"%Framerate".visible = $"%CapFramerate".pressed
+
+func _on_custom_preprocess_toggled(_pressed):
+	_update_custom_preprocess_visibility()
+
+func _update_custom_preprocess_visibility():
+	if custom_preprocess_slider and custom_preprocess_button:
+		custom_preprocess_slider.visible = custom_preprocess_button.pressed
 
 func _on_emission_shape_changed(_idx):
 	_update_emission_visibility()
