@@ -85,6 +85,11 @@ func get_center_float():
 
 func get_overlap_center_float(box: CollisionBox):
 	# used for hit effects
+	# Defer to the swept side when only the right operand is swept —
+	# get_overlap below calls get_aabb() on `box`, which a SweptHitbox
+	# no-ops, so we'd crash on the overlap dict access otherwise.
+	if box.get("IS_SWEPT") and not get("IS_SWEPT"):
+		return box.get_overlap_center_float(self)
 	var overlap = get_overlap(box)
 	var center = Vector2((overlap.x1 + overlap.x2) / 2.0, (overlap.y1 + overlap.y2) / 2.0)
 	return center
