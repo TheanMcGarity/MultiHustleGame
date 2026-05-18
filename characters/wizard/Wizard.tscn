@@ -5109,6 +5109,8 @@ AerialSuper"
 interrupt_into_string = "Grounded
 Aerial"
 super_level = 2
+trigger_orb_type = "Lightning"
+trigger_orb_delay = 10
 
 [node name="Orb" type="Node2D" parent="StateMachine" index="12"]
 script = ExtResource( 89 )
