@@ -1,10 +1,14 @@
 extends BaseProjectile
 
-# Source frames are 512x512 squares — used to compute the scale factor
-# that makes the lightning span exactly from the orb's spawn y down to
-# world y=0 (the ground). Re-compute if the sprite art ever changes size.
+# Source frames are 512x512. The actual visible bolt occupies source-y
+# 256 (top) → BOLT_BOTTOM_SOURCE_Y (bottom), about 134 pixels of bolt
+# content surrounded by transparent canvas. We anchor source-y
+# BOLT_BOTTOM_SOURCE_Y to world y=0 (ground impact) and crop everything
+# in the source above the orb's spawn y so the rendered bolt visually
+# starts at the orb and ends at the ground.
 const NATIVE_SPRITE_WIDTH = 512
 const NATIVE_SPRITE_HEIGHT = 512
+const BOLT_BOTTOM_SOURCE_Y = 390
 
 func init(pos=null):
 	.init(pos)
@@ -14,31 +18,37 @@ func on_got_push_blocked():
 	if creator and !creator.disabled:
 		creator.on_got_push_blocked()
 
-# Orb spawns this projectile at the orb's current y. We slice the top
-# off each animation frame by wrapping its texture in an AtlasTexture
-# pinned to the bottom `height` pixels — no vertical scaling, so the
-# bolt keeps its native proportions; the part of the sprite that would
-# have rendered above the orb's spawn y just isn't drawn. SpriteFrames
-# is duplicated per-instance so other lightnings (and any sprite
-# sharing the source SpriteFrames) aren't affected.
 func _fit_sprite_to_spawn_height():
 	if not sprite:
 		return
 	var spawn_y = get_pos().y
-	var height = -spawn_y if spawn_y < 0 else 0
+	if spawn_y >= 0:
+		return  # orb at/below ground — nothing meaningful to draw
+	# Crop the top of the source so the bolt visually starts at orb.y:
+	#   world y at source-y N = spawn_y + (sprite.position.y) + (N - y_start)
+	# We want world y == 0 at source-y BOLT_BOTTOM_SOURCE_Y, so the
+	# sprite position.y compensates for any source-y rows we kept above
+	# the bolt (when orb is higher than the natural bolt top).
+	var y_start = int(max(0, spawn_y + BOLT_BOTTOM_SOURCE_Y))
+	var crop_height = BOLT_BOTTOM_SOURCE_Y - y_start
 	sprite.centered = false
 	sprite.offset = Vector2(-NATIVE_SPRITE_WIDTH / 2.0, 0)
 	sprite.scale = Vector2(1, 1)
-	if height <= 0 or height >= NATIVE_SPRITE_HEIGHT:
-		return
-	var frames_copy: SpriteFrames = sprite.frames.duplicate()
-	for anim in frames_copy.get_animation_names():
-		for i in range(frames_copy.get_frame_count(anim)):
-			var src = frames_copy.get_frame(anim, i)
-			if src == null:
-				continue
-			var atlas := AtlasTexture.new()
-			atlas.atlas = src
-			atlas.region = Rect2(0, NATIVE_SPRITE_HEIGHT - height, NATIVE_SPRITE_WIDTH, height)
-			frames_copy.set_frame(anim, i, atlas)
-	sprite.frames = frames_copy
+	sprite.position = Vector2(0, max(0, -spawn_y - BOLT_BOTTOM_SOURCE_Y))
+	if crop_height > 0:
+		var frames_copy: SpriteFrames = sprite.frames.duplicate()
+		for anim in frames_copy.get_animation_names():
+			for i in range(frames_copy.get_frame_count(anim)):
+				var src = frames_copy.get_frame(anim, i)
+				if src == null:
+					continue
+				var atlas := AtlasTexture.new()
+				atlas.atlas = src
+				atlas.region = Rect2(0, y_start, NATIVE_SPRITE_WIDTH, crop_height)
+				frames_copy.set_frame(anim, i, atlas)
+		sprite.frames = frames_copy
+	# Particle effect anchored at the ground impact too — scene-relative
+	# offset was tuned for a fixed spawn height, remap per-instance.
+	var particle = get_node_or_null("Flip/Particles/ParticleEffect")
+	if particle:
+		particle.position.y = -spawn_y
