@@ -224,6 +224,12 @@ func init(pos=null):
 	if creator and creator.custom_hitspark:
 		for hitbox in hitboxes:
 			hitbox.HIT_PARTICLE = creator.custom_hitspark
+		# Inherit the per-style config too — without it _spawn_particle
+		# _effect reads self.custom_hitspark_config=null and the spawned
+		# CustomHitEffect falls back to defaults (no sprite frames /
+		# particles / flip override), which looks like "custom hitsparks
+		# aren't working" for any projectile-issued hit.
+		custom_hitspark_config = creator.custom_hitspark_config
 
 func reset_hurtbox():
 	hurtbox.x = default_hurtbox.x
@@ -773,7 +779,7 @@ func limit_x_speed(limit):
 func limit_y_speed(limit):
 	var vel = get_vel()
 	if fixed.gt(fixed.abs(vel.y), limit):
-		var new_vel = fixed.vec_mul(str(fixed.sign(vel.y)), limit)
+		var new_vel = fixed.mul(str(fixed.sign(vel.y)), limit)
 		set_vel(vel.x, new_vel)
 
 func get_object_dir(obj):
