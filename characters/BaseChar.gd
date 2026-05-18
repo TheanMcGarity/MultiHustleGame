@@ -2388,6 +2388,12 @@ func tick_before():
 			queued_data = input["data"]
 			queued_extra = input["extra"]
 #			last_action = current_tick
+			# Mirror on_action_selected so the action_type=Movement
+			# trigger fires in replays. Live play sets this flag inside
+			# on_action_selected, but the replay-playback path queues the
+			# action directly without going through that function, so the
+			# Movement aura was inert during replay.
+			style_aura_manual_action_pending = true
 			if queued_action == "Forfeit":
 #				dummy = true
 				forfeit = true
