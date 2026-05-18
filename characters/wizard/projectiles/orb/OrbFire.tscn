@@ -1,0 +1,48 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://projectile/BaseProjectile.tscn" type="PackedScene" id=1]
+[ext_resource path="res://characters/wizard/projectiles/orb/OrbFire.gd" type="Script" id=2]
+[ext_resource path="res://characters/wizard/projectiles/orb/states/OrbFireDefault.gd" type="Script" id=3]
+[ext_resource path="res://mechanics/Hitbox.gd" type="Script" id=4]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [  ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[node name="BaseProjectile" instance=ExtResource( 1 )]
+script = ExtResource( 2 )
+has_projectile_parry_window = false
+deletes_other_projectiles = false
+can_be_hit_by_melee = false
+damages_own_team = false
+
+[node name="Sprite" parent="Flip" index="0"]
+frames = SubResource( 1 )
+visible = false
+
+[node name="CollisionBox" parent="." index="2"]
+width = 1
+height = 1
+
+[node name="Hurtbox" parent="." index="3"]
+width = 1
+height = 1
+
+[node name="Default" parent="StateMachine" index="0"]
+script = ExtResource( 3 )
+sprite_animation = "default"
+anim_length = 8
+endless = true
+
+[node name="Hitbox" type="Node2D" parent="StateMachine/Default" index="0"]
+z_index = 1000
+script = ExtResource( 4 )
+width = 16
+height = 16
+start_tick = 0
+active_ticks = 8
+always_on = true
