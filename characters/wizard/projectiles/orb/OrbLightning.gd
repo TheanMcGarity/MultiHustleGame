@@ -12,6 +12,12 @@ const BOLT_HEIGHT = BOLT_BOTTOM_SOURCE_Y - BOLT_TOP_SOURCE_Y
 # World y the bolt's bottom anchors to when the orb is within reach of
 # the ground. Tune if the visual floor isn't at world y=0.
 const GROUND_ANCHOR_Y = 0
+# Pixels the impact particle sits ABOVE the bolt's bottom — derived
+# from the original scene's tuning (particle at local y=112.5 vs the
+# native bolt bottom at local y=134 ≈ 22px above). Bump if the
+# splash visual reads as floating low compared to where the bolt
+# actually terminates.
+const PARTICLE_ABOVE_BOLT_BOTTOM = 22
 
 func init(pos=null):
 	.init(pos)
@@ -51,7 +57,9 @@ func _fit_sprite_to_spawn_height():
 			frames_copy.set_frame(anim, i, atlas)
 	sprite.frames = frames_copy
 	# Particle rides the bolt's endpoint — at GROUND_ANCHOR_Y when low,
-	# floating with the orb in the air when high.
+	# floating with the orb in the air when high. Shifted up by
+	# PARTICLE_ABOVE_BOLT_BOTTOM so the splash visual centers where the
+	# bolt actually terminates instead of sitting below it.
 	var particle = get_node_or_null("Flip/Particles/ParticleEffect")
 	if particle:
-		particle.position.y = vh
+		particle.position.y = vh - PARTICLE_ABOVE_BOLT_BOTTOM

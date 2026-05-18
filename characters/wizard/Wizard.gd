@@ -13,7 +13,7 @@ const FAST_FALL_SPEED = "7"
 const ORB_PUSH_SPEED = "8.5"
 const TETHER_FALLOFF = "0.95"
 const TETHER_SPEED = "1.5"
-const TETHER_TICKS = 90
+const TETHER_TICKS = 99999999
 const SPARK_BOMB_PUSH_DISTANCE = "90"
 const SPARK_EXPLOSION_AIR_SPEED = 25
 const SPARK_EXPLOSION_GROUND_SPEED = 20
@@ -133,6 +133,7 @@ func spawn_orb():
 		var orb = spawn_object(ORB_SCENE, -10, -56)
 		spawn_particle_effect_relative(ORB_PARTICLE_SCENE, Vector2(-10, -56))
 		orb_projectile = orb.obj_name
+		orb.last_push_x = str(get_facing_int())
 
 func stack_move_in_combo(move_name):
 	.stack_move_in_combo(move_name)
@@ -294,16 +295,16 @@ func tick():
 		detonating_bombs = false
 
 	if tether_ticks > 0:
-		if orb_projectile and !is_grounded():
+		if orb_projectile:
 			var orb = objs_map[orb_projectile]
 			if !orb.disabled:
 				var dir = obj_local_center(orb)
 				var falloff_power = fixed.round(fixed.div(str(TETHER_TICKS - tether_ticks), "3"))
 				var force = fixed.normalized_vec_times(str(dir.x), str(dir.y), fixed.mul(TETHER_SPEED, fixed.powu(TETHER_FALLOFF, falloff_power)))
-				apply_force(force.x, force.y)
+				apply_force(force.x, "0")
 
 		tether_ticks -= 1
-		if is_grounded() or is_in_hurt_state():
+		if is_in_hurt_state(false):
 			tether_ticks = 0
 
 	if combo_count <= 0 and !opponent.current_state().endless:

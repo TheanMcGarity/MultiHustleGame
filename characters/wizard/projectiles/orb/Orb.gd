@@ -48,6 +48,9 @@ var push_dir = null
 var last_push_x = "0"
 var last_push_y = "0"
 
+var fire_direction_x = "0"
+var fire_direction_y = "0"
+
 func _ready():
 	pass
 
@@ -87,7 +90,7 @@ func on_got_push_blocked():
 
 func travel_towards_creator():
 	if on_fire():
-		var force = fixed.normalized_vec_times(last_push_x, last_push_y, FIRE_MOVE_SPEED)
+		var force = fixed.normalized_vec_times(fire_direction_x, fire_direction_y, FIRE_MOVE_SPEED)
 		if (fixed.eq(last_push_x, "0") and fixed.eq(last_push_y, "0")):
 			force.x = "0"
 			force.y = "0"
@@ -144,6 +147,7 @@ func trigger_attack(attack_type, attack_delay):
 	triggered_attacks[current_tick + attack_delay] = attack_type
 
 func start_fire():
+	fire_particle.start_emitting()
 	fire_ticks_left = FIRE_TICKS
 	# Spawn the follower hitbox if one isn't already alive — keeps a single
 	# OrbFire across overlapping/back-to-back triggers instead of stacking.
@@ -152,6 +156,8 @@ func start_fire():
 		var fire = spawn_object(FIRE_SCENE, 0, 0, false, null, false)
 		if fire:
 			fire_obj = fire.obj_name
+			fire_direction_x = last_push_x
+			fire_direction_y = last_push_y
 
 func drain_super():
 	if creator:
@@ -180,13 +186,15 @@ func tick():
 	if lock_cooldown > 0:
 		lock_cooldown -= 1
 	if fire_ticks_left > 0:
+		if fire_ticks_left >= FIRE_TICKS - 2:
+			fire_direction_x = last_push_x
+			fire_direction_y = last_push_y
 		fire_ticks_left -= 1
+		if fire_ticks_left <= 0:
+			fire_particle.stop_emitting()
 	
 	var _on_fire = on_fire()
-	if !_on_fire and fire_particle.emitting:
-		fire_particle.stop_emitting()
-	elif _on_fire and !fire_particle.emitting:
-		fire_particle.start()
+
 	# Tear down the follower OrbFire when on_fire flips false. start_fire
 	# is the only place it's spawned, so this is the corresponding free.
 	if !_on_fire and fire_obj != null:
@@ -198,9 +206,9 @@ func tick():
 func push(fx, fy):
 	if fixed.eq(fx,"0") and fixed.eq(fy,"0"):
 		return
-	if not on_fire() or fire_ticks_left > (FIRE_TICKS - 2):
-		last_push_x = fx
-		last_push_y = fy
+
+	last_push_x = fx
+	last_push_y = fy
 	play_sound("Push")
 #	reset_momentum()
 	push_ticks = PUSH_TICKS

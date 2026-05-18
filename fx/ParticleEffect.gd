@@ -37,7 +37,8 @@ func _ready():
 #			child.set_material(get_material())
 	if !ReplayManager.playback:
 		set_enabled(false)
-		tick_timer.connect("timeout", self, "on_tick_timer_timeout")
+		if not tick_timer.is_connected("timeout", self, "on_tick_timer_timeout"):
+			tick_timer.connect("timeout", self, "on_tick_timer_timeout")
 	call_deferred("update_dir")
 
 func update_dir():
@@ -75,6 +76,7 @@ func start_emitting():
 		if child is CPUParticles2D:
 			child.emitting = true
 			child.restart()
+
 func start():
 	start_emitting()
 	for child in get_children():

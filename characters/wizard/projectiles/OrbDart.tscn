@@ -52,7 +52,19 @@ material = SubResource( 2 )
 z_index = 3
 script = ExtResource( 8 )
 __meta__ = {
-"_edit_group_": true
+"_edit_group_": true,
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
 }
 max_fall_speed = "15"
 extra_state_variables = ""

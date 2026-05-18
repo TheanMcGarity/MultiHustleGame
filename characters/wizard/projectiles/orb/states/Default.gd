@@ -3,6 +3,7 @@ extends ObjectState
 export var LIFETIME = 30000
 
 func _tick():
+	anim_name = "OrbFire" if host.on_fire() else "Orb"
 	if host.frozen:
 		return
 	if !host.locked:

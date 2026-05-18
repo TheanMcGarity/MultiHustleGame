@@ -27,6 +27,20 @@ animations = [ {
 
 [node name="BaseProjectile" instance=ExtResource( 1 )]
 script = ExtResource( 4 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 gravity = "0.2"
 max_air_speed = "40"
 max_fall_speed = "15"
@@ -88,6 +102,8 @@ hitstun_ticks = 17
 hitlag_ticks = 7
 scale_combo = false
 increment_combo = false
+di_modifier = "0"
+sdi_modifier = "0"
 allowed_to_hit_own_team = false
 hit_sound = null
 hit_bass_sound = null
