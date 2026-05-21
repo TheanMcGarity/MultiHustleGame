@@ -36,6 +36,16 @@ const PLAYBACK_SPEED_2 = "playback_speed_2"
 const PLAYBACK_SPEED_3 = "playback_speed_3"
 const PLAYBACK_SPEED_4 = "playback_speed_4"
 const TOGGLE_FLIP = "toggle_flip"
+const ZOOM_IN = "zoom_in"
+const ZOOM_OUT = "zoom_out"
+const FREEZE_ON_READY = "freeze_on_ready"
+const TOGGLE_EXTRA_INFO = "toggle_extra_info"
+const UNDO = "undo_action"
+const SAVE_REPLAY = "save_replay"
+# Held key (default SHIFT) that flips XY-plot snapping for as long as it's
+# down. Previously hardcoded to KEY_SHIFT in XYPlot.gd, which is why it
+# couldn't be rebound.
+const XY_SNAP_OVERRIDE = "xy_snap_override"
 
 const RUNTIME_DEFAULTS = {
 	TOGGLE_HUD: KEY_F1,
@@ -61,6 +71,13 @@ const RUNTIME_DEFAULTS = {
 	PLAYBACK_SPEED_3: 0,
 	PLAYBACK_SPEED_4: 0,
 	TOGGLE_FLIP: 0,
+	ZOOM_IN: KEY_EQUAL,
+	ZOOM_OUT: KEY_MINUS,
+	FREEZE_ON_READY: 0,
+	TOGGLE_EXTRA_INFO: 0,
+	UNDO: KEY_Z | KEY_MASK_CTRL,
+	SAVE_REPLAY: KEY_S | KEY_MASK_CTRL,
+	XY_SNAP_OVERRIDE: KEY_SHIFT,
 }
 
 # Actions the user can rebind via the hotkeys settings UI.
@@ -88,7 +105,14 @@ const REBINDABLE = [
 	{"action": PLAYBACK_SPEED_3, "label": "Playback Speed x0.75"},
 	{"action": PLAYBACK_SPEED_4, "label": "Playback Speed x1"},
 	{"action": TOGGLE_PROJECTILE_OWNERS, "label": "Toggle Projectile Owners"},
+	{"action": TOGGLE_EXTRA_INFO, "label": "Toggle Extra Game Info"},
 	{"action": RESET_ZOOM, "label": "Reset Zoom"},
+	{"action": ZOOM_IN, "label": "Zoom In"},
+	{"action": ZOOM_OUT, "label": "Zoom Out"},
+	{"action": FREEZE_ON_READY, "label": "Toggle Freeze on Ready"},
+	{"action": UNDO, "label": "Undo"},
+	{"action": SAVE_REPLAY, "label": "Save Replay"},
+	{"action": XY_SNAP_OVERRIDE, "label": "XY Plot Snap Override (hold)"},
 	{"action": NUDGE_LEFT, "label": "Nudge XY Plot Left"},
 	{"action": NUDGE_RIGHT, "label": "Nudge XY Plot Right"},
 	{"action": NUDGE_UP, "label": "Nudge XY Plot Up"},
@@ -107,20 +131,43 @@ func _ready():
 			InputMap.add_action(action)
 			var code = RUNTIME_DEFAULTS[action]
 			if code != 0:
-				var ev = InputEventKey.new()
-				ev.scancode = code
-				InputMap.action_add_event(action, ev)
+				InputMap.action_add_event(action, _make_event(code))
 	for entry in REBINDABLE:
 		defaults[entry.action] = get_bound_scancode(entry.action)
 	load_overrides()
+
+# Scancodes are stored/passed around as "scancode with modifiers" — the base
+# keycode OR'd with the KEY_MASK_* bits. OS.get_scancode_string renders that
+# directly as e.g. "Control+Z", and InputEventKey carries the modifiers as
+# bools, so these two helpers convert between the two representations.
+func _event_code(ev: InputEventKey) -> int:
+	var base = ev.scancode if ev.scancode != 0 else ev.physical_scancode
+	var code = base
+	if ev.control:
+		code |= KEY_MASK_CTRL
+	if ev.shift:
+		code |= KEY_MASK_SHIFT
+	if ev.alt:
+		code |= KEY_MASK_ALT
+	if ev.meta:
+		code |= KEY_MASK_META
+	return code
+
+func _make_event(code: int) -> InputEventKey:
+	var ev = InputEventKey.new()
+	ev.scancode = code & KEY_CODE_MASK
+	ev.control = (code & KEY_MASK_CTRL) != 0
+	ev.shift = (code & KEY_MASK_SHIFT) != 0
+	ev.alt = (code & KEY_MASK_ALT) != 0
+	ev.meta = (code & KEY_MASK_META) != 0
+	return ev
 
 func get_display_name(action: String) -> String:
 	if not InputMap.has_action(action):
 		return ""
 	for ev in InputMap.get_action_list(action):
 		if ev is InputEventKey:
-			var code = ev.scancode if ev.scancode != 0 else ev.physical_scancode
-			return OS.get_scancode_string(code)
+			return OS.get_scancode_string(_event_code(ev))
 	return ""
 
 func get_bound_scancode(action: String) -> int:
@@ -128,11 +175,13 @@ func get_bound_scancode(action: String) -> int:
 		return 0
 	for ev in InputMap.get_action_list(action):
 		if ev is InputEventKey:
-			return ev.scancode if ev.scancode != 0 else ev.physical_scancode
+			return _event_code(ev)
 	return 0
 
+# Protection is on the base keycode regardless of modifiers (so Ctrl+Esc is
+# still treated as the reserved Esc gesture).
 func is_protected_key(scancode: int) -> bool:
-	return scancode in PROTECTED_KEYS
+	return (scancode & KEY_CODE_MASK) in PROTECTED_KEYS
 
 func clear_binding(action: String):
 	if not InputMap.has_action(action):
@@ -151,9 +200,7 @@ func rebind(action: String, scancode: int) -> bool:
 	for ev in InputMap.get_action_list(action):
 		if ev is InputEventKey:
 			InputMap.action_erase_event(action, ev)
-	var new_ev = InputEventKey.new()
-	new_ev.scancode = scancode
-	InputMap.action_add_event(action, new_ev)
+	InputMap.action_add_event(action, _make_event(scancode))
 	emit_signal("binding_changed", action)
 	save_overrides()
 	return true
@@ -166,9 +213,7 @@ func reset_to_defaults():
 			if ev is InputEventKey:
 				InputMap.action_erase_event(action, ev)
 		if code != 0:
-			var new_ev = InputEventKey.new()
-			new_ev.scancode = code
-			InputMap.action_add_event(action, new_ev)
+			InputMap.action_add_event(action, _make_event(code))
 		emit_signal("binding_changed", action)
 	save_overrides()
 
@@ -197,6 +242,4 @@ func load_overrides():
 			if ev is InputEventKey:
 				InputMap.action_erase_event(action, ev)
 		if code != 0:
-			var new_ev = InputEventKey.new()
-			new_ev.scancode = code
-			InputMap.action_add_event(action, new_ev)
+			InputMap.action_add_event(action, _make_event(code))

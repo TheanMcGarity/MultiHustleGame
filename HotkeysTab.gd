@@ -60,13 +60,27 @@ func _input(event):
 		return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
+	var base = event.scancode if event.scancode != 0 else event.physical_scancode
+	# Wait for a real key — ignore presses of modifiers on their own so the
+	# user can hold Ctrl/Shift/Alt/Meta and then tap the key to bind a combo.
+	if base in [KEY_CONTROL, KEY_SHIFT, KEY_ALT, KEY_META]:
+		return
 	get_tree().set_input_as_handled()
-	var code = event.scancode if event.scancode != 0 else event.physical_scancode
 	var action = rebinding_action
 	rebinding_action = ""
-	if code == KEY_ESCAPE:
+	if base == KEY_ESCAPE:
 		Hotkeys.clear_binding(action)
 	else:
+		# Encode held modifiers into the scancode (Ctrl+Z -> KEY_Z | KEY_MASK_CTRL).
+		var code = base
+		if event.control:
+			code |= KEY_MASK_CTRL
+		if event.shift:
+			code |= KEY_MASK_SHIFT
+		if event.alt:
+			code |= KEY_MASK_ALT
+		if event.meta:
+			code |= KEY_MASK_META
 		var ok = Hotkeys.rebind(action, code)
 		if not ok:
 			# protected key - just refresh, leave binding as-is

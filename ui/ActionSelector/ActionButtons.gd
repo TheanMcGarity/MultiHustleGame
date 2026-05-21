@@ -134,6 +134,19 @@ func _on_continue_pressed():
 func _on_undo_pressed():
 	on_action_submitted("Undo")
 
+# Hotkey entry point — submit Undo only if this panel currently allows it
+# (mirrors the UndoButton's own visible/enabled gating: singleplayer, game
+# past tick 0, panel active). Returns whether it fired so the caller can
+# stop after the first panel that handles it.
+func try_undo() -> bool:
+	if not active or not visible:
+		return false
+	var btn = $"%UndoButton"
+	if btn.disabled or not btn.visible:
+		return false
+	_on_undo_pressed()
+	return true
+
 func space_pressed():
 	if visible:
 		if !$"%SelectButton".disabled and $"%SelectButton".visible:

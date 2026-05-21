@@ -50,6 +50,13 @@ var last_push_y = "0"
 
 var fire_direction_x = "0"
 var fire_direction_y = "0"
+# Set when a push-block flips the fire direction. tick() re-syncs
+# fire_direction to last_push for the first couple frames of fire (so a push
+# landing a tick or two after start_fire still steers it) — but that window
+# would otherwise immediately overwrite an early push-block reversal, making
+# push-blocks in the first 1-2 frames silently do nothing. Once reversed, the
+# re-sync is skipped. Cleared on each fresh start_fire.
+var fire_direction_reversed = false
 
 func _ready():
 	pass
@@ -100,6 +107,7 @@ func on_got_push_blocked():
 func reverse_fire_direction():
 	fire_direction_x = fixed.mul(fire_direction_x, "-1")
 	fire_direction_y = fixed.mul(fire_direction_y, "-1")
+	fire_direction_reversed = true
 
 func travel_towards_creator():
 	if on_fire():
@@ -162,6 +170,7 @@ func trigger_attack(attack_type, attack_delay):
 func start_fire():
 	fire_particle.start_emitting()
 	fire_ticks_left = FIRE_TICKS
+	fire_direction_reversed = false
 	# Spawn the follower hitbox if one isn't already alive — keeps a single
 	# OrbFire across overlapping/back-to-back triggers instead of stacking.
 	# Orb.tick is responsible for tearing it down when on_fire goes false.
@@ -199,7 +208,7 @@ func tick():
 	if lock_cooldown > 0:
 		lock_cooldown -= 1
 	if fire_ticks_left > 0:
-		if fire_ticks_left >= FIRE_TICKS - 2:
+		if fire_ticks_left >= FIRE_TICKS - 2 and not fire_direction_reversed:
 			fire_direction_x = last_push_x
 			fire_direction_y = last_push_y
 		fire_ticks_left -= 1

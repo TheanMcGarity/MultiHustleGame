@@ -138,6 +138,10 @@ func _on_show_style_toggled(on, player_id):
 			player.reapply_style()
 		else:
 			player.reset_style()
+		# Keep the HUD portrait's palette in sync with the toggle.
+		var hud = get_node_or_null("%HudLayer")
+		if hud and hud.has_method("refresh_portrait_style"):
+			hud.refresh_portrait_style(player_id)
 
 func _on_player_disconnected():
 	$"%OpponentDisconnectedLabel".show()
@@ -275,14 +279,14 @@ func save_replay():
 	$"%SaveReplayButton".text = "saved"
 	$"%SaveReplayLabel".text = "saved replay to " + filename
 
-# Ctrl+S is a save-replay shortcut. With the pause menu open, mirrors the
-# Save Replay button (and updates its label inside the panel). With the menu
-# closed, save silently and flash a 2-second "saved replay" toast so the
-# player gets feedback without having to open the menu.
+# Save-replay shortcut (rebindable, default Ctrl+S). With the pause menu open,
+# mirrors the Save Replay button (and updates its label inside the panel).
+# With the menu closed, save silently and flash a 2-second "saved replay"
+# toast so the player gets feedback without having to open the menu.
 func _unhandled_key_input(event):
 	if not event.pressed or event.echo:
 		return
-	if event.scancode != KEY_S or not event.control:
+	if not event.is_action_pressed(Hotkeys.SAVE_REPLAY):
 		return
 	if _style_menu_active:
 		return

@@ -1229,6 +1229,18 @@ func _unhandled_input(event):
 		_set_playback_speed(1)
 	if event.is_action_pressed(Hotkeys.RESET_ZOOM):
 		_on_reset_zoom_pressed()
+	if event.is_action_pressed(Hotkeys.ZOOM_IN):
+		if is_instance_valid(game):
+			game.zoom_in()
+	if event.is_action_pressed(Hotkeys.ZOOM_OUT):
+		if is_instance_valid(game):
+			game.zoom_out()
+	if event.is_action_pressed(Hotkeys.FREEZE_ON_READY):
+		_toggle_freeze_on_ready()
+	if event.is_action_pressed(Hotkeys.TOGGLE_EXTRA_INFO):
+		_toggle_global_button("%ExtraInfoButton")
+	if event.is_action_pressed(Hotkeys.UNDO):
+		_trigger_undo()
 	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_1):
 		_set_prediction_speed(1)
 	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_2):
@@ -1566,6 +1578,32 @@ func _toggle_projectile_owners():
 func _toggle_fullscreen():
 	Global.set_fullscreen(!Global.fullscreen)
 	$"%FullscreenButton".set_pressed_no_signal(Global.fullscreen)
+
+# Flip a check button that lives in global_option_check_buttons. Assigning
+# `pressed` (not set_pressed_no_signal) fires the "toggled" signal, which is
+# already wired to _on_global_option_toggled → Global.save_option, so the
+# button visual + saved setting stay in sync exactly as a UI click would.
+func _toggle_global_button(node_path: String):
+	var btn = get_node_or_null(node_path)
+	if btn:
+		btn.pressed = !btn.pressed
+
+# Freeze-on-ready lives on the main scene (FreezeOnMyTurn). Toggling it needs
+# both signals a UI click sends: "toggled" (saves the option) and "pressed"
+# (main.gd::start_ghost, which restarts the prediction with the new setting).
+func _toggle_freeze_on_ready():
+	var btn = get_node_or_null("%FreezeOnMyTurn")
+	if btn == null:
+		return
+	btn.pressed = !btn.pressed
+	btn.emit_signal("pressed")
+
+func _trigger_undo():
+	if not is_instance_valid(game):
+		return
+	if p1_action_buttons.try_undo():
+		return
+	p2_action_buttons.try_undo()
 
 # mod values: 4 = 0.25x, 2 = 0.5x, -1 = 0.75x, 1 = 1.0x.
 # slider.value_changed updates both Global.playback_speed_mod and the label.

@@ -150,7 +150,8 @@ fire_obj
 last_push_x
 last_push_y
 fire_direction_x
-fire_direction_y"
+fire_direction_y
+fire_direction_reversed"
 damages_own_team = true
 has_projectile_parry_window = false
 can_be_hit_by_melee = true

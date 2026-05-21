@@ -5,10 +5,10 @@ extends BaseProjectile
 # wherever it gets pushed / locked / lightning'd to. Invisible by design —
 # only the hitbox matters; the orb itself draws the fire VFX.
 func tick():
-	.tick()
 	if creator and !creator.disabled:
 		var pos = creator.get_pos()
 		set_pos(pos.x, pos.y)
+	.tick()
 
 # Push-blocking the fire hitbox bounces the orb's fire trajectory back
 # at the Wizard — same reversal that Orb does from its Sword state.

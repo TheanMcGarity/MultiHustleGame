@@ -1,5 +1,9 @@
 extends CanvasLayer
 
+# Same color-replacement shader the character sprite uses, so the HUD
+# portrait can be recolored with a player's style palette.
+const CHAR_SHADER = preload("res://characters/BaseChar.gdshader")
+
 var game: Game
 
 onready var p1_healthbar = $"%P1HealthBar"
@@ -173,10 +177,53 @@ func init(game):
 	
 	$"%P1ShowStyle".set_pressed_no_signal(true)
 	$"%P2ShowStyle".set_pressed_no_signal(true)
-	
-	
+	refresh_portrait_style(1)
+	refresh_portrait_style(2)
+
+
 	game.connect("game_won", self, "on_game_won")
 	pass
+
+# Recolor a player's HUD portrait with their style's palette (colors only —
+# no auras / outline effects beyond what the palette defines). Mirrors the
+# CSS CharacterDisplay path: the source replacement colors come from the
+# character itself, the target colors from the applied style. The portrait
+# always runs through the color-replacement shader (no modulate tint) — when
+# the style is off / null / disabled it falls back to the engine's default
+# per-player body color (P1_COLOR / P2_COLOR) at the shader level.
+func refresh_portrait_style(player_id):
+	if not is_instance_valid(game):
+		return
+	var portrait = $"%P1Portrait" if player_id == 1 else $"%P2Portrait"
+	var show_btn = $"%P1ShowStyle" if player_id == 1 else $"%P2ShowStyle"
+	var player = game.get_player(player_id)
+	if player == null:
+		return
+	# All coloring happens in the shader now — clear any modulate tint baked
+	# into the scene so it doesn't double up on the shader color.
+	portrait.modulate = Color.white
+	portrait.self_modulate = Color.white
+	var mat = portrait.material
+	if not (mat is ShaderMaterial):
+		mat = ShaderMaterial.new()
+		mat.shader = CHAR_SHADER
+		portrait.material = mat
+	# Source magenta keys to replace come from the character; reset the base
+	# params before applying either the style or the default color.
+	mat.set_shader_param("extra_replace_color_1", player.extra_color_1)
+	mat.set_shader_param("extra_replace_color_2", player.extra_color_2)
+	mat.set_shader_param("use_outline", false)
+	mat.set_shader_param("use_extra_color_1", false)
+	mat.set_shader_param("use_extra_color_2", false)
+	var style = player.applied_style
+	if show_btn.pressed and style != null and Global.enable_custom_colors:
+		mat.set_shader_param("color", Color.white)
+		Custom.apply_style_to_material(style, mat, true)
+	else:
+		# Default per-player body color (same constants the character sprite
+		# uses in reset_color), applied at the shader level instead of via a
+		# modulate tint.
+		mat.set_shader_param("color", player.P1_COLOR if player_id == 1 else player.P2_COLOR)
 
 func healthbar_armor_effect(player, healthbar: TextureProgress, no_armor_image, armor_image, projectile_armor_image):
 	if player.has_armor():
@@ -409,3 +456,14 @@ func _physics_process(_delta):
 				effect.queue_free()
 				p1_effects = []
 				p2_effects = []
+				
+		if $"%P1HealthBar".is_visible_in_tree():
+			var viz = Global.show_health_count
+			var p1c = $"%P1HpCount"
+			var p2c = $"%P2HpCount"
+			p1c.visible = viz
+			p2c.visible = viz
+			if viz:
+				p1c.text = str(p1.hp * 10) + " / " + str(p1.MAX_HEALTH * 10) 
+				p2c.text = str(p2.hp * 10) + " / " + str(p2.MAX_HEALTH * 10) 
+			

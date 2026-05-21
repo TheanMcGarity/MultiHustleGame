@@ -39,6 +39,13 @@ var gusts_in_combo = 0
 var tether_ticks = 0
 var geyser_charge = 0
 
+const TETHER_LINE_SCRIPT = preload("res://characters/wizard/states/OrbTetherLine.gd")
+# Visual-only handle so we can detect "is there already a tether line for
+# this wizard?" each tick. Not in state_variables — the line is purely a
+# fx-layer thing, recreated from scratch on the next tick whenever the
+# host's fx_node was wiped (ghost rebuild, undo, etc.).
+var _tether_line = null
+
 var orb_projectile = null
 var orb_duration = 0
 var orb_accumulator = 0
@@ -80,6 +87,32 @@ func init(pos=null):
 		geyser_charge = 3
 	default_dash_speed = $StateMachine/DashForward.dash_speed
 
+
+func _spawn_tether_line():
+	# Don't re-spawn during resim — once the resim sweep settles the line
+	# will get rebuilt by the next live tick.
+	if ReplayManager.resimulating:
+		return
+	if orb_projectile == null:
+		return
+	var orb = objs_map.get(orb_projectile)
+	if orb == null or orb.disabled:
+		return
+	# Walk up from this wizard to find the owning game (real or ghost), then
+	# parent the line into its fx_node so it ticks via process_fx and pauses
+	# with the sim. Same trick GasBomb uses for its trail.
+	var game = get_parent()
+	while game and not game.has_method("process_fx"):
+		game = game.get_parent()
+	if game == null:
+		return
+	var line = TETHER_LINE_SCRIPT.new()
+	line.wizard = self
+	line.orb = orb
+	game.fx_node.add_child(line)
+	game.effects.append(line)
+	line.connect("tree_exited", game, "_on_fx_exit_tree", [line])
+	_tether_line = line
 
 func on_blocked_melee_attack():
 	.on_blocked_melee_attack()
@@ -295,17 +328,42 @@ func tick():
 		detonating_bombs = false
 
 	if tether_ticks > 0:
-		if orb_projectile:
-			var orb = objs_map[orb_projectile]
-			if !orb.disabled:
-				var dir = obj_local_center(orb)
-				var falloff_power = fixed.round(fixed.div(str(TETHER_TICKS - tether_ticks), "3"))
-				var force = fixed.normalized_vec_times(str(dir.x), str(dir.y), fixed.mul(TETHER_SPEED, fixed.powu(TETHER_FALLOFF, falloff_power)))
-				apply_force(force.x, "0")
-
-		tether_ticks -= 1
+		# Ensure the visual tether line exists in this game's fx_node. Spawn-
+		# on-state-entry would miss the ghost game (OrbTether is brief, so by
+		# the time copy_to fires the wizard's current state isn't OrbTether)
+		# and undo (ghost fx_node gets wiped without re-entering the state).
+		# Re-checking here picks both back up.
+		if not is_instance_valid(_tether_line):
+			_spawn_tether_line()
+		var orb = objs_map.get(orb_projectile) if orb_projectile else null
+		var should_end_tether = false
+		if orb == null or orb.disabled:
+			# Orb's gone (portal / meter / hit). Without ending the tether
+			# here, tether_ticks would only decay by 1 per frame (from
+			# TETHER_TICKS=99999999) so it'd effectively never finish — which
+			# left OrbUntether perpetually available, and a freshly resummoned
+			# orb would silently continue the old tether at whatever decayed
+			# speed it was at.
+			should_end_tether = true
+		else:
+			var dir = obj_local_center(orb)
+			var falloff_power = fixed.round(fixed.div(str(TETHER_TICKS - tether_ticks), "3"))
+			var tether_speed = fixed.mul(TETHER_SPEED, fixed.powu(TETHER_FALLOFF, falloff_power))
+			var force = fixed.normalized_vec_times(str(dir.x), str(dir.y), tether_speed)
+			apply_force(force.x, "0" if is_grounded() else force.y)
+			if fixed.lt(tether_speed, "0.05"):
+				should_end_tether = true
 		if is_in_hurt_state(false):
+			should_end_tether = true
+		if should_end_tether:
+			# Pin to exactly 0 — the previous code did `tether_ticks = 0`
+			# *before* the unconditional `tether_ticks -= 1`, so the natural-
+			# expiry path landed at -1. That made OrbTether's `tether_ticks
+			# == 0` usability gate fail forever, which is the "can't tether
+			# again for the rest of the game" symptom.
 			tether_ticks = 0
+		else:
+			tether_ticks -= 1
 
 	if combo_count <= 0 and !opponent.current_state().endless:
 		gusts_in_combo = 0
