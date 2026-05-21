@@ -19,9 +19,10 @@ const BOUNCED_OFF_FORESIGHT_TIMER = 5
 
 export var temporal = false
 
-onready var front_hitbox = $Hitbox
-onready var middle_hitbox = $Hitbox3
-onready var trail_hitbox = $Hitbox2
+# Single swept hitbox. It sweeps from the bullet's current position back
+# along the last tick's travel (to_x/to_y), continuously covering the path
+# that the old front/middle/trail trio of point hitboxes approximated.
+onready var hitbox = $Hitbox
 
 var bounces_left = BOUNCES
 var reset_hitbox_cooldown = 0
@@ -31,17 +32,16 @@ var bounce_lag_ticks = 0
 var bounced_off_foresight_timer = 0
 
 
-func _on_hit_something(obj, hitbox):
-	._on_hit_something(obj, hitbox)
+func _on_hit_something(obj, _hitbox):
+	._on_hit_something(obj, _hitbox)
 	if obj.is_in_group("Fighter"):
 		reset_hitbox_cooldown = RESET_HITBOX_TICKS
-		for h in [front_hitbox, middle_hitbox, trail_hitbox]:
-			h.damage = fixed.round(fixed.mul(str(h.damage), DAMAGE_MODIFIER_PER_HIT))
-			h.damage_in_combo = fixed.round(fixed.mul(str(h.damage_in_combo), DAMAGE_MODIFIER_PER_HIT))
-			h.hitstun_ticks /= 2
-			if h.hitstun_ticks < 5:
-				h.hitstun_ticks = 5
-#			h.scale_combo = false	
+		hitbox.damage = fixed.round(fixed.mul(str(hitbox.damage), DAMAGE_MODIFIER_PER_HIT))
+		hitbox.damage_in_combo = fixed.round(fixed.mul(str(hitbox.damage_in_combo), DAMAGE_MODIFIER_PER_HIT))
+		hitbox.hitstun_ticks /= 2
+		if hitbox.hitstun_ticks < 5:
+			hitbox.hitstun_ticks = 5
+#			hitbox.scale_combo = false
 
 func bounce_off_foresight():
 	if bounce_lag_ticks > 0:
@@ -83,31 +83,28 @@ func _tick():
 
 	var move_vec = fixed.vec_mul(host.dir_x, host.dir_y, host.speed)
 
-	trail_hitbox.x = fixed.round(fixed.mul(move_vec.x, "-1.0"))
-	trail_hitbox.y = fixed.round(fixed.mul(move_vec.y, "-1.0"))
-	
-	middle_hitbox.x = fixed.round(fixed.mul(move_vec.x, "-0.5"))
-	middle_hitbox.y = fixed.round(fixed.mul(move_vec.y, "-0.5"))
-	
-	if current_tick == 0:
-		trail_hitbox.x = 0
-		trail_hitbox.y = 0
+	# Sweep backward from the bullet's (post-move) position to where it was
+	# last tick — the swept rect then covers the whole step. Zeroed on the
+	# spawn tick (no prior position to sweep from), same as the old trail box.
+	hitbox.to_x = fixed.round(fixed.mul(move_vec.x, "-1.0"))
+	hitbox.to_y = fixed.round(fixed.mul(move_vec.y, "-1.0"))
 
-	for hitbox in [front_hitbox, middle_hitbox, trail_hitbox]:
-		hitbox.dir_x = host.dir_x
-		hitbox.dir_y = host.dir_y
-		hitbox.knockback = fixed.mul(KNOCKBACK, fixed.div(host.speed, host.SPEED))
-	
+	if current_tick == 0:
+		hitbox.to_x = 0
+		hitbox.to_y = 0
+
+	hitbox.dir_x = host.dir_x
+	hitbox.dir_y = host.dir_y
+	hitbox.knockback = fixed.mul(KNOCKBACK, fixed.div(host.speed, host.SPEED))
+
 	if reset_hitbox_cooldown > 0:
 		reset_hitbox_cooldown -= 1
 
 	if bounce_lag_ticks > 0:
 		bounce_lag_ticks -= 1
-		trail_hitbox.x = 0
-		trail_hitbox.y = 0
-		
-		middle_hitbox.x = 0
-		middle_hitbox.y = 0
+		# Collapse to a stationary box during bounce lag.
+		hitbox.to_x = 0
+		hitbox.to_y = 0
 		return
 
 	host.move_directly(move_vec.x, move_vec.y)
@@ -139,11 +136,9 @@ func _tick():
 		if host.ricochet:
 			host.ricochet = false
 		if reset_hitbox_cooldown <= 0:
-#			queue_state_change("Default")
-			for hitbox in [front_hitbox, middle_hitbox, trail_hitbox]:
-#				hitbox.reset_hit_objects()
-#				host.get_opponent().parried_hitboxes.erase(hitbox.name)
-				queue_state_change("Default")
+#			hitbox.reset_hit_objects()
+#			host.get_opponent().parried_hitboxes.erase(hitbox.name)
+			queue_state_change("Default")
 
 	host.speed = fixed.mul(host.speed, AIR_DRAG_MOD)
 
@@ -174,11 +169,10 @@ func on_bounce(di_influence=true, lerp_amount=TERRAIN_DI_AMOUNT):
 	if bounce_lag_ticks <= 0:
 		bounce_scale()
 
-	for hitbox in [front_hitbox, middle_hitbox, trail_hitbox]:
-		hitbox.chip_damage_modifier = "0.50"
-		hitbox.reset_hit_objects()
-		host.get_opponent().parried_hitboxes.erase(hitbox.name)
-	
+	hitbox.chip_damage_modifier = "0.50"
+	hitbox.reset_hit_objects()
+	host.get_opponent().parried_hitboxes.erase(hitbox.name)
+
 	bounce_lag_ticks += BOUNCE_HITLAG
 	reset_hitbox_cooldown = RESET_HITBOX_TICKS
 	if di_influence:
@@ -193,8 +187,7 @@ func on_bounce(di_influence=true, lerp_amount=TERRAIN_DI_AMOUNT):
 				host.dir_y = bounce_dir_y
 
 func bounce_scale():
-	for hitbox in [front_hitbox, middle_hitbox, trail_hitbox]:
-		hitbox.damage = fixed.round(fixed.mul(str(hitbox.damage), BOUNCE_DAMAGE_SCALE))
-		hitbox.damage_in_combo = fixed.round(fixed.mul(str(hitbox.damage_in_combo), BOUNCE_DAMAGE_SCALE))
-		hitbox.minimum_damage = fixed.round(fixed.mul(str(hitbox.minimum_damage), BOUNCE_DAMAGE_SCALE))
-		hitbox.hitstun_ticks = fixed.round(fixed.mul(str(hitbox.hitstun_ticks), BOUNCE_HITSTUN_SCALE))
+	hitbox.damage = fixed.round(fixed.mul(str(hitbox.damage), BOUNCE_DAMAGE_SCALE))
+	hitbox.damage_in_combo = fixed.round(fixed.mul(str(hitbox.damage_in_combo), BOUNCE_DAMAGE_SCALE))
+	hitbox.minimum_damage = fixed.round(fixed.mul(str(hitbox.minimum_damage), BOUNCE_DAMAGE_SCALE))
+	hitbox.hitstun_ticks = fixed.round(fixed.mul(str(hitbox.hitstun_ticks), BOUNCE_HITSTUN_SCALE))
