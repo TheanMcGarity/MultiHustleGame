@@ -107,6 +107,7 @@ onready var global_option_check_buttons = {
 	$"%ExtraFreezeFrames": "replay_extra_freeze_frames",
 	$"%EnableReplayBackups": "enable_replay_backups",
 	$"%XYPlotInvertSnapButton": "xyplot_invert_snap",
+	$"%HealthCountButton": "show_health_count",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 
@@ -1473,7 +1474,22 @@ func _on_SoftlockResetButton_pressed():
 func _on_ClearParticlesButton_pressed():
 	if is_instance_valid(game):
 		for particle in game.effects:
-			particle.hide()
+			if !is_instance_valid(particle):
+				continue
+			# Custom hitsparks carry CustomTrailParticle children that
+			# self-process (auto_start_on_ready), so just hiding the parent
+			# leaves them simulating — free the whole effect to actually
+			# clear it. Plain effects (no self-driven trail) keep the old
+			# hide behavior.
+			var has_trail = false
+			for child in particle.get_children():
+				if child is CustomTrailParticle:
+					has_trail = true
+					break
+			if has_trail:
+				particle.queue_free()
+			else:
+				particle.hide()
 		for player_id in [1, 2]:
 			for p in game.get_player(player_id).aura_particles:
 				if !is_instance_valid(p):

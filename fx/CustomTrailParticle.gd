@@ -618,7 +618,14 @@ func _physics_process(_delta):
 		# Hitspark particles (auto_start_on_ready=true) likewise need to keep
 		# processing for their lifetime — they aren't gated by triggers, so
 		# the usual "freeze self" path would kill emission immediately.
-		if enabled and burst_clone_free_in_ticks <= 0 and !auto_start_on_ready:
+		if auto_start_on_ready:
+			# ...but they should still freeze while the game is paused for a
+			# turn (planning phase). The game tick stops calling fx tick()
+			# then, so the hitspark sprite already freezes; without this the
+			# CustomTrailParticle children would keep simulating against the
+			# frozen world. Re-enables automatically once play resumes.
+			set_enabled(not Global.current_game.is_waiting_on_player())
+		elif enabled and burst_clone_free_in_ticks <= 0:
 			set_enabled(false)
 
 var flip_with_character = true
