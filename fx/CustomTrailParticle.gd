@@ -427,6 +427,13 @@ func emit_burst():
 	clone.default_gravity_x = default_gravity_x
 	clone.default_angle = default_angle
 	clone.total_amount = total_amount
+	# tick() recomputes the node's scale/rotation from these every frame,
+	# and burst clones get ticked by BaseChar like any other aura child —
+	# so without carrying them over the clone reverts to scale 1 / rot 0
+	# and the user's Transform settings vanish on one-shot bursts.
+	clone.transform_scale_x = transform_scale_x
+	clone.transform_scale_y = transform_scale_y
+	clone.transform_rotation = transform_rotation
 	get_parent().add_child(clone)
 	# Position the clone where the source is right now — auras attach to a
 	# moving character so each burst should freeze at the moment-of-trigger
@@ -956,9 +963,11 @@ var style_aura_action_type_tick = -100000
 var style_aura_low_health_started_tick = -100000
 var style_aura_high_health_started_tick = -100000
 var style_aura_super_level_started_tick = -100000
+var style_aura_action_type_started_tick = -100000
 var was_low_health_active = false
 var was_high_health_active = false
 var was_super_level_active = false
+var was_action_type_active = false
 # Same idea as BaseChar._aura_rising_edge_initialized: skip the first per-aura
 # threshold check so a full-HP round start doesn't spuriously fire the
 # high-health rising edge on tick 0.

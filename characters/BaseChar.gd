@@ -741,6 +741,9 @@ func _update_aura_threshold_trackers(particle, settings: Dictionary):
 					matches = state.type == CharacterState.ActionType.Super
 			if matches:
 				particle.style_aura_action_type_tick = current_tick
+			if not first_run and matches and not particle.was_action_type_active:
+				particle.style_aura_action_type_started_tick = current_tick
+			particle.was_action_type_active = matches
 	particle._threshold_rising_edge_initialized = true
 
 # Evaluates the per-aura "dynamic triggers" — ORs together every enabled
@@ -832,6 +835,7 @@ const _TRIGGER_EVENT_ROWS = [
 	{enable="trigger_after_burst", name="burst", source="self", tick="style_aura_burst_tick"},
 	{enable="trigger_during_taunt", name="taunt", source="self", tick="style_aura_taunt_started_tick"},
 	{enable="trigger_during_parry_combo", name="parry_combo", source="self", tick="style_aura_parry_combo_started_tick"},
+	{enable="trigger_action_type", name="action_type", source="particle", tick="style_aura_action_type_started_tick"},
 ]
 
 func _aura_trigger_event_fired(particle, settings: Dictionary) -> bool:
