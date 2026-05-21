@@ -761,7 +761,7 @@ func _on_chat_history_loading_changed():
 	if match_container != null:
 		_apply_loading_indicator(match_container, SteamLobby.loading_match_chat_history)
 
-func on_steam_chat_message_received(steam_id: int, message: String, scope: String = ""):
+func on_steam_chat_message_received(steam_id: int, message: String, scope: String = "", match_key: String = ""):
 	# Silenced users (transient mute or persistent block) get dropped entirely
 	# — no display, no history, no sound. Self-echoes always come through so
 	# the user can see what they just sent.
@@ -776,7 +776,13 @@ func on_steam_chat_message_received(steam_id: int, message: String, scope: Strin
 		storage_scope = "lobby"
 	elif scope == "match":
 		storage_scope = "match"
-		storage_match_key = SteamLobby.match_key_for_user(steam_id) if steam_id != SteamHustle.STEAM_ID else SteamLobby.current_match_key()
+		# Prefer the sender's stamped key — it's authoritative and lag-free.
+		# Only fall back to deriving it from live status if an older client
+		# sent "match" without a key (current senders always include it).
+		if match_key != "":
+			storage_match_key = match_key
+		else:
+			storage_match_key = SteamLobby.match_key_for_user(steam_id) if steam_id != SteamHustle.STEAM_ID else SteamLobby.current_match_key()
 	elif steam_id == SteamHustle.STEAM_ID:
 		var my_status = SteamLobby.get_status()
 		if my_status == "fighting" or my_status == "spectating":
@@ -861,13 +867,18 @@ func send_message(message):
 	if !Network.steam:
 		Network.rpc_("send_chat_message", [Network.player_id, message])
 	else:
-		# Tag the message scope when typing from the lobby tab while in a
-		# match — without this, the receiver's default "sender status decides"
-		# rule would route it to match chat. Empty scope falls through to that
-		# default and stays as raw text on the wire (old-patch compatible).
+		# Tag the outgoing scope from the tab we're typing in, so the receiver
+		# files by our authoritative choice instead of guessing from our (over-
+		# the-network laggy) lobby status. Match-tab sends carry "match" (plus a
+		# stamped match_key, added in send_chat_message); lobby-tab-while-in-a-
+		# match sends carry "lobby" so they don't fall through to the match
+		# bucket. Idle senders leave scope="" → raw text on the wire, still
+		# old-patch compatible.
 		var scope = ""
-		var status = SteamLobby.get_status()
-		if (status == "fighting" or status == "spectating") and _active_category() == "lobby":
+		var cat = _active_category()
+		if cat == "match":
+			scope = "match"
+		elif cat == "lobby" and SteamLobby.get_status() in ["fighting", "spectating"]:
 			scope = "lobby"
 		SteamLobby.send_chat_message(message, scope)
 

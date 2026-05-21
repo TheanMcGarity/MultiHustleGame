@@ -9,7 +9,7 @@ signal join_lobby_failed(reason)
 signal join_lobby_success()
 signal lobby_created()
 signal retrieved_lobby_members(members)
-signal chat_message_received(user, message, scope)
+signal chat_message_received(user, message, scope, match_key)
 signal quit_on_rematch()
 signal received_match_settings()
 signal handshake_made()
@@ -336,7 +336,15 @@ func send_chat_message(message: String, scope: String = "") -> void:
 	# Always wrap outgoing messages in the versioned JSON envelope so receivers
 	# get a uniform shape. Receive side still falls back to raw text if the
 	# parse fails (old-patch clients sending unwrapped messages still work).
-	var payload = JSON.print({"v": 1, "text": message, "scope": scope})
+	var envelope = {"v": 1, "text": message, "scope": scope}
+	# For match-scoped sends, stamp our own match_key. The sender always knows
+	# its match correctly; the receiver otherwise has to guess the bucket from
+	# our lobby "status" member-data, which lags behind over the network — so
+	# match chat sent right as a match starts gets misfiled into lobby history
+	# (and then broadcast to every joiner). The stamp removes that guess.
+	if scope == "match":
+		envelope["match_key"] = current_match_key()
+	var payload = JSON.print(envelope)
 	var SENT: bool = Steam.sendLobbyChatMsg(LOBBY_ID, payload)
 	if not SENT:
 		print("ERROR: Chat message failed to send.")
@@ -1021,11 +1029,13 @@ func _on_Lobby_Message(lobby_id: int, user: int, message: String, chat_type: int
 	# or new clients without a scope override) falls through with scope="".
 	var text = message
 	var scope = ""
+	var match_key = ""
 	var parsed = JSON.parse(message)
 	if parsed.error == OK and parsed.result is Dictionary and parsed.result.get("v") == 1:
 		text = str(parsed.result.get("text", ""))
 		scope = str(parsed.result.get("scope", ""))
-	emit_signal("chat_message_received", user, text, scope)
+		match_key = str(parsed.result.get("match_key", ""))
+	emit_signal("chat_message_received", user, text, scope, match_key)
 
 func request_match_settings():
 	# Fast-path: owner publishes settings to lobby data on every change
