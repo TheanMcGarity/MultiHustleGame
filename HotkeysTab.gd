@@ -1,8 +1,14 @@
 extends Control
 
+const MODIFIER_KEYS = [KEY_CONTROL, KEY_SHIFT, KEY_ALT, KEY_META]
+
 var rebinding_action = ""
 var rebind_buttons = {}
 var confirm_dialog: ConfirmationDialog
+# A bare modifier press is deferred until its release: hold it and tap a real
+# key for a combo (Ctrl+Z), or press-and-release it alone to bind the modifier
+# on its own (e.g. Shift for XY-plot snap).
+var pending_modifier = 0
 
 func _ready():
 	confirm_dialog = ConfirmationDialog.new()
@@ -44,6 +50,7 @@ func _button_text_for(action: String) -> String:
 	return key_name if key_name != "" else "(unbound)"
 
 func _start_rebind(action: String):
+	pending_modifier = 0
 	var previous = rebinding_action
 	rebinding_action = "" if previous == action else action
 	if previous != "":
@@ -58,20 +65,18 @@ func _refresh_button(action: String):
 func _input(event):
 	if rebinding_action == "":
 		return
-	if not (event is InputEventKey) or not event.pressed or event.echo:
+	if not (event is InputEventKey) or event.echo:
 		return
 	var base = event.scancode if event.scancode != 0 else event.physical_scancode
-	# Wait for a real key — ignore presses of modifiers on their own so the
-	# user can hold Ctrl/Shift/Alt/Meta and then tap the key to bind a combo.
-	if base in [KEY_CONTROL, KEY_SHIFT, KEY_ALT, KEY_META]:
-		return
-	get_tree().set_input_as_handled()
-	var action = rebinding_action
-	rebinding_action = ""
-	if base == KEY_ESCAPE:
-		Hotkeys.clear_binding(action)
-	else:
-		# Encode held modifiers into the scancode (Ctrl+Z -> KEY_Z | KEY_MASK_CTRL).
+	var is_modifier = base in MODIFIER_KEYS
+	if event.pressed:
+		if is_modifier:
+			# Defer the decision to release: a held modifier may still become
+			# the prefix of a combo if a real key is tapped next.
+			pending_modifier = base
+			return
+		# Real key — commit now, folding in any modifiers held alongside it
+		# (Ctrl+Z -> KEY_Z | KEY_MASK_CTRL).
 		var code = base
 		if event.control:
 			code |= KEY_MASK_CTRL
@@ -81,6 +86,20 @@ func _input(event):
 			code |= KEY_MASK_ALT
 		if event.meta:
 			code |= KEY_MASK_META
+		_finish_rebind(base, code)
+	elif is_modifier and base == pending_modifier:
+		# Pressed and released with no real key in between -> bind the bare
+		# modifier (scancode only, no modifier mask).
+		_finish_rebind(base, base)
+
+func _finish_rebind(base: int, code: int):
+	get_tree().set_input_as_handled()
+	var action = rebinding_action
+	rebinding_action = ""
+	pending_modifier = 0
+	if base == KEY_ESCAPE:
+		Hotkeys.clear_binding(action)
+	else:
 		var ok = Hotkeys.rebind(action, code)
 		if not ok:
 			# protected key - just refresh, leave binding as-is
