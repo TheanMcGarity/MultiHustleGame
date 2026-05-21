@@ -317,6 +317,9 @@ func leave_Lobby() -> void:
 		LOBBY_MEMBERS.clear()
 		MATCH_SETTINGS = {}
 		SETTINGS_LOCKED = false
+		# Reset so a rejoin re-emits the member list (the signature would
+		# otherwise still match the old lobby and suppress the first rebuild).
+		_last_member_signature = ""
 	if TICKET:
 		Steam.cancelAuthTicket(TICKET['id'])
 		TICKET = {}
@@ -1109,6 +1112,14 @@ func _on_Lobby_Join_Requested(lobby_id: int, friendID: int) -> void:
 	# Attempt to join the lobby
 	join_lobby(lobby_id)
 
+# Set of member-data keys whose change should trigger a UI rebuild. Notably
+# excludes hp_pct (published every few seconds during matches) — that fires
+# lobby_data_update constantly but isn't shown in the member/player lists, so
+# it must not force a full rebuild.
+const _MEMBER_SIGNATURE_KEYS = ["status", "character", "opponent_id", "player_id", "spectating_id", "game_started", "name_color"]
+var _last_member_signature = ""
+var _member_refresh_emit_queued = false
+
 func _get_Lobby_Members() -> void:
 	if LOBBY_ID == 0:
 		return
@@ -1117,6 +1128,10 @@ func _get_Lobby_Members() -> void:
 	# Get the number of members from this lobby from Steam
 	var MEMBERS: int = Steam.getNumLobbyMembers(LOBBY_ID)
 	SPECTATORS.clear()
+	# Build a signature of everything the member/player lists actually
+	# display, so we can skip the (expensive) rebuild when an incoming
+	# lobby_data_update didn't change any of it — see emit gate below.
+	var signature = PoolStringArray()
 	# Get the data of these players from Steam
 	for member in range(0, MEMBERS):
 		# Get the member's Steam ID
@@ -1131,6 +1146,27 @@ func _get_Lobby_Members() -> void:
 		# Add them to the list
 		LOBBY_MEMBERS.append(LobbyMember.new(steam_id, steam_name))
 
+		signature.append(str(steam_id))
+		signature.append(steam_name)
+		for key in _MEMBER_SIGNATURE_KEYS:
+			signature.append(Steam.getLobbyMemberData(LOBBY_ID, steam_id, key))
+
+	# LOBBY_MEMBERS is always rebuilt (cheap, and callers may read it
+	# synchronously). But only fire the rebuild signal when the displayed
+	# data changed, and coalesce a burst (e.g. a join writes ~7 member-data
+	# keys back-to-back) into a single deferred emit so the lobby/chat UI
+	# rebuilds at most once per idle frame instead of once per write.
+	var sig = signature.join("|")
+	if sig == _last_member_signature:
+		return
+	_last_member_signature = sig
+	if _member_refresh_emit_queued:
+		return
+	_member_refresh_emit_queued = true
+	call_deferred("_emit_retrieved_lobby_members")
+
+func _emit_retrieved_lobby_members() -> void:
+	_member_refresh_emit_queued = false
 	emit_signal("retrieved_lobby_members", LOBBY_MEMBERS)
 
 
@@ -1508,7 +1544,12 @@ func _on_Lobby_Chat_Update(lobby_id: int, change_id: int, making_change_id: int,
 	# If a player has joined the lobby
 	if chat_state == 1:
 		print(str(CHANGER)+" has joined the lobby.")
-		update_match_settings(MATCH_SETTINGS, change_id)
+		# Only the owner is authoritative for match settings, so only the
+		# owner should push them to the new joiner. Previously every member
+		# ran this, blasting the joiner with N redundant P2P packets (and
+		# each non-owner's possibly-stale MATCH_SETTINGS racing the owner's).
+		if am_i_lobby_owner():
+			update_match_settings(MATCH_SETTINGS, change_id)
 		if can_get_messages_from_user(change_id):
 			emit_signal("user_joined", CHANGER)
 	
