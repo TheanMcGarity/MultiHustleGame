@@ -167,8 +167,6 @@ func on_launched():
 
 func on_grabbed():
 	on_launched()
-	armor_active = false
-	super_armor_installed = false
 
 func are_missiles_active():
 	for object in get_active_projectiles():
