@@ -55,6 +55,12 @@ func _on_lobby_data_update(success, lobby_id, member_id):
 	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID:
 		$"%GameSettingsPanelContainer".enable()
 		$"%GameSettingsPanelContainer".update_lobby_data()
+	else:
+		# Lock the panel back down if ownership moved away from us. Without
+		# this the controls keep the enabled state from when we were owner,
+		# so a former owner sees an editable (but inert) settings panel after
+		# a transfer.
+		$"%GameSettingsPanelContainer".disable()
 	SteamLobby._get_Lobby_Members()
 
 func _on_challenge_accept_pressed():
