@@ -895,8 +895,17 @@ func _on_rematch_button_pressed():
 func _on_game_playback_requested():
 	if Network.multiplayer_active and !ReplayManager.resimulating:
 		$PostGameButtons.show()
-		if !quit_on_rematch and !SteamLobby.SPECTATING:
+		# A spectated match still shows the post-game menu so the viewer can
+		# Quit — but they were never a participant, so no Rematch for them.
+		# Gate on game.spectating, NOT SteamLobby.SPECTATING: the latter is
+		# cleared the instant the watched player leaves "fighting" (the
+		# spectator poll calls end_spectate), which is exactly when this fires,
+		# so it already reads false here. game.spectating is the per-match flag
+		# and survives. Hide explicitly since the button defaults to visible.
+		if !quit_on_rematch and !SteamLobby.SPECTATING and !(is_instance_valid(game) and game.spectating):
 			$"%RematchButton".show()
+		else:
+			$"%RematchButton".hide()
 		Network.rematch_menu = true
 
 func on_game_started():
