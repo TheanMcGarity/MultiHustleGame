@@ -640,22 +640,11 @@ func _render_steam_message(steam_id: int, message: String, category: String, sil
 	node.connect("meta_hover_started", self, "_on_chat_meta_hover_started", [node])
 	node.connect("meta_hover_ended", self, "_on_chat_meta_hover_ended", [node])
 	var container = _container_for(category)
-	# Defensive dedup — if a recent child has the same (steam_id, message)
-	# meta, this is a double-render (e.g. a state-change rebuild firing
-	# after an owner sync that included the same entries). Checking just
-	# the previous child wasn't enough because god_messages / spectator
-	# events get interleaved and break the back-to-back assumption; scan
-	# the last DEDUP_WINDOW children instead.
-	var count = container.get_child_count()
-	var dedup_start = int(max(0, count - 20))
-	for i in range(dedup_start, count):
-		var existing = container.get_child(i)
-		if existing.has_meta("chat_steam_id") and existing.has_meta("chat_message"):
-			if existing.get_meta("chat_steam_id") == steam_id and existing.get_meta("chat_message") == message:
-				node.queue_free()
-				return
-	node.set_meta("chat_steam_id", steam_id)
-	node.set_meta("chat_message", message)
+	# No content-based dedup here: it can't tell a legitimate repeat ("lol"
+	# twice) from a buggy double-render, so it silently ate repeat messages.
+	# Dupes are prevented structurally instead — every rebuild path clears its
+	# container before re-rendering from the authoritative history, and live
+	# adds are immediate (no call_deferred race that could double-add).
 	# Capture stickiness BEFORE the add_child — once the container grows, the
 	# scrollbar's max_value shifts and the "are we at the bottom" check would
 	# read against the new content.

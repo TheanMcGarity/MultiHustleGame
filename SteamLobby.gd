@@ -635,10 +635,17 @@ func _read_P2P_Packet():
 					"match": match_chat_history,
 				}})
 		if readable.has("chat_history_response"):
-			# Only honor the response if it came from the current lobby owner.
-			if PACKET_SENDER == LOBBY_OWNER:
+			# Only honor the response if it came from the current lobby owner,
+			# and only the FIRST one we're awaiting — retries can land multiple
+			# responses, and re-merging would re-append old entries past the
+			# dedup window and duplicate them. A late reply (after the spinner
+			# timed out) still counts: _awaiting outlives loading.
+			if PACKET_SENDER == LOBBY_OWNER and _awaiting_lobby_history:
 				var payload = readable.chat_history_response
 				if payload is Dictionary:
+					# Got a usable response — stop awaiting/retrying now (a
+					# malformed one is ignored so retries keep going).
+					_awaiting_lobby_history = false
 					if payload.get("lobby") is Array:
 						# Merge: owner's snapshot is the canonical "before"
 						# portion; any live entries we already received during
@@ -671,12 +678,17 @@ func _read_P2P_Packet():
 				}})
 		if readable.has("match_history_response"):
 			# Trust only the host of the match we're currently spectating —
-			# anyone else replying is either stale or spoofing.
-			if PACKET_SENDER == SPECTATING_ID:
+			# anyone else replying is either stale or spoofing. Only the first
+			# we're awaiting so retries don't re-merge into duplicates; a late
+			# reply still counts (_awaiting outlives the spinner timeout).
+			if PACKET_SENDER == SPECTATING_ID and _awaiting_match_history:
 				var payload = readable.match_history_response
 				if payload is Dictionary and payload.get("entries") is Array:
 					var key = str(payload.get("match_key", ""))
 					if key != "":
+						# Usable response — stop awaiting/retrying (a malformed
+						# one is ignored so retries keep going).
+						_awaiting_match_history = false
 						var local_entries = match_chat_history.get(key, [])
 						match_chat_history[key] = _merge_history(payload.entries, local_entries, CHAT_HISTORY_MATCH_MAX)
 						_set_match_history_loading(false)
@@ -1393,6 +1405,19 @@ signal chat_history_synced
 signal chat_history_loading_changed
 var loading_lobby_chat_history := false
 var loading_match_chat_history := false
+# Bumped on each (re)request so a previous request's retry loop / timeout can
+# tell it's been superseded and bow out — otherwise an old request's stale 8s
+# timeout could clear the loading flag mid-way through a fresh request (rapid
+# match-exit → rejoin), which also makes the response gate reject the new
+# history. Each request only acts while it's still the current generation.
+var _lobby_history_gen := 0
+var _match_history_gen := 0
+# Dedup gate for applying a response, kept SEPARATE from the loading spinner:
+# we merge the first response we get for a request and ignore the rest (the
+# merge isn't idempotent), but a response is still honored even if it arrives
+# after the spinner's timeout — late history beats no history.
+var _awaiting_lobby_history := false
+var _awaiting_match_history := false
 const CHAT_HISTORY_LOADING_TIMEOUT := 8.0
 
 func is_chat_history_loading() -> bool:
@@ -1412,31 +1437,74 @@ func _set_match_history_loading(on: bool):
 
 # Fallback so the spinner doesn't get stuck forever if the owner / host never
 # replies (e.g. they're on an old patch without the handler, or they left).
-func _clear_chat_loading_after_timeout(which: String):
+func _clear_chat_loading_after_timeout(which: String, gen: int):
 	yield(get_tree().create_timer(CHAT_HISTORY_LOADING_TIMEOUT), "timeout")
-	if which == "lobby":
+	# Only the latest request's timeout may clear the spinner.
+	if which == "lobby" and gen == _lobby_history_gen:
 		_set_lobby_history_loading(false)
-	elif which == "match":
+	elif which == "match" and gen == _match_history_gen:
 		_set_match_history_loading(false)
+
+# Retried because the one-shot request was fragile: getLobbyOwner can still be
+# 0 right after joining (lobby data not synced), which made the request no-op
+# and left history permanently incomplete; a dropped request/response had the
+# same effect. We re-resolve the owner and resend a few times until a response
+# clears the loading flag (or the timeout gives up).
+const CHAT_HISTORY_RETRY_INTERVAL := 0.4
+const CHAT_HISTORY_MAX_REQUESTS := 6
 
 # Ask the lobby owner for their stored history so newly-joined users see
 # what was said before they arrived. Owner replies with their lobby record
 # plus all match buckets they're holding.
 func request_chat_history():
-	if LOBBY_OWNER == 0 or LOBBY_OWNER == SteamHustle.STEAM_ID:
+	if LOBBY_ID == 0:
 		return
-	_send_P2P_Packet(LOBBY_OWNER, {"request_chat_history": SteamHustle.STEAM_ID})
+	_lobby_history_gen += 1
+	_awaiting_lobby_history = true
 	_set_lobby_history_loading(true)
-	_clear_chat_loading_after_timeout("lobby")
+	_request_chat_history_loop(_lobby_history_gen, 0)
+	_clear_chat_loading_after_timeout("lobby", _lobby_history_gen)
+
+func _request_chat_history_loop(gen: int, attempt: int):
+	# Stop if superseded by a newer request, a response already merged, or we
+	# left the lobby. (Tied to _awaiting, not the spinner — the spinner can
+	# time out while we keep waiting for a late reply.)
+	if gen != _lobby_history_gen or not _awaiting_lobby_history or LOBBY_ID == 0:
+		return
+	var owner = Steam.getLobbyOwner(LOBBY_ID)
+	if owner != 0:
+		LOBBY_OWNER = owner
+	if LOBBY_OWNER == SteamHustle.STEAM_ID:
+		_awaiting_lobby_history = false
+		_set_lobby_history_loading(false)
+		return
+	if LOBBY_OWNER != 0:
+		_send_P2P_Packet(LOBBY_OWNER, {"request_chat_history": SteamHustle.STEAM_ID})
+	if attempt + 1 < CHAT_HISTORY_MAX_REQUESTS:
+		yield(get_tree().create_timer(CHAT_HISTORY_RETRY_INTERVAL), "timeout")
+		_request_chat_history_loop(gen, attempt + 1)
 
 # Spectator-side mirror — ask the match host (the user we're spectating)
 # for the in-progress match's chat backlog.
 func request_match_history(host_id: int, match_key: String):
 	if host_id == 0 or host_id == SteamHustle.STEAM_ID or match_key == "":
 		return
-	_send_P2P_Packet(host_id, {"request_match_history": SteamHustle.STEAM_ID, "match_key": match_key})
+	_match_history_gen += 1
+	_awaiting_match_history = true
 	_set_match_history_loading(true)
-	_clear_chat_loading_after_timeout("match")
+	_request_match_history_loop(_match_history_gen, host_id, match_key, 0)
+	_clear_chat_loading_after_timeout("match", _match_history_gen)
+
+func _request_match_history_loop(gen: int, host_id: int, match_key: String, attempt: int):
+	# Stop if superseded, a response already merged, or we left the lobby.
+	# The host's reply is also gated on its own status/match_key settling, so
+	# retrying covers the case where those hadn't synced on the first ask.
+	if gen != _match_history_gen or not _awaiting_match_history or LOBBY_ID == 0:
+		return
+	_send_P2P_Packet(host_id, {"request_match_history": SteamHustle.STEAM_ID, "match_key": match_key})
+	if attempt + 1 < CHAT_HISTORY_MAX_REQUESTS:
+		yield(get_tree().create_timer(CHAT_HISTORY_RETRY_INTERVAL), "timeout")
+		_request_match_history_loop(gen, host_id, match_key, attempt + 1)
 
 # Dedup helper for the merge step. Two entries collide when their (steam_id,
 # message) pair matches. Limited to the last `window` entries of `history`
