@@ -1238,6 +1238,15 @@ func end_game():
 	p1.game_over = true
 	p2.game_over = true
 
+	# Spectated matches play back the host's streamed frames as a singleplayer
+	# game, so the started_multiplayer autosave in the main loop never covers
+	# them. Save here instead: end_game runs exactly once per match (the
+	# game_finished guard above), and by now the frames we hold are the whole
+	# match (you can't have played back to the KO without them).
+	if spectating:
+		var ud = match_data.get("user_data", {})
+		ReplayManager.save_replay_mp(match_data, str(ud.get("p1", "p1")), str(ud.get("p2", "p2")))
+
 	if !is_ghost:
 		if !ReplayManager.playback and !ReplayManager.replaying_ingame and !is_in_replay:
 			if !Network.multiplayer_active and !SteamLobby.SPECTATING:
