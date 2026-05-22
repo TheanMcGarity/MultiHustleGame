@@ -1047,7 +1047,41 @@ func _on_Lobby_Message(lobby_id: int, user: int, message: String, chat_type: int
 		text = str(parsed.result.get("text", ""))
 		scope = str(parsed.result.get("scope", ""))
 		match_key = str(parsed.result.get("match_key", ""))
+	# Record into the shared history exactly once, here at the source. The Chat
+	# UI used to do this, but Chat.tscn is instanced twice (in-game + lobby),
+	# so each message was recorded by both views and the history doubled.
+	_record_incoming_chat(user, text, scope, match_key)
 	emit_signal("chat_message_received", user, text, scope, match_key)
+
+# Resolve the storage bucket for an incoming chat message and append it once.
+# Silenced users (mute/block) are dropped from the record entirely; self-echoes
+# always go through. Mirrors the display-side categorization in Chat.gd.
+func _record_incoming_chat(steam_id: int, message: String, scope: String, match_key: String) -> void:
+	if steam_id != SteamHustle.STEAM_ID and is_silenced(steam_id):
+		return
+	var storage_scope = "lobby"
+	var storage_match_key = ""
+	if scope == "lobby":
+		storage_scope = "lobby"
+	elif scope == "match":
+		storage_scope = "match"
+		# Prefer the sender's stamped key (authoritative, lag-free); fall back
+		# to deriving from live status only for old clients that omit it.
+		if match_key != "":
+			storage_match_key = match_key
+		else:
+			storage_match_key = match_key_for_user(steam_id) if steam_id != SteamHustle.STEAM_ID else current_match_key()
+	elif steam_id == SteamHustle.STEAM_ID:
+		var my_status = get_status()
+		if my_status == "fighting" or my_status == "spectating":
+			storage_scope = "match"
+			storage_match_key = current_match_key()
+	else:
+		var sender_status = Steam.getLobbyMemberData(LOBBY_ID, steam_id, "status")
+		if sender_status == "fighting" or sender_status == "spectating":
+			storage_scope = "match"
+			storage_match_key = match_key_for_user(steam_id)
+	record_chat_message(steam_id, message, storage_scope, storage_match_key)
 
 func request_match_settings():
 	# Fast-path: owner publishes settings to lobby data on every change

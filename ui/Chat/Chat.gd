@@ -756,33 +756,10 @@ func on_steam_chat_message_received(steam_id: int, message: String, scope: Strin
 	# the user can see what they just sent.
 	if steam_id != SteamHustle.STEAM_ID and SteamLobby.is_silenced(steam_id):
 		return
-	# Storage scope: explicit override from the JSON wrapper wins; otherwise
-	# default to "your match status decides" so a fighter's match-chat
-	# messages land in match_chat_history[match_key] for spectator sync.
-	var storage_scope = "lobby"
-	var storage_match_key = ""
-	if scope == "lobby":
-		storage_scope = "lobby"
-	elif scope == "match":
-		storage_scope = "match"
-		# Prefer the sender's stamped key — it's authoritative and lag-free.
-		# Only fall back to deriving it from live status if an older client
-		# sent "match" without a key (current senders always include it).
-		if match_key != "":
-			storage_match_key = match_key
-		else:
-			storage_match_key = SteamLobby.match_key_for_user(steam_id) if steam_id != SteamHustle.STEAM_ID else SteamLobby.current_match_key()
-	elif steam_id == SteamHustle.STEAM_ID:
-		var my_status = SteamLobby.get_status()
-		if my_status == "fighting" or my_status == "spectating":
-			storage_scope = "match"
-			storage_match_key = SteamLobby.current_match_key()
-	else:
-		var sender_status = Steam.getLobbyMemberData(SteamLobby.LOBBY_ID, steam_id, "status")
-		if sender_status == "fighting" or sender_status == "spectating":
-			storage_scope = "match"
-			storage_match_key = SteamLobby.match_key_for_user(steam_id)
-	SteamLobby.record_chat_message(steam_id, message, storage_scope, storage_match_key)
+	# NOTE: recording into the shared history happens once at the source
+	# (SteamLobby._on_Lobby_Message), NOT here. Chat.tscn is instanced twice
+	# (in-game + lobby UI), so recording per-view doubled every entry. The
+	# view only renders.
 	# Display category mirrors an explicit scope override; otherwise the
 	# membership-aware categorizer decides (handles cross-match filtering).
 	var category
