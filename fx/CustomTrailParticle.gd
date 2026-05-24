@@ -921,9 +921,12 @@ var custom_preprocess_value := 0.0
 # back to its pre-warmed/all-at-once look on each trigger. First emission is
 # unaffected (always uses the configured preprocess).
 var preprocess_on_retrigger := false
-# Flipped true after the aura's first emission, so restart_emission can tell
-# a genuine first emission from a re-trigger.
-var _has_emitted_once := false
+# Set true the first time the aura is hidden (trigger inactive) — including
+# at startup if it begins hidden. Once hidden, any later emission is a fresh
+# trigger event, so it builds up gradually (no preprocess) unless
+# preprocess_on_retrigger is on. Only an aura that's been showing since
+# startup (never hidden) keeps the "already-running" preprocess look.
+var _has_been_hidden := false
 
 func set_lifetime(lifetime):
 	particles.lifetime = lifetime
@@ -952,20 +955,20 @@ func set_custom_preprocess_value(value):
 func set_preprocess_on_retrigger(on):
 	preprocess_on_retrigger = on
 
-# Restart emission for a dynamic-trigger (re-)activation. The first emission
-# always honors the configured preprocess; re-triggers only do when
-# preprocess_on_retrigger is on (otherwise they build up gradually from
-# time=0). Either way restart() resets the drifted internal time so there's
-# no catch-up burst.
-func restart_emission(is_retrigger: bool):
+# Restart emission for a dynamic-trigger activation. An aura that's been
+# showing since startup (never hidden) keeps its configured preprocess (the
+# "already-running" look). Once it's been hidden, later emissions build up
+# gradually from time=0 (preprocess 0) unless preprocess_on_retrigger is on.
+# Either way restart() resets the drifted internal time so there's no
+# catch-up burst.
+func restart_emission():
 	var pp = _preprocess_for(particles.lifetime)
-	if is_retrigger and not preprocess_on_retrigger:
+	if _has_been_hidden and not preprocess_on_retrigger:
 		pp = 0.0
 	particles.preprocess = pp
 	if particles_flipped:
 		particles_flipped.preprocess = pp
 	restart()
-	_has_emitted_once = true
 
 func set_angle(angle):
 	default_angle = angle

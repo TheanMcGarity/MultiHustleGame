@@ -970,17 +970,21 @@ func _apply_aura_state(particle, entry: Dictionary):
 				# still alive, resume instead so restart() does not clear them;
 				# the smaller resume-burst is masked by what is already on screen.
 				if particle.emission_faded():
-					# is_retrigger = we've emitted before; gates whether
-					# preprocess re-applies (preprocess_on_retrigger setting).
-					particle.restart_emission(particle._has_emitted_once)
+					# restart_emission decides preprocess off its own
+					# _has_been_hidden flag (gradual once the aura's been
+					# hidden, unless preprocess_on_retrigger is on).
+					particle.restart_emission()
 				else:
 					particle.particles.emitting = true
 					if particle.particles_flipped and particle._last_mirror_active:
 						particle.particles_flipped.emitting = true
 		else:
-			# Dynamic trigger inactive. Mark the falling edge once for the fade
-			# countdown, then keep emission forced off (also covers the initial
-			# state, since auras spawn with emitting=true by default).
+			# Dynamic trigger inactive. Record that the aura has been hidden
+			# (true even on the startup-inactive call, before it ever emits) —
+			# restart_emission reads this to drop preprocess on the next
+			# emission. Mark the falling edge once for the fade countdown, then
+			# keep emission forced off (also covers the spawn-default emitting=true).
+			particle._has_been_hidden = true
 			if particle._aura_emit_active:
 				particle._aura_emit_active = false
 				particle.mark_emission_stopped()
