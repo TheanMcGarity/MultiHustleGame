@@ -425,19 +425,28 @@ func _build_custom_preprocess_widgets():
 	custom_preprocess_slider.max_value = 10.0
 	custom_preprocess_slider.step = 0.01
 	parent.add_child(custom_preprocess_slider)
+	settings_map[custom_preprocess_button] = "custom_preprocess"
+	settings_map[custom_preprocess_slider] = "custom_preprocess_value"
+	var insert_at = lifetime_node.get_position_in_parent() + 1
+	parent.move_child(custom_preprocess_button, insert_at)
+	parent.move_child(custom_preprocess_slider, insert_at + 1)
+
+# "preprocess on retrigger" — lives in the Triggers section since it only
+# affects dynamic-trigger re-fires. Off (default): a re-triggered aura
+# builds up gradually from time=0. On: it re-applies preprocess so it snaps
+# back to its full / all-at-once look on each trigger.
+func _build_preprocess_on_retrigger_button():
+	if not has_node("%DynamicTriggers"):
+		return
+	var dt = $"%DynamicTriggers"
+	var parent = dt.get_parent() if dt else self
 	preprocess_on_retrigger_button = CheckButton.new()
 	preprocess_on_retrigger_button.name = "PreprocessOnRetrigger"
 	preprocess_on_retrigger_button.unique_name_in_owner = true
 	preprocess_on_retrigger_button.text = "preprocess on retrigger"
 	preprocess_on_retrigger_button.hint_tooltip = "Re-apply preprocess each time a dynamic trigger re-fires, so the aura snaps to its full look instead of building up gradually."
 	parent.add_child(preprocess_on_retrigger_button)
-	settings_map[custom_preprocess_button] = "custom_preprocess"
-	settings_map[custom_preprocess_slider] = "custom_preprocess_value"
 	settings_map[preprocess_on_retrigger_button] = "preprocess_on_retrigger"
-	var insert_at = lifetime_node.get_position_in_parent() + 1
-	parent.move_child(custom_preprocess_button, insert_at)
-	parent.move_child(custom_preprocess_slider, insert_at + 1)
-	parent.move_child(preprocess_on_retrigger_button, insert_at + 2)
 
 func load_settings(settings):
 	for setting in settings:
@@ -589,6 +598,7 @@ func _ready():
 		_build_eye_attach_widgets()
 	if enable_triggers:
 		_build_dynamic_one_shot_button()
+		_build_preprocess_on_retrigger_button()
 		_build_action_type_trigger()
 		_build_during_install_trigger()
 		_build_during_taunt_trigger()
@@ -795,6 +805,10 @@ func _update_trigger_visibility():
 		during_parry_combo_button.visible = dt
 	if during_parry_combo_linger:
 		during_parry_combo_linger.visible = show_linger and during_parry_combo_button and during_parry_combo_button.pressed
+	# Re-applies preprocess on re-fire — only meaningful for continuous
+	# (non-one-shot) dynamic triggers; one-shot bursts always start fresh.
+	if preprocess_on_retrigger_button:
+		preprocess_on_retrigger_button.visible = dt and not os
 
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())
