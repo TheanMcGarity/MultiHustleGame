@@ -431,10 +431,10 @@ func _build_custom_preprocess_widgets():
 	parent.move_child(custom_preprocess_button, insert_at)
 	parent.move_child(custom_preprocess_slider, insert_at + 1)
 
-# "preprocess on retrigger" — lives in the Triggers section since it only
-# affects dynamic-trigger re-fires. Off (default): a re-triggered aura
-# builds up gradually from time=0. On: it re-applies preprocess so it snaps
-# back to its full / all-at-once look on each trigger.
+# "preprocess on retrigger" — top of the Triggers section, above the
+# "dynamic triggers" checkbox (not nested in the gated sub-options). Off
+# (default): a re-shown aura builds up gradually from time=0. On: it
+# re-applies preprocess so it snaps back to its full / all-at-once look.
 func _build_preprocess_on_retrigger_button():
 	if not has_node("%DynamicTriggers"):
 		return
@@ -446,6 +446,9 @@ func _build_preprocess_on_retrigger_button():
 	preprocess_on_retrigger_button.text = "preprocess on retrigger"
 	preprocess_on_retrigger_button.hint_tooltip = "Re-apply preprocess each time a dynamic trigger re-fires, so the aura snaps to its full look instead of building up gradually."
 	parent.add_child(preprocess_on_retrigger_button)
+	# Sit it just above the "dynamic triggers" checkbox in the main part of
+	# the section (always visible — it's not one of the gated sub-options).
+	parent.move_child(preprocess_on_retrigger_button, dt.get_position_in_parent())
 	settings_map[preprocess_on_retrigger_button] = "preprocess_on_retrigger"
 
 func load_settings(settings):
@@ -805,10 +808,6 @@ func _update_trigger_visibility():
 		during_parry_combo_button.visible = dt
 	if during_parry_combo_linger:
 		during_parry_combo_linger.visible = show_linger and during_parry_combo_button and during_parry_combo_button.pressed
-	# Re-applies preprocess on re-fire — only meaningful for continuous
-	# (non-one-shot) dynamic triggers; one-shot bursts always start fresh.
-	if preprocess_on_retrigger_button:
-		preprocess_on_retrigger_button.visible = dt and not os
 
 func _setting_value_changed(_value=null):
 	emit_signal("settings_changed", get_settings())
