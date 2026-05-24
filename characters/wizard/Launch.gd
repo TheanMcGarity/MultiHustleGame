@@ -5,10 +5,15 @@ export var redirect = false
 func _frame_0():
 	if redirect:
 		go()
+	interruptible_on_opponent_turn = false
 
 func _frame_3():
 	if !redirect:
 		go()
+
+func _frame_9():
+	if !redirect:
+		interruptible_on_opponent_turn = true
 
 func go():
 	if redirect:
