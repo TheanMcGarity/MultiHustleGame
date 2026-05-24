@@ -638,7 +638,14 @@ func _update_style_aura_trackers():
 	if is_instance_valid(opponent) and opponent.combo_count > 0:
 		style_aura_being_comboed_tick = current_tick
 	var state = current_state()
-	if state and state.type == CharacterState.ActionType.Attack:
+	# "Melee attack" = the state carries its own (non-Detect) hitbox and
+	# isn't a grab. Keying off has_hitboxes/is_grab instead of the per-state
+	# `type` enum: `type` is hand-tagged per character and wildly
+	# inconsistent (some chars' grabs are Attack, others Movement; shoots
+	# are Special; taunts Movement), so the enum made the trigger fire on
+	# grabs for some chars and miss real swings on others. This catches the
+	# actual swing on every character and excludes grabs / shoots / taunts.
+	if state and state.has_hitboxes and not state.is_grab:
 		style_aura_melee_attack_tick = current_tick
 	if get_active_projectiles().size() > 0:
 		style_aura_projectiles_active_tick = current_tick
@@ -1410,7 +1417,7 @@ func on_state_started(state):
 	# their own one-shot event. Same-tick spurious double-fires from
 	# state-machine sub-transitions are deduped by the consumption gate in
 	# _aura_trigger_event_fired (each `started_tick` value fires at most once).
-	if state and state.type == CharacterState.ActionType.Attack:
+	if state and state.has_hitboxes and not state.is_grab:
 		style_aura_melee_attack_started_tick = current_tick
 	# Consume the pending "this state began because the player picked it" flag
 	# from the most recent on_action_selected. If nothing was queued, the
