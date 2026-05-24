@@ -144,6 +144,7 @@ var eye_left_y_slider
 var eye_right_y_slider
 var custom_preprocess_button: CheckButton
 var custom_preprocess_slider
+var preprocess_on_retrigger_button: CheckButton
 
 const ACTION_TYPE_OPTIONS := ["Movement", "Defense", "Attack", "Special", "Super"]
 
@@ -424,11 +425,19 @@ func _build_custom_preprocess_widgets():
 	custom_preprocess_slider.max_value = 10.0
 	custom_preprocess_slider.step = 0.01
 	parent.add_child(custom_preprocess_slider)
+	preprocess_on_retrigger_button = CheckButton.new()
+	preprocess_on_retrigger_button.name = "PreprocessOnRetrigger"
+	preprocess_on_retrigger_button.unique_name_in_owner = true
+	preprocess_on_retrigger_button.text = "preprocess on retrigger"
+	preprocess_on_retrigger_button.hint_tooltip = "Re-apply preprocess each time a dynamic trigger re-fires, so the aura snaps to its full look instead of building up gradually."
+	parent.add_child(preprocess_on_retrigger_button)
 	settings_map[custom_preprocess_button] = "custom_preprocess"
 	settings_map[custom_preprocess_slider] = "custom_preprocess_value"
+	settings_map[preprocess_on_retrigger_button] = "preprocess_on_retrigger"
 	var insert_at = lifetime_node.get_position_in_parent() + 1
 	parent.move_child(custom_preprocess_button, insert_at)
 	parent.move_child(custom_preprocess_slider, insert_at + 1)
+	parent.move_child(preprocess_on_retrigger_button, insert_at + 2)
 
 func load_settings(settings):
 	for setting in settings:

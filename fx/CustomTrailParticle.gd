@@ -84,6 +84,7 @@ var custom_set = {
 	"cap_framerate": "set_cap_framerate",
 	"custom_preprocess": "set_custom_preprocess",
 	"custom_preprocess_value": "set_custom_preprocess_value",
+	"preprocess_on_retrigger": "set_preprocess_on_retrigger",
 }
 
 static func get_shapes():
@@ -161,6 +162,7 @@ static func get_default():
 		"framerate": 60,
 		"custom_preprocess": false,
 		"custom_preprocess_value": 0.0,
+		"preprocess_on_retrigger": false,
 		"disable_on_ko": true,
 		"dynamic_triggers": false,
 		"dynamic_one_shot": false,
@@ -913,6 +915,15 @@ func set_y_offset(y):
 
 var custom_preprocess := false
 var custom_preprocess_value := 0.0
+# When false (default), a dynamic-trigger aura re-emitting starts fresh from
+# time=0 with no preprocess (gradual build-up) even if preprocess is
+# configured. When true, re-triggers re-apply preprocess so the aura snaps
+# back to its pre-warmed/all-at-once look on each trigger. First emission is
+# unaffected (always uses the configured preprocess).
+var preprocess_on_retrigger := false
+# Flipped true after the aura's first emission, so restart_emission can tell
+# a genuine first emission from a re-trigger.
+var _has_emitted_once := false
 
 func set_lifetime(lifetime):
 	particles.lifetime = lifetime
@@ -937,6 +948,24 @@ func set_custom_preprocess(on):
 func set_custom_preprocess_value(value):
 	custom_preprocess_value = value
 	set_lifetime(particles.lifetime)
+
+func set_preprocess_on_retrigger(on):
+	preprocess_on_retrigger = on
+
+# Restart emission for a dynamic-trigger (re-)activation. The first emission
+# always honors the configured preprocess; re-triggers only do when
+# preprocess_on_retrigger is on (otherwise they build up gradually from
+# time=0). Either way restart() resets the drifted internal time so there's
+# no catch-up burst.
+func restart_emission(is_retrigger: bool):
+	var pp = _preprocess_for(particles.lifetime)
+	if is_retrigger and not preprocess_on_retrigger:
+		pp = 0.0
+	particles.preprocess = pp
+	if particles_flipped:
+		particles_flipped.preprocess = pp
+	restart()
+	_has_emitted_once = true
 
 func set_angle(angle):
 	default_angle = angle

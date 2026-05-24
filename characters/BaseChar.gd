@@ -970,7 +970,9 @@ func _apply_aura_state(particle, entry: Dictionary):
 				# still alive, resume instead so restart() does not clear them;
 				# the smaller resume-burst is masked by what is already on screen.
 				if particle.emission_faded():
-					particle.restart()
+					# is_retrigger = we've emitted before; gates whether
+					# preprocess re-applies (preprocess_on_retrigger setting).
+					particle.restart_emission(particle._has_emitted_once)
 				else:
 					particle.particles.emitting = true
 					if particle.particles_flipped and particle._last_mirror_active:
