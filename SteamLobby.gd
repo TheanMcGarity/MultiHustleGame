@@ -337,6 +337,11 @@ func send_chat_message(message: String, scope: String = "") -> void:
 	# get a uniform shape. Receive side still falls back to raw text if the
 	# parse fails (old-patch clients sending unwrapped messages still work).
 	var envelope = {"v": 1, "text": message, "scope": scope}
+	# Unique per-message id (sender + per-join token + counter). Receivers store
+	# it on the history entry and dedup the join/sync merge by id, so a repeated
+	# message survives while a true echo collapses — see _history_contains_recent.
+	_chat_seq += 1
+	envelope["id"] = str(SteamHustle.STEAM_ID) + "-" + _chat_session_token + "-" + str(_chat_seq)
 	# For match-scoped sends, stamp our own match_key. The sender always knows
 	# its match correctly; the receiver otherwise has to guess the bucket from
 	# our lobby "status" member-data, which lags behind over the network — so
@@ -1042,21 +1047,23 @@ func _on_Lobby_Message(lobby_id: int, user: int, message: String, chat_type: int
 	var text = message
 	var scope = ""
 	var match_key = ""
+	var id = ""
 	var parsed = JSON.parse(message)
 	if parsed.error == OK and parsed.result is Dictionary and parsed.result.get("v") == 1:
 		text = str(parsed.result.get("text", ""))
 		scope = str(parsed.result.get("scope", ""))
 		match_key = str(parsed.result.get("match_key", ""))
+		id = str(parsed.result.get("id", ""))
 	# Record into the shared history exactly once, here at the source. The Chat
 	# UI used to do this, but Chat.tscn is instanced twice (in-game + lobby),
 	# so each message was recorded by both views and the history doubled.
-	_record_incoming_chat(user, text, scope, match_key)
+	_record_incoming_chat(user, text, scope, match_key, id)
 	emit_signal("chat_message_received", user, text, scope, match_key)
 
 # Resolve the storage bucket for an incoming chat message and append it once.
 # Silenced users (mute/block) are dropped from the record entirely; self-echoes
 # always go through. Mirrors the display-side categorization in Chat.gd.
-func _record_incoming_chat(steam_id: int, message: String, scope: String, match_key: String) -> void:
+func _record_incoming_chat(steam_id: int, message: String, scope: String, match_key: String, id: String = "") -> void:
 	if steam_id != SteamHustle.STEAM_ID and is_silenced(steam_id):
 		return
 	var storage_scope = "lobby"
@@ -1081,7 +1088,7 @@ func _record_incoming_chat(steam_id: int, message: String, scope: String, match_
 		if sender_status == "fighting" or sender_status == "spectating":
 			storage_scope = "match"
 			storage_match_key = match_key_for_user(steam_id)
-	record_chat_message(steam_id, message, storage_scope, storage_match_key)
+	record_chat_message(steam_id, message, storage_scope, storage_match_key, id)
 
 func request_match_settings():
 	# Fast-path: owner publishes settings to lobby data on every change
@@ -1109,6 +1116,11 @@ func _on_Lobby_Joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		Network.start_steam_mp()
 		# Set this lobby ID as your lobby ID
 		LOBBY_ID = lobby_id
+		# Fresh per-join token so chat-message ids stay unique across sessions
+		# and rejoins — a recycled counter can't collide with a still-in-window
+		# id from a previous session and trip the merge dedup.
+		_chat_session_token = str(OS.get_unix_time()) + "-" + str(randi())
+		_chat_seq = 0
 		LOBBY_CHARLOADER_ENABLED = Steam.getLobbyData(LOBBY_ID, "charloader") == "Yes"
 		var rce = Steam.getLobbyData(LOBBY_ID, "replay_challenge")
 		LOBBY_REPLAY_CHALLENGE_ENABLED = rce != "No"
@@ -1366,6 +1378,13 @@ const CHAT_HISTORY_LOBBY_MAX = 1000
 const CHAT_HISTORY_MATCH_MAX = 300
 var lobby_chat_history := []
 var match_chat_history := {}
+# Per-message id state. The merge dedup (see _history_contains_recent) keys on
+# these ids instead of message content, so a legitimately repeated message
+# keeps both entries while a true echo (same message in the owner's snapshot
+# and our live tail) collapses. _chat_session_token is refreshed on each lobby
+# join so a recycled counter from a previous session can't collide.
+var _chat_seq := 0
+var _chat_session_token := ""
 
 # Stable key for the match between two steam_ids, regardless of order.
 func match_key_for(a: int, b: int) -> String:
@@ -1410,8 +1429,8 @@ func match_key_for_user(steam_id: int) -> String:
 # Append a chat entry. `scope` is "lobby" or "match"; for "match", `match_key`
 # names the bucket. Each bucket has its own ring-cap so a long-running lobby
 # can't grow memory unbounded.
-func record_chat_message(steam_id: int, message: String, scope: String, match_key: String = ""):
-	var entry = {"steam_id": steam_id, "message": message}
+func record_chat_message(steam_id: int, message: String, scope: String, match_key: String = "", id: String = ""):
+	var entry = {"steam_id": steam_id, "message": message, "id": id}
 	if scope == "match":
 		if match_key == "":
 			return
@@ -1540,15 +1559,25 @@ func _request_match_history_loop(gen: int, host_id: int, match_key: String, atte
 		yield(get_tree().create_timer(CHAT_HISTORY_RETRY_INTERVAL), "timeout")
 		_request_match_history_loop(gen, host_id, match_key, attempt + 1)
 
-# Dedup helper for the merge step. Two entries collide when their (steam_id,
-# message) pair matches. Limited to the last `window` entries of `history`
-# so a legitimate identical message from earlier in the session isn't
-# wrongly collapsed.
+# Dedup helper for the merge step. Two entries collide when they share a stamped
+# message id — authoritative, so a legitimately repeated message (distinct ids)
+# is never collapsed. Entries from old clients that predate ids fall back to a
+# (steam_id, message) content match, limited to the last `window` entries so the
+# fallback can't wrongly collapse a real repeat from earlier in the session.
 func _history_contains_recent(history: Array, entry, window: int = 50) -> bool:
 	var start = int(max(0, history.size() - window))
+	var entry_id = entry.get("id", "")
 	for i in range(start, history.size()):
 		var h = history[i]
-		if h.steam_id == entry.steam_id and h.message == entry.message:
+		var h_id = h.get("id", "")
+		if entry_id != "" and h_id != "":
+			# Both stamped: identity is authoritative. A repeated message carries
+			# a distinct id and survives; only a true echo (same id in the
+			# snapshot and our live tail) collapses.
+			if h_id == entry_id:
+				return true
+		elif h.steam_id == entry.steam_id and h.message == entry.message:
+			# Old-client fallback (entry pre-dates ids): best-effort content match.
 			return true
 	return false
 
