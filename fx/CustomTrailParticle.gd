@@ -720,6 +720,10 @@ func tick():
 		burst_clone_free_in_ticks -= 1
 		if burst_clone_free_in_ticks == 0:
 			queue_free()
+	# Count down the post-stop fade window (see emission_faded / the
+	# continuous-trigger restart gate in BaseChar._apply_aura_state).
+	if _emit_fade_ticks_left > 0:
+		_emit_fade_ticks_left -= 1
 
 # Mirror tick()'s per-frame state from the main emitter to the flipped one
 # so they stay co-located and orient identically. Also mirrors the primary's
@@ -1004,6 +1008,29 @@ var _threshold_rising_edge_initialized = false
 # (projectiles_active, low_health, etc.) from firing more than one burst per
 # rising edge — see BaseChar._aura_trigger_event_fired.
 var _consumed_event_ticks = {}
+# Tracks whether the continuous (non-one-shot) trigger currently wants this
+# aura emitting. BaseChar drives the rising/falling edges off this rather
+# than reading particles.emitting directly, since _apply_amount can mute the
+# primary emitter (random_flip with a 0 primary count) — reading that back
+# would look like a spurious falling edge.
+var _aura_emit_active = false
+# Ticks left before the last stopped emission's particles have all died (set
+# to lifetime-in-ticks when emission stops; counted down in tick()). While
+# > 0 some particles may still be on screen, so a re-trigger resumes rather
+# than restart()ing (which clears them). Once 0, a re-trigger can safely
+# restart() for a clean gradual emission with no catch-up burst.
+var _emit_fade_ticks_left = 0
+
+# Mark that continuous emission just stopped — begin the fade countdown so
+# emitted particles get a full lifetime to die before we consider it empty.
+func mark_emission_stopped():
+	var speed = particles.speed_scale if particles.speed_scale > 0 else 1.0
+	_emit_fade_ticks_left = max(int(particles.lifetime * 60.0 / speed), 1)
+
+# True when the previous emission has fully faded (no live particles left),
+# so a fresh restart() won't visibly clear anything on screen.
+func emission_faded() -> bool:
+	return _emit_fade_ticks_left <= 0
 
 func set_parameter(param, value):
 	var max_value = get_setting_max(param)

@@ -953,8 +953,39 @@ func _apply_aura_state(particle, entry: Dictionary):
 			particle.particles.one_shot = false
 		if particle.particles_flipped and particle.particles_flipped.one_shot:
 			particle.particles_flipped.one_shot = false
-		if particle.particles.emitting != should_emit:
-			particle.particles.emitting = should_emit
+		if not settings.get("dynamic_triggers", false):
+			# Always-on aura — single emitter, unchanged behavior.
+			if particle.particles.emitting != should_emit:
+				particle.particles.emitting = should_emit
+		elif should_emit:
+			# Dynamic trigger active. Only act on the rising edge so we do not
+			# fight _apply_amount (which may legitimately mute a 0-count
+			# random_flip primary) every frame while emitting.
+			if not particle._aura_emit_active:
+				particle._aura_emit_active = true
+				# If the previous emission fully faded, restart() so emission
+				# begins from time=0 — kills the catch-up burst (the emitter's
+				# internal time drifted while off) and lets preprocess /
+				# explosiveness apply like a first emission. If particles are
+				# still alive, resume instead so restart() does not clear them;
+				# the smaller resume-burst is masked by what is already on screen.
+				if particle.emission_faded():
+					particle.restart()
+				else:
+					particle.particles.emitting = true
+					if particle.particles_flipped and particle._last_mirror_active:
+						particle.particles_flipped.emitting = true
+		else:
+			# Dynamic trigger inactive. Mark the falling edge once for the fade
+			# countdown, then keep emission forced off (also covers the initial
+			# state, since auras spawn with emitting=true by default).
+			if particle._aura_emit_active:
+				particle._aura_emit_active = false
+				particle.mark_emission_stopped()
+			if particle.particles.emitting:
+				particle.particles.emitting = false
+			if particle.particles_flipped and particle.particles_flipped.emitting:
+				particle.particles_flipped.emitting = false
 	# "hide when inactive" toggles the whole particle's visibility on top of
 	# the emission gate, so in-flight particles vanish instantly (instead of
 	# coasting out their lifetime after emission stops). Off by default — the
