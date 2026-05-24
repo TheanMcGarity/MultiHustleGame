@@ -619,14 +619,35 @@ func _physics_process(_delta):
 		# processing for their lifetime — they aren't gated by triggers, so
 		# the usual "freeze self" path would kill emission immediately.
 		if auto_start_on_ready:
-			# ...but they should still freeze while the game is paused for a
-			# turn (planning phase). The game tick stops calling fx tick()
-			# then, so the hitspark sprite already freezes; without this the
-			# CustomTrailParticle children would keep simulating against the
-			# frozen world. Re-enables automatically once play resumes.
-			set_enabled(not Global.current_game.is_waiting_on_player())
+			# Freeze only while THIS particle's own game is genuinely paused
+			# for an in-game turn — matching the hitspark sprite, which the
+			# paused game tick stops advancing. Keyed on the owning game's
+			# game_paused rather than the main game's is_waiting_on_player():
+			# the latter is just "someone is interruptable", which is also true
+			# mid-combo on cancellable multihits and in the prediction ghost.
+			# game_paused is set true only on a real turn wait and never in the
+			# ghost (it ticks via simulate_one_tick); the extra ReplayManager
+			# .playback guard covers replay playback, where game_paused can be
+			# left stale-true but the sim is actually advancing.
+			var g = _owning_game()
+			set_enabled(g == null or not (g.game_paused and not ReplayManager.playback))
 		elif enabled and burst_clone_free_in_ticks <= 0:
 			set_enabled(false)
+
+# The game instance this particle lives under (main game, or the prediction
+# ghost) — found by walking up to the nearest node with the game API. Cached
+# since the parent chain is stable; re-resolved if the game gets freed.
+var _cached_game = null
+func _owning_game():
+	if is_instance_valid(_cached_game):
+		return _cached_game
+	var n = get_parent()
+	while n != null:
+		if n.has_method("is_waiting_on_player"):
+			_cached_game = n
+			return n
+		n = n.get_parent()
+	return null
 
 var flip_with_character = true
 
