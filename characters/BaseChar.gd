@@ -439,6 +439,8 @@ var wakeup_throw_immunity_ticks = 0
 
 var hidden_sprite := false
 
+var interruptable_for_ticks := 0
+
 onready var fake_emote_label = $"%EmoteLabel"
 onready var real_emote_label = $"%EmoteLabelReal"
 onready var emote_display = $"%EmoteDisplay"
@@ -1940,6 +1942,11 @@ func can_be_thrown():
 	return .can_be_thrown() and blockstun_ticks <= 0
 
 func tick():
+	if state_interruptable:
+		interruptable_for_ticks += 1
+	else:
+		interruptable_for_ticks = 0
+	
 	if forfeit:
 		hidden_sprite = true
 	

@@ -537,6 +537,8 @@ func _unhandled_input(event):
 #						Global.frame_advance = !Global.frame_advance
 #					if event.scancode == KEY_F:
 #						game.advance_frame_input = true
+			if event.scancode == KEY_F11:
+				Global.set_fullscreen(!Global.fullscreen)
 			if event.scancode == KEY_SPACE:
 				ContinueAll()
 	if event is InputEventMouseButton:

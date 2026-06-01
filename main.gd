@@ -157,10 +157,6 @@ func _on_ghost_wait_timer_timeout():
 		start_ghost()
 
 func _on_loaded_replay(match_data):
-	if !_Global.has_char_loader():
-		._on_loaded_replay(match_data)
-		return
-		
 	load_replay_chars(match_data)
 	match_data["replay"] = true
 	_on_match_ready(match_data)
@@ -176,7 +172,7 @@ func _on_received_spectator_match_data(data):
 
 func _on_match_ready(data):
 	match_data = data
-	#singleplayer = true if match_data.has("replay") else data["singleplayer"]
+	singleplayer = true if match_data.has("replay") else data["singleplayer"]
 	if !match_data.has("replay"):
 		ReplayManager.playback = false
 	SteamLobby.SETTINGS_LOCKED = false

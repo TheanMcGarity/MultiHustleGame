@@ -729,10 +729,30 @@ func tick():
 		if ReplayManager.playback:
 			if not ReplayManager.resimulating:
 				self.is_in_replay = true
-				if self.current_tick > self.max_replay_tick and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
+				if self.current_tick > get_max_replay_tick() and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
 					ReplayManager.set_deferred("playback", false)
+					
+					for index in players.keys():
+						var player = players[index]
+						player.busy_interrupt = ( not player.state_interruptable and not (player.current_state().interruptible_on_opponent_turn or player.feinting or negative_on_hit(player)))
+						if not player.busy_interrupt:
+							player.current_state().on_interrupt()
+						player.state_interruptable = true;
+						player.show_you_label()
+						player_turns[index] = true
+						match index:
+							1:
+								self.p1_turn = true
+							2:
+								self.p2_turn = true
+
+					emit_signal("player_actionable")
+						
+					player_actionable = true
+					
+					assert(false, "this should be seen..?")
 			else :
-				if self.current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else self.max_replay_tick - 2):
+				if self.current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else get_max_replay_tick() - 2):
 					if not Network.multiplayer_active:
 						ReplayManager.playback = false
 					ReplayManager.resimulating = false
@@ -1164,9 +1184,13 @@ func is_waiting_on_player():
 	if not self.game_started:
 		return false
 	for player in players.values():
+		if player.hitlag_ticks > 0:
+			continue
 		if not player.game_over:
 			if player.state_interruptable:
-				return true
+				# Testing some sort of balancing for mh..? this is just a random idea i had.
+				if (player.interruptable_for_ticks < players.size() - 2):
+					return true
 	return false
 
 

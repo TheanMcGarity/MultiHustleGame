@@ -1,4 +1,4 @@
-[gd_scene load_steps=95 format=2]
+[gd_scene load_steps=94 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -79,7 +79,6 @@
 [ext_resource path="res://multihustle/ui/HUD/UISelectors.tscn" type="PackedScene" id=77]
 [ext_resource path="res://RoadmapListContainer.gd" type="Script" id=78]
 [ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
-[ext_resource path="res://ui/mh.png" type="Texture" id=80]
 [ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
 [ext_resource path="res://TitleSecret.gd" type="Script" id=82]
 
@@ -2363,18 +2362,6 @@ margin_bottom = 24.0
 rect_min_size = Vector2( 20, 20 )
 icon = ExtResource( 52 )
 icon_align = 1
-
-[node name="DiscordButton2" type="Button" parent="UILayer/MainMenu/SocialLinks"]
-unique_name_in_owner = true
-margin_left = 553.0
-margin_right = 573.0
-margin_bottom = 24.0
-rect_min_size = Vector2( 20, 20 )
-mouse_default_cursor_shape = 2
-icon = ExtResource( 80 )
-flat = true
-icon_align = 1
-expand_icon = true
 
 [node name="DiscordButton" type="Button" parent="UILayer/MainMenu/SocialLinks"]
 unique_name_in_owner = true
