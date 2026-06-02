@@ -2,21 +2,11 @@ extends Panel
 
 signal spectate_requested(player)
 
-var p1
-var p2
+onready var team:OptionButton = $"%ForcedTeam"
+onready var handicap:SpinBox = $"%HandicapMultiplier"
 
-func init(member1, member2):
-	$"%P1Username".text = member1.steam_name
-	$"%P2Username".text = member2.steam_name
-
-	$"%P1Character".text = member1.character
-	$"%P2Character".text = member2.character
-	p1 = member1
-	p2 = member2
-
-func _ready():
-	$"%SpectateButton".connect("pressed", self, "_on_spectate_button_pressed")
-
-func _on_spectate_button_pressed():
-	randomize()
-	emit_signal("spectate_requested", p1 if randi() % 2 == 0 else p2)
+func init(id):
+	$"%P1Username".text = Steam.getFriendPersonaName(id)
+	if SteamHustle.STEAM_ID != SteamLobby.LOBBY_OWNER:
+		team.disabled = true
+		handicap.disabled = true

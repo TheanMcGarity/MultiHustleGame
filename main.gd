@@ -172,12 +172,26 @@ func _on_received_spectator_match_data(data):
 
 func _on_match_ready(data):
 	match_data = data
+	if (SteamLobby.per_user_settings != null):
+		data["user_settings"] = SteamLobby.per_user_settings
+		"""
+		for user in SteamLobby.per_user_settings:
+			if !is_instance_valid(user):
+				continue
+			data["user_settings"] = {}
+			data.user_settings.append(Network.get_pid_from_nid(user.id),
+			{
+				"team":user.team.get_selected_id(),
+				"handicap":user.handicap.value
+			})
+		"""
 	singleplayer = true if match_data.has("replay") else data["singleplayer"]
 	if !match_data.has("replay"):
 		ReplayManager.playback = false
 	SteamLobby.SETTINGS_LOCKED = false
 	setup_game(singleplayer, data)
 	emit_signal("game_started")
+	SteamLobby.per_user_settings = null
 
 
 func show_lobby():

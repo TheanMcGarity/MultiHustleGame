@@ -598,7 +598,7 @@ func select_opponent(self_id, opp_id):
 var player_character_names:Dictionary = {}
 var player_character_uses:Dictionary = {}
 
-func team_init(player:int):
+func team_init(player:int, forced_team:int = 0):
 
 	#if get_team(player) != 0:
 	#	return # Already on a team, no need to initialize.
@@ -607,13 +607,13 @@ func team_init(player:int):
 
 
 	if not multiplayer_active:
-		singleplayer_on_team_change(0, ("p%d" % player), player)
+		singleplayer_on_team_change(forced_team, ("p%d" % player), player)
 		return
 
 	var steam_id = Steam.getSteamID()
 	var username = Steam.getFriendPersonaName(steam_id)
 	
-	rpc_("on_team_change", [0, username, Network.player_id])
+	rpc_("on_team_change", [forced_team, username, Network.player_id])
 
 func singleplayer_on_team_change(team:int, username:String, player:int):
 	var team_name
@@ -719,3 +719,9 @@ func get_is_missing(chara:String) -> bool:
 		if (!found):
 			players_missing += 1
 	return players_missing > 0
+
+func get_pid_from_nid(network_id):
+	for pid in network_ids:
+		if (network_ids[pid] == network_id):
+			return pid
+	return -1

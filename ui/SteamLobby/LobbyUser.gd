@@ -7,6 +7,8 @@ signal avatar_loaded()
 #const OWNER_MIN_SIZE = 44
 onready var owner_actions = $OwnerActions
 
+var main_ui
+
 var member
 
 func _ready():
@@ -50,7 +52,7 @@ signal start_game_pressed()
 
 func on_challenge_pressed():
 	emit_signal("start_game_pressed")
-	SteamLobby.host_game_vs_all()
+	SteamLobby.host_game_vs_all(main_ui.get_matches_list_children())
 
 func _loaded_Avatar(id:int, size:int, buffer:PoolByteArray)->void :
 	if id != member.steam_id:

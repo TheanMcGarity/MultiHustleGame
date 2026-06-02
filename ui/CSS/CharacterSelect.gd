@@ -300,7 +300,10 @@ func init(singleplayer=true):
 	if singleplayer:
 		Network.team_init(1)
 	else:
-		Network.team_init(Network.player_id)
+		$"%TeamButtons".get_container().visible = SteamLobby.per_user_settings[current_player_real].team == -1
+		var team = SteamLobby.per_user_settings[current_player_real].team
+		
+		Network.team_init(Network.player_id, 0 if team == -1 else team)
 	
 	show()
 	emit_signal("opened")

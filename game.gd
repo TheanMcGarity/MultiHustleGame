@@ -557,6 +557,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player.opponent = players[evenModulo + 1]
 		if evenModulo == 0:
 			player.set_facing(-1)
+	
 	for index in players.keys():
 		var player = players[index]
 		player.update_data()
@@ -566,6 +567,11 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 				p1_data = player.data
 			2:
 				p2_data = player.data
+	if (match_data.has("user_settings")):
+		for index in players.keys():
+			var player = players[index]
+			player.MAX_HEALTH = int(match_data.user_settings[index].handicap * player.MAX_HEALTH)
+			player.hp = int(match_data.user_settings[index].handicap * player.hp)
 	#print("PLR DICT: "+str(players))
 	apply_hitboxes(players.values())
 	if not ReplayManager.resimulating:

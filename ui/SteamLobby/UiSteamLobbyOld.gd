@@ -127,6 +127,7 @@ func _on_retrieved_lobby_members(members):
 		var user_scene = preload("res://ui/SteamLobby/LobbyUser.tscn").instance()
 		$"%UserList".add_child(user_scene)
 		user_scene.init(member)
+		user_scene.main_ui = self
 		user_scene.connect("challenge_pressed", self, "_on_user_challenge_pressed")
 #		user_list.add_item(member.steam_name, null)
 		print("updating members")
@@ -150,12 +151,12 @@ func _on_retrieved_lobby_members(members):
 						"p2": p2,
 					}
 
-	for match_ in matches.values():
+	for match_ in users:
 		print("updating matches")
 		var match_scene = preload("res://ui/SteamLobby/LobbyMatch.tscn").instance()
 		match_scene.connect("spectate_requested", self, "_on_spectate_requested")
 		$"%MatchList".add_child(match_scene)
-		match_scene.init(match_.p1, match_.p2)
+		match_scene.init(match_)
 	
 	for child in $"%UserList".get_children():
 		child.update_avatar()

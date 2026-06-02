@@ -512,6 +512,7 @@ func _read_P2P_Packet_custom(readable):
 				
 	if readable.has("multihustle_start"):
 		send_sync(readable.multihustle_start)
+		per_user_settings = readable.per_user_settings
 	#if readable.has("sync_confirm"):
 	#	sync_confirm(readable.steam_id)
 
@@ -960,13 +961,14 @@ var sync_confirms = {}
 
 signal start_game()
 
+var per_user_settings
 
-
-func host_game_vs_all():
+func host_game_vs_all(per_user_settings_ = null):
 	Network.log_to_file("host_game_vs_all called")
 	if SteamHustle.STEAM_ID != LOBBY_OWNER:
 		Network.log_to_file("Only host can setup")
 		return
+	per_user_settings = per_user_settings_
 	Network.log_to_file("registering players")
 	REMATCHING_ID = 0
 	OPPONENT_IDS.clear()
@@ -996,6 +998,7 @@ func multihustle_start():
 	OPPONENT_ID = LOBBY_OWNER
 	var data = {
 		"multihustle_start":OPPONENT_IDS,
+		"per_user_settings":per_user_settings
 	}
 	_send_P2P_Packet(0, data)
 	send_sync(OPPONENT_IDS)
@@ -1081,3 +1084,8 @@ func get_key_from_value(dictionary: Dictionary, target_value):
 			return key
 	return null # Return null if the value is not found
 
+func get_pid_from_nid(network_id):
+	for pid in OPPONENT_IDS:
+		if (OPPONENT_IDS[pid] == network_id):
+			return pid
+	return -1

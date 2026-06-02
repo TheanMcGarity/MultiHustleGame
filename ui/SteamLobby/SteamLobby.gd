@@ -6,6 +6,15 @@ onready var loading_lobby_rect = $"%LoadingLobbyRect"
 var _Global = Network
 var errorMsg = Label.new()
 
+func get_matches_list_children():
+	var result = {}
+	for match_ in $"%MatchList".get_children():
+		result.append(SteamLobby.get_pid_from_nid(match_.id),
+			{
+				"team":match_.team.get_selected_id(),
+				"handicap":match_.handicap.value
+			})
+
 func _ready():
 	add_child(errorMsg)
 	errorMsg.set_position(Vector2(0, 345))

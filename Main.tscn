@@ -2081,18 +2081,16 @@ align = 1
 [node name="Piracy4" type="Label" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 visible = false
-margin_top = 11.0
 margin_right = 144.0
-margin_bottom = 22.0
+margin_bottom = 11.0
 custom_colors/font_color = Color( 1, 0, 0, 1 )
 align = 1
 
 [node name="Piracy2" type="Label" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 visible = false
-margin_top = 22.0
 margin_right = 144.0
-margin_bottom = 61.0
+margin_bottom = 39.0
 custom_colors/font_color = Color( 1, 0, 0, 1 )
 text = "If this is a bug, restart the game. You need to own the game on steam."
 align = 1
@@ -2101,9 +2099,8 @@ autowrap = true
 [node name="Piracy3" type="Label" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 visible = false
-margin_top = 61.0
 margin_right = 144.0
-margin_bottom = 72.0
+margin_bottom = 11.0
 custom_colors/font_color = Color( 1, 0, 0, 1 )
 align = 1
 
@@ -2146,7 +2143,7 @@ flat = true
 unique_name_in_owner = true
 visible = false
 margin_top = 40.0
-margin_right = 96.0
+margin_right = 144.0
 margin_bottom = 60.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2159,7 +2156,7 @@ flat = true
 unique_name_in_owner = true
 visible = false
 margin_top = 40.0
-margin_right = 96.0
+margin_right = 144.0
 margin_bottom = 60.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
@@ -2220,9 +2217,9 @@ flat = true
 [node name="ChangelogButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 visible = false
-margin_top = 120.0
+margin_top = 140.0
 margin_right = 144.0
-margin_bottom = 140.0
+margin_bottom = 160.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( 42, -27 )
 mouse_default_cursor_shape = 2
@@ -2276,9 +2273,9 @@ flat = true
 [node name="WorkshopUploader" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 visible = false
-margin_top = 200.0
+margin_top = 220.0
 margin_right = 144.0
-margin_bottom = 220.0
+margin_bottom = 240.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 1, 0.2, 0.239216, 1 )
