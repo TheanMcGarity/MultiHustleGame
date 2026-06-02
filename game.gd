@@ -59,6 +59,11 @@ var game_end_tick = 0
 var frame_passed = false
 
 var game_finished = false
+# True once a spectated match's replay has been autosaved. Survives
+# buffer_playback rewinds (which reset game_finished to replay the match), so
+# pressing the restart-playback key doesn't keep firing the autosave. Fresh
+# per game instance, so the next spectated match still saves.
+var spectator_autosaved = false
 
 var ghost_cleaned = true
 
@@ -1240,12 +1245,14 @@ func end_game():
 
 	# Spectated matches play back the host's streamed frames as a singleplayer
 	# game, so the started_multiplayer autosave in the main loop never covers
-	# them. Save here instead: end_game runs exactly once per match (the
-	# game_finished guard above), and by now the frames we hold are the whole
-	# match (you can't have played back to the KO without them).
-	if spectating:
+	# them. Save here instead, gated by spectator_autosaved so a buffer_playback
+	# rewind (which resets game_finished and re-runs end_game when the replay
+	# hits the KO again) doesn't keep autosaving. By now the frames we hold are
+	# the whole match — you can't play back to the KO without them.
+	if spectating and !spectator_autosaved:
 		var ud = match_data.get("user_data", {})
 		ReplayManager.save_replay_mp(match_data, str(ud.get("p1", "p1")), str(ud.get("p2", "p2")))
+		spectator_autosaved = true
 
 	if !is_ghost:
 		if !ReplayManager.playback and !ReplayManager.replaying_ingame and !is_in_replay:
