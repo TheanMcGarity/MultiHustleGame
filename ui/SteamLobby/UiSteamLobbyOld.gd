@@ -68,6 +68,14 @@ func _refresh_settings_panel_state():
 	var just_became_owner = am_owner and not _was_owner
 	_was_owner = am_owner
 	var locked = SteamLobby.is_lobby_settings_locked()
+	# Steam can take a tick to deliver lobby data on rejoin — until then
+	# getLobbyData("settings_locked") reads as empty regardless of the real
+	# state. Without this gate the rejoining owner saw an enabled panel for
+	# one frame and could sneak in a change before the lock data arrived
+	# (the actual bug report). Bypassed for freshly CREATED lobbies (autoload
+	# sets lobby_data_synced=true on _on_Lobby_Created) so the creator
+	# doesn't get a momentary disabled panel.
+	var sync_pending = not SteamLobby.lobby_data_synced
 	if just_became_owner and not SteamLobby.MATCH_SETTINGS.empty():
 		# Ownership transferred to us — sync the panel to the previous owner's
 		# published settings BEFORE update_lobby_data fires. Otherwise we'd
@@ -77,7 +85,7 @@ func _refresh_settings_panel_state():
 		# Gated on just_became_owner so the owner's live edits don't get
 		# clobbered by a reload on every subsequent data update.
 		$"%GameSettingsPanelContainer".load_settings(SteamLobby.MATCH_SETTINGS)
-	if am_owner and not locked:
+	if am_owner and not locked and not sync_pending:
 		$"%GameSettingsPanelContainer".enable()
 		$"%GameSettingsPanelContainer".update_lobby_data()
 	else:
@@ -85,7 +93,7 @@ func _refresh_settings_panel_state():
 		# this a former owner (or the locker themselves) keeps the controls
 		# editable but inert.
 		$"%GameSettingsPanelContainer".disable()
-	$"%LockSettingsButton".visible = am_owner and not locked
+	$"%LockSettingsButton".visible = am_owner and not locked and not sync_pending
 
 func _on_LockSettingsButton_pressed():
 	$"%LockSettingsConfirmDialog".show()
