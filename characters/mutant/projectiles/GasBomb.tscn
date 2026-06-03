@@ -39,6 +39,7 @@ gravity = "0"
 air_friction = "1.5"
 max_air_speed = "50"
 max_fall_speed = "100"
+hookable = false
 
 [node name="Sprite" parent="Flip" index="0"]
 scale = Vector2( 0.5, 0.5 )

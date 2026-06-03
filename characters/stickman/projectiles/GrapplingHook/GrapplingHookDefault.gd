@@ -30,6 +30,10 @@ func _tick():
 		var obj = host.objs_map[obj_name]
 		if obj != null:
 			if !obj.disabled and obj != host and obj != host.creator:
+				# Projectiles can opt out of hook attachment (e.g. Mutant's
+				# GasBomb, which is supposed to keep drifting).
+				if obj is BaseProjectile and not obj.hookable:
+					continue
 				var obj_pos = host.obj_local_center(obj)
 				var dist = fixed.vec_len(str(obj_pos.x), str(obj_pos.y))
 				var lock_dist = LOCK_DISTANCE

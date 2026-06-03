@@ -17,6 +17,11 @@ export var apply_hitlag_when_hit_by_melee = true
 #export var can_be_hit_by_projectiles = false
 export var projectile_immune = false
 export var hitlag_modifier = "1.0"
+# Set false on a projectile to keep Ninja's grappling hook from latching
+# onto it (the hook iterates objs_map looking for things in its lock zone
+# and would otherwise pin to any projectile in range — e.g. Mutant's
+# GasBomb, which is supposed to keep drifting).
+export var hookable = true
 
 var got_parried = false
 
