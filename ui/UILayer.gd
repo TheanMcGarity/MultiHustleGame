@@ -129,6 +129,12 @@ func _ready():
 #		$"%MultiplayerButton".disabled = true
 		$"%SteamMultiplayerButton".disabled = true
 		$"%WinwsLabel".show()
+	if not Global.XY_SNAP_TOGGLE_ENABLED:
+		# XY plots always snap when the toggle feature flag is off — hide the
+		# now-inert "hold shift to snap" CheckButton from the options UI. The
+		# button stays wired to xyplot_invert_snap so reviving the flag picks
+		# up the user's prior preference.
+		$"%XYPlotInvertSnapButton".hide()
 	
 	$"%SingleplayerButton".connect("pressed", self, "_on_singleplayer_pressed")
 	$"%MultiplayerButton".connect("pressed", self, "_on_multiplayer_pressed")

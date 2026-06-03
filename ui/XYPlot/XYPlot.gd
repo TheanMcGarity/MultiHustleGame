@@ -588,15 +588,21 @@ func update_value(p = null, set_buffer_update = true, ignore_snap = false):
 			point = point.normalized() * length
 			angle = point.angle()
 	
-	# Rebindable snap-override key (default SHIFT). In-editor there's no
-	# Hotkeys autoload, so fall back to the raw key there.
-	var shift_pressed
-	if Engine.editor_hint or not InputMap.has_action(Hotkeys.XY_SNAP_OVERRIDE):
-		shift_pressed = Input.is_key_pressed(KEY_SHIFT)
-	else:
-		shift_pressed = Input.is_action_pressed(Hotkeys.XY_SNAP_OVERRIDE)
-	var invert_snap = (not Engine.editor_hint) and Global.xyplot_invert_snap
-	var snap_now = shift_pressed if invert_snap else !shift_pressed
+	# When the snap-toggle feature flag is off (current shipping default), XY
+	# plots always snap whenever the plot's `snap` property is set. The
+	# hold-key derivation below is preserved verbatim so flipping the flag
+	# back on revives the old UX without needing to re-derive it.
+	var snap_now = true
+	if Global.XY_SNAP_TOGGLE_ENABLED:
+		# Rebindable snap-override key (default SHIFT). In-editor there's no
+		# Hotkeys autoload, so fall back to the raw key there.
+		var shift_pressed
+		if Engine.editor_hint or not InputMap.has_action(Hotkeys.XY_SNAP_OVERRIDE):
+			shift_pressed = Input.is_key_pressed(KEY_SHIFT)
+		else:
+			shift_pressed = Input.is_action_pressed(Hotkeys.XY_SNAP_OVERRIDE)
+		var invert_snap = (not Engine.editor_hint) and Global.xyplot_invert_snap
+		snap_now = shift_pressed if invert_snap else !shift_pressed
 	if snap and snap_now and not ignore_snap:
 		if snap_radius > 0.0:
 			if abs(point.length() / panel_radius - snap_radius) < SNAP_AMOUNT:

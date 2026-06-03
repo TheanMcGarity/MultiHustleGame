@@ -31,6 +31,12 @@ var ghost_afterimages = true
 var fullscreen = false
 var cap_framerate = true
 var vsync = true
+# Feature flag for the XY-plot hold-key-to-toggle-snap UX. false = always snap
+# (current shipping behavior, hides the related Hotkeys.XY_SNAP_OVERRIDE binding
+# and the "hold shift to snap" CheckButton). Flip to true to revive the toggle —
+# the var below + its save/load wiring stay intact so the user's old preference
+# comes back with it.
+const XY_SNAP_TOGGLE_ENABLED = false
 var xyplot_invert_snap = false
 var show_hitboxes = false
 var show_extra_info = false

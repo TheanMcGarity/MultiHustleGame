@@ -25,6 +25,8 @@ func build_list():
 		child.queue_free()
 	rebind_buttons.clear()
 	for entry in Hotkeys.REBINDABLE:
+		if not Hotkeys.is_action_enabled(entry.action):
+			continue
 		var row = HBoxContainer.new()
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var label = Label.new()

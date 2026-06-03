@@ -127,12 +127,16 @@ var hovered_xy_plot = null
 
 func _ready():
 	for action in RUNTIME_DEFAULTS:
+		if not is_action_enabled(action):
+			continue
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)
 			var code = RUNTIME_DEFAULTS[action]
 			if code != 0:
 				InputMap.action_add_event(action, _make_event(code))
 	for entry in REBINDABLE:
+		if not is_action_enabled(entry.action):
+			continue
 		defaults[entry.action] = get_bound_scancode(entry.action)
 	load_overrides()
 
@@ -183,6 +187,15 @@ func get_bound_scancode(action: String) -> int:
 func is_protected_key(scancode: int) -> bool:
 	return (scancode & KEY_CODE_MASK) in PROTECTED_KEYS
 
+# Whether a known action is currently enabled. Lets us keep the REBINDABLE /
+# RUNTIME_DEFAULTS const lists intact (so flipping a feature flag back on
+# doesn't need a code change) while hiding the action from the rebind UI and
+# from default InputMap registration when the flag is off.
+func is_action_enabled(action: String) -> bool:
+	if action == XY_SNAP_OVERRIDE and not Global.XY_SNAP_TOGGLE_ENABLED:
+		return false
+	return true
+
 func clear_binding(action: String):
 	if not InputMap.has_action(action):
 		return
@@ -207,6 +220,8 @@ func rebind(action: String, scancode: int) -> bool:
 
 func reset_to_defaults():
 	for entry in REBINDABLE:
+		if not is_action_enabled(entry.action):
+			continue
 		var action = entry.action
 		var code = defaults.get(action, 0)
 		for ev in InputMap.get_action_list(action):
@@ -220,6 +235,8 @@ func reset_to_defaults():
 func save_overrides():
 	var data = {}
 	for entry in REBINDABLE:
+		if not is_action_enabled(entry.action):
+			continue
 		var action = entry.action
 		data[action] = get_bound_scancode(action)
 	Global.save_player_data({"hotkeys": data})
@@ -234,6 +251,8 @@ func load_overrides():
 	if not (saved is Dictionary):
 		return
 	for entry in REBINDABLE:
+		if not is_action_enabled(entry.action):
+			continue
 		var action = entry.action
 		if not (action in saved):
 			continue
