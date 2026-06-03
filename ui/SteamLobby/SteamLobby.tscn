@@ -269,7 +269,7 @@ margin_right = 540.0
 margin_bottom = 320.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_constants/separation = 10
+custom_constants/separation = 4
 alignment = 1
 __meta__ = {
 "_edit_group_": true
