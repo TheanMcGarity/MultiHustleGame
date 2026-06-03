@@ -377,11 +377,17 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 	p2.connect("predicted", self, "on_prediction", [p2])
 	stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)
 	if match_data.has("game_length"):
-		time = match_data["game_length"]
+		time = int(match_data["game_length"])
 	if match_data.has("frame_by_frame"):
 		frame_by_frame = match_data.frame_by_frame
 	if match_data.has("char_distance"):
-		char_distance = match_data["char_distance"]
+		# Godot 3's JSON.parse stores every number as float, so a lobby/replay
+		# round-tripped through JSON makes match_data["char_distance"] a Float
+		# (200.0). BaseObj.set_pos's check_params asserts (x is int and y is int)
+		# — passing a Float here trips the assertion and start_game aborts mid-
+		# setup, leaving p1/p2 at their default 0/0 (the "start distance got set
+		# to 0" report). Cast everything that lands in set_pos to int.
+		char_distance = int(match_data["char_distance"])
 	if match_data.has("clashing_enabled"):
 		clashing_enabled = match_data["clashing_enabled"]
 	if match_data.has("asymmetrical_clashing"):
@@ -391,7 +397,7 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 	if match_data.has("has_ceiling"):
 		has_ceiling = match_data["has_ceiling"]
 	if match_data.has("ceiling_height"):
-		ceiling_height = match_data["ceiling_height"]
+		ceiling_height = int(match_data["ceiling_height"])
 	if match_data.has("prediction_enabled"):
 		prediction_enabled = match_data["prediction_enabled"]
 	if match_data.has("show_last_di_state"):
@@ -499,7 +505,9 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 
 	var height = 0
 	if match_data.has("char_height"):
-		height = -match_data.char_height
+		# Same JSON-float concern as char_distance above — height also feeds
+		# set_pos so it has to be int.
+		height = -int(match_data.char_height)
 
 	p1.set_pos(-char_distance, height)
 	p2.set_pos(char_distance, height)
