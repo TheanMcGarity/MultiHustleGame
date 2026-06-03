@@ -282,8 +282,6 @@ func tick():
 		juke_pips = JUKE_PIPS
 	.tick()
 
-
-
 func on_got_parried():
 	.on_got_parried()
 	if juked_this_turn:
