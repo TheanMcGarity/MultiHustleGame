@@ -337,8 +337,12 @@ func _on_retrieved_lobby_members(members):
 		child.update_avatar()
 		yield(child, "avatar_loaded")
 
-	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID:
-		$"%GameSettingsPanelContainer".enable()
+	# Delegate to the centralized refresh so the lock + sync gating applies
+	# here too. Was previously a bare panel.enable() for the owner, which
+	# fired on every member-join (via _get_Lobby_Members -> retrieved_lobby_
+	# members) and unlocked the panel visually on a locked lobby until the
+	# next lobby_data_update re-disabled it.
+	_refresh_settings_panel_state()
 
 func _on_spectate_requested(player):
 	SteamLobby.request_spectate(player.steam_id)
