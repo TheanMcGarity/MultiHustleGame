@@ -441,7 +441,16 @@ func process_extra(extra):
 #				play_sound("Telekinesis")
 
 func can_fast_fall():
-	return get_pos().y < 0 and can_hover()
+	# Restored 1.9.20 form. The 1.9.39 change to get_pos().y < 0 disagreed
+	# with is_grounded() in the edge case where the wizard's feet are
+	# touching ground but pos.y is -1/-2 (chara.grounded is a stored bool
+	# updated by update_grounded — feet-touching makes it true even when
+	# pos.y < 0). Under the new check, can_fast_fall stayed true at that
+	# pos, process_extra's "clear fast_falling when can_fast_fall is false"
+	# safety net never fired, and the per-tick apply_grav_fast_fall
+	# move_directly kept pinning the wizard 1-2px above ground — that's
+	# the "stays airborne floating just above the ground for a bit" bug.
+	return !is_grounded() and can_hover()
 
 func can_hover():
 #	return !is_grounded() and hover_left > HOVER_MIN_AMOUNT
