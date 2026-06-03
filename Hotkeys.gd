@@ -43,6 +43,8 @@ const TOGGLE_FLIP = "toggle_flip"
 const ZOOM_IN = "zoom_in"
 const ZOOM_OUT = "zoom_out"
 const FREEZE_ON_READY = "freeze_on_ready"
+const TOGGLE_AFTERIMAGES = "toggle_afterimages"
+const TOGGLE_FREEZE_SOUND = "toggle_freeze_sound"
 const TOGGLE_EXTRA_INFO = "toggle_extra_info"
 const UNDO = "undo_action"
 const SAVE_REPLAY = "save_replay"
@@ -79,6 +81,8 @@ const RUNTIME_DEFAULTS = {
 	ZOOM_IN: KEY_EQUAL,
 	ZOOM_OUT: KEY_MINUS,
 	FREEZE_ON_READY: 0,
+	TOGGLE_AFTERIMAGES: 0,
+	TOGGLE_FREEZE_SOUND: 0,
 	TOGGLE_EXTRA_INFO: 0,
 	UNDO: KEY_Z | KEY_MASK_CTRL,
 	SAVE_REPLAY: KEY_S | KEY_MASK_CTRL,
@@ -116,6 +120,8 @@ const REBINDABLE = [
 	{"action": ZOOM_IN, "label": "Zoom In"},
 	{"action": ZOOM_OUT, "label": "Zoom Out"},
 	{"action": FREEZE_ON_READY, "label": "Toggle Freeze on Ready"},
+	{"action": TOGGLE_AFTERIMAGES, "label": "Toggle Afterimages"},
+	{"action": TOGGLE_FREEZE_SOUND, "label": "Toggle Freeze Sound"},
 	{"action": UNDO, "label": "Undo"},
 	{"action": SAVE_REPLAY, "label": "Save Replay"},
 	{"action": XY_SNAP_OVERRIDE, "label": "XY Plot Snap Override (hold)"},

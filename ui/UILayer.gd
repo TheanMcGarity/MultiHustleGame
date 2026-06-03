@@ -1252,6 +1252,10 @@ func _unhandled_input(event):
 			game.zoom_out()
 	if event.is_action_pressed(Hotkeys.FREEZE_ON_READY):
 		_toggle_freeze_on_ready()
+	if event.is_action_pressed(Hotkeys.TOGGLE_AFTERIMAGES):
+		_toggle_afterimage()
+	if event.is_action_pressed(Hotkeys.TOGGLE_FREEZE_SOUND):
+		_toggle_global_button("%FreezeSound")
 	if event.is_action_pressed(Hotkeys.TOGGLE_EXTRA_INFO):
 		_toggle_global_button("%ExtraInfoButton")
 	if event.is_action_pressed(Hotkeys.UNDO):
@@ -1610,6 +1614,17 @@ func _toggle_global_button(node_path: String):
 # (main.gd::start_ghost, which restarts the prediction with the new setting).
 func _toggle_freeze_on_ready():
 	var btn = get_node_or_null("%FreezeOnMyTurn")
+	if btn == null:
+		return
+	btn.pressed = !btn.pressed
+	btn.emit_signal("pressed")
+
+# Same shape as _toggle_freeze_on_ready: AfterimageButton wires both "toggled"
+# (saves ghost_afterimages) and "pressed" (main.gd::start_ghost). Programmatic
+# `pressed = ...` only fires "toggled", so we re-emit "pressed" explicitly so
+# the ghost restarts and the change takes effect immediately.
+func _toggle_afterimage():
+	var btn = get_node_or_null("%AfterimageButton")
 	if btn == null:
 		return
 	btn.pressed = !btn.pressed
