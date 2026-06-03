@@ -403,11 +403,19 @@ func process_extra(extra):
 		hovering = false
 	if can_fast_fall():
 		if extra.has("fast_fall"):
-			if extra["fast_fall"]:
-				if extra["fast_fall"] and !fast_falling:
-					play_sound("FastFall")
-					set_vel(get_vel().x, FAST_FALL_SPEED)
-				fast_falling = extra["fast_fall"]
+			# Assign unconditionally so toggling fast_fall OFF actually clears
+			# fast_falling. The previous shape only entered the inner block
+			# when extra["fast_fall"] was true, so a false value silently kept
+			# the prior fast_falling=true — leaving the wizard fast-falling
+			# forever (move_directly each tick) while can_fast_fall stayed
+			# true (still airborne), and the action button reflected the
+			# stuck flag as "still on". Most visible on landings near y=0
+			# where the stuck downward move_directly fought normal physics
+			# to leave the wizard floating at -1/-2.
+			if extra["fast_fall"] and !fast_falling:
+				play_sound("FastFall")
+				set_vel(get_vel().x, FAST_FALL_SPEED)
+			fast_falling = extra["fast_fall"]
 		else:
 			fast_falling = false
 	else:
