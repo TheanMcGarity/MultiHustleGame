@@ -58,12 +58,25 @@ func _on_lobby_data_update(success, lobby_id, member_id):
 	_refresh_settings_panel_state()
 	SteamLobby._get_Lobby_Members()
 
+var _was_owner = false
+
 func _refresh_settings_panel_state():
 	# Settings panel + lock button visibility recompute on every lobby data
 	# update so ownership transfer and the persistent settings lock both take
 	# effect immediately on every member.
 	var am_owner = Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID
+	var just_became_owner = am_owner and not _was_owner
+	_was_owner = am_owner
 	var locked = SteamLobby.is_lobby_settings_locked()
+	if just_became_owner and not SteamLobby.MATCH_SETTINGS.empty():
+		# Ownership transferred to us — sync the panel to the previous owner's
+		# published settings BEFORE update_lobby_data fires. Otherwise we'd
+		# publish whatever stale values the panel was carrying (typically the
+		# user's last singleplayer training format, which the panel restored
+		# at _ready), overwriting the actual lobby settings everyone agreed on.
+		# Gated on just_became_owner so the owner's live edits don't get
+		# clobbered by a reload on every subsequent data update.
+		$"%GameSettingsPanelContainer".load_settings(SteamLobby.MATCH_SETTINGS)
 	if am_owner and not locked:
 		$"%GameSettingsPanelContainer".enable()
 		$"%GameSettingsPanelContainer".update_lobby_data()
