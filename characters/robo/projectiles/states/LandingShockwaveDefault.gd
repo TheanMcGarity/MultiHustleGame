@@ -30,6 +30,9 @@ func _tick():
 		hitbox.hitstun_ticks = MIN_HITSTUN
 	if hitbox.damage < 0:
 		host.disable()
+	# Red while unparriable (the parry window opens on frame 5 — see
+	# _frame_5), white once the projectile can be parried.
+	host.modulate = Color("ff333d") if not host.has_projectile_parry_window else Color.white
 	._tick()
 
 func _frame_5():
