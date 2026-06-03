@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://ui/SteamLobby/SteamLobby.gd" type="Script" id=1]
 [ext_resource path="res://theme.tres" type="Theme" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://ui/SteamLobby/LobbyUser.tscn" type="PackedScene" id=5]
 [ext_resource path="res://ui/SteamLobby/LobbyMatch.tscn" type="PackedScene" id=6]
 [ext_resource path="res://sound/ui/multiplayer_fight_start.wav" type="AudioStream" id=7]
+[ext_resource path="res://ui/Window/Window.gd" type="Script" id=8]
 
 [node name="SteamLobby" type="Control"]
 anchor_right = 1.0
@@ -308,6 +309,16 @@ margin_bottom = 160.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 steam = true
+
+[node name="LockSettingsButton" type="Button" parent="MarginContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 170.0
+margin_right = 171.0
+margin_bottom = 182.0
+rect_min_size = Vector2( 0, 12 )
+size_flags_horizontal = 3
+text = "lock settings"
 
 [node name="ChatWindow" parent="MarginContainer/HBoxContainer/VBoxContainer" instance=ExtResource( 4 )]
 anchor_left = 0.0
@@ -616,5 +627,89 @@ margin_top = 23.0
 margin_right = 20.0
 margin_bottom = 35.0
 text = "go back"
+
+[node name="LockSettingsConfirmDialog" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -180.0
+margin_top = -55.0
+margin_right = 180.0
+margin_bottom = 55.0
+size_flags_horizontal = 12
+size_flags_vertical = 12
+theme = ExtResource( 2 )
+script = ExtResource( 8 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LockSettingsConfirmDialog"]
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 359.0
+margin_bottom = 109.0
+
+[node name="TitleBar" type="Panel" parent="LockSettingsConfirmDialog/VBoxContainer"]
+margin_right = 358.0
+margin_bottom = 9.0
+rect_min_size = Vector2( 0, 9 )
+mouse_filter = 1
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="LockSettingsConfirmDialog/VBoxContainer/TitleBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -1.0
+margin_bottom = 2.0
+mouse_filter = 1
+text = "Lock settings"
+align = 1
+
+[node name="Contents" type="PanelContainer" parent="LockSettingsConfirmDialog/VBoxContainer"]
+margin_top = 10.0
+margin_right = 358.0
+margin_bottom = 108.0
+rect_min_size = Vector2( 0, 80 )
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LockContentVBox" type="VBoxContainer" parent="LockSettingsConfirmDialog/VBoxContainer/Contents"]
+margin_right = 358.0
+margin_bottom = 98.0
+custom_constants/separation = 12
+
+[node name="LockMessageLabel" type="Label" parent="LockSettingsConfirmDialog/VBoxContainer/Contents/LockContentVBox"]
+margin_right = 358.0
+margin_bottom = 58.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Lock the lobby's settings? This is permanent for the life of the lobby and can't be undone — even by future owners after a transfer."
+align = 1
+valign = 1
+autowrap = true
+
+[node name="LockButtonRow" type="HBoxContainer" parent="LockSettingsConfirmDialog/VBoxContainer/Contents/LockContentVBox"]
+margin_top = 70.0
+margin_right = 358.0
+margin_bottom = 98.0
+custom_constants/separation = 12
+alignment = 1
+
+[node name="LockCancelButton" type="Button" parent="LockSettingsConfirmDialog/VBoxContainer/Contents/LockContentVBox/LockButtonRow"]
+unique_name_in_owner = true
+margin_left = 53.0
+margin_right = 173.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 120, 28 )
+text = "cancel"
+
+[node name="LockConfirmButton" type="Button" parent="LockSettingsConfirmDialog/VBoxContainer/Contents/LockContentVBox/LockButtonRow"]
+unique_name_in_owner = true
+margin_left = 185.0
+margin_right = 305.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 120, 28 )
+text = "lock"
 
 [connection signal="pressed" from="WrongVersionScreen/IncompatibleQuitButton" to="." method="_on_IncompatibleQuitButton_pressed"]

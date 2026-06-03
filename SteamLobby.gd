@@ -1107,6 +1107,23 @@ func request_match_settings():
 func am_i_lobby_owner() -> bool:
 	return LOBBY_OWNER == SteamHustle.STEAM_ID
 
+# Persistent, lobby-wide "settings frozen" toggle: once any owner flips it on,
+# no one — including future owners after a transfer — can edit the lobby's
+# match settings until the lobby is disposed. Stored as lobby data (not member
+# data) so it survives ownership transfer; setLobbyData fires lobby_data_update
+# on every member so each client refreshes their settings panel automatically.
+# Separate from the per-client transient SETTINGS_LOCKED flag, which freezes a
+# challenger's own settings mid-match-negotiation.
+func is_lobby_settings_locked() -> bool:
+	if LOBBY_ID == 0:
+		return false
+	return Steam.getLobbyData(LOBBY_ID, "settings_locked") == "true"
+
+func lock_lobby_settings():
+	if LOBBY_ID == 0 or !am_i_lobby_owner():
+		return
+	Steam.setLobbyData(LOBBY_ID, "settings_locked", "true")
+
 func _on_Lobby_Joined(lobby_id: int, _permissions: int, _locked: bool, response: int) -> void:
 	# If joining was successful
 	if response == 1:

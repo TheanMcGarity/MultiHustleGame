@@ -28,6 +28,9 @@ func _ready():
 	SteamLobby.connect("spectate_declined", self, "_on_spectate_declined")
 	$"%BackButton".connect("pressed", self, "_on_back_button_pressed")
 	$"%StartButton".connect("pressed", self, "_on_start_button_pressed")
+	$"%LockSettingsButton".connect("pressed", self, "_on_LockSettingsButton_pressed")
+	$"%LockConfirmButton".connect("pressed", self, "_on_LockConfirmButton_pressed")
+	$"%LockCancelButton".connect("pressed", self, "_on_LockCancelButton_pressed")
 	$"%ChallengeCancelButton".connect("pressed", self, "_on_challenge_cancelled")
 	$"%ChallengeAcceptButton".connect("pressed", self, "_on_challenge_accept_pressed")
 	$"%ChallengeDeclineButton".connect("pressed", self, "_on_challenge_decline_pressed")
@@ -52,16 +55,38 @@ func _ready():
 	handshake_made = false
 
 func _on_lobby_data_update(success, lobby_id, member_id):
-	if Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID:
+	_refresh_settings_panel_state()
+	SteamLobby._get_Lobby_Members()
+
+func _refresh_settings_panel_state():
+	# Settings panel + lock button visibility recompute on every lobby data
+	# update so ownership transfer and the persistent settings lock both take
+	# effect immediately on every member.
+	var am_owner = Steam.getLobbyOwner(SteamLobby.LOBBY_ID) == SteamHustle.STEAM_ID
+	var locked = SteamLobby.is_lobby_settings_locked()
+	if am_owner and not locked:
 		$"%GameSettingsPanelContainer".enable()
 		$"%GameSettingsPanelContainer".update_lobby_data()
 	else:
-		# Lock the panel back down if ownership moved away from us. Without
-		# this the controls keep the enabled state from when we were owner,
-		# so a former owner sees an editable (but inert) settings panel after
-		# a transfer.
+		# Re-disable on ownership loss OR on a persistent settings lock; without
+		# this a former owner (or the locker themselves) keeps the controls
+		# editable but inert.
 		$"%GameSettingsPanelContainer".disable()
-	SteamLobby._get_Lobby_Members()
+	$"%LockSettingsButton".visible = am_owner and not locked
+
+func _on_LockSettingsButton_pressed():
+	$"%LockSettingsConfirmDialog".show()
+
+func _on_LockConfirmButton_pressed():
+	SteamLobby.lock_lobby_settings()
+	$"%LockSettingsConfirmDialog".hide()
+	# Steam fires lobby_data_update on every member after setLobbyData, but
+	# refresh locally too so the panel state flips instantly on the locker
+	# without waiting on the network round-trip.
+	_refresh_settings_panel_state()
+
+func _on_LockCancelButton_pressed():
+	$"%LockSettingsConfirmDialog".hide()
 
 func _on_challenge_accept_pressed():
 	if incoming_is_replay_challenge:
@@ -202,6 +227,10 @@ func init():
 		$"%GameSettingsPanelContainer".update_lobby_data()
 	$"%RoomCode".text = SteamLobby.get_lobby_code()
 	$"%RoomCode".modulate = Color(SteamLobby.get_lobby_code())
+	# Sync the lock button + panel state to the current lobby on first show
+	# (and on every re-init after a match), so we don't have to wait for the
+	# next lobby_data_update to surface the correct visibility/enabled state.
+	_refresh_settings_panel_state()
 	if Steam.getLobbyData(SteamLobby.LOBBY_ID, "version") != Global.VERSION:
 		$"%WrongVersionScreen".show()
 		var mismatched_version_text = "Mismatched versions. Make sure your game is fully updated, or you have the same mods enabled.\n\nYour game: %s \nThis lobby: %s" % [Global.VERSION, Steam.getLobbyData(SteamLobby.LOBBY_ID, "version")]
