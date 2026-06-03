@@ -68,6 +68,14 @@ var LOBBY_OWNER = 0
 # don't suffer a startup delay. Used by the lobby UI to keep the settings
 # panel disabled on rejoin until the lock state is confirmed.
 var lobby_data_synced = false
+# Local mirror of "settings_locked" lobby data. Monotonic within a single
+# lobby: once we ever observe the key as "true", it stays true here even if
+# a subsequent _on_Lobby_Data_Update happens to read it as "" (the SDK
+# briefly returns empty for unrelated keys during the data-update flurry
+# triggered by a new member joining, which used to make is_lobby_settings_
+# locked() flicker false and let the owner edit one setting). Cleared on
+# lobby boundaries (join / create / leave) so it doesn't leak across lobbies.
+var _cached_lock_state = false
 
 var SPECTATOR_MATCH_DATA = null
 
@@ -307,8 +315,10 @@ func leave_Lobby() -> void:
 		# Wipe the Steam lobby ID then display the default lobby ID and player list title
 		LOBBY_ID = 0
 		# Drop the synced flag so a same-session rejoin can't inherit a stale
-		# "lobby data already synced" state from the lobby we just left.
+		# "lobby data already synced" state from the lobby we just left. Also
+		# clear the cached lock so a different lobby doesn't inherit it.
 		lobby_data_synced = false
+		_cached_lock_state = false
 		# Chat history is per-lobby; this is the only point where we actually
 		# severed the lobby connection (quit_match / exit_match_from_button do
 		# not call this), so clearing here keeps the buffer alive across match
@@ -1033,6 +1043,7 @@ func _on_Lobby_Created(connect: int, lobby_id: int):
 		# Freshly created — its lobby data is empty by definition, so we
 		# already "know" it's not locked. Skip the join-rejoin sync wait.
 		lobby_data_synced = true
+		_cached_lock_state = false
 		var lobby_code = generate_lobby_code()
 		
 		print("Created a lobby: " + str(LOBBY_ID))
@@ -1131,7 +1142,14 @@ func am_i_lobby_owner() -> bool:
 func is_lobby_settings_locked() -> bool:
 	if LOBBY_ID == 0:
 		return false
-	return Steam.getLobbyData(LOBBY_ID, "settings_locked") == "true"
+	# Source-of-truth check first, then promote a "true" reading into the
+	# monotonic cache so transient empty reads (member-join data churn) can't
+	# unlock the panel. Cache is only refreshed from a fresh _on_Lobby_Data_
+	# Update; reading it directly here covers cases where the lock was just
+	# set this frame and the data update hasn't bubbled through yet.
+	if Steam.getLobbyData(LOBBY_ID, "settings_locked") == "true":
+		_cached_lock_state = true
+	return _cached_lock_state
 
 func lock_lobby_settings():
 	if LOBBY_ID == 0 or !am_i_lobby_owner():
@@ -1151,6 +1169,7 @@ func _on_Lobby_Joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		# getLobbyData read here would be misleadingly empty. Flips to true on
 		# the first _on_Lobby_Data_Update.
 		lobby_data_synced = false
+		_cached_lock_state = false
 		# Fresh per-join token so chat-message ids stay unique across sessions
 		# and rejoins — a recycled counter can't collide with a still-in-window
 		# id from a previous session and trip the merge dedup.
@@ -1345,8 +1364,14 @@ func _on_Lobby_Data_Update(success, lobby_id, member_id):
 		if live_owner != 0 and live_owner != LOBBY_OWNER:
 			LOBBY_OWNER = live_owner
 	# First data update after a join confirms Steam has delivered the lobby's
-	# data — getLobbyData("settings_locked") is now meaningful.
+	# data — getLobbyData("settings_locked") is now meaningful. Refresh the
+	# monotonic lock cache here too; reading inside is_lobby_settings_locked
+	# also promotes on a "true" read, but doing it here ensures every
+	# downstream lobby_data_update consumer sees the freshest value before
+	# they ask.
 	lobby_data_synced = true
+	if LOBBY_ID != 0 and Steam.getLobbyData(LOBBY_ID, "settings_locked") == "true":
+		_cached_lock_state = true
 	emit_signal("lobby_data_update", success, lobby_id, member_id)
 
 func _on_P2P_Session_Connect_Fail(steamID: int, session_error: int) -> void:
