@@ -60,6 +60,10 @@ var can_air_dash = false
 var thorn_set = []
 var gas_bomb_projectile = null
 var poison_projectile = null
+# Set in process_extra when a "bloom" toggle is applied; locks out the
+# GasBomb (Acrid Bloom) action on the immediately-following turn. Cleared at
+# the start of the next process_extra, so the lockout lasts exactly one turn.
+var bloomed_last_turn = false
 
 func apply_grav():
 	if up_juke_ticks > 0:
@@ -90,6 +94,9 @@ func process_extra(extra):
 	bc_charge = false
 	juke_startup_ticks = 0
 	juked_this_turn = false
+	# Cleared each turn so the lockout naturally expires after one turn —
+	# re-set below only if THIS turn applies a bloom.
+	bloomed_last_turn = false
 	.process_extra(extra)
 	if extra.has("spike_enabled"):
 		var obj = obj_from_name(spike_projectile)
@@ -100,6 +107,7 @@ func process_extra(extra):
 		var bomb = obj_from_name(gas_bomb_projectile)
 		if bomb and bomb.current_state().get("bloom_queued") != null:
 			bomb.current_state().bloom_queued = true
+			bloomed_last_turn = true
 	var juke_dir = extra.get("juke_dir")
 #	juke_ticks = 0
 	if juke_dir != null:

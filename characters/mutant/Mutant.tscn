@@ -7878,7 +7878,8 @@ can_air_dash
 bc_charge
 thorn_set
 gas_bomb_projectile
-air_vaults"
+air_vaults
+bloomed_last_turn"
 enable_extra_aesthetic_hitstop = true
 num_air_movements = 3
 character_portrait = ExtResource( 144 )

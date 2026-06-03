@@ -12,4 +12,8 @@ func is_usable():
 	var proj = host.obj_from_name(host.gas_bomb_projectile)
 	if proj:
 		return false
+	# Lock out for one turn after the bloom toggle is used — prevents an
+	# immediate fresh bomb on the turn right after detonating the last one.
+	if host.bloomed_last_turn:
+		return false
 	return .is_usable()
