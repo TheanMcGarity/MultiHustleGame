@@ -1655,71 +1655,47 @@ func _set_playback_speed(mod):
 func _handle_xy_nudge(event):
 	if not is_instance_valid(Hotkeys.hovered_xy_plot):
 		return
+	var nudge = null
 	# allow_echo=true lets OS key-repeat fire the nudge while the key is held
 	# (no internal timer — same pattern as LimbFinder's arrow-key nudging).
-	var is_angle_nudge = false
-	var is_radius_nudge = false
-	var dir = 0
 	if event.is_action_pressed(Hotkeys.NUDGE_LEFT, true):
-		is_angle_nudge = true; dir = -1
+		nudge = Vector2(-0.01, 0)
 	elif event.is_action_pressed(Hotkeys.NUDGE_RIGHT, true):
-		is_angle_nudge = true; dir = 1
+		nudge = Vector2(0.01, 0)
 	elif event.is_action_pressed(Hotkeys.NUDGE_UP, true):
-		is_radius_nudge = true; dir = 1
+		nudge = Vector2(0, -0.01)
 	elif event.is_action_pressed(Hotkeys.NUDGE_DOWN, true):
-		is_radius_nudge = true; dir = -1
-	if not is_angle_nudge and not is_radius_nudge:
+		nudge = Vector2(0, 0.01)
+	if nudge == null:
 		return
 	var plot = Hotkeys.hovered_xy_plot
-	var new_value
-	if plot.snap and not Global.XY_SNAP_TOGGLE_ENABLED:
-		# Always-snap mode: step between snap positions so the result is always
-		# on a snap angle / snap radius. A tiny free-form XY nudge here would
-		# either re-snap to the same position (looks dead) or land just outside
-		# the snap zone (defeats always-snap mode by leaving the point at an
-		# unreachable-by-click angle). Free-form fallback below is kept for
-		# when the legacy hold-key toggle is revived or the plot opts out of
-		# snap entirely.
-		new_value = _stepped_xy_nudge(plot, is_angle_nudge, is_radius_nudge, dir)
-	else:
-		var nudge_vec
-		if is_angle_nudge:
-			nudge_vec = Vector2(dir * 0.01, 0)
-		else:
-			nudge_vec = Vector2(0, -dir * 0.01)
-		new_value = plot.value_float + nudge_vec * plot.panel_radius
-		new_value = new_value.limit_length(plot.panel_radius)
+	var new_value = plot.value_float + nudge * plot.panel_radius
+	new_value = new_value.limit_length(plot.panel_radius)
+	# In always-snap mode, lock the result's angle to the nearest snap angle
+	# so a tiny nudge can never leave the point at an unsnapped angle. The
+	# plot's own snap (update_value) is gated on SNAP_AMOUNT, which is too
+	# narrow for a 1%-radius nudge to cross reliably — that's how the user
+	# could reach unsnapped positions with arrow keys despite the global
+	# snap toggle being off. Radius stays free so nudges that project onto
+	# the current snap ray still produce smooth in/out motion.
+	if plot.snap and not Global.XY_SNAP_TOGGLE_ENABLED and plot.snap_angles > 0:
+		new_value = _snap_angle_to_nearest(plot, new_value)
 	plot.update_value(new_value, true, true)
 	plot.emit_signal("data_changed")
 
-# Step between snap positions on an XY plot. Left/right rotates around the
-# discrete snap angles; up/down moves the radius by one snap_radius step (or
-# a sensible default when the plot doesn't define one).
-func _stepped_xy_nudge(plot, is_angle: bool, is_radius: bool, dir: int) -> Vector2:
-	var current = plot.value_float
-	var radius = current.length()
-	var angle = current.angle() if radius > 0.001 else 0.0
-	if is_angle and plot.snap_angles > 0:
-		var step = TAU / plot.snap_angles
-		var offset = 0.0
-		if plot.snap_align_to_limit_center and plot.limit_angle:
-			offset = plot.get_limit_center()
-		# Round to the nearest snap, then step by ±1 — same way Click+Drag
-		# resolves to a snap angle in update_value, but with no SNAP_AMOUNT
-		# threshold so we always cross to the next index.
-		var idx = round((angle - offset) / step)
-		angle = offset + (idx + dir) * step
-	if is_radius:
-		var step_r
-		if plot.snap_radius > 0.0:
-			step_r = plot.snap_radius * plot.panel_radius
-		else:
-			# No snap_radius defined — fall back to a visible step so the user
-			# can adjust magnitude without it feeling glacial.
-			step_r = plot.panel_radius * 0.1
-		# Don't clamp to 0 — collapsing to the origin loses the chosen angle.
-		var min_r = step_r if plot.snap_radius > 0.0 else 0.0
-		radius = clamp(radius + dir * step_r, min_r, plot.panel_radius)
+# Lock a point's angle to the nearest of plot.snap_angles evenly-spaced rays
+# without applying the SNAP_AMOUNT threshold update_value uses for click-drag.
+# Radius is preserved as-is.
+func _snap_angle_to_nearest(plot, value: Vector2) -> Vector2:
+	var radius = value.length()
+	if radius < 0.001:
+		return value
+	var step = TAU / plot.snap_angles
+	var offset = 0.0
+	if plot.snap_align_to_limit_center and plot.limit_angle:
+		offset = plot.get_limit_center()
+	var idx = round((value.angle() - offset) / step)
+	var angle = offset + idx * step
 	return Vector2(cos(angle), sin(angle)) * radius
 
 
