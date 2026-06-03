@@ -1258,6 +1258,8 @@ func _unhandled_input(event):
 		_trigger_undo()
 	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_1):
 		_set_prediction_speed(1)
+	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_HALF):
+		_set_prediction_speed(5)
 	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_2):
 		_set_prediction_speed(2)
 	if event.is_action_pressed(Hotkeys.PREDICTION_SPEED_3):

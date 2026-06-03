@@ -26,6 +26,10 @@ const RESET_ZOOM = "reset_zoom"
 const PREDICTION_SPEED_1 = "prediction_speed_1"
 const PREDICTION_SPEED_2 = "prediction_speed_2"
 const PREDICTION_SPEED_3 = "prediction_speed_3"
+# 0.5x slot — named by speed (not "_4" / "_5") because it was inserted between
+# 0.25x and 1x after _1/_2/_3 had shipped, and renaming the existing constants
+# would silently break any saved keybindings users have for them.
+const PREDICTION_SPEED_HALF = "prediction_speed_half"
 const NUDGE_LEFT = "nudge_left"
 const NUDGE_RIGHT = "nudge_right"
 const NUDGE_UP = "nudge_up"
@@ -59,6 +63,7 @@ const RUNTIME_DEFAULTS = {
 	TOGGLE_PROJECTILE_OWNERS: 0,
 	RESET_ZOOM: 0,
 	PREDICTION_SPEED_1: 0,
+	PREDICTION_SPEED_HALF: 0,
 	PREDICTION_SPEED_2: 0,
 	PREDICTION_SPEED_3: 0,
 	NUDGE_LEFT: KEY_LEFT,
@@ -95,6 +100,7 @@ const REBINDABLE = [
 	{"action": TOGGLE_FLIP, "label": "Toggle Flip"},
 	{"action": TOGGLE_PREDICTION, "label": "Toggle Prediction"},
 	{"action": PREDICTION_SPEED_1, "label": "Prediction Speed x0.25"},
+	{"action": PREDICTION_SPEED_HALF, "label": "Prediction Speed x0.5"},
 	{"action": PREDICTION_SPEED_2, "label": "Prediction Speed x1"},
 	{"action": PREDICTION_SPEED_3, "label": "Prediction Speed x2"},
 	{"action": TOGGLE_HITBOXES, "label": "Toggle Hitboxes"},

@@ -203,6 +203,12 @@ func _enter_tree():
 func get_ghost_speed_modifier():
 	if ghost_speed == 1:
 		return 0.25
+	# 5 is the 0.5x slot — added after 1/2/3/4 (0.25/1/2/3) had shipped, so it
+	# slots in by id instead of renumbering and breaking saved settings. The
+	# game.gd ghost-tick scheduler routes any ghost_speed > 2 through the
+	# modifier-driven time-based path, which produces 30Hz ticking for 0.5x.
+	if ghost_speed == 5:
+		return 0.5
 	if ghost_speed > 1:
 		return float(ghost_speed - 1)
 

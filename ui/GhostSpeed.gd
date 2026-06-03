@@ -38,6 +38,8 @@ func _on_button_pressed(button):
 func get_speed():
 	if button_pressed == $"%1Speed":
 		return 1
+	elif button_pressed == $"%5Speed":
+		return 5
 	elif button_pressed == $"%2Speed":
 		return 2
 	elif button_pressed == $"%3Speed":
