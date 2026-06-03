@@ -18,7 +18,7 @@ func _enter():
 #	print(start_x)
 	# Set the unparriable tint immediately so it's correct on the very first
 	# frame the projectile is rendered, before _tick has a chance to run.
-	host.modulate = Color("ff333d") if not host.has_projectile_parry_window else Color.white
+	host.sprite.modulate = Color("ff333d") if not host.has_projectile_parry_window else Color.white
 
 func _tick():
 	if current_tick <= 1:
@@ -35,7 +35,7 @@ func _tick():
 		host.disable()
 	# Red while unparriable (the parry window opens on frame 5 — see
 	# _frame_5), white once the projectile can be parried.
-	host.modulate = Color("ff333d") if not host.has_projectile_parry_window else Color.white
+	host.sprite.modulate = Color("ff333d") if not host.has_projectile_parry_window else Color.white
 	._tick()
 
 func _frame_5():
