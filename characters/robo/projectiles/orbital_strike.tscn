@@ -63,6 +63,7 @@ immunity_susceptible = false
 roll_immunity_susceptible = true
 deletes_other_projectiles = false
 movable = false
+hookable = true
 body_target_texture = ExtResource( 10 )
 
 [node name="Sprite" parent="Flip" index="0"]
