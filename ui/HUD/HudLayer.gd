@@ -307,7 +307,7 @@ func _sync_next_turn_info(p1_ghost, p2_ghost):
 	# Hide on characters via modulate (not .visible) so ghost_tick's visibility
 	# gating in game.gd stays untouched — the label still counts as "shown",
 	# just renders at alpha 0.
-	var char_alpha = 0.0 if Global.hide_next_turn_info_on_chars else 1.0
+	var char_alpha = 1.0 if Global.show_next_turn_info_on_chars else 0.0
 	p1_ghost.actionable_label.modulate.a = char_alpha
 	p1_ghost.hit_frame_label.modulate.a = char_alpha
 	p2_ghost.actionable_label.modulate.a = char_alpha

@@ -109,7 +109,7 @@ onready var global_option_check_buttons = {
 	$"%XYPlotInvertSnapButton": "xyplot_invert_snap",
 	$"%HealthCountButton": "show_health_count",
 	$"%NextTurnHudButton": "show_next_turn_info_hud",
-	$"%HideNextTurnOnCharsButton": "hide_next_turn_info_on_chars",
+	$"%ShowNextTurnOnCharsButton": "show_next_turn_info_on_chars",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 
@@ -1656,13 +1656,15 @@ func _handle_xy_nudge(event):
 	if not is_instance_valid(Hotkeys.hovered_xy_plot):
 		return
 	var nudge = null
-	if event.is_action_pressed(Hotkeys.NUDGE_LEFT):
+	# allow_echo=true lets OS key-repeat fire the nudge while the key is held
+	# (no internal timer — same pattern as LimbFinder's arrow-key nudging).
+	if event.is_action_pressed(Hotkeys.NUDGE_LEFT, true):
 		nudge = Vector2(-0.01, 0)
-	elif event.is_action_pressed(Hotkeys.NUDGE_RIGHT):
+	elif event.is_action_pressed(Hotkeys.NUDGE_RIGHT, true):
 		nudge = Vector2(0.01, 0)
-	elif event.is_action_pressed(Hotkeys.NUDGE_UP):
+	elif event.is_action_pressed(Hotkeys.NUDGE_UP, true):
 		nudge = Vector2(0, -0.01)
-	elif event.is_action_pressed(Hotkeys.NUDGE_DOWN):
+	elif event.is_action_pressed(Hotkeys.NUDGE_DOWN, true):
 		nudge = Vector2(0, 0.01)
 	if nudge == null:
 		return

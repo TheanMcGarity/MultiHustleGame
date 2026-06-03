@@ -63,12 +63,12 @@ var seen_custom_character_nag = false
 var forfeit_buttons_enabled = false
 var show_health_count = false
 # Mirror the ghost's "Ready in Xf" / "Hit @ Xf" floating labels onto fixed
-# HUD spots so they're easier to read during prediction. On by default.
-var show_next_turn_info_hud = true
-# Independently hide the same info from rendering on the ghost characters
-# themselves (the floating labels above their heads). Off by default — they
-# still show on characters unless the user opts to suppress them.
-var hide_next_turn_info_on_chars = false
+# HUD spots so they're easier to read during prediction. Opt-in.
+var show_next_turn_info_hud = false
+# Independently keep rendering the same info on the ghost characters
+# themselves (the floating labels above their heads). On by default — the
+# vanilla behavior; clear to suppress them.
+var show_next_turn_info_on_chars = true
 var auto_fc = true
 var ghost_speed = 2
 var allow_save_default = true
@@ -417,7 +417,7 @@ func save_options():
 			"name_color_customized": name_color_customized,
 			"show_health_count": show_health_count,
 			"show_next_turn_info_hud": show_next_turn_info_hud,
-			"hide_next_turn_info_on_chars": hide_next_turn_info_on_chars,
+			"show_next_turn_info_on_chars": show_next_turn_info_on_chars,
 		}
 	})
 
@@ -470,8 +470,8 @@ func get_default_player_data():
 			"name_saturation": 0.5,
 			"name_color_customized": false,
 			"show_health_count": false,
-			"show_next_turn_info_hud": true,
-			"hide_next_turn_info_on_chars": false,
+			"show_next_turn_info_hud": false,
+			"show_next_turn_info_on_chars": true,
 		}
 	}
 
