@@ -16,6 +16,9 @@ var start_x = 0
 func _enter():
 	start_x = host.get_pos().x
 #	print(start_x)
+	# Set the unparriable tint immediately so it's correct on the very first
+	# frame the projectile is rendered, before _tick has a chance to run.
+	host.modulate = Color("ff333d") if not host.has_projectile_parry_window else Color.white
 
 func _tick():
 	if current_tick <= 1:
