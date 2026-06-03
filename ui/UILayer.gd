@@ -108,6 +108,8 @@ onready var global_option_check_buttons = {
 	$"%EnableReplayBackups": "enable_replay_backups",
 	$"%XYPlotInvertSnapButton": "xyplot_invert_snap",
 	$"%HealthCountButton": "show_health_count",
+	$"%NextTurnHudButton": "show_next_turn_info_hud",
+	$"%HideNextTurnOnCharsButton": "hide_next_turn_info_on_chars",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 

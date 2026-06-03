@@ -632,6 +632,21 @@ margin_bottom = 19.5
 grow_horizontal = 2
 script = ExtResource( 63 )
 
+[node name="P1NextTurnReadyLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label"]
+unique_name_in_owner = true
+margin_left = 100.0
+margin_top = 55.0
+margin_right = 168.0
+margin_bottom = 66.0
+
+[node name="P1NextTurnHitLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label"]
+unique_name_in_owner = true
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_left = 100.0
+margin_top = 65.0
+margin_right = 168.0
+margin_bottom = 76.0
+
 [node name="Control" type="Control" parent="HudLayer/HudLayer/FeintDisplay"]
 margin_left = 69.0
 margin_right = 309.0
@@ -661,6 +676,23 @@ margin_bottom = 19.5
 grow_horizontal = 2
 script = ExtResource( 63 )
 player_id = 2
+
+[node name="P2NextTurnReadyLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label2"]
+unique_name_in_owner = true
+margin_left = -100.0
+margin_top = 55.0
+margin_right = -32.0
+margin_bottom = 66.0
+align = 2
+
+[node name="P2NextTurnHitLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label2"]
+unique_name_in_owner = true
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_left = -100.0
+margin_top = 65.0
+margin_right = -32.0
+margin_bottom = 76.0
+align = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HudLayer/HudLayer"]
 margin_left = 27.0
@@ -2486,8 +2518,8 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer"]
-margin_right = 214.0
-margin_bottom = 326.0
+margin_right = 187.0
+margin_bottom = 352.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -2538,6 +2570,21 @@ margin_top = 70.0
 margin_right = 214.0
 margin_bottom = 82.0
 text = "show precise health count"
+
+[node name="NextTurnHudButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 83.0
+margin_right = 214.0
+margin_bottom = 95.0
+pressed = true
+text = "show next-turn info on hud"
+
+[node name="HideNextTurnOnCharsButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 96.0
+margin_right = 214.0
+margin_bottom = 108.0
+text = "hide next-turn info on characters"
 
 [node name="LastMoveIndicatorButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -2755,8 +2802,6 @@ anchor_bottom = 1.0
 
 [node name="HotkeysList" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Hotkeys/ScrollContainer"]
 unique_name_in_owner = true
-margin_right = 220.0
-margin_bottom = 218.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 

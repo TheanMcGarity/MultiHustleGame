@@ -289,6 +289,37 @@ func drain_health_trail(trail, drain_value):
 	else:
 		trail.value = drain_value
 
+# Copy the ghost's "Ready in Xf" / "Interrupt in Xf" / "Hit @ Xf" floating
+# labels into fixed HUD spots, and (independently) hide the same text on the
+# characters themselves via modulate so it doesn't obscure the prediction.
+# Both are user-toggleable; default is HUD on, character labels on.
+func _sync_next_turn_info(p1_ghost, p2_ghost):
+	if Global.show_next_turn_info_hud:
+		_mirror_next_turn_label($"%P1NextTurnReadyLabel", p1_ghost.actionable_label)
+		_mirror_next_turn_label($"%P1NextTurnHitLabel", p1_ghost.hit_frame_label)
+		_mirror_next_turn_label($"%P2NextTurnReadyLabel", p2_ghost.actionable_label)
+		_mirror_next_turn_label($"%P2NextTurnHitLabel", p2_ghost.hit_frame_label)
+	else:
+		$"%P1NextTurnReadyLabel".text = ""
+		$"%P1NextTurnHitLabel".text = ""
+		$"%P2NextTurnReadyLabel".text = ""
+		$"%P2NextTurnHitLabel".text = ""
+	# Hide on characters via modulate (not .visible) so ghost_tick's visibility
+	# gating in game.gd stays untouched — the label still counts as "shown",
+	# just renders at alpha 0.
+	var char_alpha = 0.0 if Global.hide_next_turn_info_on_chars else 1.0
+	p1_ghost.actionable_label.modulate.a = char_alpha
+	p1_ghost.hit_frame_label.modulate.a = char_alpha
+	p2_ghost.actionable_label.modulate.a = char_alpha
+	p2_ghost.hit_frame_label.modulate.a = char_alpha
+
+func _mirror_next_turn_label(hud_label, char_label):
+	if not is_instance_valid(char_label) or not char_label.visible:
+		hud_label.text = ""
+		return
+	# Char labels use "Ready\nin Xf" multi-line; flatten for the narrow HUD spot.
+	hud_label.text = char_label.text.replace("\n", " ")
+
 func _physics_process(_delta):
 	if is_instance_valid(game):
 
@@ -327,6 +358,7 @@ func _physics_process(_delta):
 			p2_ghost_health_bar.value = max(p2_ghost.get_visual_hp(), 0)
 			drain_health_trail(p1_ghost_health_bar_trail, p1_ghost.trail_hp)
 			drain_health_trail(p2_ghost_health_bar_trail, p2_ghost.trail_hp)
+			_sync_next_turn_info(p1_ghost, p2_ghost)
 		else:
 			p1_ghost_health_bar.value = 0
 			p2_ghost_health_bar.value = 0
@@ -334,6 +366,12 @@ func _physics_process(_delta):
 			p2_ghost_health_bar_trail.value = 0
 			p1_ghost_health_bar.visible = false
 			p2_ghost_health_bar.visible = false
+			# No prediction in flight — wipe the HUD mirrors so stale text from
+			# the last prediction doesn't linger.
+			$"%P1NextTurnReadyLabel".text = ""
+			$"%P1NextTurnHitLabel".text = ""
+			$"%P2NextTurnReadyLabel".text = ""
+			$"%P2NextTurnHitLabel".text = ""
 #
 		healthbar_armor_effect(p1, p1_healthbar, preload("res://ui/healthbar3.png"), preload("res://ui/healthbar3_armor.png"), preload("res://ui/healthbar_projectile_armor.png"))
 		healthbar_armor_effect(p1, p1_ghost_health_bar, preload("res://ui/healthbar3.png"), preload("res://ui/healthbar3_armor.png"), preload("res://ui/healthbar_projectile_armor.png"))
