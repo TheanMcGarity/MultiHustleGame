@@ -1669,34 +1669,79 @@ func _handle_xy_nudge(event):
 	if nudge == null:
 		return
 	var plot = Hotkeys.hovered_xy_plot
-	var new_value = plot.value_float + nudge * plot.panel_radius
-	new_value = new_value.limit_length(plot.panel_radius)
-	# In always-snap mode, lock the result's angle to the nearest snap angle
-	# so a tiny nudge can never leave the point at an unsnapped angle. The
-	# plot's own snap (update_value) is gated on SNAP_AMOUNT, which is too
-	# narrow for a 1%-radius nudge to cross reliably — that's how the user
-	# could reach unsnapped positions with arrow keys despite the global
-	# snap toggle being off. Radius stays free so nudges that project onto
-	# the current snap ray still produce smooth in/out motion.
-	if plot.snap and not Global.XY_SNAP_TOGGLE_ENABLED and plot.snap_angles > 0:
-		new_value = _snap_angle_to_nearest(plot, new_value)
+	var current = plot.value_float
+	var raw_new = (current + nudge * plot.panel_radius).limit_length(plot.panel_radius)
+	var new_value = raw_new
+	if plot.snap and not Global.XY_SNAP_TOGGLE_ENABLED:
+		# Sticky-snap zones: outside any zone, free movement; entering a zone
+		# snaps to its center; nudging while inside a zone pops the result to
+		# the zone boundary on the motion side so the next nudge starts from
+		# outside the zone and continues free instead of re-snapping back.
+		new_value = _xy_sticky_snap(plot, current, raw_new)
 	plot.update_value(new_value, true, true)
 	plot.emit_signal("data_changed")
 
-# Lock a point's angle to the nearest of plot.snap_angles evenly-spaced rays
-# without applying the SNAP_AMOUNT threshold update_value uses for click-drag.
-# Radius is preserved as-is.
-func _snap_angle_to_nearest(plot, value: Vector2) -> Vector2:
-	var radius = value.length()
-	if radius < 0.001:
-		return value
-	var step = TAU / plot.snap_angles
-	var offset = 0.0
-	if plot.snap_align_to_limit_center and plot.limit_angle:
-		offset = plot.get_limit_center()
-	var idx = round((value.angle() - offset) / step)
-	var angle = offset + idx * step
-	return Vector2(cos(angle), sin(angle)) * radius
+# Mirrors XYPlot's internal SNAP_AMOUNT (half-width of a snap zone, in radians
+# for angles and as a ratio of panel_radius for radius). _XY_ZONE_EXIT_EPSILON
+# offsets the zone-exit position just past the boundary so the next nudge
+# starts outside and isn't immediately resnapped by the "entering a zone" path.
+const _XY_SNAP_AMOUNT = 0.1
+const _XY_ZONE_EXIT_EPSILON = 0.001
+# Below this magnitude the nudge counts as having no motion in that axis —
+# guards against floating-point noise erroneously kicking the point out of a
+# zone for a perfectly-radial (or perfectly-angular) nudge.
+const _XY_MOTION_EPSILON = 0.0001
+
+func _xy_sticky_snap(plot, current: Vector2, raw_new: Vector2) -> Vector2:
+	var raw_radius = raw_new.length()
+	if raw_radius < 0.001:
+		return Vector2.ZERO
+	var final_angle = raw_new.angle()
+	if plot.snap_angles > 0:
+		var step = TAU / plot.snap_angles
+		var offset = 0.0
+		if plot.snap_align_to_limit_center and plot.limit_angle:
+			offset = plot.get_limit_center()
+		var current_radius = current.length()
+		var current_in_zone = false
+		var current_snap = 0.0
+		var current_angle = 0.0
+		if current_radius > 0.001:
+			current_angle = current.angle()
+			current_snap = offset + round((current_angle - offset) / step) * step
+			current_in_zone = abs(Utils.angle_diff(current_angle, current_snap)) < _XY_SNAP_AMOUNT
+		if current_in_zone:
+			var angular_motion = Utils.angle_diff(final_angle, current_angle)
+			if abs(angular_motion) < _XY_MOTION_EPSILON:
+				# Pure radial nudge — keep the snap angle locked.
+				final_angle = current_snap
+			else:
+				# Pop to the zone boundary on the motion side. Next nudge
+				# starts outside the zone and continues free.
+				var dir = 1.0 if angular_motion > 0 else -1.0
+				final_angle = current_snap + dir * (_XY_SNAP_AMOUNT + _XY_ZONE_EXIT_EPSILON)
+		else:
+			var raw_snap = offset + round((final_angle - offset) / step) * step
+			if abs(Utils.angle_diff(final_angle, raw_snap)) < _XY_SNAP_AMOUNT:
+				# Crossing INTO a zone — snap to its center.
+				final_angle = raw_snap
+	var final_radius = raw_radius
+	if plot.snap_radius > 0.0:
+		var current_radius_r = current.length()
+		var target_r = plot.snap_radius * plot.panel_radius
+		var zone_width = _XY_SNAP_AMOUNT * plot.panel_radius
+		var current_in_r_zone = abs(current_radius_r - target_r) < zone_width
+		if current_in_r_zone:
+			var radial_motion = raw_radius - current_radius_r
+			if abs(radial_motion) < _XY_MOTION_EPSILON * plot.panel_radius:
+				final_radius = target_r
+			else:
+				var dir = 1.0 if radial_motion > 0 else -1.0
+				final_radius = target_r + dir * (zone_width + _XY_ZONE_EXIT_EPSILON * plot.panel_radius)
+		elif abs(raw_radius - target_r) < zone_width:
+			final_radius = target_r
+	final_radius = clamp(final_radius, 0.0, plot.panel_radius)
+	return Vector2(cos(final_angle), sin(final_angle)) * final_radius
 
 
 func _on_WorkshopUploader_pressed():
