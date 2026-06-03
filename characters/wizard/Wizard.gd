@@ -138,6 +138,18 @@ func apply_grav():
 
 func apply_grav_fast_fall():
 	move_directly("0", FAST_FALL_SPEED)
+	# Clear any residual upward velocity. fast_falling semantically means "I
+	# want to be falling RIGHT NOW", but vel.y can still be negative from a
+	# previous airborne state (jump, upward Liftoff impulse, etc.) — and the
+	# rising-edge set_vel in process_extra only fires once when fast_fall is
+	# first toggled on. Without this clamp, each tick: apply_forces (in the
+	# state's _tick) consumes the negative vel and moves the wizard UP by
+	# |vel.y|, then this move_directly pushes back down 7, leaving the
+	# wizard pinned 1-2px above ground while apply_grav_custom's +grav
+	# overcomes the negative vel a tick at a time.
+	var v = get_vel()
+	if fixed.lt(v.y, "0"):
+		set_vel(v.x, "0")
 
 func apply_grav_custom(grav: String, fall_speed: String):
 	if !hovering:
