@@ -1711,7 +1711,11 @@ func _xy_sticky_snap(plot, current: Vector2, raw_new: Vector2) -> Vector2:
 			current_snap = offset + round((current_angle - offset) / step) * step
 			current_in_zone = abs(Utils.angle_diff(current_angle, current_snap)) < _XY_SNAP_AMOUNT
 		if current_in_zone:
-			var angular_motion = Utils.angle_diff(final_angle, current_angle)
+			# Utils.angle_diff(from, to) returns the signed displacement
+			# from `from` to `to`. We want "current → final" — putting them
+			# in the wrong order inverted the exit direction (the bug at
+			# (0, -1) + LEFT popping right).
+			var angular_motion = Utils.angle_diff(current_angle, final_angle)
 			if abs(angular_motion) < _XY_MOTION_EPSILON:
 				# Pure radial nudge — keep the snap angle locked.
 				final_angle = current_snap
