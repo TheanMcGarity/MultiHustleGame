@@ -6,7 +6,7 @@ const LINE_MIN_SIZE = 20
 const LINE_MAX_SIZE = 200
 const TICK_DIV = 100.0
 const SPEED = 1
-const CAMERA_SPEED_DIVISOR = 10.0
+const CAMERA_SPEED_DIVISOR = 16.0
 const MIN_INTENSITY = 0.05
 # The hardcoded 0.95 the lerp originally used was calibrated for a 60Hz
 # cadence. set_speed runs at render rate (called from main._process), so we
@@ -24,7 +24,17 @@ const SUSTAINED_TARGET_THRESHOLD = 0.5
 # single-tick speed spikes (screenshake / camera-snap nudges / brief impulses)
 # that would otherwise flash the lines on for a frame. ~50ms = 3 frames at
 # 60Hz, "more than a couple."
-const SUSTAINED_TIME_THRESHOLD = 0.025
+const SUSTAINED_TIME_THRESHOLD = 0.05
+# Multiplier added to the speed input scaled by how vertical the motion is.
+# The camera tracks the midpoint of the two players, so a single character
+# jumping only moves the camera at half their speed; the camera-zoom division
+# in main.gd nerfs it further when players are vertically spread. Without
+# this, vertical motion barely reaches the line-on threshold even when
+# horizontal motion of comparable character speed easily clears it. Applied
+# only to the target calculation — self.speed (used for line ANIMATION rate)
+# stays raw so the lines don't visibly speed up just because the camera is
+# moving vertically. 1.0 = pure-vertical motion gets 2× the input speed.
+const VERTICAL_SPEED_BOOST = 0.0
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -68,7 +78,13 @@ func set_speed(speed):
 	# factor stayed at 0.95 but call rate dropped, so decay per real
 	# second dropped too — the "lines hang on" symptom.
 	var t = 1.0 - pow(1.0 - INTENSITY_LERP_AT_60HZ, _last_dt * 60.0)
-	var target = clamp(abs(speed) / CAMERA_SPEED_DIVISOR, MIN_INTENSITY, 1.0)
+	# Asymmetric boost for vertical-leaning motion (see VERTICAL_SPEED_BOOST).
+	# dir was already set by set_direction this frame, so abs(dir.y) reflects
+	# the current motion's verticality. Pure horizontal → multiplier of 1.0
+	# (no change vs original sensitivity); pure vertical → 1 + boost.
+	var verticality = abs(dir.y) if dir.length_squared() > 0.0 else 0.0
+	var boosted_speed = abs(speed) * (1.0 + VERTICAL_SPEED_BOOST * verticality)
+	var target = clamp(boosted_speed / CAMERA_SPEED_DIVISOR, MIN_INTENSITY, 1.0)
 	_smoothed_target = lerp(_smoothed_target, target, t)
 	intensity = _smoothed_target * _smoothed_target
 	# Accumulate / decay the sustained-motion timer. Capped at 2× the
