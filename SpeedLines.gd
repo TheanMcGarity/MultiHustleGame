@@ -35,6 +35,12 @@ const SUSTAINED_TIME_THRESHOLD = 0.05
 # stays raw so the lines don't visibly speed up just because the camera is
 # moving vertically. 1.0 = pure-vertical motion gets 2× the input speed.
 const VERTICAL_SPEED_BOOST = 0.0
+# Screen-space distance at which a line is fully unfaded relative to whichever
+# character it's farther from. Lines inside this radius around either player
+# fade out (via ease() with intensity_easing), lines outside it draw at full
+# brightness. Replaces the previous center-of-screen anchor with a per-player
+# anchor — same idea the super-effect overlay uses (it anchors per character).
+const CHARACTER_FADE_RADIUS = 200.0
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -65,10 +71,21 @@ var _sustained_above = 0.0
 # get_process_delta_time, which returns 0 the very first time it's read.
 var _last_dt = 1.0 / 60.0
 var center = Vector2(320, 180)
+# Per-player screen-space anchors used for the per-character fade in _draw.
+# main._process recomputes these each render frame via set_player_anchors,
+# using camera.global_position (the un-shaken base camera position) so the
+# anchors don't pick up screen-shake offset — the lines stay where the
+# characters'd be without any rumble.
+var p1_anchor = Vector2(320, 180)
+var p2_anchor = Vector2(320, 180)
 var tick = 0
 
 func set_direction(dir):
 	self.dir = -dir
+
+func set_player_anchors(p1: Vector2, p2: Vector2):
+	p1_anchor = p1
+	p2_anchor = p2
 
 func set_speed(speed):
 	# Delta-scaled smoothing factor. At dt = 1/60 this evaluates to
@@ -132,10 +149,14 @@ func _draw():
 			var pos = Vector2(x, y) + (tick * dir * (speed * abs(intensity)))
 			pos.x = fposmod(pos.x, 640)
 			pos.y = fposmod(pos.y, 360)
-			var distance_to_center = Vector2(abs(pos.x - center.x) / 400, abs(pos.y - center.y) / 200)
-#			print(distance_to_center.length())
-#			print(ease(distance_to_center.length(), intensity_easing))
-			var line_intensity = intensity * variation * ease(distance_to_center.length(), intensity_easing)
+			# Per-character fade: lines bright far from BOTH players, faded
+			# near whichever is closer. Same easing shape the center-of-screen
+			# fade used, just anchored on the closer character's screen pos
+			# (set by main._process via set_player_anchors, computed off the
+			# un-shaken camera position so the anchor doesn't pick up rumble).
+			var min_dist = min(pos.distance_to(p1_anchor), pos.distance_to(p2_anchor))
+			var s = clamp(min_dist / CHARACTER_FADE_RADIUS, 0.0, 1.0)
+			var line_intensity = intensity * variation * ease(s, intensity_easing)
 			var line_size = lerp(LINE_MIN_SIZE, LINE_MAX_SIZE, line_intensity)
 			var start = pos - dir * line_size / 2.0
 			var end = pos + dir * line_size / 2.0

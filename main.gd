@@ -684,6 +684,18 @@ func _process(_delta):
 		$"%SpeedLines".set_direction(game.camera.current_direction)
 		$"%SpeedLines".set_speed(game.camera.current_speed / game.camera.zoom.x)
 		$"%SpeedLines".tick = game.current_tick
+		# Per-character fade anchors. Use camera.global_position (NOT
+		# get_camera_screen_center, which may include the shake offset) so
+		# the anchors track the un-shaken camera position — the speed lines
+		# then ignore screen rumble. Same world-to-screen math the
+		# super-effect overlay in HudLayer uses to place per-player overlays.
+		if is_instance_valid(game.p1) and is_instance_valid(game.p2):
+			var screen_center = game.get_viewport_rect().size / 2
+			var cam_pos = game.camera.global_position
+			var zoom = game.camera.zoom.x
+			var p1_screen = (game.p1.global_position - cam_pos) / zoom + screen_center
+			var p2_screen = (game.p2.global_position - cam_pos) / zoom + screen_center
+			$"%SpeedLines".set_player_anchors(p1_screen, p2_screen)
 		# Suppress lines through hit / super freeze. Freeze is visually a
 		# beat-pause; the pre-hit camera motion can leave intensity above
 		# the draw cutoff for a tick or two into the freeze, which reads as
