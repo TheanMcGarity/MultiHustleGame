@@ -457,8 +457,8 @@ func tick():
 
 	update()
 
-# Projectile hitboxes that the opponent can't parry render in dark red
-# (#85001f) instead of the default red, so the player can spot them at a
+# Projectile hitboxes that the opponent can't parry render in hot pink
+# (#ff309f) instead of the default red, so the player can spot them at a
 # glance. Both `parriable` (per-hitbox) and `has_projectile_parry_window`
 # (per-projectile, can toggle mid-flight) can flip during play, so the
 # check has to happen on every draw — that's the whole reason this lives
@@ -468,7 +468,7 @@ func box_draw():
 		var parent = get_parent()
 		if parent.is_in_group("BaseObj") and parent.disabled:
 			return
-		var color = Color("85001f")
+		var color = Color("ff309f")
 		var rect = get_rect_float()
 		var fill = color
 		var stroke = color
