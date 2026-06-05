@@ -8,14 +8,6 @@ const TICK_DIV = 100.0
 const SPEED = 1
 const CAMERA_SPEED_DIVISOR = 16.0
 const MIN_INTENSITY = 0.05
-# Camera speed needed to start nudging intensity up at all. Below this, the
-# clamp pins target at 0 so the lerp drives intensity to ~0 and the draw
-# branch's intensity > 0.25 gate stays false. Without a deadzone, idle micro-
-# motion from the camera-snap lerp in game._physics_process was enough to
-# keep target above the threshold-crossing speed (~8.4 px/tick) often enough
-# to register as "lines always on" on low-FPS PCs where the eye sees the
-# tail rather than the brief equilibrium dips.
-const CAMERA_SPEED_DEADZONE = 4.0
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -60,12 +52,10 @@ func get_variation(num):
 
 func _physics_process(delta):
 	# Drive the intensity lerp from a fixed-rate tick so the convergence
-	# rate per real second is the same regardless of render FPS. Camera speed
-	# below the deadzone clamps target to 0, so transient camera-snap jitter
-	# (which is present even when the camera "isn't really moving") doesn't
-	# keep nudging intensity above the draw threshold.
-	var effective_speed = max(abs(target_speed) - CAMERA_SPEED_DEADZONE, 0.0)
-	var target = clamp(effective_speed / CAMERA_SPEED_DIVISOR, 0.0, 1.0)
+	# rate per real second is the same regardless of render FPS. Same clamp
+	# range the formula had when the lerp lived in set_speed — only the
+	# cadence moved.
+	var target = clamp(abs(target_speed) / CAMERA_SPEED_DIVISOR, MIN_INTENSITY, 1.0)
 	intensity = pow(lerp(intensity, target, 0.95), 2)
 	update()
 	tick += 1
