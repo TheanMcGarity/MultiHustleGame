@@ -71,7 +71,7 @@ func get_current_limb_sprite_node():
 	return .get_current_limb_sprite_node()
 
 func is_in_install_super():
-	return orb_projectile != null
+	return orb_projectile != null or spark_speed_frames > 0
 
 func copy_to(f):
 	.copy_to(f)
