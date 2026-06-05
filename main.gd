@@ -684,7 +684,11 @@ func _process(_delta):
 		$"%SpeedLines".set_direction(game.camera.current_direction)
 		$"%SpeedLines".set_speed(game.camera.current_speed / game.camera.zoom.x)
 		$"%SpeedLines".tick = game.current_tick
-		$"%SpeedLines".on = !game.is_waiting_on_player()
+		# Suppress lines through hit / super freeze. Freeze is visually a
+		# beat-pause; the pre-hit camera motion can leave intensity above
+		# the draw cutoff for a tick or two into the freeze, which reads as
+		# the lines briefly flashing on for a frame as the freeze starts.
+		$"%SpeedLines".on = !game.is_waiting_on_player() and game.super_freeze_ticks <= 0
 	_tick_save_replay_toast()
 
 func _tick_save_replay_toast():
