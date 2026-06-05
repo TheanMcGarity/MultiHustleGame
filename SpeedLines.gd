@@ -6,7 +6,7 @@ const LINE_MIN_SIZE = 20
 const LINE_MAX_SIZE = 200
 const TICK_DIV = 100.0
 const SPEED = 1
-const CAMERA_SPEED_DIVISOR = 16.0
+const CAMERA_SPEED_DIVISOR = 10.0
 const MIN_INTENSITY = 0.05
 # The hardcoded 0.95 the lerp originally used was calibrated for a 60Hz
 # cadence. set_speed runs at render rate (called from main._process), so we
@@ -24,7 +24,7 @@ const SUSTAINED_TARGET_THRESHOLD = 0.5
 # single-tick speed spikes (screenshake / camera-snap nudges / brief impulses)
 # that would otherwise flash the lines on for a frame. ~50ms = 3 frames at
 # 60Hz, "more than a couple."
-const SUSTAINED_TIME_THRESHOLD = 0.05
+const SUSTAINED_TIME_THRESHOLD = 0.025
 
 # Declare member variables here. Examples:
 # var a = 2
