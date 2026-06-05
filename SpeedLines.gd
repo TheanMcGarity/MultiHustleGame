@@ -40,7 +40,8 @@ const VERTICAL_SPEED_BOOST = 0.0
 # fade out (via ease() with intensity_easing), lines outside it draw at full
 # brightness. Replaces the previous center-of-screen anchor with a per-player
 # anchor — same idea the super-effect overlay uses (it anchors per character).
-const CHARACTER_FADE_RADIUS = 200.0
+const CHARACTER_FADE_RADIUS_X = 400.0
+const CHARACTER_FADE_RADIUS_Y = 200.0
 # Visibility multiplier applied to line_intensity when the sustained-motion
 # timer is at 0. Lerps from this up to 1.0 as _sustained_above accrues toward
 # SUSTAINED_TIME_THRESHOLD — so slow camera motion that doesn't earn the full
@@ -128,11 +129,11 @@ func set_speed(speed):
 
 func get_line_x(num):
 	var t = tick / TICK_DIV * speed
-	return noise.get_noise_2d(num, t) * 640
+	return noise.get_noise_2d(num, t) * 6400
 
 func get_line_y(num):
 	var t = tick / TICK_DIV * speed
-	return noise2.get_noise_2d(num, t) * 360
+	return noise2.get_noise_2d(num, t) * 3600
 
 func get_variation(num):
 	return noise2.get_noise_1d(num)
@@ -168,12 +169,17 @@ func _draw():
 			pos.x = fposmod(pos.x, 640)
 			pos.y = fposmod(pos.y, 360)
 			# Per-character fade: lines bright far from BOTH players, faded
-			# near whichever is closer. Same easing shape the center-of-screen
-			# fade used, just anchored on the closer character's screen pos
-			# (set by main._process via set_player_anchors, computed off the
-			# un-shaken camera position so the anchor doesn't pick up rumble).
-			var min_dist = min(pos.distance_to(p1_anchor), pos.distance_to(p2_anchor))
-			var s = clamp(min_dist / CHARACTER_FADE_RADIUS, 0.0, 1.0)
+			# near whichever is closer. Normalize x and y separately by the
+			# X / Y fade radii so the fade ellipse around each anchor is wider
+			# horizontally than vertically — matches the original center-of-
+			# screen fade's 2:1 axis ratio (400 / 200). Anchors come from
+			# main._process via set_player_anchors, computed off the un-shaken
+			# camera position so they don't pick up rumble.
+			var dx1 = abs(pos.x - p1_anchor.x) / CHARACTER_FADE_RADIUS_X
+			var dy1 = abs(pos.y - p1_anchor.y) / CHARACTER_FADE_RADIUS_Y
+			var dx2 = abs(pos.x - p2_anchor.x) / CHARACTER_FADE_RADIUS_X
+			var dy2 = abs(pos.y - p2_anchor.y) / CHARACTER_FADE_RADIUS_Y
+			var s = min(Vector2(dx1, dy1).length(), Vector2(dx2, dy2).length())
 			var line_intensity = intensity * variation * ease(s, intensity_easing) * sustain_factor
 			var line_size = lerp(LINE_MIN_SIZE, LINE_MAX_SIZE, line_intensity)
 			var start = pos - dir * line_size / 2.0
