@@ -8,6 +8,13 @@ const TICK_DIV = 100.0
 const SPEED = 1
 const CAMERA_SPEED_DIVISOR = 16.0
 const MIN_INTENSITY = 0.05
+# The hardcoded 0.95 the lerp originally used was calibrated for a 60Hz
+# cadence. set_speed runs at render rate (called from main._process), so we
+# rescale this per frame's actual dt — that's what keeps the per-real-second
+# decay rate the same on 30-FPS and 144-FPS PCs without forcing the lerp
+# (and the direction it depends on) onto a fixed-rate tick, which made the
+# angle look out of sync with everything else updating at render rate.
+const INTENSITY_LERP_AT_60HZ = 0.95
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -19,15 +26,6 @@ export var noise2: OpenSimplexNoise
 export var on = false
 export(float, EASE) var intensity_easing = 0
 var speed = 0.0
-# Smoothing input — set_speed stores into this from main._process (called at
-# render rate), and the lerp that turns it into `intensity` runs in
-# _physics_process at the fixed engine physics rate. Keeping the smoothing
-# step at a fixed cadence means the time-to-decay below the draw threshold
-# is the same on 30-FPS and 144-FPS machines; before this split, the lerp
-# ran in set_speed at render rate, so on low-FPS PCs intensity decayed many
-# fewer iterations per real second and the lines hung on visibly while the
-# camera was sitting still.
-var target_speed = 0.0
 var center = Vector2(320, 180)
 var tick = 0
 
@@ -35,7 +33,17 @@ func set_direction(dir):
 	self.dir = -dir
 
 func set_speed(speed):
-	target_speed = speed
+	# Delta-scaled smoothing factor. At dt = 1/60 this evaluates to
+	# INTENSITY_LERP_AT_60HZ (the value the original formula used as a
+	# hardcoded constant); above/below 60Hz, the factor scales so the time
+	# to decay is the same in real seconds. Without this, on low-FPS PCs
+	# the per-call factor stayed at 0.95 but the call rate dropped, so the
+	# decay rate per real second dropped too — that's the "lines hang on
+	# even when the camera isn't really moving" symptom.
+	var dt = max(get_process_delta_time(), 0.0001)
+	var t = 1.0 - pow(1.0 - INTENSITY_LERP_AT_60HZ, dt * 60.0)
+	var target = clamp(abs(speed) / CAMERA_SPEED_DIVISOR, MIN_INTENSITY, 1.0)
+	intensity = pow(lerp(intensity, target, t), 2)
 	self.speed = speed
 #	on = intensity > 0.1
 
@@ -50,14 +58,13 @@ func get_line_y(num):
 func get_variation(num):
 	return noise2.get_noise_1d(num)
 
-func _physics_process(delta):
-	# Drive the intensity lerp from a fixed-rate tick so the convergence
-	# rate per real second is the same regardless of render FPS. Same clamp
-	# range the formula had when the lerp lived in set_speed — only the
-	# cadence moved.
-	var target = clamp(abs(target_speed) / CAMERA_SPEED_DIVISOR, MIN_INTENSITY, 1.0)
-	intensity = pow(lerp(intensity, target, 0.95), 2)
+func _process(_delta):
+	# Schedule a redraw at the render cadence so the lines visibly update at
+	# the monitor's refresh rate (was _physics_process before, which capped
+	# the visible draw rate at 60Hz even on high-FPS displays).
 	update()
+
+func _physics_process(delta):
 	tick += 1
 
 func _draw():
