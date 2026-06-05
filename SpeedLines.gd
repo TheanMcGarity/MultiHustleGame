@@ -15,6 +15,16 @@ const MIN_INTENSITY = 0.05
 # (and the direction it depends on) onto a fixed-rate tick, which made the
 # angle look out of sync with everything else updating at render rate.
 const INTENSITY_LERP_AT_60HZ = 0.95
+# Raw camera-derived target must exceed this for the sustained timer below to
+# accrue. 0.5 matches the visual "lines on" threshold (intensity > 0.25 with
+# intensity = target², so target = sqrt(0.25) = 0.5).
+const SUSTAINED_TARGET_THRESHOLD = 0.5
+# Real-time the target must STAY above SUSTAINED_TARGET_THRESHOLD before lines
+# actually draw, regardless of how high intensity has climbed. Filters out
+# single-tick speed spikes (screenshake / camera-snap nudges / brief impulses)
+# that would otherwise flash the lines on for a frame. ~50ms = 3 frames at
+# 60Hz, "more than a couple."
+const SUSTAINED_TIME_THRESHOLD = 0.05
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -35,6 +45,11 @@ var speed = 0.0
 # for higher FPS made lerp(intensity, …) keep the OLD intensity term, and
 # pow squared the leftover into the millions on the next pass.
 var _smoothed_target = 0.0
+# Counts real seconds the raw target has been above SUSTAINED_TARGET_THRESHOLD.
+# Lines draw only when this exceeds SUSTAINED_TIME_THRESHOLD, so a single-tick
+# speed spike can't flash them on. Decays back down when target drops so a
+# follow-up motion has to earn the threshold again.
+var _sustained_above = 0.0
 # Frame delta cached from _process so set_speed (called externally from
 # main._process) can scale its lerp factor without depending on
 # get_process_delta_time, which returns 0 the very first time it's read.
@@ -56,6 +71,13 @@ func set_speed(speed):
 	var target = clamp(abs(speed) / CAMERA_SPEED_DIVISOR, MIN_INTENSITY, 1.0)
 	_smoothed_target = lerp(_smoothed_target, target, t)
 	intensity = _smoothed_target * _smoothed_target
+	# Accumulate / decay the sustained-motion timer. Capped at 2× the
+	# threshold so a long run of fast motion doesn't take forever to fall
+	# back below the threshold after the motion ends.
+	if target >= SUSTAINED_TARGET_THRESHOLD:
+		_sustained_above = min(_sustained_above + _last_dt, SUSTAINED_TIME_THRESHOLD * 2.0)
+	else:
+		_sustained_above = max(_sustained_above - _last_dt, 0.0)
 	self.speed = speed
 #	on = intensity > 0.1
 
@@ -82,7 +104,7 @@ func _physics_process(delta):
 
 func _draw():
 #	draw_line(center, center + dir * 100, Color.purple, 10)
-	if on and intensity > 0.25 and Global.speed_lines_enabled:
+	if on and intensity > 0.25 and _sustained_above > SUSTAINED_TIME_THRESHOLD and Global.speed_lines_enabled:
 		dir = dir.normalized()
 		
 		for i in range(NUM_LINES):
