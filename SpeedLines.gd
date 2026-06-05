@@ -20,12 +20,25 @@ const INTENSITY_LERP_AT_60HZ = 0.95
 # var a = 2
 # var b = "text"
 export var dir = Vector2()
-export var intensity = 100.0
+export var intensity = 0.0
 export var noise: OpenSimplexNoise
 export var noise2: OpenSimplexNoise
 export var on = false
 export(float, EASE) var intensity_easing = 0
 var speed = 0.0
+# Internal smoothed input in [0, 1] — set_speed lerps this toward the clamped
+# speed/divisor each render frame, and `intensity` is its square. Smoothing
+# a bounded value (rather than intensity directly) keeps the lerp's
+# arithmetic bounded so the delta-scaled factor can't blow up at high FPS:
+# the original formula did pow(lerp(intensity, target, 0.95), 2), which is
+# fine when t≈1 because the lerp collapses to target, but rescaling t down
+# for higher FPS made lerp(intensity, …) keep the OLD intensity term, and
+# pow squared the leftover into the millions on the next pass.
+var _smoothed_target = 0.0
+# Frame delta cached from _process so set_speed (called externally from
+# main._process) can scale its lerp factor without depending on
+# get_process_delta_time, which returns 0 the very first time it's read.
+var _last_dt = 1.0 / 60.0
 var center = Vector2(320, 180)
 var tick = 0
 
@@ -34,16 +47,15 @@ func set_direction(dir):
 
 func set_speed(speed):
 	# Delta-scaled smoothing factor. At dt = 1/60 this evaluates to
-	# INTENSITY_LERP_AT_60HZ (the value the original formula used as a
-	# hardcoded constant); above/below 60Hz, the factor scales so the time
-	# to decay is the same in real seconds. Without this, on low-FPS PCs
-	# the per-call factor stayed at 0.95 but the call rate dropped, so the
-	# decay rate per real second dropped too — that's the "lines hang on
-	# even when the camera isn't really moving" symptom.
-	var dt = max(get_process_delta_time(), 0.0001)
-	var t = 1.0 - pow(1.0 - INTENSITY_LERP_AT_60HZ, dt * 60.0)
+	# INTENSITY_LERP_AT_60HZ (the constant the original formula used);
+	# above/below 60Hz it rescales so the time-to-decay is the same in
+	# real seconds. Without the rescale, on low-FPS PCs the per-call
+	# factor stayed at 0.95 but call rate dropped, so decay per real
+	# second dropped too — the "lines hang on" symptom.
+	var t = 1.0 - pow(1.0 - INTENSITY_LERP_AT_60HZ, _last_dt * 60.0)
 	var target = clamp(abs(speed) / CAMERA_SPEED_DIVISOR, MIN_INTENSITY, 1.0)
-	intensity = pow(lerp(intensity, target, t), 2)
+	_smoothed_target = lerp(_smoothed_target, target, t)
+	intensity = _smoothed_target * _smoothed_target
 	self.speed = speed
 #	on = intensity > 0.1
 
@@ -58,10 +70,11 @@ func get_line_y(num):
 func get_variation(num):
 	return noise2.get_noise_1d(num)
 
-func _process(_delta):
-	# Schedule a redraw at the render cadence so the lines visibly update at
-	# the monitor's refresh rate (was _physics_process before, which capped
-	# the visible draw rate at 60Hz even on high-FPS displays).
+func _process(delta):
+	# Cache delta for set_speed to use, then schedule a redraw at the render
+	# cadence so the visible draw rate matches the monitor refresh rate
+	# (was _physics_process before, capped at 60Hz even on high-FPS displays).
+	_last_dt = delta
 	update()
 
 func _physics_process(delta):
