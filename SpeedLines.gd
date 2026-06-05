@@ -41,6 +41,18 @@ const VERTICAL_SPEED_BOOST = 0.0
 # brightness. Replaces the previous center-of-screen anchor with a per-player
 # anchor — same idea the super-effect overlay uses (it anchors per character).
 const CHARACTER_FADE_RADIUS = 200.0
+# Visibility multiplier applied to line_intensity when the sustained-motion
+# timer is at 0. Lerps from this up to 1.0 as _sustained_above accrues toward
+# SUSTAINED_TIME_THRESHOLD — so slow camera motion that doesn't earn the full
+# sustained-gate brightness still shows the lines, just dim. Without this, the
+# gate was a hard binary and there was nothing visible at all for sub-threshold
+# motion.
+const LOW_SPEED_VISIBILITY = 0.25
+# Hard cutoff below which the draw loop skips entirely. With MIN_INTENSITY
+# clamping target at 0.05, intensity has a static floor of ~0.0025 even when
+# the camera is dead still; without a draw-side cutoff that'd produce a
+# permanent very-faint static smear. ~speed 1.6 px/tick.
+const MIN_DRAW_INTENSITY = 0.01
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -137,15 +149,21 @@ func _physics_process(delta):
 
 func _draw():
 #	draw_line(center, center + dir * 100, Color.purple, 10)
-	if on and intensity > 0.25 and _sustained_above > SUSTAINED_TIME_THRESHOLD and Global.speed_lines_enabled:
+	if on and intensity > MIN_DRAW_INTENSITY and Global.speed_lines_enabled:
 		dir = dir.normalized()
-		
+		# Brightness ramp tied to the sustained-motion timer instead of a hard
+		# gate: slow / brief motion draws lines at LOW_SPEED_VISIBILITY scale
+		# (very faint), and as the camera keeps moving above the sustained
+		# threshold the factor lerps up to 1.0 (full brightness). This way the
+		# lines are "very slightly visible at lower speeds" instead of binary
+		# off / on.
+		var sustain_factor = lerp(LOW_SPEED_VISIBILITY, 1.0, clamp(_sustained_above / SUSTAINED_TIME_THRESHOLD, 0.0, 1.0))
 		for i in range(NUM_LINES):
 			var variation = get_variation(NUM_LINES - i)
 
 			var x = get_line_x(i)
 			var y = get_line_y(i)
-		
+
 			var pos = Vector2(x, y) + (tick * dir * (speed * abs(intensity)))
 			pos.x = fposmod(pos.x, 640)
 			pos.y = fposmod(pos.y, 360)
@@ -156,7 +174,7 @@ func _draw():
 			# un-shaken camera position so the anchor doesn't pick up rumble).
 			var min_dist = min(pos.distance_to(p1_anchor), pos.distance_to(p2_anchor))
 			var s = clamp(min_dist / CHARACTER_FADE_RADIUS, 0.0, 1.0)
-			var line_intensity = intensity * variation * ease(s, intensity_easing)
+			var line_intensity = intensity * variation * ease(s, intensity_easing) * sustain_factor
 			var line_size = lerp(LINE_MIN_SIZE, LINE_MAX_SIZE, line_intensity)
 			var start = pos - dir * line_size / 2.0
 			var end = pos + dir * line_size / 2.0
