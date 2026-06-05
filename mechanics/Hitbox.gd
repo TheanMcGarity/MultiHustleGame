@@ -456,3 +456,34 @@ func tick():
 			deactivate()
 
 	update()
+
+# Projectile hitboxes that the opponent can't parry render in dark red
+# (#85001f) instead of the default red, so the player can spot them at a
+# glance. Both `parriable` (per-hitbox) and `has_projectile_parry_window`
+# (per-projectile, can toggle mid-flight) can flip during play, so the
+# check has to happen on every draw — that's the whole reason this lives
+# in box_draw rather than being baked in at _ready.
+func box_draw():
+	if _draw_as_unparriable_projectile():
+		var parent = get_parent()
+		if parent.is_in_group("BaseObj") and parent.disabled:
+			return
+		var color = Color("85001f")
+		var rect = get_rect_float()
+		var fill = color
+		var stroke = color
+		fill.a = 0.25
+		stroke.a = 0.5
+		draw_rect(rect, fill, true)
+		draw_rect(rect, stroke, false)
+		return
+	.box_draw()
+
+func _draw_as_unparriable_projectile():
+	if not is_projectile():
+		return false
+	# `always_parriable` overrides everything else (e.g. parry-trainer dummies),
+	# so don't paint those red.
+	if host.get("always_parriable"):
+		return false
+	return not parriable or not host.has_projectile_parry_window
