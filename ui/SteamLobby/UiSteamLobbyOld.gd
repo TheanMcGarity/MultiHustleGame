@@ -37,6 +37,7 @@ func _ready():
 	$"%SidePickerP1Button".connect("pressed", self, "_on_side_picker_p1_pressed")
 	$"%SidePickerP2Button".connect("pressed", self, "_on_side_picker_p2_pressed")
 	$"%SidePickerCancelButton".connect("pressed", self, "_on_side_picker_cancel_pressed")
+	$"%SpectateCancelButton".connect("pressed", self, "_on_spectate_cancel_pressed")
 #	user_list.connect("item_selected", self, "_on_user_selected")
 	$"%GameSettingsPanelContainer".init(false)
 	# SteamLobby.tscn ships with placeholder LobbyMatch/LobbyUser nodes
@@ -344,11 +345,32 @@ func _on_retrieved_lobby_members(members):
 	# next lobby_data_update re-disabled it.
 	_refresh_settings_panel_state()
 
+# How often to re-send the spectate request while it's still pending. P2P
+# packets are sent reliable, but reliable delivery still fails when the P2P
+# session hasn't come up yet (common right after returning from spectating, or
+# on a flaky connection) — resending re-kicks the session instead of silently
+# giving up. Mirrors the challenge button: stay pending with a cancel button
+# rather than auto-cancelling after a fixed timeout.
+const SPECTATE_RETRY_INTERVAL := 2.0
+
 func _on_spectate_requested(player):
-	SteamLobby.request_spectate(player.steam_id)
+	var steam_id = player.steam_id
+	$"%SpectateStatusLabel".text = "Requesting to spectate..."
+	$"%SpectateCancelButton".show()
 	$"%LoadingSpectatorRect".show()
-	yield(get_tree().create_timer(5), "timeout")
-	_on_spectate_declined()
+	SteamLobby.request_spectate(steam_id)
+	# Keep resending until the request is accepted or declined (either clears
+	# SteamLobby.REQUESTING_TO_SPECTATE) or the user cancels (which clears it
+	# too). A re-request to a different player also flips REQUESTING_TO_SPECTATE,
+	# so any stale loop for the previous target stops on its own.
+	while SteamLobby.REQUESTING_TO_SPECTATE == steam_id:
+		yield(get_tree().create_timer(SPECTATE_RETRY_INTERVAL), "timeout")
+		if SteamLobby.REQUESTING_TO_SPECTATE == steam_id:
+			SteamLobby.request_spectate(steam_id)
+
+func _on_spectate_cancel_pressed():
+	SteamLobby.cancel_spectate_request()
+	$"%LoadingSpectatorRect".hide()
 
 func _on_back_button_pressed():
 	Network.stop_multiplayer(true)

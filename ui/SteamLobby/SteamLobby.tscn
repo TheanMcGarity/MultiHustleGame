@@ -586,12 +586,27 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color( 0, 0, 0, 0.780392 )
 
-[node name="Label" type="Label" parent="LoadingSpectatorRect"]
+[node name="SpectateStatusLabel" type="Label" parent="LoadingSpectatorRect"]
+unique_name_in_owner = true
 anchor_right = 1.0
 anchor_bottom = 1.0
 text = "Spectating..."
 align = 1
 valign = 1
+
+[node name="SpectateCancelButton" type="Button" parent="LoadingSpectatorRect"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -25.0
+margin_top = 18.0
+margin_right = 25.0
+margin_bottom = 38.0
+rect_min_size = Vector2( 50, 20 )
+text = "cancel"
+clip_text = true
 
 [node name="WrongVersionScreen" type="ColorRect" parent="."]
 unique_name_in_owner = true

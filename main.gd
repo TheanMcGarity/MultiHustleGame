@@ -186,8 +186,14 @@ func _on_loaded_replay(match_data):
 func _on_received_spectator_match_data(data):
 #	data["spectating"] = true
 #	_on_match_ready(data)
-	if get_node("/root/SteamLobby/LoadingSpectator/Label"):
-		get_node("/root/SteamLobby/LoadingSpectator/Label").text = "Spectating...\n(Loading Characters, this may take a while)"
+	# Request accepted: swap the "Requesting to spectate..." overlay over to the
+	# loading message and drop the cancel button (too late to cancel now).
+	var spectate_label = $"%SteamLobby".get_node_or_null("LoadingSpectatorRect/SpectateStatusLabel")
+	if spectate_label:
+		spectate_label.text = "Spectating...\n(Loading Characters, this may take a while)"
+	var spectate_cancel = $"%SteamLobby".get_node_or_null("LoadingSpectatorRect/SpectateCancelButton")
+	if spectate_cancel:
+		spectate_cancel.hide()
 	_Global.css_instance.net_loadReplayChars([data.selected_characters[1]["name"], data.selected_characters[2]["name"], data])
 	data["spectating"] = true
 	_on_match_ready(data)

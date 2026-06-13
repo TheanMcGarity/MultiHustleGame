@@ -971,7 +971,12 @@ func _stop_spectating():
 	SPECTATORS.clear()
 
 func _add_spectator(steam_id):
-	SPECTATORS.append(steam_id)
+	# Spectate requests resend on an interval (see UiSteamLobbyOld), so a
+	# request can arrive again after we've already accepted — e.g. when our
+	# first spectate_accept got dropped. Re-send the accept so they recover,
+	# but don't append a duplicate or we'd send every update twice.
+	if not (steam_id in SPECTATORS):
+		SPECTATORS.append(steam_id)
 	_send_P2P_Packet(steam_id, {"spectate_accept": SteamHustle.STEAM_ID, "match_data":Network.game.match_data, "replay": ReplayManager.frames })
 
 func _remove_spectator(steam_id):
@@ -1848,3 +1853,11 @@ func _receive_broadcast_rpc(data):
 func request_spectate(steam_id):
 	REQUESTING_TO_SPECTATE = steam_id
 	_send_P2P_Packet(steam_id, {"request_spectate":SteamHustle.STEAM_ID})
+
+func cancel_spectate_request():
+	# Tell the target to drop us in case they raced an accept (auto-accept +
+	# request resends mean they may have already added us as a spectator);
+	# it's a no-op for them otherwise. _remove_spectator erases by id.
+	if REQUESTING_TO_SPECTATE != 0:
+		_send_P2P_Packet(REQUESTING_TO_SPECTATE, {"spectate_ended": SteamHustle.STEAM_ID})
+	REQUESTING_TO_SPECTATE = 0
