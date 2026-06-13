@@ -37,6 +37,17 @@ func _on_frame_advance():
 	if is_instance_valid(Global.current_game):
 		Global.current_game.advance_frame_input = true
 
+# Same actions the window's button shortcuts trigger, exposed so the playback
+# hotkeys can fire while the window is closed (when the
+# playback_hotkeys_require_window option is off). See UILayer._input.
+func toggle_frame_advance():
+	var on = !Global.frame_advance
+	_on_pause_toggled(on)
+	$"%PauseButton".set_pressed_no_signal(on)
+
+func frame_advance_step():
+	_on_frame_advance()
+
 func _on_pause_toggled(on):
 	if on:
 		Global.frame_advance = true

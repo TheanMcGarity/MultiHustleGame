@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.93-steam-unstable"
+var VERSION = "1.9.94-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -43,6 +43,10 @@ var show_extra_info = false
 var light_mode = false
 var frame_advance = false
 var show_playback_controls = false
+# When true (default), the pause/frame-advance playback hotkeys only fire while
+# the playback window is open (they're button shortcuts on that window). When
+# false, they also work with the window closed (handled in UILayer._input).
+var playback_hotkeys_require_window = true
 var show_projectile_owners = true
 var playback_speed_mod = 1
 var default_dojo = 0
@@ -389,6 +393,7 @@ func save_options():
 			"show_hitboxes": show_hitboxes,
 			"show_last_move_indicators": show_last_move_indicators,
 			"show_playback_controls": show_playback_controls,
+			"playback_hotkeys_require_window": playback_hotkeys_require_window,
 			"show_projectile_owners": show_projectile_owners,
 			"enable_timer_sound": enable_timer_sound,
 			"default_dojo": 0,
@@ -444,6 +449,7 @@ func get_default_player_data():
 			"show_hitboxes": false,
 			"show_last_move_indicators": true,
 			"show_playback_controls": false,
+			"playback_hotkeys_require_window": true,
 			"default_dojo": 0,
 			"enable_timer_sound": true,
 			"enable_emotes": true,

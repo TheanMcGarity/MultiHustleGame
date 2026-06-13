@@ -100,6 +100,7 @@ onready var global_option_check_buttons = {
 	$"%EnableEmotes": "enable_emotes",
 	$"%LastMoveIndicatorButton": "show_last_move_indicators",
 	$"%ProjectileOwnersButton": "show_projectile_owners",
+	$"%PlaybackHotkeysRequireWindowButton": "playback_hotkeys_require_window",
 	$"%SpeedLinesButton": "speed_lines_enabled",
 	$"%AutoFCButton": "auto_fc",
 	$"%ExtraInfoButton": "show_extra_info",
@@ -1232,6 +1233,15 @@ func _unhandled_input(event):
 		_on_ClearParticlesButton_pressed()
 	if event.is_action_pressed(Hotkeys.TOGGLE_PLAYBACK_CONTROLS):
 		_toggle_playback_controls()
+	# Pause / frame-advance are button shortcuts on the playback window, so they
+	# only fire while it's open. When the user has turned off "playback hotkeys
+	# require window", handle them here too — but only while the window is
+	# closed, otherwise the button shortcut also fires and we'd double-toggle.
+	if not Global.playback_hotkeys_require_window and not $"%ReplayControls".visible:
+		if event.is_action_pressed(Hotkeys.TOGGLE_FRAME_ADVANCE):
+			$"%ReplayControls".toggle_frame_advance()
+		if event.is_action_pressed(Hotkeys.FRAME_ADVANCE):
+			$"%ReplayControls".frame_advance_step()
 	if event.is_action_pressed(Hotkeys.TOGGLE_PROJECTILE_OWNERS):
 		_toggle_projectile_owners()
 	if event.is_action_pressed(Hotkeys.TOGGLE_FULLSCREEN):
