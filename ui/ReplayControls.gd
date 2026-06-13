@@ -34,6 +34,12 @@ func show():
 		.show()
 
 func _on_frame_advance():
+	# While a replay is actively playing, the frame-advance key pauses it
+	# instead of stepping — you single-step once it's already paused. Lets the
+	# one key both pause and step playback.
+	if ReplayManager.playback and !Global.frame_advance:
+		toggle_frame_advance()
+		return
 	if is_instance_valid(Global.current_game):
 		Global.current_game.advance_frame_input = true
 
