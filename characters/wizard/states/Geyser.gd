@@ -105,7 +105,10 @@ func _tick():
 
 func _frame_7():
 	var dir = xy_to_dir(data["Direction"]["x"], data["Direction"]["y"])
-	particle = host._spawn_particle_effect(PARTICLES[charges - 1], particle_position, Vector2(float(dir.x), float(dir.y)))
+	# `dir` is facing-relative (the hitbox multiplies its x by get_facing_int()
+	# below), so mirror it into world space before orienting the particle, or
+	# P2's jet points backwards (screen-right) and reads as flipped.
+	particle = host._spawn_particle_effect(PARTICLES[charges - 1], particle_position, Vector2(float(dir.x) * host.get_facing_int(), float(dir.y)))
 
 #	host.start_geyser_particle(charges - 1, Vector2(float(dir.x), float(dir.y)).angle())
 	var pos = host.get_pos()

@@ -576,8 +576,15 @@ func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vec
 	# instance before it enters the tree. CustomHitEffect.gd reads this in
 	# its _ready to configure sprite frames + particle settings without
 	# round-tripping through PackedScene.pack.
+	# Only actual custom hitsparks (CustomHitEffect, which declares the
+	# `custom_config` property) should receive the player's hitspark config and
+	# its flip_when_facing_left orientation override. Every other particle a
+	# character spawns — geyser jets, telekinesis debris, etc. — must be left
+	# alone, or the hitspark's flip leaks onto them and mirrors/inverts them
+	# when facing left.
 	var cfg = self.get("custom_hitspark_config")
-	if cfg != null:
+	var is_custom_hitspark = cfg != null and "custom_config" in obj
+	if is_custom_hitspark:
 		obj.set("custom_config", cfg)
 	add_child(obj)
 	obj.tick()
@@ -587,7 +594,7 @@ func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vec
 	# sprites read correctly mirrored. Custom hitsparks can opt into a pure
 	# horizontal flip instead (no rotation) — useful for asymmetric art where
 	# the rotation feels wrong. Flag rides on the custom_hitspark_config dict.
-	var flip_only = facing < 0 and cfg is Dictionary and cfg.get("flip_when_facing_left", false)
+	var flip_only = is_custom_hitspark and facing < 0 and cfg is Dictionary and cfg.get("flip_when_facing_left", false)
 	if facing < 0 and not flip_only:
 		obj.rotation = (dir * Vector2(-1, -1)).angle()
 	else:
