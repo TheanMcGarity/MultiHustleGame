@@ -38,6 +38,13 @@ func get_extra():
 func drive_pressed():
 	return $"%DriveCancel".pressed and $"%DriveCancel".visible
 
+# Hold case: holding continues the current move, so a drive cancel is reachable
+# only if that move can still produce one from its current tick (an unfired
+# try_drive_cancel command, which both the on-hit and on-block paths require).
+# Menu moves aren't relevant here — they get the toggle when actually selected.
+func drive_cancel_available():
+	return fighter.drive_cancel_possible(fighter.current_state(), true)
+
 func update_selected_move(move_state):
 	.update_selected_move(move_state)
 	$"%ArmorEnabled".disabled = false
@@ -47,10 +54,12 @@ func update_selected_move(move_state):
 	# fresh parry after a whiffed one. If the current state is a parry that
 	# didn't catch anything (and we're not mid-combo), disable the armor
 	# toggle so the player can't queue armor straight out of a whiff block.
+	# Push blocks are exempt — NewParry.is_usable lets you act freely out of a
+	# whiffed push block (the trailing `or push`), so armor must too.
 	var current = fighter.current_state()
 	if current and current.get("IS_NEW_PARRY") \
 			and !current.parried and !current.autoguard \
-			and fighter.combo_count <= 0:
+			and !current.push and fighter.combo_count <= 0:
 		$"%ArmorEnabled".set_pressed_no_signal(false)
 		$"%ArmorEnabled".disabled = true
 
@@ -79,11 +88,15 @@ func update_selected_move(move_state):
 #		else:
 #			$"%FlyEnabled".set_pressed_no_signal(false)
 
+	# Hold (no specific move): available if any reachable move can still drive
+	# cancel. A specific move: only if that move itself can (checked fresh).
+	if move_state == null:
+		$"%DriveCancel".visible = drive_cancel_available()
+	else:
+		$"%DriveCancel".visible = fighter.drive_cancel_possible(move_state, false)
+	# On hold the drive cancel is conditional on the held move reaching its tick.
+	$"%DriveCancel".text = "Drive?" if move_state == null else "Drive"
 	if move_state:
-		$"%DriveCancel".visible = false
-		if move_state.get_host_command("try_drive_cancel"):
-			$"%DriveCancel".visible = true
-
 		if move_state.is_grab and $"%ArmorEnabled".pressed:
 			can_feint = false
 
@@ -154,7 +167,12 @@ func reset():
 	$"%PullEnabled".set_pressed_no_signal(false)
 	$"%HonkEnabled".set_pressed_no_signal(false)
 	$"%DriveCancel".set_pressed_no_signal(fighter.stance == "Drive")
-	
+	# Reveal the Drive toggle whenever a drive-cancelable move is in reach, so the
+	# player can arm the cancel via the hold button without selecting it first.
+	# Hold is the default selection here, so the drive cancel is conditional.
+	$"%DriveCancel".visible = drive_cancel_available()
+	$"%DriveCancel".text = "Drive?"
+
 	if fighter.current_state().get("disable_aerial_movement"):
 		$"%FlyEnabled".set_pressed_no_signal(false)
 		$"%FlyEnabled".disabled = true

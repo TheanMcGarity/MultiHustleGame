@@ -39,9 +39,24 @@ animations = [ {
 [node name="StickmanSummon" instance=ExtResource( 6 )]
 material = SubResource( 2 )
 z_index = -1
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 gravity = "0.37"
 ground_friction = "0.6"
 has_projectile_parry_window = false
+hookable = true
 
 [node name="Sprite" parent="Flip" index="0"]
 modulate = Color( 1, 1, 1, 0.92549 )
@@ -54,9 +69,9 @@ width = 5
 height = 5
 
 [node name="Hurtbox" parent="." index="3"]
-y = -9
+y = -6
 width = 14
-height = 9
+height = 6
 
 [node name="Default" parent="StateMachine" index="0"]
 script = ExtResource( 5 )

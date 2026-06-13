@@ -456,6 +456,41 @@ func init():
 	update_property_list()
 	.init()
 
+# Like get_host_command but only counts a command that hasn't fired yet, i.e.
+# scheduled at a tick >= after_tick. Pass after_tick = -1 to treat the state as
+# fresh (every command still upcoming). Covers both HostCommand child nodes and
+# the exported host_commands dict (String or [method, args...] entries).
+func has_upcoming_host_command(command_name, after_tick = -1):
+	for tick in host_command_nodes:
+		if tick < after_tick:
+			continue
+		for command in host_command_nodes[tick]:
+			if command is HostCommand and command.command == command_name:
+				return true
+	for tick in host_commands:
+		if tick < after_tick:
+			continue
+		var command = host_commands[tick]
+		if command is String and command == command_name:
+			return true
+		elif command is Array and !command.empty() and command[0] == command_name:
+			return true
+	return false
+
+# True if a damaging, blockable hitbox is still active or upcoming at after_tick
+# (a move that can still land on block). Detect boxes and grabs are excluded —
+# they don't drive the on-block cancel path. after_tick = -1 treats it as fresh.
+func has_active_or_upcoming_hitbox(after_tick = -1):
+	for hitbox in all_hitbox_nodes:
+		if hitbox.hitbox_type == Hitbox.HitboxType.Detect or hitbox is ThrowBox:
+			continue
+		if hitbox.looping or hitbox.always_on:
+			if after_tick <= anim_length:
+				return true
+		elif after_tick <= hitbox.start_tick + hitbox.active_ticks:
+			return true
+	return false
+
 func get_host_command(command_name):
 	for command in host_command_nodes.values() + host_commands.values():
 		if command is Array:

@@ -343,6 +343,21 @@ func on_attack_blocked():
 		can_update_sprite = false
 		change_state("Brandish")
 
+# Whether a draw can still come out of `state` — mirrors the two paths above:
+# try_shoot() (an unfired try_shoot command, gated by the move's own
+# can_draw_cancel() opt-out) and on_attack_blocked() (any blockable hitbox that
+# can still connect, which ignores can_draw_cancel). respect_tick measures from
+# the move's current progress so a held move past both windows stops offering it;
+# pass false for a fresh move you'd cancel into.
+func draw_cancel_possible(state, respect_tick = true):
+	if state == null or !can_bullet_cancel():
+		return false
+	var after_tick = state.current_tick if respect_tick else -1
+	if !(state.has_method("can_draw_cancel") and !state.can_draw_cancel()):
+		if state.has_upcoming_host_command("try_shoot", after_tick):
+			return true
+	return state.has_active_or_upcoming_hitbox(after_tick)
+
 func on_got_hit():
 	if cut_projectile:
 		if objs_map.has(cut_projectile):

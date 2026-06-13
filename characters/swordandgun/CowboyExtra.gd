@@ -56,7 +56,13 @@ func reset():
 		update_sight_button()
 	if "Knockdown" in fighter.current_state().state_name:
 		sight_button.hide()
-	
+
+	# Reveal the Draw toggle whenever a draw-cancelable move is in reach, so the
+	# player can arm the cancel via the hold button without selecting it first.
+	# Hold is the default selection here, so the draw is conditional.
+	$"%ShootButton".visible = draw_cancel_available()
+	$"%ShootButton".text = "Draw?"
+
 	block_disable()
 
 func update_tp_button():
@@ -97,20 +103,33 @@ func update_sight_button():
 	if "Knockdown" in fighter.current_state().state_name:
 		sight_button.hide()
 
+# Hold case: holding continues the current move, so a draw is reachable only if
+# that move can still produce one from its current tick (an unfired try_shoot, or
+# a hitbox that can still land on block). Menu moves aren't relevant here — they
+# get the toggle when actually selected.
+#
+# Once bullet_cancelling has latched true the draw is already committed for this
+# move: it fires on block no matter what, and the latch isn't cleared by
+# un-toggling (only by firing or the move ending). So the toggle is dead weight
+# from here on — hide it instead of letting the player flip a switch that does
+# nothing.
+func draw_cancel_available():
+	if fighter.bullet_cancelling:
+		return false
+	return fighter.draw_cancel_possible(fighter.current_state(), true)
+
 func update_selected_move(move_state):
 	.update_selected_move(move_state)
-	if move_state:
-		var state_children = move_state.get_children()
-		var has_command = false
-		for child in state_children:
-			if child is HostCommand:
-				if child.command == "try_shoot":
-					has_command = true
-					break
-		var can_draw_cancel = true
-		if move_state.has_method("can_draw_cancel"):
-			can_draw_cancel = move_state.can_draw_cancel()
-		$"%ShootButton".visible = (has_command or "try_shoot" in move_state.host_commands.values()) and fighter.can_bullet_cancel() and can_draw_cancel
+	# Hold (no specific move): available if any reachable move can still draw.
+	# A specific move: only if that move itself can draw (checked fresh).
+	var show_draw
+	if move_state == null:
+		show_draw = draw_cancel_available()
+	else:
+		show_draw = fighter.draw_cancel_possible(move_state, false)
+	$"%ShootButton".visible = show_draw
+	# On hold the draw is conditional on the held move reaching its shoot tick.
+	$"%ShootButton".text = "Draw?" if move_state == null else "Draw"
 	if fighter.after_image_object != null:
 		$"%DetonateButton".show()
 		update_tp_button()

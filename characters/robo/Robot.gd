@@ -617,6 +617,16 @@ func try_drive_cancel(fast=false):
 	else:
 		change_state("DriveCancel" if !fast else "FastDriveCancel")
 
+# Whether a drive cancel can still come out of `state`. Both robot paths
+# (try_drive_cancel() on hit and on_attack_blocked() on block) require the
+# try_drive_cancel host command, so this is just "is that command still
+# upcoming". respect_tick as in SwordGuy.draw_cancel_possible.
+func drive_cancel_possible(state, respect_tick = true):
+	if state == null:
+		return false
+	var after_tick = state.current_tick if respect_tick else -1
+	return state.has_upcoming_host_command("try_drive_cancel", after_tick)
+
 func on_state_ended(state):
 	drive_cancel = false
 

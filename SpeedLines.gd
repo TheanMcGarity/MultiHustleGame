@@ -40,8 +40,8 @@ const VERTICAL_SPEED_BOOST = 0.0
 # fade out (via ease() with intensity_easing), lines outside it draw at full
 # brightness. Replaces the previous center-of-screen anchor with a per-player
 # anchor — same idea the super-effect overlay uses (it anchors per character).
-const CHARACTER_FADE_RADIUS_X = 400.0
-const CHARACTER_FADE_RADIUS_Y = 200.0
+const CHARACTER_FADE_RADIUS_X = 350.0
+const CHARACTER_FADE_RADIUS_Y = 250.0
 # Visibility multiplier applied to line_intensity when the sustained-motion
 # timer is at 0. Lerps from this up to 1.0 as _sustained_above accrues toward
 # SUSTAINED_TIME_THRESHOLD — so slow camera motion that doesn't earn the full
