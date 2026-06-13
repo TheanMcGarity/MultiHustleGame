@@ -8321,6 +8321,7 @@ enter_sfx = ExtResource( 73 )
 type = 2
 button_texture = ExtResource( 77 )
 air_type = 2
+uses_air_movement = true
 interrupt_from_string = "GroundedSpecial
 Grounded
 Reversal
