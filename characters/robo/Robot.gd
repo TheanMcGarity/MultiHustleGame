@@ -539,6 +539,11 @@ func process_extra(extra):
 				force_fly = extra.force_fly
 		elif extra.has("fly_enabled") and !extra.fly_enabled:
 			flying_dir = null
+			# Releasing flight clears flying_dir, which skips the fly-tick
+			# countdown below that normally stops the fx — so kill the flames
+			# here too, otherwise they keep emitting until you land.
+			if fly_fx_started:
+				stop_fly_fx()
 	
 	if extra.has("loic_dir") and !busy_interrupt:
 #		var obj = obj_from_name(orbital_strike_projectile)
