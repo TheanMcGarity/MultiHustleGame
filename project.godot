@@ -234,6 +234,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://LimbHurtbox.gd"
 }, {
+"base": "Node",
+"class": "MainCallbacks",
+"language": "GDScript",
+"path": "res://MainCallbacks.gd"
+}, {
 "base": "Reference",
 "class": "MultiplayerClient",
 "language": "GDScript",
@@ -495,6 +500,7 @@ _global_script_class_icons={
 "HurtGrounded": "",
 "HurtboxState": "",
 "LimbHurtbox": "",
+"MainCallbacks": "",
 "MultiplayerClient": "",
 "Mutant": "",
 "NativeMethods": "",
