@@ -66,6 +66,21 @@ func state_ended(state):
 func hit_something(obj, hitbox):
 	pass
 
+# One of this object's hitboxes is about to land on `victim`, BEFORE the hit is
+# applied (victim.hit_by). The hit is already validated (not invulnerable / not
+# already-hit / OTG ok). Mutate `hitbox` here to change this specific hit
+# (damage, knockback, ...). The victim's own pre-hit is its hit_by hook.
+func hitbox_pre_hit(hitbox, victim):
+	pass
+
+# One of this object's hitboxes became active.
+func hitbox_activated(hitbox):
+	pass
+
+# One of this object's hitboxes was deactivated.
+func hitbox_deactivated(hitbox):
+	pass
+
 # This object is being hit by `hitbox` (fires at the top of hit_by, before the
 # hit is resolved/parried/blocked).
 func hit_by(hitbox):

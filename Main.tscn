@@ -1,6 +1,7 @@
-[gd_scene load_steps=92 format=2]
+[gd_scene load_steps=93 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
+[ext_resource path="res://MainCallbacks.gd" type="Script" id=202]
 [ext_resource path="res://main.gd" type="Script" id=2]
 [ext_resource path="res://ui/ActionSelector/ActionButtons.tscn" type="PackedScene" id=3]
 [ext_resource path="res://theme.tres" type="Theme" id=4]
@@ -3657,6 +3658,9 @@ align = 1
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
+
+[node name="Callbacks" type="Node" parent="."]
+script = ExtResource( 202 )
 
 [connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/ClearParticlesButton" to="UILayer" method="_on_ClearParticlesButton_pressed"]
 [connection signal="text_entered" from="UILayer/GameUI/PausePanel/VBoxContainer/ReplayName" to="." method="_on_ReplayName_text_entered"]

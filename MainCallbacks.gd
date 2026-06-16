@@ -1,0 +1,39 @@
+extends Node
+
+class_name MainCallbacks
+
+# Modding hook surface for main.gd (the app/match controller). Main.tscn carries
+# one of these as the `Callbacks` child; main.gd grabs it in _ready and calls the
+# methods below at app/match lifecycle points. `host` is the Main node — read
+# host.game, host.match_data, host.singleplayer, host.ui_layer, etc. See
+# ObjCallbacks.gd for how to register an extension (extend res://MainCallbacks.gd).
+
+var host = null
+
+
+# Main finished _ready (app initialized).
+func ready():
+	pass
+
+# A new game flow started (post character-select reset). `singleplayer` is the
+# mode. Fires from _on_game_started.
+func game_started(singleplayer):
+	pass
+
+# Match data is ready for a match (local, multiplayer, replay, or spectate).
+# `data` is the match_data dict. Fires from _on_match_ready.
+func match_ready(data):
+	pass
+
+# A game is being set up (Game instance about to be (re)built). `data` is the
+# match data. Fires from setup_game.
+func game_setup(singleplayer, data):
+	pass
+
+# The opponent disconnected.
+func player_disconnected():
+	pass
+
+# A replay was saved to `filename`.
+func replay_saved(filename):
+	pass
