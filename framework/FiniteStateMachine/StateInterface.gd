@@ -14,6 +14,10 @@ var data = null
 var initialized = false
 var queued_state = null
 
+# Modding callbacks node (ObjectStateCallbacks/CharStateCallbacks). Created in
+# _ready; fired by the StateMachine. Null for plain StateInterface states.
+var callbacks = null
+
 signal queue_change(state, self_)
 signal queue_change_with_data(state, data, self_)
 
@@ -43,6 +47,26 @@ func init():
 
 func _enter_tree():
 	host = get_parent().host
+
+func _ready():
+	# Modding hook surface. _ready auto-chains in Godot 3, so this runs for every
+	# state subclass; get_callbacks_script() is virtual (ObjectState/CharState
+	# override it). load() (not preload) so a mod's take_over_path is picked up.
+	# States have no scene slot, so the node is code-created here — a one-time,
+	# cache-backed cost at scene load. The StateMachine fires the hooks.
+	var cb_script = get_callbacks_script()
+	if cb_script:
+		callbacks = Node.new()
+		callbacks.name = "Callbacks"
+		callbacks.set_script(cb_script)
+		callbacks.state = self
+		add_child(callbacks)
+		callbacks.ready()
+
+# Override in a subclass to return an ObjectStateCallbacks-derived script (or
+# null to skip the callbacks node). Must use load(), not preload — see _ready.
+func get_callbacks_script():
+	return null
 
 func _exit_tree():
 	if active:

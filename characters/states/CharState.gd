@@ -122,6 +122,9 @@ export var super_effect_ = false
 export var scale_combo_meter_ = false
 export var force_super_effect = false
 
+func get_callbacks_script():
+	return load("res://characters/states/CharStateCallbacks.gd")
+
 func _frame_0_shared():
 	var levels = super_level_ if supers_used_ == -1 else supers_used_
 	if scale_combo_meter_ and levels > 0:

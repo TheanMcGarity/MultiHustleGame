@@ -151,6 +151,9 @@ var max_tick = -1
 var max_tick_shared = -1
 var exit_tick = -1
 
+func get_callbacks_script():
+	return load("res://ObjectStateCallbacks.gd")
+
 func apply_enter_force():
 	if enter_force_speed != "0.0":
 		var force = xy_to_dir(enter_force_dir_x, enter_force_dir_y, enter_force_speed, "1.0")

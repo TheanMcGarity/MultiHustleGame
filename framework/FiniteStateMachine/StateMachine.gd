@@ -147,6 +147,8 @@ func tick():
 		next_state_name = state._tick()
 	if next_state_name == null:
 		next_state_name = state._tick_after()
+	if state.callbacks:
+		state.callbacks.tick()
 	if next_state_name:
 		queue_state(next_state_name)
 
@@ -154,6 +156,8 @@ func deactivate():
 	state.active = false
 	state._exit_shared()
 	state._exit()
+	if state.callbacks:
+		state.callbacks.exit()
 	emit_signal("state_exited", state)
 
 func integrate(st):
@@ -172,6 +176,8 @@ func _change_state(state_name: String, data=null, enter=true, exit=true) -> void
 		if exit:
 			state._exit_shared()
 			state._exit()
+			if state.callbacks:
+				state.callbacks.exit()
 			emit_signal("state_exited", state)
 		state.active = false
 		state.set_physics_process(false)
@@ -208,6 +214,8 @@ func _change_state(state_name: String, data=null, enter=true, exit=true) -> void
 		if new_state:
 			_change_state(new_state)
 			return
+		if state.callbacks:
+			state.callbacks.enter()
 
 	emit_signal("state_changed", states_stack)
 
