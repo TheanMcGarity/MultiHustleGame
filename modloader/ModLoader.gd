@@ -9,6 +9,11 @@ var _savedObjects = [] # Things to keep to ensure they are not garbage collected
 var mods_w_depend = []
 var mods_w_overwrites = []
 var mods_w_missing_depend = {}
+# Maps a mod's metadata `name` to the filesystem path of the zip it loaded from.
+# Lets a mod find where it's installed without relying on _modZipFiles order,
+# which dependency resolution does NOT keep in sync with active_mods. The same
+# path is also stamped onto each mod's metadata dict as `zip_path` (modInfo[2]).
+var zips_by_name = {}
 var active = false
 var charLoaderModDetected = false
 var charFolders = []
@@ -136,6 +141,11 @@ func _initMods():
 				var metaRes = _checkMetadata(modSubFolder, gdunzip.files, modEntryPath)
 				if metaRes != null:
 					var modInfo = [metaRes[0], modHash, metaRes[1]]
+					# Record where this mod loaded from. On the metadata dict so it
+					# rides along through _dependencyCheck (which reorders modInfos),
+					# and in zips_by_name for direct order-independent lookup.
+					modInfo[2].zip_path = modFSPath
+					zips_by_name[modInfo[2].name] = modFSPath
 					if metaRes[1].name == "char_loader" and metaRes[1].id == "12345":
 						charLoaderModDetected = true
 						continue
