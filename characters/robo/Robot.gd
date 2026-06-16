@@ -148,6 +148,7 @@ func init(pos=null):
 		loic_meter = LOIC_METER
 
 func on_got_hit_by_fighter():
+	.on_got_hit_by_fighter()
 	if armor_active:
 		got_hit = true
 
@@ -157,6 +158,7 @@ func on_got_parried():
 	can_ground_pound = false
 
 func on_got_hit():
+	.on_got_hit()
 	gain_air_option_bar(GAIN_AIR_OPTION_BAR_ON_HIT / Utils.int_max(combo_count, 1))
 	
 func on_launched():
@@ -628,6 +630,7 @@ func drive_cancel_possible(state, respect_tick = true):
 	return state.has_upcoming_host_command("try_drive_cancel", after_tick)
 
 func on_state_ended(state):
+	.on_state_ended(state)
 	drive_cancel = false
 
 # When in Step state on an even step_count, swap Left/Right limb names so

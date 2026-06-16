@@ -175,6 +175,11 @@ func make_custom_hitspark_scene(config) -> PackedScene:
 var p1_selected_style = null
 var p2_selected_style = null
 
+# Modding callbacks node for the style system (StyleCallbacks). Created once in
+# _ready — this is a singleton autoload, so a one-time load() is fine (unlike
+# per-instance hosts, which carry the node in their scene). See StyleCallbacks.gd.
+var callbacks = null
+
 var simple_colors = ["94e4ff", "ffc1a1", "ecffa4", "fec2ff", "6e8696", "ffea5d", "04579a", "85001f", "008561", "9f42ba", "343537", "ff9444"]
 var simple_outlines = ["04579a", "85001f", "008561", "9f42ba", "343537", "ff9444", "94e4ff", "ffc1a1", "ecffa4", "fec2ff", "6e8696", "ffea5d"]
 
@@ -183,6 +188,14 @@ func _ready():
 		simple_colors[i] = Color(simple_colors[i])
 		simple_outlines[i] = Color(simple_outlines[i])
 	make_custom_folder()
+	# load() (not preload) so a mod's installScriptExtension/take_over_path swaps
+	# in its StyleCallbacks; resolved once at autoload _ready, after mods install.
+	callbacks = Node.new()
+	callbacks.name = "Callbacks"
+	callbacks.set_script(load("res://StyleCallbacks.gd"))
+	callbacks.host = self
+	add_child(callbacks)
+	callbacks.ready()
 	
 func make_custom_folder():
 	var dir = Directory.new()
@@ -207,7 +220,8 @@ func apply_style_to_material(style, material: ShaderMaterial, force_extras = fal
 			material.set_shader_param("use_extra_color_2", true)
 	else:
 		material.set_shader_param("use_extra_color_2", false)
-	pass
+	if callbacks:
+		callbacks.apply_style(style, material, force_extras)
 
 
 func is_combo_simple(color, outline):
@@ -284,6 +298,8 @@ func save_style(style):
 	file.open(filename_, File.WRITE)
 	file.store_var(style, true)
 	file.close()
+	if callbacks:
+		callbacks.save_style(style, filename_)
 	return filename_
 
 func save_style_workshop(style):
@@ -336,6 +352,8 @@ func load_all_styles():
 			data["mod_data"] = {}
 		styles.append(data)
 
+	if callbacks:
+		callbacks.load_styles(styles, files)
 	return [styles, files]
 
 func get_style_name(path):

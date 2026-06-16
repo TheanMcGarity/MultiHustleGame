@@ -365,6 +365,7 @@ func draw_cancel_possible(state, respect_tick = true):
 	return state.get("draw_cancel_on_block") and state.has_active_or_upcoming_hitbox(after_tick)
 
 func on_got_hit():
+	.on_got_hit()
 	if cut_projectile:
 		if objs_map.has(cut_projectile):
 			objs_map[cut_projectile].disable()

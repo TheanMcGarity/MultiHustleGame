@@ -128,6 +128,7 @@ func on_roll_started():
 	fast_falling = false
 
 func on_parried():
+	.on_parried()
 	add_geyser_charge()
 
 func apply_grav():
@@ -188,6 +189,7 @@ func gain_super_meter(amount,stale_amount = "1.0"):
 	.gain_super_meter(amount, stale_amount)
 	
 func on_got_hit():
+	.on_got_hit()
 	hovering = false
 	fast_falling = false
 	if boulder_projectile != null:

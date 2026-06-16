@@ -272,6 +272,7 @@ func on_blocked_something():
 	pass
 
 func on_got_hit():
+	.on_got_hit()
 	if bomb_projectile or bomb_thrown:
 		bomb_thrown = false
 		var bomb_object = obj_from_name(bomb_projectile)

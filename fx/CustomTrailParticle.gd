@@ -327,6 +327,8 @@ func restart():
 	# Re-roll the random tilt every restart so successive emissions on a
 	# total_amount=1 setup actually alternate between normal and flipped.
 	_apply_amount()
+	if callbacks:
+		callbacks.restart()
 
 func start_emitting():
 	# Parent's start_emitting blanket-sets emitting=true on every CPUParticles2D
@@ -397,6 +399,8 @@ func emit_burst():
 	if frames_since_last_burst < BURST_COOLDOWN_FRAMES:
 		return
 	frames_since_last_burst = 0
+	if callbacks:
+		callbacks.emit_burst()
 	# Drop stale refs and enforce the cap. If we're at MAX_BURST_CLONES, free
 	# the oldest live clone before spawning the new one.
 	var live_clones := []

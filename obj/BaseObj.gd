@@ -124,6 +124,9 @@ var logic_rng_static: BetterRng
 var logic_rng_seed = 0
 var logic_rng_static_seed = 0
 
+# Modding callbacks node (ObjCallbacks or a subclass). Created in _ready.
+var callbacks = null
+
 func _enter_tree():
 	if obj_name:
 		name = obj_name
@@ -146,6 +149,17 @@ func _ready():
 	for sound in $Sounds.get_children():
 		sounds[sound.name] = sound
 		sound.bus = "Fx"
+	# Modding hook surface. The Callbacks child is part of the scene
+	# (obj/BaseObj.tscn, with the script overridden per type in BaseChar.tscn /
+	# BaseProjectile.tscn). Being a scene ExtResource, its script resolves through
+	# the resource cache at scene-load time, so a mod's installScriptExtension /
+	# take_over_path swaps in its version — with zero per-instance load cost.
+	# _ready auto-chains in Godot 3, so this grabs the node for every subclass.
+	# See ObjCallbacks.gd.
+	callbacks = get_node_or_null("Callbacks")
+	if callbacks:
+		callbacks.host = self
+		callbacks.ready()
 
 func global_hitlag(amount, force=false):
 #	if is_ghost:
@@ -157,6 +171,8 @@ func global_hitlag(amount, force=false):
 	if amount > 0 and amount < 1:
 		amount == 1
 	emit_signal("global_hitlag", round(amount))
+	if callbacks:
+		callbacks.global_hitlag(round(amount))
 
 func play_sound(sound_name):
 	if is_ghost or ReplayManager.resimulating:
@@ -174,6 +190,8 @@ func refresh_hitboxes():
 	for hitbox in hitboxes:
 		hitbox.hit_objects = []
 		emit_signal("hitbox_refreshed", hitbox.name)
+	if callbacks:
+		callbacks.refresh_hitboxes()
 
 func setup_hitbox_names():
 	for i in range(hitboxes.size()):
@@ -230,6 +248,8 @@ func init(pos=null):
 		# particles / flip override), which looks like "custom hitsparks
 		# aren't working" for any projectile-issued hit.
 		custom_hitspark_config = creator.custom_hitspark_config
+	if callbacks:
+		callbacks.init()
 
 func reset_hurtbox():
 	hurtbox.x = default_hurtbox.x
@@ -252,6 +272,8 @@ func set_rumble(amount):
 	pass
 
 func change_state(state_name, state_data=null, enter=true, exit=true):
+	if callbacks:
+		callbacks.change_state(state_name, state_data)
 	state_machine._change_state(state_name, state_data, enter, exit)
 
 func obj_from_name(name):
@@ -267,6 +289,8 @@ func _on_hit_something(obj, hitbox):
 			return
 	last_object_hit = obj.obj_name
 	last_hit_frame = current_tick
+	if callbacks:
+		callbacks.hit_something(obj, hitbox)
 
 func hit_fighter_last():
 	return last_object_hit == get_opponent().obj_name or last_object_hit == get_fighter().obj_name
@@ -383,7 +407,9 @@ func copy_to(o: BaseObj):
 	o.logic_rng.state = logic_rng.state
 	o.logic_rng_static.state = logic_rng_static.state
 
-	
+	if callbacks:
+		callbacks.copy_to(o)
+
 func get_frames():
 	return ReplayManager.frames[id]
 
@@ -497,6 +523,8 @@ func spawn_object(projectile: PackedScene, pos_x: int, pos_y: int, relative=true
 	obj.set_facing(get_facing_int())
 	obj.id = id
 	emit_signal("object_spawned", obj)
+	if callbacks:
+		callbacks.spawn_object(obj)
 	return obj
 
 func get_hurtbox_center():
@@ -610,6 +638,8 @@ func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vec
 	remove_child(obj)
 
 	emit_signal("particle_effect_spawned", obj)
+	if callbacks:
+		callbacks.spawn_particle(obj)
 	return obj
 
 func get_camera():
@@ -868,6 +898,8 @@ func update_grounded():
 func on_got_parried():
 	hitlag_ticks += current_state().extra_parry_hitlag
 	current_state().on_got_perfect_parried()
+	if callbacks:
+		callbacks.on_got_parried()
 
 func get_state(state_name):
 	return state_machine.get_state(state_name)
@@ -878,6 +910,8 @@ func on_got_blocked():
 	state.was_blocked = true
 	if state.get("number_of_hits_blocked") != null:
 		state.number_of_hits_blocked += 1
+	if callbacks:
+		callbacks.on_got_blocked()
 
 func on_got_parried_by(who):
 	current_state().on_got_perfect_parried_by(who)
@@ -901,6 +935,8 @@ func deactivate_hitboxes():
 
 func hit_by(hitbox: Hitbox):
 	emit_signal("got_hit")
+	if callbacks:
+		callbacks.hit_by(hitbox)
 
 func get_pos():
 	return {
@@ -916,10 +952,12 @@ func xy_to_dir(x, y, mul="1.0", div="100.0"):
 func on_state_started(state):
 	state_interruptable = false
 	state_hit_cancellable = false
-	pass
+	if callbacks:
+		callbacks.state_started(state)
 
 func on_state_ended(state):
-	pass
+	if callbacks:
+		callbacks.state_ended(state)
 
 func get_collision_box():
 	return { 
@@ -940,6 +978,8 @@ func distance_to(object: BaseObj):
 	return fixed.vec_dist(str(p1.x), str(p1.y), str(p2.x), str(p2.y))
 
 func tick():
+	if callbacks:
+		callbacks.pre_tick()
 	if current_tick <= 0:
 		update_data()
 
@@ -947,15 +987,18 @@ func tick():
 		hitlag_ticks -= 1
 	else:
 		normal_tick()
-	
+
 #	for particle in particles.get_children():
 #		particle.tick()
 	can_update_sprite = true
 	update_collision_boxes()
 	update_data()
+	if callbacks:
+		callbacks.post_tick()
 
 func on_hit_ceiling():
-	pass
+	if callbacks:
+		callbacks.on_hit_ceiling()
 
 func state_tick():
 	var once = true

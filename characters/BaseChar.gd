@@ -529,6 +529,8 @@ func clash():
 	if feints < num_feints:
 		feints += 1
 	emit_signal("clashed")
+	if callbacks:
+		callbacks.clashed()
 
 func get_visual_hp():
 	var ratio = float(hp) / MAX_HEALTH
@@ -1115,6 +1117,8 @@ func reapply_style():
 
 func start_super(freeze_ticks=0):
 	emit_signal("super_started", freeze_ticks)
+	if callbacks:
+		callbacks.super_started(freeze_ticks)
 
 func change_stance_to(stance):
 	self.stance = stance
@@ -1164,13 +1168,16 @@ func on_state_changed(states_stack):
 	pass
 
 func on_got_hit():
-	pass
+	if callbacks:
+		callbacks.got_hit()
 
 func on_got_hit_by_fighter():
-	pass
+	if callbacks:
+		callbacks.got_hit_by_fighter()
 
 func on_got_hit_by_projectile():
-	pass
+	if callbacks:
+		callbacks.got_hit_by_projectile()
 
 func gain_burst_meter(amount=null):
 	if !burst_enabled:
@@ -1745,8 +1752,10 @@ func counter_hitbox(hitbox):
 
 
 func hit_by(hitbox, force_hit=false):
+	if callbacks:
+		callbacks.hit_by(hitbox)
 	if parried:
-		return 
+		return
 	if hitbox.name in parried_hitboxes:
 		return 
 	if not hitbox.hits_otg and is_otg():
@@ -2041,7 +2050,8 @@ func block_hitbox(hitbox, force_parry=false, force_block=false, ignore_guard_bre
 			on_parried()
 
 func on_parried():
-	pass
+	if callbacks:
+		callbacks.parried()
 
 func projectile_free_cancel():
 #	if current_state().state_name in ["Burst", "DefensiveBurst", "OffensiveBurst"]:
@@ -2414,6 +2424,8 @@ func process_continue():
 	return false
 
 func tick_before():
+	if callbacks:
+		callbacks.tick_before()
 	if queued_action == "Forfeit":
 		if forfeit:
 			queued_action = "Continue"
@@ -2601,6 +2613,8 @@ func can_be_thrown():
 	return .can_be_thrown() and blockstun_ticks <= 0
 
 func tick():
+	if callbacks:
+		callbacks.pre_tick()
 	if is_ghost and !is_grounded():
 		ghost_was_in_air = true
 	if hitlag_ticks > 0:
@@ -2777,6 +2791,8 @@ func tick():
 		if "emotes" in ReplayManager.frames:
 			if current_tick in ReplayManager.frames.emotes[id]:
 				emote(ReplayManager.frames.emotes[id][current_tick])
+	if callbacks:
+		callbacks.post_tick()
 
 func passive_sadness_gain():
 	var dir = fixed.sign(last_vel.x)
@@ -2938,6 +2954,8 @@ func on_action_selected(action, data, extra):
 		if !state.is_usable():
 			action = "Forfeit"
 	emit_signal("action_selected", action, data, extra)
+	if callbacks:
+		callbacks.action_selected(action, data, extra)
 
 
 func drain_air_option_bar(amount):

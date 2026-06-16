@@ -169,6 +169,7 @@ func _on_hit_something(obj, hitbox):
 
 
 func on_parried():
+	.on_parried()
 	add_juke_pips(JUKE_PIPS_PER_USE)
 
 func on_got_blocked():
