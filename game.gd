@@ -59,11 +59,6 @@ var game_end_tick = 0
 var frame_passed = false
 
 var game_finished = false
-# True once a spectated match's replay has been autosaved. Survives
-# buffer_playback rewinds (which reset game_finished to replay the match), so
-# pressing the restart-playback key doesn't keep firing the autosave. Fresh
-# per game instance, so the next spectated match still saves.
-var spectator_autosaved = false
 
 var ghost_cleaned = true
 
@@ -699,7 +694,11 @@ func tick():
 	else :
 		ReplayManager.frames.finished = true
 	if should_game_end():
-		if started_multiplayer:
+		# Spectators autosave from end_game instead (with the streamed user_data
+		# names, not the local network usernames, which a spectator doesn't have
+		# mapped). Both paths share Network.replay_saved, so excluding spectators
+		# here keeps the spectated replay saved exactly once with the right name.
+		if started_multiplayer and !spectating:
 			if not ReplayManager.playback:
 				Network.autosave_match_replay(match_data, p1_username, p2_username)
 		end_game()
@@ -1251,16 +1250,20 @@ func end_game():
 	p1.game_over = true
 	p2.game_over = true
 
-	# Spectated matches play back the host's streamed frames as a singleplayer
-	# game, so the started_multiplayer autosave in the main loop never covers
-	# them. Save here instead, gated by spectator_autosaved so a buffer_playback
-	# rewind (which resets game_finished and re-runs end_game when the replay
-	# hits the KO again) doesn't keep autosaving. By now the frames we hold are
-	# the whole match — you can't play back to the KO without them.
-	if spectating and !spectator_autosaved:
+	# Spectated matches aren't covered by the started_multiplayer autosave that
+	# only runs when ReplayManager.playback is false, so save here instead. The
+	# guard must be CROSS-instance: watching a spectated replay tears down and
+	# rebuilds the whole game (auto-replay 120 ticks after the KO and every
+	# rewind go through _on_playback_requested -> setup_game), so a per-instance
+	# flag can't stop each rebuilt instance's end_game from saving again — that
+	# was the "autosaves the same replay over and over" bug. Network.replay_saved
+	# lives on the Network singleton, is the same flag the started_multiplayer
+	# autosave sets (so the two paths dedupe against each other), survives the
+	# instance rebuild, and is reset once per new match in main._on_match_ready.
+	if spectating and !Network.replay_saved:
 		var ud = match_data.get("user_data", {})
 		ReplayManager.save_replay_mp(match_data, str(ud.get("p1", "p1")), str(ud.get("p2", "p2")))
-		spectator_autosaved = true
+		Network.replay_saved = true
 
 	if !is_ghost:
 		if !ReplayManager.playback and !ReplayManager.replaying_ingame and !is_in_replay:

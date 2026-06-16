@@ -201,6 +201,11 @@ func _on_received_spectator_match_data(data):
 func _on_match_ready(data):
 	Utils.normalize_timer_settings(data)
 	match_data = data
+	# New match (incl. a freshly-accepted spectate): re-arm the once-per-match
+	# autosave guard. Replay loops rebuild the game through _on_playback_requested
+	# -> setup_game, which does NOT pass through here, so the flag survives them
+	# and the spectated replay only autosaves once. See game.end_game.
+	Network.replay_saved = false
 	has_submitted_a_turn = false
 	last_backup_tick = -1
 	style_permission_requested.clear()
