@@ -45,10 +45,13 @@ func _ready():
 		if not tick_timer.is_connected("timeout", self, "on_tick_timer_timeout"):
 			tick_timer.connect("timeout", self, "on_tick_timer_timeout")
 	call_deferred("update_dir")
-	callbacks = get_node_or_null("Callbacks")
-	if callbacks:
-		callbacks.host = self
-		callbacks.ready()
+	# Gated on ModLoader.active — with mods off, callbacks stays null so the
+	# fire-sites skip (inert scene node just left unused). See ParticleCallbacks.gd.
+	if ModLoader.active:
+		callbacks = get_node_or_null("Callbacks")
+		if callbacks:
+			callbacks.host = self
+			callbacks.ready()
 
 func update_dir():
 	var timer = Timer.new()

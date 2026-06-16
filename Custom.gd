@@ -188,14 +188,16 @@ func _ready():
 		simple_colors[i] = Color(simple_colors[i])
 		simple_outlines[i] = Color(simple_outlines[i])
 	make_custom_folder()
-	# load() (not preload) so a mod's installScriptExtension/take_over_path swaps
-	# in its StyleCallbacks; resolved once at autoload _ready, after mods install.
-	callbacks = Node.new()
-	callbacks.name = "Callbacks"
-	callbacks.set_script(load("res://StyleCallbacks.gd"))
-	callbacks.host = self
-	add_child(callbacks)
-	callbacks.ready()
+	# Only build the callbacks node when mods are active (nothing can override the
+	# StyleCallbacks script otherwise). load() (not preload) so take_over_path is
+	# picked up; resolved once at autoload _ready, after mods install.
+	if ModLoader.active:
+		callbacks = Node.new()
+		callbacks.name = "Callbacks"
+		callbacks.set_script(load("res://StyleCallbacks.gd"))
+		callbacks.host = self
+		add_child(callbacks)
+		callbacks.ready()
 	
 func make_custom_folder():
 	var dir = Directory.new()

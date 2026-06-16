@@ -53,12 +53,19 @@ func pre_tick():
 func post_tick():
 	pass
 
-# A state began on this object.
-func state_started(state):
+# A state was entered on this object. Fired by the StateMachine (the single
+# non-overridden driver), so it fires for every state regardless of how the
+# state subclass overrides _enter — no per-state callbacks node needed. `state`
+# is the state node (state.host is this object).
+func state_entered(state):
 	pass
 
-# A state ended on this object.
-func state_ended(state):
+# A state was exited on this object.
+func state_exited(state):
+	pass
+
+# A state ticked on this object.
+func state_ticked(state):
 	pass
 
 # This object connected with something. `obj` is what was hit, `hitbox` the box

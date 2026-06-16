@@ -149,17 +149,17 @@ func _ready():
 	for sound in $Sounds.get_children():
 		sounds[sound.name] = sound
 		sound.bus = "Fx"
-	# Modding hook surface. The Callbacks child is part of the scene
-	# (obj/BaseObj.tscn, with the script overridden per type in BaseChar.tscn /
-	# BaseProjectile.tscn). Being a scene ExtResource, its script resolves through
-	# the resource cache at scene-load time, so a mod's installScriptExtension /
-	# take_over_path swaps in its version — with zero per-instance load cost.
-	# _ready auto-chains in Godot 3, so this grabs the node for every subclass.
-	# See ObjCallbacks.gd.
-	callbacks = get_node_or_null("Callbacks")
-	if callbacks:
-		callbacks.host = self
-		callbacks.ready()
+	# Modding hook surface. The Callbacks child is a scene ExtResource (obj/
+	# BaseObj.tscn, script overridden per type in BaseChar/BaseProjectile.tscn),
+	# so a mod's take_over_path swaps in its version with zero per-instance load.
+	# Gated on ModLoader.active: with mods OFF, callbacks stays null so every
+	# `if callbacks:` fire-site skips (the inert node is just left unused). _ready
+	# auto-chains in Godot 3, so this runs for every subclass. See ObjCallbacks.gd.
+	if ModLoader.active:
+		callbacks = get_node_or_null("Callbacks")
+		if callbacks:
+			callbacks.host = self
+			callbacks.ready()
 
 func global_hitlag(amount, force=false):
 #	if is_ghost:
@@ -952,12 +952,9 @@ func xy_to_dir(x, y, mul="1.0", div="100.0"):
 func on_state_started(state):
 	state_interruptable = false
 	state_hit_cancellable = false
-	if callbacks:
-		callbacks.state_started(state)
 
 func on_state_ended(state):
-	if callbacks:
-		callbacks.state_ended(state)
+	pass
 
 func get_collision_box():
 	return { 

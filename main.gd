@@ -43,10 +43,12 @@ func _enter_tree():
 
 func _ready():
 	# Modding hook surface (app/match lifecycle). Scene-embedded in Main.tscn;
-	# see MainCallbacks.gd.
-	callbacks = get_node_or_null("Callbacks")
-	if callbacks:
-		callbacks.host = self
+	# gated on ModLoader.active — stays null when mods are off (fire-sites skip).
+	# See MainCallbacks.gd.
+	if ModLoader.active:
+		callbacks = get_node_or_null("Callbacks")
+		if callbacks:
+			callbacks.host = self
 	# Re-enforce the busy-mode toggle every time Main initializes — exit-match
 	# calls Global.reload(), so even though SteamLobby (autoload) keeps the
 	# preference, the lobby member data could have been left as "fighting"

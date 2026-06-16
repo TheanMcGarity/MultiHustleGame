@@ -39,7 +39,9 @@ onready var camera: GoodCamera = $Camera2D
 onready var objects_node = $Objects
 onready var fx_node = $Fx
 # Modding hook surface. See Callbacks.gd — game.gd calls callbacks.<event>(...)
-# at every important moment; mods extend the script to react.
+# at every important moment; mods extend the script to react. Single instance
+# per match, so it's left always-on (empty no-op methods when no mod overrides);
+# the per-instance hosts (objects/particles/states) are the ones gated on mods.
 onready var callbacks = $Callbacks
 
 var mouse_pressed = false

@@ -54,11 +54,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/ActionSelector/ButtonCategoryContainer.gd"
 }, {
-"base": "Node",
-"class": "CharStateCallbacks",
-"language": "GDScript",
-"path": "res://characters/states/CharStateCallbacks.gd"
-}, {
 "base": "CharacterState",
 "class": "CharacterHurtState",
 "language": "GDScript",
@@ -274,11 +269,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ObjectState.gd"
 }, {
-"base": "Node",
-"class": "ObjectStateCallbacks",
-"language": "GDScript",
-"path": "res://ObjectStateCallbacks.gd"
-}, {
 "base": "CharacterState",
 "class": "ParryState",
 "language": "GDScript",
@@ -464,7 +454,6 @@ _global_script_class_icons={
 "BeastState": "",
 "BetterRng": "",
 "ButtonCategoryContainer": "",
-"CharStateCallbacks": "",
 "CharacterHurtState": "",
 "CharacterState": "",
 "CollapsibleSection": "",
@@ -508,7 +497,6 @@ _global_script_class_icons={
 "NinjaShuriken": "",
 "ObjCallbacks": "",
 "ObjectState": "",
-"ObjectStateCallbacks": "",
 "ParryState": "",
 "ParticleCallbacks": "",
 "ParticleEffect": "",
