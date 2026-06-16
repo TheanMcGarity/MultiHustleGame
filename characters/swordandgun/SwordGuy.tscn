@@ -9942,6 +9942,7 @@ iasa_on_hit = 25
 hit_cancel_into_string = "Grounded
 Aerial"
 guntrick = false
+draw_cancel_on_block = true
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/Taunt" index="0"]
 z_index = 1000

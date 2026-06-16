@@ -343,20 +343,26 @@ func on_attack_blocked():
 		can_update_sprite = false
 		change_state("Brandish")
 
-# Whether a draw can still come out of `state` — mirrors the two paths above:
-# try_shoot() (an unfired try_shoot command, gated by the move's own
-# can_draw_cancel() opt-out) and on_attack_blocked() (any blockable hitbox that
-# can still connect, which ignores can_draw_cancel). respect_tick measures from
-# the move's current progress so a held move past both windows stops offering it;
-# pass false for a fresh move you'd cancel into.
+# Whether a draw can still come out of `state`. Two designed routes:
+#  - an unfired try_shoot command (HSlash etc.), gated by the move's own
+#    can_draw_cancel() opt-out, or
+#  - a move flagged draw_cancel_on_block (the Taunt/Hustle): on_attack_blocked()
+#    draws it into Brandish, so the toggle is live while it can still land on
+#    block, i.e. while a hitbox is active/upcoming.
+# on_attack_blocked() is itself ungated, but a move can only ever trigger it by
+# arming bullet_cancelling via this toggle — so NOT surfacing it here (e.g. on a
+# raw, punishable move like BackSlash) is what keeps that move uncancellable.
+# respect_tick measures from the move's current progress so a held move past its
+# window stops offering it; pass false for a fresh move you'd cancel into.
 func draw_cancel_possible(state, respect_tick = true):
 	if state == null or !can_bullet_cancel():
 		return false
+	if state.has_method("can_draw_cancel") and !state.can_draw_cancel():
+		return false
 	var after_tick = state.current_tick if respect_tick else -1
-	if !(state.has_method("can_draw_cancel") and !state.can_draw_cancel()):
-		if state.has_upcoming_host_command("try_shoot", after_tick):
-			return true
-	return state.has_active_or_upcoming_hitbox(after_tick)
+	if state.has_upcoming_host_command("try_shoot", after_tick):
+		return true
+	return state.get("draw_cancel_on_block") and state.has_active_or_upcoming_hitbox(after_tick)
 
 func on_got_hit():
 	if cut_projectile:

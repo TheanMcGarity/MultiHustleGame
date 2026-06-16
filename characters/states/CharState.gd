@@ -107,6 +107,11 @@ export var can_be_counterhit = true
 export var tick_priority = 0
 export var velocity_forward_meter_gain_multiplier = "1.0"
 export var whiff_meter_gain_multiplier = "1.0"
+# Cowboy: opt this move into the on-block draw cancel (on_attack_blocked ->
+# Brandish) so its Draw toggle surfaces. Without it, only moves with a try_shoot
+# command show the toggle. Lets the Taunt/Hustle draw-cancel without lighting it
+# up on every raw attack with a hitbox.
+export var draw_cancel_on_block = false
 
 
 export var _c_Super = 0
