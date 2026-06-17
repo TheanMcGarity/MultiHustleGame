@@ -19,7 +19,6 @@ onready var settings_nodes = {
 	"stage_width": $"%StageWidth",
 	"p2_dummy": $"%P2Dummy",
 	"di_enabled": $"%DIEnabled",
-	"prorated_di": $"%ProratedDI",
 	"turbo_mode": $"%TurboMode",
 	"infinite_resources": $"%InfiniteResources",
 	"one_hit_ko": $"%OneHitKO",
