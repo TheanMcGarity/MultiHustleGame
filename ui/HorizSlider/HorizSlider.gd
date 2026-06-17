@@ -10,17 +10,8 @@ export var min_value = 0
 export var max_value = 100
 
 var buffer_value_changed = false
-var disabled = false
-
-# Gray out and lock the slider (used when another option makes it irrelevant).
-func set_disabled(on):
-	disabled = on
-	$Direction.editable = !on
-	modulate.a = 0.4 if on else 1.0
 
 func _input(event: InputEvent):
-	if disabled:
-		return
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == BUTTON_RIGHT and $Direction.get_rect().has_point(get_local_mouse_position()):
 			$Direction.value = default
