@@ -20,6 +20,9 @@ func _frame_0():
 	if host.fast_falling:
 		host.hover_left -= FAST_FALL_REDUCTION
 	hitbox2.plus_frames = 2
+	# Spark install groups hitbox2 with the rest of the attack (continuous);
+	# without it, leave it ungrouped (0).
+	hitbox2.group = 1 if host.spark_speed_frames > 0 else 0
 	landing_recovery = 6
 	
 func _frame_6():
