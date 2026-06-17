@@ -12,6 +12,7 @@ onready var hitbox2 = $Hitbox2
 var particle_x
 var particle_y
 var early_interrupt = false
+export var spark = false
 
 func _frame_0():
 	land_cancel = false
@@ -20,11 +21,11 @@ func _frame_0():
 	if host.fast_falling:
 		host.hover_left -= FAST_FALL_REDUCTION
 	hitbox2.plus_frames = 2
-	# Spark install groups hitbox2 with the rest of the attack (continuous);
-	# without it, leave it ungrouped (0).
-	hitbox2.group = 1 if host.spark_speed_frames > 0 else 0
 	landing_recovery = 6
 	
+func is_usable():
+	return ((spark and host.spark_speed_frames > 0) or ((not spark) and host.spark_speed_frames == 0)) and .is_usable()
+
 func _frame_6():
 	host.reset_momentum()
 #	host.move_directly(0, -1)
