@@ -1,7 +1,5 @@
 extends Node
 
-class_name GameHooks
-
 # Modding hook surface for the Game node.
 #
 # Game.tscn carries one of these as the `Hooks` child, and game.gd calls

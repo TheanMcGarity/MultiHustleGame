@@ -1,7 +1,5 @@
 extends Node
 
-class_name ParticleHooks
-
 # Modding hook surface for ParticleEffect (every particle effect). Each instance
 # creates one of these as a child in _ready (via ModLoader.attach_hooks +
 # the virtual get_hooks_script) and calls hooks.<event>(...). `host` is

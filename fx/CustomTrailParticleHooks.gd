@@ -1,7 +1,5 @@
 extends "res://fx/ParticleHooks.gd"
 
-class_name CustomTrailParticleHooks
-
 # Modding hook surface for CustomTrailParticle (the configurable trail/aura
 # particle). Extends ParticleHooks, so the base particle hooks (ready, tick,
 # start, ...) are available too, plus the trail-specific events below. `host` is

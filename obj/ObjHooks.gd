@@ -1,7 +1,5 @@
 extends Node
 
-class_name ObjHooks
-
 # Modding hook surface for BaseObj (every in-game object: fighters, projectiles,
 # and plain objects). Each BaseObj instance creates one of these as a child in
 # _ready (via ModLoader.attach_hooks + the virtual get_hooks_script),

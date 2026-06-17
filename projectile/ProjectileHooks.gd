@@ -1,7 +1,5 @@
 extends "res://obj/ObjHooks.gd"
 
-class_name ProjectileHooks
-
 # Modding hook surface for BaseProjectile. Extends ObjHooks, so every object
 # hook is available here too, plus the projectile-specific events below. `host`
 # is the BaseProjectile. See ObjHooks.gd for how to register an extension.

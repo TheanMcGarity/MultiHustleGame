@@ -1,7 +1,5 @@
 extends Node
 
-class_name StyleHooks
-
 # Modding hook surface for the style system (Custom autoload). Style data is a
 # plain Dictionary, not a node, so the hooks live on the global Custom singleton
 # (which creates one of these as a child in _ready). `host` is the Custom
