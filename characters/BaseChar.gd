@@ -1583,6 +1583,12 @@ func increment_opponent_combo(hitbox):
 			# at 1 across the whole move.
 			if not opponent.combo_proration_set:
 				opponent.combo_proration = Utils.int_min(hitbox.damage_proration, MAX_STALES)
+				# A combo opened from a (non-burst) parry gets at least 1
+				# proration so the parry punish still scales; openers that
+				# already prorate are left as-is. parry_combo / parried_burst_combo
+				# live on the comboer, which is `opponent` here (self is the victim).
+				if opponent.parry_combo and not opponent.parried_burst_combo:
+					opponent.combo_proration = Utils.int_max(opponent.combo_proration, 1)
 				opponent.combo_proration_set = true
 			if opponent.combo_count == 1 and old_count == 0 and opponent.air_movements_left < opponent.num_air_movements:
 				opponent.air_movements_left += 1
