@@ -78,6 +78,12 @@ func physics_process(delta):
 func player_actionable(player):
 	pass
 
+# A player committed an action to the sim — their locked-in move for the turn.
+# `player` is the fighter. (Sim-side; the UI-side pick is MainHooks.action_clicked,
+# and FighterHooks.action_selected is the same event on the fighter itself.)
+func player_acted(player, action, data, extra):
+	pass
+
 
 # --- spawning ---
 

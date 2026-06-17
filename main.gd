@@ -666,6 +666,8 @@ func _on_ghost_button_toggled(toggled):
 func _on_player_actionable():
 #	if singleplayer or Network.player_id == id:
 	ui_layer.on_player_actionable()
+	if hooks:
+		hooks.turn_ui_opened()
 	$"%GhostWaitTimer".start()
 	start_ghost()
 	_maybe_save_backup()
@@ -697,6 +699,8 @@ func _maybe_save_backup():
 	has_submitted_a_turn = true
 
 func on_action_clicked(action, data, extra, player_id):
+	if hooks:
+		hooks.action_clicked(player_id, action, data, extra)
 	if player_id == 1:
 		p1_ghost_action = action
 		p1_ghost_data = data

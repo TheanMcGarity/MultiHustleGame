@@ -345,6 +345,10 @@ func on_parry(parrier):
 func on_block(blocker):
 	hooks.blocked(blocker, blocker.get_opponent())
 
+# Sim-side action commit (fighter's action_selected signal). `player` is bound.
+func on_player_acted(action, data, extra, player):
+	hooks.player_acted(player, action, data, extra)
+
 func on_global_hitlag(amount):
 	if is_ghost:
 		return
@@ -387,6 +391,8 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 	p2.connect("clashed", self, "on_clash")
 	p1.connect("blocked_melee_attack", self, "on_block", [p1])
 	p2.connect("blocked_melee_attack", self, "on_block", [p2])
+	p1.connect("action_selected", self, "on_player_acted", [p1])
+	p2.connect("action_selected", self, "on_player_acted", [p2])
 	p1.connect("predicted", self, "on_prediction", [p1])
 	p2.connect("predicted", self, "on_prediction", [p2])
 	stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)

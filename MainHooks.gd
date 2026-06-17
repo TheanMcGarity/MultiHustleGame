@@ -37,3 +37,16 @@ func player_disconnected():
 # A replay was saved to `filename`.
 func replay_saved(filename):
 	pass
+
+# UI/meta turn info ---
+
+# The action UI opened for the active player — their turn, from the UI side
+# (action buttons are now available).
+func turn_ui_opened():
+	pass
+
+# A player clicked an action button in the UI (their intended move for the turn).
+# `player_id` is 1 or 2. This is the UI-side pick; the sim-side commit is
+# GameHooks.player_acted / FighterHooks.action_selected.
+func action_clicked(player_id, action, data, extra):
+	pass
