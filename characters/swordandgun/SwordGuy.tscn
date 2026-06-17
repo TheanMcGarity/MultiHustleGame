@@ -6176,7 +6176,7 @@ AerialSuper
 Aerial"
 interrupt_into_string = "Grounded
 Aerial"
-super_level = 3
+super_level = 1
 
 [node name="TimeSplitter" type="Node2D" parent="StateMachine" index="9"]
 script = ExtResource( 340 )
@@ -6627,6 +6627,7 @@ Aerial"
 interrupt_into_string = "Grounded
 Aerial"
 super_effect = false
+super_level = 0
 end = true
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/1000CutsEnd" index="0"]
@@ -6642,6 +6643,7 @@ hitstun_ticks = 25
 hitlag_ticks = 14
 victim_hitlag = 16
 cancellable = false
+damage_proration = 2
 whiff_sound = ExtResource( 337 )
 hit_sound = ExtResource( 148 )
 dir_y = "-0.2"
