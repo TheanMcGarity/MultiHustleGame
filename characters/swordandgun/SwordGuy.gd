@@ -116,8 +116,10 @@ func shift():
 			add_penalty(15)
 
 func gain_super_meter(amount, stale_amount = "1.0"):
-	# 1000 Cuts (cut_projectile) no longer cuts meter gain — the install costs
-	# supers up front and carries no neutral meter penalty while held.
+	# 1000 Cuts (cut_projectile) halves meter gain ONLY during a combo (either
+	# side comboing) — neutral meter builds at full rate while installed.
+	if obj_from_name(cut_projectile) and (combo_count > 0 or opponent.combo_count > 0):
+		amount = fixed.round(fixed.mul(str(amount), "0.5"))
 	# The time-projectile penalty fires while any of Cowboy's own time
 	# objects are alive — the frozen-round itself OR any NewTimeBullets
 	# his temporal_round spawned. Without _has_active_time_bullet the

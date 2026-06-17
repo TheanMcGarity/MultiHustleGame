@@ -24,6 +24,10 @@ func _frame_0_shared():
 		if scale_combo_meter:
 			host.combo_supers += 1
 		host.super_effect(super_freeze_ticks)
+		# Install requires 3 supers (super_level gates is_usable) but only spends
+		# 1 on activation. The parent SuperMove._frame_0_shared isn't called here,
+		# so consume the single bar explicitly.
+		host.use_super_bar()
 	else:
 		._frame_0_shared()
 
