@@ -1,37 +1,37 @@
 extends Node
 
-class_name ObjCallbacks
+class_name ObjHooks
 
 # Modding hook surface for BaseObj (every in-game object: fighters, projectiles,
 # and plain objects). Each BaseObj instance creates one of these as a child in
-# _ready (via ModLoader.attach_callbacks + the virtual get_callbacks_script),
-# and calls callbacks.<event>(...) at important moments. Every method here is an
+# _ready (via ModLoader.attach_hooks + the virtual get_hooks_script),
+# and calls hooks.<event>(...) at important moments. Every method here is an
 # empty default — the base game does nothing extra.
 #
 # A mod reacts by extending this script and registering it once at init:
 #
 #     # ModMain.gd
 #     func _init(modLoader):
-#         modLoader.installScriptExtension("res://obj/ObjCallbacks.gd")
+#         modLoader.installScriptExtension("res://obj/ObjHooks.gd")
 #
-#     # MyObjCallbacks.gd
-#     extends "res://obj/ObjCallbacks.gd"
+#     # MyObjHooks.gd
+#     extends "res://obj/ObjHooks.gd"
 #     func post_tick():
 #         print(host.obj_name, " ticked")
 #
 # installScriptExtension take_over_path()s this script, so every object instance
 # picks up the extended version automatically.
 #
-# `host` is the BaseObj these callbacks belong to. Fighters and projectiles use
-# the ObjCallbacks SUBCLASSES (FighterCallbacks / ProjectileCallbacks) which
+# `host` is the BaseObj these hooks belong to. Fighters and projectiles use
+# the ObjHooks SUBCLASSES (FighterHooks / ProjectileHooks) which
 # inherit every hook below and add their own — so overriding e.g. hit_by in a
-# FighterCallbacks works too. Ghost/prediction copies create their own callbacks
+# FighterHooks works too. Ghost/prediction copies create their own hooks
 # node, so these fire during prediction as well — gate on host.is_ghost if a
 # hook should only run on the real match.
 #
 # NOTE on tick: pre_tick/post_tick here wrap BaseObj.tick, which runs for plain
 # objects and projectiles. Fighter overrides tick() without calling super, so on
-# a Fighter the pre_tick/post_tick come from FighterCallbacks (its own tick),
+# a Fighter the pre_tick/post_tick come from FighterHooks (its own tick),
 # not this base path.
 
 var host = null
@@ -55,7 +55,7 @@ func post_tick():
 
 # A state was entered on this object. Fired by the StateMachine (the single
 # non-overridden driver), so it fires for every state regardless of how the
-# state subclass overrides _enter — no per-state callbacks node needed. `state`
+# state subclass overrides _enter — no per-state hooks node needed. `state`
 # is the state node (state.host is this object).
 func state_entered(state):
 	pass

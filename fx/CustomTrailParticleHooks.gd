@@ -1,9 +1,9 @@
-extends "res://fx/ParticleCallbacks.gd"
+extends "res://fx/ParticleHooks.gd"
 
-class_name CustomTrailParticleCallbacks
+class_name CustomTrailParticleHooks
 
 # Modding hook surface for CustomTrailParticle (the configurable trail/aura
-# particle). Extends ParticleCallbacks, so the base particle hooks (ready, tick,
+# particle). Extends ParticleHooks, so the base particle hooks (ready, tick,
 # start, ...) are available too, plus the trail-specific events below. `host` is
 # the CustomTrailParticle. The base tick() hook fires once per tick (via the
 # super .tick() call inside CustomTrailParticle.tick).

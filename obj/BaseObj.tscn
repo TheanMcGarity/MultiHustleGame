@@ -4,7 +4,7 @@
 [ext_resource path="res://addons/collision_box/CollisionBox.gd" type="Script" id=2]
 [ext_resource path="res://characters/BoxDraw.gd" type="Script" id=4]
 [ext_resource path="res://framework/FiniteStateMachine/StateMachine.gd" type="Script" id=5]
-[ext_resource path="res://obj/ObjCallbacks.gd" type="Script" id=6]
+[ext_resource path="res://obj/ObjHooks.gd" type="Script" id=6]
 
 [node name="BaseObj" type="Node2D"]
 script = ExtResource( 1 )
@@ -49,5 +49,5 @@ visible = false
 z_index = 4096
 script = ExtResource( 4 )
 
-[node name="Callbacks" type="Node" parent="."]
+[node name="Hooks" type="Node" parent="."]
 script = ExtResource( 6 )

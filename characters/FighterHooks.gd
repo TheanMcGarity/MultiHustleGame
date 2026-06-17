@@ -1,14 +1,14 @@
-extends "res://obj/ObjCallbacks.gd"
+extends "res://obj/ObjHooks.gd"
 
-class_name FighterCallbacks
+class_name FighterHooks
 
-# Modding hook surface for Fighter (BaseChar). Extends ObjCallbacks, so every
+# Modding hook surface for Fighter (BaseChar). Extends ObjHooks, so every
 # object hook (ready, init, state_started, hit_something, on_got_parried, ...)
 # is available here too, plus the fighter-specific events below. `host` is the
-# Fighter. See ObjCallbacks.gd for how to register an extension.
+# Fighter. See ObjHooks.gd for how to register an extension.
 #
 # Fighter overrides tick() without calling super, so its pre_tick()/post_tick()
-# (inherited from ObjCallbacks) are wired into the FIGHTER tick here — they fire
+# (inherited from ObjHooks) are wired into the FIGHTER tick here — they fire
 # once per fighter tick.
 
 

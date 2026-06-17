@@ -38,19 +38,19 @@ var p2_turn = false
 onready var camera: GoodCamera = $Camera2D
 onready var objects_node = $Objects
 onready var fx_node = $Fx
-# Modding hook surface. See Callbacks.gd — game.gd calls callbacks.<event>(...)
+# Modding hook surface. See Hooks.gd — game.gd calls hooks.<event>(...)
 # at every important moment; mods extend the script to react. Single instance
 # per match, so it's left always-on (empty no-op methods when no mod overrides);
 # the per-instance hosts (objects/particles/states) are the ones gated on mods.
-onready var callbacks = $Callbacks
+onready var hooks = $Hooks
 
 var mouse_pressed = false
 
 var current_tick = -1
 var max_replay_tick = 0
 var game_started = false
-# Both fighters emit "clashed" in the same tick on a clash; dedupe the callback.
-var last_clash_callback_tick = -1
+# Both fighters emit "clashed" in the same tick on a clash; dedupe the hook.
+var last_clash_hook_tick = -1
 var undoing = false
 var singleplayer = false
 var parry_freeze = false
@@ -171,7 +171,7 @@ func get_ticks_left():
 	return time - Utils.int_min(current_tick, time)
 
 func _ready():
-	callbacks.game = self
+	hooks.game = self
 
 	if is_ghost:
 		hide()
@@ -183,7 +183,7 @@ func _ready():
 		ghost_time = Time.get_unix_time_from_system()
 	else:
 		emit_signal("simulation_continue")
-	callbacks.ready()
+	hooks.ready()
 
 func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vector2.RIGHT):
 	var obj = particle_effect.instance()
@@ -257,7 +257,7 @@ func _on_super_started(ticks, player):
 		p1_super = true
 	if player == p2:
 		p2_super = true
-	callbacks.super_started(ticks, player)
+	hooks.super_started(ticks, player)
 
 func get_screen_position(player_id):
 	var screen_center = camera.get_camera_screen_center()
@@ -279,7 +279,7 @@ func on_particle_effect_spawned(fx: ParticleEffect):
 	effects.append(fx)
 	fx_node.add_child(fx)
 	fx.connect("tree_exited", self, "_on_fx_exit_tree", [fx])
-	callbacks.particle_effect_spawned(fx)
+	hooks.particle_effect_spawned(fx)
 	
 func on_object_spawned(obj: BaseObj):
 	objects.append(obj)
@@ -314,7 +314,7 @@ func on_object_spawned(obj: BaseObj):
 	for particle in obj.particles.get_children():
 		effects.append(particle)
 	connect_signals(obj)
-	callbacks.object_spawned(obj)
+	hooks.object_spawned(obj)
 
 func _on_fx_exit_tree(fx):
 	effects.erase(fx)
@@ -325,25 +325,25 @@ func _on_obj_exit_tree(obj):
 func on_hitbox_refreshed(hitbox_name):
 	p1.parried_hitboxes.erase(hitbox_name)
 	p2.parried_hitboxes.erase(hitbox_name)
-	callbacks.hitbox_refreshed(hitbox_name)
+	hooks.hitbox_refreshed(hitbox_name)
 
 func on_clash():
 	super_freeze_ticks = 5
 	parry_freeze = true
-	# Both fighters fire "clashed" the same tick — dedupe to one callback.
-	if current_tick != last_clash_callback_tick:
-		last_clash_callback_tick = current_tick
-		callbacks.clashed(p1, p2)
+	# Both fighters fire "clashed" the same tick — dedupe to one hook.
+	if current_tick != last_clash_hook_tick:
+		last_clash_hook_tick = current_tick
+		hooks.clashed(p1, p2)
 
 func on_parry(parrier):
 	super_freeze_ticks = 10
 	parry_freeze = true
-	callbacks.parried(parrier, parrier.get_opponent())
+	hooks.parried(parrier, parrier.get_opponent())
 
 # Wired to the "blocked_melee_attack" signal (the live block event; the old
-# "blocked" hookup was dead). Callback only — no freeze, to avoid changing feel.
+# "blocked" hookup was dead). Hook only — no freeze, to avoid changing feel.
 func on_block(blocker):
-	callbacks.blocked(blocker, blocker.get_opponent())
+	hooks.blocked(blocker, blocker.get_opponent())
 
 func on_global_hitlag(amount):
 	if is_ghost:
@@ -351,7 +351,7 @@ func on_global_hitlag(amount):
 	super_freeze_ticks = amount
 	parry_freeze = true
 	hit_freeze = true
-	callbacks.global_hitlag(amount)
+	hooks.global_hitlag(amount)
 
 func forfeit(id):
 	if forfeit:
@@ -363,7 +363,7 @@ func forfeit(id):
 	quitter_focus = true
 	forfeit_player = get_player(id)
 	quitter_focus_ticks = QUITTER_FOCUS_TICKS
-	callbacks.forfeit(id)
+	hooks.forfeit(id)
 
 func start_game(singleplayer: bool, match_data: Dictionary):
 	self.match_data = match_data
@@ -568,7 +568,7 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 		p1.gain_super_meter(meter_amount)
 		p2.gain_super_meter(meter_amount)
 
-	callbacks.game_started(match_data)
+	hooks.game_started(match_data)
 
 func on_prediction(ticks=7, player=null):
 	_on_super_started(ticks, player)
@@ -634,7 +634,7 @@ func tick():
 			forfeit_player.toggle_quit_graphic(false)
 		quitter_focus = false
 	frame_passed = true
-	callbacks.pre_tick()
+	hooks.pre_tick()
 	if not singleplayer:
 		if not is_ghost:
 			Network.reset_action_inputs()
@@ -689,7 +689,7 @@ func tick():
 	if (p2.state_interruptable or p2.dummy_interruptable) and not p2.busy_interrupt:
 		p1.reset_combo()
 
-	callbacks.post_tick()
+	hooks.post_tick()
 
 	if is_ghost:
 		if not ghost_hidden:
@@ -944,7 +944,7 @@ func resolve_collisions(p1, p2, step=0):
 			return resolve_collisions(p1, p2, step+1)
 
 func apply_hitboxes(players):
-	callbacks.pre_apply_hitboxes(players)
+	hooks.pre_apply_hitboxes(players)
 	var px1 = players[0]
 	var px2 = players[1]
 
@@ -1178,7 +1178,7 @@ func apply_hitboxes(players):
 		for pair in players_to_hit:
 			pair[0].hit(pair[1])
 
-	callbacks.post_apply_hitboxes(players)
+	hooks.post_apply_hitboxes(players)
 
 func get_colliding_hitbox(hitboxes, hurtbox) -> Hitbox:
 	var hit_by = null
@@ -1261,14 +1261,14 @@ func resimulate():
 func undo(cut=true):
 	ReplayManager.undo(cut)
 	game_started = false
-	callbacks.undo()
+	hooks.undo()
 	start_playback()
 
 func start_playback():
 	ReplayManager.replaying_ingame = true
 #	ReplayManager.resimulating = true
 	emit_signal("playback_requested")
-	callbacks.playback_started()
+	hooks.playback_started()
 
 func end_game():
 	if game_finished:
@@ -1315,13 +1315,13 @@ func end_game():
 
 	emit_signal("game_won", winner)
 
-	callbacks.game_ended(winner)
+	hooks.game_ended(winner)
 
 func negative_on_hit(player):
 	return player.current_state().started_during_combo and !player.opponent.current_state().started_during_combo
 
 func process_tick():
-	callbacks.process_tick()
+	hooks.process_tick()
 #	super_active = super_freeze_ticks > 0
 	if super_freeze_ticks > 0:
 		# Keep camera ticking through freeze frames so screenshake plays out.
@@ -1392,7 +1392,7 @@ func process_tick():
 				elif !is_ghost:
 					someones_turn = true
 				player_actionable = true
-				callbacks.player_actionable()
+				hooks.player_actionable(p1)
 
 			elif p2.state_interruptable and !p2_turn:
 				someones_turn = true
@@ -1409,7 +1409,7 @@ func process_tick():
 				elif !is_ghost:
 					someones_turn = true
 				player_actionable = true
-				callbacks.player_actionable()
+				hooks.player_actionable(p2)
 
 			if someones_turn:
 				ReplayManager.replaying_ingame = false
@@ -1487,7 +1487,7 @@ func playback_speed_allows_tick() -> bool:
 	return true
 
 func _physics_process(_delta):
-	callbacks.physics_process(_delta)
+	hooks.physics_process(_delta)
 	if forfeit:
 		game_paused = false
 		game_finished = true

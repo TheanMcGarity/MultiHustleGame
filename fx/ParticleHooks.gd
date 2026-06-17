@@ -1,12 +1,12 @@
 extends Node
 
-class_name ParticleCallbacks
+class_name ParticleHooks
 
 # Modding hook surface for ParticleEffect (every particle effect). Each instance
-# creates one of these as a child in _ready (via ModLoader.attach_callbacks +
-# the virtual get_callbacks_script) and calls callbacks.<event>(...). `host` is
-# the ParticleEffect. See ObjCallbacks.gd for how to register an extension; the
-# script to extend here is res://fx/ParticleCallbacks.gd.
+# creates one of these as a child in _ready (via ModLoader.attach_hooks +
+# the virtual get_hooks_script) and calls hooks.<event>(...). `host` is
+# the ParticleEffect. See ObjHooks.gd for how to register an extension; the
+# script to extend here is res://fx/ParticleHooks.gd.
 
 var host = null
 

@@ -5,7 +5,7 @@
 [ext_resource path="res://projectile/IndicatorDraw.gd" type="Script" id=4]
 [ext_resource path="res://projectile/BaseProjectile.gd" type="Script" id=5]
 [ext_resource path="res://theme.tres" type="Theme" id=6]
-[ext_resource path="res://projectile/ProjectileCallbacks.gd" type="Script" id=7]
+[ext_resource path="res://projectile/ProjectileHooks.gd" type="Script" id=7]
 
 [node name="BaseProjectile" instance=ExtResource( 1 )]
 script = ExtResource( 5 )
@@ -46,5 +46,5 @@ text = "P1"
 align = 1
 valign = 1
 
-[node name="Callbacks" parent="."]
+[node name="Hooks" parent="."]
 script = ExtResource( 7 )

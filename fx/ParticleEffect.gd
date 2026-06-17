@@ -13,10 +13,10 @@ var emitting = true
 var enabled = true
 var tick = 0
 
-# Modding callbacks node (ParticleCallbacks or a subclass). Grabbed from the
-# scene in _ready; see ParticleCallbacks.gd. Carried in fx/ParticleEffect.tscn
+# Modding hooks node (ParticleHooks or a subclass). Grabbed from the
+# scene in _ready; see ParticleHooks.gd. Carried in fx/ParticleEffect.tscn
 # (script overridden in fx/CustomTrailParticle.tscn).
-var callbacks = null
+var hooks = null
 
 var sounds_played = {
 	
@@ -45,13 +45,13 @@ func _ready():
 		if not tick_timer.is_connected("timeout", self, "on_tick_timer_timeout"):
 			tick_timer.connect("timeout", self, "on_tick_timer_timeout")
 	call_deferred("update_dir")
-	# Gated on ModLoader.active — with mods off, callbacks stays null so the
-	# fire-sites skip (inert scene node just left unused). See ParticleCallbacks.gd.
+	# Gated on ModLoader.active — with mods off, hooks stays null so the
+	# fire-sites skip (inert scene node just left unused). See ParticleHooks.gd.
 	if ModLoader.active:
-		callbacks = get_node_or_null("Callbacks")
-		if callbacks:
-			callbacks.host = self
-			callbacks.ready()
+		hooks = get_node_or_null("Hooks")
+		if hooks:
+			hooks.host = self
+			hooks.ready()
 
 func update_dir():
 	var timer = Timer.new()
@@ -78,8 +78,8 @@ func on_tick_timer_timeout():
 		set_enabled(false)
 
 func start_emitting():
-	if callbacks:
-		callbacks.start_emitting()
+	if hooks:
+		hooks.start_emitting()
 	show()
 	emitting = true
 	set_enabled(true)
@@ -92,8 +92,8 @@ func start_emitting():
 			child.restart()
 
 func start():
-	if callbacks:
-		callbacks.start()
+	if hooks:
+		hooks.start()
 	start_emitting()
 	for child in get_children():
 		if child is AnimatedSprite:
@@ -103,8 +103,8 @@ func start():
 
 func stop_emitting():
 #	emitting = false
-	if callbacks:
-		callbacks.stop_emitting()
+	if hooks:
+		hooks.stop_emitting()
 	for child in get_children():
 		if child is Particles2D:
 			child.emitting = false
@@ -112,8 +112,8 @@ func stop_emitting():
 			child.emitting = false
 
 func tick():
-	if callbacks:
-		callbacks.tick()
+	if hooks:
+		hooks.tick()
 	set_enabled(true)
 	tick_timer.start()
 	tick += 1

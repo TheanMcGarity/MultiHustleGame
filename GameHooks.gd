@@ -1,32 +1,32 @@
 extends Node
 
-class_name GameCallbacks
+class_name GameHooks
 
 # Modding hook surface for the Game node.
 #
-# Game.tscn carries one of these as the `Callbacks` child, and game.gd calls
+# Game.tscn carries one of these as the `Hooks` child, and game.gd calls
 # the methods below at every important moment of the match loop. Each method is
 # an empty default ("virtual") here, so the base game does nothing extra.
 #
 # To react to these events, a mod ships a script that extends this one and
-# overrides the callbacks it cares about, then registers it during init:
+# overrides the hooks it cares about, then registers it during init:
 #
 #     # ModMain.gd
 #     func _init(modLoader):
-#         modLoader.installScriptExtension("res://my_mod/MyCallbacks.gd")
+#         modLoader.installScriptExtension("res://my_mod/MyHooks.gd")
 #
-#     # MyCallbacks.gd
-#     extends "res://Callbacks.gd"
+#     # MyHooks.gd
+#     extends "res://GameHooks.gd"
 #     func post_tick():
 #         print("tick ", game.current_tick)
 #
 # installScriptExtension take_over_path()s this script, so every Game instance
 # (including ghost/prediction games) picks up the extended version automatically.
 #
-# `game` is the owning Game node, set by game.gd before any callback fires. Use
+# `game` is the owning Game node, set by game.gd before any hook fires. Use
 # it to read match state (game.p1, game.p2, game.current_tick, game.is_ghost,
 # game.objects, ...). Ghost/prediction games fire these too — gate on
-# game.is_ghost if a callback should only run on the real match.
+# game.is_ghost if a hook should only run on the real match.
 
 var game = null
 
@@ -74,8 +74,8 @@ func process_tick():
 func physics_process(delta):
 	pass
 
-# A player became actionable (their turn started).
-func player_actionable():
+# A player became actionable — `player` is the fighter whose turn started.
+func player_actionable(player):
 	pass
 
 

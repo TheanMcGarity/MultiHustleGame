@@ -65,21 +65,21 @@ func disable():
 	# Trigger one final redraw — the _draw funcs early-out on `disabled`,
 	# clearing whatever was previously drawn.
 	update()
-	if callbacks:
-		callbacks.on_disable()
+	if hooks:
+		hooks.on_disable()
 
 
 func on_got_parried():
 	emit_signal("got_parried")
-	if callbacks:
-		callbacks.on_got_parried()
+	if hooks:
+		hooks.on_got_parried()
 
 func _process(delta):
 	if !disabled:
 		update()
 
 func on_hit_ceiling():
-	# super fires callbacks.on_hit_ceiling() (BaseObj.on_hit_ceiling was empty
+	# super fires hooks.on_hit_ceiling() (BaseObj.on_hit_ceiling was empty
 	# before the hook, so this override must call it through now).
 	.on_hit_ceiling()
 	if fizzle_on_ceiling:
@@ -89,8 +89,8 @@ func can_hit_cancel(_fighter):
 	return hit_cancel_on_hit
 
 func hit_by(hitbox):
-	if callbacks:
-		callbacks.hit_by(hitbox)
+	if hooks:
+		hooks.hit_by(hitbox)
 	if hitbox:
 		if hitbox.throw:
 			return

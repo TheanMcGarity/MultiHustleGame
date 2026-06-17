@@ -232,8 +232,8 @@ func activate():
 	tick = 0
 	active = true
 	enabled = true
-	if host and host.callbacks:
-		host.callbacks.hitbox_activated(self)
+	if host and host.hooks:
+		host.hooks.hitbox_activated(self)
 	if host.is_in_group("Fighter"):
 		cancellable = cancellable or (bool(host.get("turbo_mode")) and !throw)
 	if victim_hitlag == -1:
@@ -250,8 +250,8 @@ func deactivate():
 	active = false
 	enabled = false
 	hit_objects = []
-	if host and host.callbacks:
-		host.callbacks.hitbox_deactivated(self)
+	if host and host.hooks:
+		host.hooks.hitbox_deactivated(self)
 
 func to_data():
 	return HitboxData.new(self)
@@ -365,8 +365,8 @@ func hit(obj):
 			host.detect(obj)
 			return
 		# Fires before to_data() snapshots the box, so a mod can mutate this hit.
-		if host and host.callbacks:
-			host.callbacks.hitbox_pre_hit(self, obj)
+		if host and host.hooks:
+			host.hooks.hitbox_pre_hit(self, obj)
 		obj.hit_by(self.to_data())
 		var can_hit = true
 		if obj.is_in_group("Fighter"):

@@ -4,7 +4,7 @@
 [ext_resource path="res://fx/CustomTrailParticle.gd" type="Script" id=2]
 [ext_resource path="res://fx/CPUParticles2D.gd" type="Script" id=3]
 [ext_resource path="res://characters/BaseChar.gdshader" type="Shader" id=4]
-[ext_resource path="res://fx/CustomTrailParticleCallbacks.gd" type="Script" id=5]
+[ext_resource path="res://fx/CustomTrailParticleHooks.gd" type="Script" id=5]
 
 [sub_resource type="ShaderMaterial" id=2]
 resource_local_to_scene = true
@@ -38,5 +38,5 @@ initial_velocity = 16.0
 scale_amount_curve = SubResource( 1 )
 script = ExtResource( 3 )
 
-[node name="Callbacks" parent="."]
+[node name="Hooks" parent="."]
 script = ExtResource( 5 )

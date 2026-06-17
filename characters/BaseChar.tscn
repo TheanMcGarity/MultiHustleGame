@@ -198,7 +198,7 @@
 [ext_resource path="res://sound/common/ex3.wav" type="AudioStream" id=196]
 [ext_resource path="res://sound/common/ex2.wav" type="AudioStream" id=197]
 [ext_resource path="res://characters/states/Frozen.gd" type="Script" id=198]
-[ext_resource path="res://characters/FighterCallbacks.gd" type="Script" id=199]
+[ext_resource path="res://characters/FighterHooks.gd" type="Script" id=199]
 
 [sub_resource type="SpriteFrames" id=3]
 animations = [ {
@@ -2111,7 +2111,7 @@ theme = ExtResource( 47 )
 text = "Grounded"
 align = 1
 
-[node name="Callbacks" parent="."]
+[node name="Hooks" parent="."]
 script = ExtResource( 199 )
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

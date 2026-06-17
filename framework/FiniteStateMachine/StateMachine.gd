@@ -136,14 +136,14 @@ func update(delta):
 	if next_state_name:
 		queue_state(next_state_name)
 
-# Route a state lifecycle event to the host object's modding callbacks node, if
-# any. Bundled into the object's Callbacks (like Hitbox) instead of a per-state
-# node. host.callbacks is null when mods are disabled (BaseObj._ready gates it),
+# Route a state lifecycle event to the host object's modding hooks node, if
+# any. Bundled into the object's Hooks (like Hitbox) instead of a per-state
+# node. host.hooks is null when mods are disabled (BaseObj._ready gates it),
 # so this is free with mods off.
 func _state_cb(method, st):
 	if !host:
 		return
-	var cb = host.get("callbacks")
+	var cb = host.get("hooks")
 	if cb:
 		cb.call(method, st)
 

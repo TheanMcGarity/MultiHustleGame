@@ -1,12 +1,12 @@
 extends Node
 
-class_name MainCallbacks
+class_name MainHooks
 
 # Modding hook surface for main.gd (the app/match controller). Main.tscn carries
-# one of these as the `Callbacks` child; main.gd grabs it in _ready and calls the
+# one of these as the `Hooks` child; main.gd grabs it in _ready and calls the
 # methods below at app/match lifecycle points. `host` is the Main node — read
 # host.game, host.match_data, host.singleplayer, host.ui_layer, etc. See
-# ObjCallbacks.gd for how to register an extension (extend res://MainCallbacks.gd).
+# ObjHooks.gd for how to register an extension (extend res://MainHooks.gd).
 
 var host = null
 

@@ -2,7 +2,7 @@
 
 [ext_resource path="res://fx/ParticleEffect.gd" type="Script" id=1]
 [ext_resource path="res://characters/CharacterMaterial.tres" type="Material" id=2]
-[ext_resource path="res://fx/ParticleCallbacks.gd" type="Script" id=3]
+[ext_resource path="res://fx/ParticleHooks.gd" type="Script" id=3]
 
 [node name="ParticleEffect" type="Node2D"]
 material = ExtResource( 2 )
@@ -12,5 +12,5 @@ script = ExtResource( 1 )
 wait_time = 0.064
 one_shot = true
 
-[node name="Callbacks" type="Node" parent="."]
+[node name="Hooks" type="Node" parent="."]
 script = ExtResource( 3 )

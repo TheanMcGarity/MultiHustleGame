@@ -1,13 +1,13 @@
 extends Node
 
-class_name StyleCallbacks
+class_name StyleHooks
 
 # Modding hook surface for the style system (Custom autoload). Style data is a
 # plain Dictionary, not a node, so the hooks live on the global Custom singleton
 # (which creates one of these as a child in _ready). `host` is the Custom
 # autoload. Each style Dictionary carries a `mod_data` dict reserved for
-# mod-specific per-style data — read/write it here. See ObjCallbacks.gd for how
-# to register an extension; the script to extend is res://StyleCallbacks.gd.
+# mod-specific per-style data — read/write it here. See ObjHooks.gd for how
+# to register an extension; the script to extend is res://StyleHooks.gd.
 
 var host = null
 

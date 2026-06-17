@@ -79,7 +79,7 @@
 [ext_resource path="res://ui/burstp2_4.png" type="Texture" id=77]
 [ext_resource path="res://HotkeysTab.gd" type="Script" id=78]
 [ext_resource path="res://ui/Window/Window.gd" type="Script" id=201]
-[ext_resource path="res://MainCallbacks.gd" type="Script" id=202]
+[ext_resource path="res://MainHooks.gd" type="Script" id=202]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -3660,7 +3660,7 @@ visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="Callbacks" type="Node" parent="."]
+[node name="Hooks" type="Node" parent="."]
 script = ExtResource( 202 )
 
 [connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/ClearParticlesButton" to="UILayer" method="_on_ClearParticlesButton_pressed"]
