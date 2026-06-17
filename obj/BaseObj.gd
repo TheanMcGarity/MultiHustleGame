@@ -126,6 +126,7 @@ var logic_rng_static_seed = 0
 
 # Modding hooks node (ObjHooks or a subclass). Created in _ready.
 var hooks = null
+var _init_hook_fired = false
 
 func _enter_tree():
 	if obj_name:
@@ -248,7 +249,18 @@ func init(pos=null):
 		# particles / flip override), which looks like "custom hitsparks
 		# aren't working" for any projectile-issued hit.
 		custom_hitspark_config = creator.custom_hitspark_config
-	if hooks:
+	# NOTE: the init hook is NOT fired here — BaseObj.init runs via a subclass's
+	# super call (e.g. Fighter.init calls .init(pos) first, then sets hp), so
+	# firing here would be before the subclass finished initializing. It's fired
+	# by _fire_init_hook() at the engine call sites, once init() has fully
+	# returned. See _fire_init_hook.
+
+# Fires the modding init hook exactly once, after init() has FULLY returned
+# (including subclass init like Fighter's hp setup). Called by the engine right
+# after each init() call site, so it never fires mid-init. Idempotent.
+func _fire_init_hook():
+	if hooks and not _init_hook_fired:
+		_init_hook_fired = true
 		hooks.init()
 
 func reset_hurtbox():
@@ -309,6 +321,7 @@ func _copy_state_variables_to(o: BaseObj):
 func copy_to(o: BaseObj):
 	if !initialized:
 		init()
+		_fire_init_hook()
 	var current_state = current_state()
 #	print(current_state().property_list)
 	o.state_machine.starting_state = current_state.name
@@ -317,6 +330,7 @@ func copy_to(o: BaseObj):
 	if creator_name and o.objs_map.has(creator_name):
 		o.creator = o.objs_map[creator_name]
 	o.init()
+	o._fire_init_hook()
 	o.update_data()
 	_copy_state_variables_to(o)
 

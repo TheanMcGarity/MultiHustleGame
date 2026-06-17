@@ -463,6 +463,8 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 	p2.set_color(Color("ff7a81"))
 	p1.init()
 	p2.init()
+	p1._fire_init_hook()
+	p2._fire_init_hook()
 
 	if match_data.has("selected_styles"):
 		var style1 = match_data.selected_styles[1]
@@ -620,6 +622,7 @@ func initialize_objects():
 	for object in active_objects:
 		if !object.initialized:
 			object.init()
+			object._fire_init_hook()
 
 func process_fx():
 	for fx in effects:
@@ -651,6 +654,7 @@ func tick():
 			continue
 		if not object.initialized:
 			object.init()
+			object._fire_init_hook()
 
 		object.tick()
 		var pos = object.get_pos()
