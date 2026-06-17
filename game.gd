@@ -49,6 +49,8 @@ var mouse_pressed = false
 var current_tick = -1
 var max_replay_tick = 0
 var game_started = false
+# Both fighters emit "clashed" in the same tick on a clash; dedupe the callback.
+var last_clash_callback_tick = -1
 var undoing = false
 var singleplayer = false
 var parry_freeze = false
@@ -328,17 +330,20 @@ func on_hitbox_refreshed(hitbox_name):
 func on_clash():
 	super_freeze_ticks = 5
 	parry_freeze = true
-	callbacks.clash()
+	# Both fighters fire "clashed" the same tick — dedupe to one callback.
+	if current_tick != last_clash_callback_tick:
+		last_clash_callback_tick = current_tick
+		callbacks.clashed(p1, p2)
 
-func on_parry():
+func on_parry(parrier):
 	super_freeze_ticks = 10
 	parry_freeze = true
-	callbacks.parry()
+	callbacks.parried(parrier, parrier.get_opponent())
 
-func on_block():
-	super_freeze_ticks = 7
-	parry_freeze = true
-	callbacks.block()
+# Wired to the "blocked_melee_attack" signal (the live block event; the old
+# "blocked" hookup was dead). Callback only — no freeze, to avoid changing feel.
+func on_block(blocker):
+	callbacks.blocked(blocker, blocker.get_opponent())
 
 func on_global_hitlag(amount):
 	if is_ghost:
@@ -376,12 +381,12 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 	else:
 		return false
 	
-	p1.connect("parried", self, "on_parry")
-	p2.connect("parried", self, "on_parry")
+	p1.connect("parried", self, "on_parry", [p1])
+	p2.connect("parried", self, "on_parry", [p2])
 	p1.connect("clashed", self, "on_clash")
 	p2.connect("clashed", self, "on_clash")
-#	p1.connect("blocked", self, "on_block")
-#	p2.connect("blocked", self, "on_block")
+	p1.connect("blocked_melee_attack", self, "on_block", [p1])
+	p2.connect("blocked_melee_attack", self, "on_block", [p2])
 	p1.connect("predicted", self, "on_prediction", [p1])
 	p2.connect("predicted", self, "on_prediction", [p2])
 	stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)

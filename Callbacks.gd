@@ -105,16 +105,18 @@ func post_apply_hitboxes(players):
 func hitbox_refreshed(hitbox_name):
 	pass
 
-# Two hitboxes clashed.
-func clash():
+# Two hitboxes clashed. `a` and `b` are the two clashing fighters.
+func clashed(a, b):
 	pass
 
-# A hit was parried.
-func parry():
+# `parrier` parried an attack from `attacker`. The parried move is
+# attacker.current_state() (attacker is the opposing fighter; for a parried
+# projectile it's the fighter that owns it).
+func parried(parrier, attacker):
 	pass
 
-# A hit was blocked.
-func block():
+# `blocker` blocked a melee attack from `attacker`.
+func blocked(blocker, attacker):
 	pass
 
 # A global hitlag/freeze was triggered for `amount` ticks.
