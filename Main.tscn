@@ -1,4 +1,4 @@
-[gd_scene load_steps=92 format=2]
+[gd_scene load_steps=95 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -78,7 +78,10 @@
 [ext_resource path="res://ModWarningWindow.tscn" type="PackedScene" id=76]
 [ext_resource path="res://ui/burstp2_4.png" type="Texture" id=77]
 [ext_resource path="res://HotkeysTab.gd" type="Script" id=78]
+[ext_resource path="res://ui/steed.png" type="Texture" id=79]
 [ext_resource path="res://ui/Window/Window.gd" type="Script" id=201]
+[ext_resource path="res://ui/CommunityEvents.gd" type="Script" id=202]
+[ext_resource path="res://MainHooks.gd" type="Script" id=203]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -2406,6 +2409,49 @@ please disable it and restart the game to play in multiplayer lobbies."
 align = 1
 autowrap = true
 
+[node name="AnnouncementScrollContainer" type="ScrollContainer" parent="UILayer/MainMenu"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -114.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = 330.0
+
+[node name="AnnouncementContainer" type="VBoxContainer" parent="UILayer/MainMenu/AnnouncementScrollContainer"]
+unique_name_in_owner = true
+margin_right = 112.0
+margin_bottom = 328.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 202 )
+
+[node name="TopLabel" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_right = 112.0
+margin_bottom = 11.0
+text = "COMMUNITY EVENTS"
+align = 1
+
+[node name="EventTexture" type="TextureRect" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_top = 12.0
+margin_right = 112.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 0, 30 )
+texture = ExtResource( 79 )
+expand = true
+stretch_mode = 1
+
+[node name="EventDescription" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_top = 42.0
+margin_right = 112.0
+margin_bottom = 74.531
+rect_min_size = Vector2( 0, 32.531 )
+text = "tournament announcement here!!!
+"
+align = 1
+autowrap = true
+clip_text = true
+
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
 unique_name_in_owner = true
 visible = false
@@ -3658,6 +3704,9 @@ align = 1
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
+
+[node name="Hooks" type="Node" parent="."]
+script = ExtResource( 203 )
 
 [connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/ClearParticlesButton" to="UILayer" method="_on_ClearParticlesButton_pressed"]
 [connection signal="text_entered" from="UILayer/GameUI/PausePanel/VBoxContainer/ReplayName" to="." method="_on_ReplayName_text_entered"]
