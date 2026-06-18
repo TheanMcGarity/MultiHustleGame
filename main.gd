@@ -7,6 +7,9 @@ onready var ui_layer = $UILayer
 onready var game_layer = $GameLayer
 onready var hud_layer = $HudLayer
 
+# Modding hooks node (MainHooks). Grabbed in _ready; see MainHooks.gd.
+var hooks = null
+
 var singleplayer = false
 var game
 var ghost_game
@@ -39,6 +42,13 @@ func _enter_tree():
 	pass
 
 func _ready():
+	# Modding hook surface (app/match lifecycle). Scene-embedded in Main.tscn;
+	# gated on ModLoader.active — stays null when mods are off (fire-sites skip).
+	# See MainHooks.gd.
+	if ModLoader.active:
+		hooks = get_node_or_null("Hooks")
+		if hooks:
+			hooks.host = self
 	# Re-enforce the busy-mode toggle every time Main initializes — exit-match
 	# calls Global.reload(), so even though SteamLobby (autoload) keeps the
 	# preference, the lobby member data could have been left as "fighting"
@@ -124,6 +134,9 @@ func _ready():
 		$"%LoadingCharactersLabel2".hide()
 		$"%LoadingCharactersLabel".hide()
 
+	if hooks:
+		hooks.ready()
+
 func _delete_char_cache(btt):
 	var dir = Directory.new()
 	_Global.css_instance.charPackages = {}
@@ -144,6 +157,8 @@ func _on_show_style_toggled(on, player_id):
 			hud.refresh_portrait_style(player_id)
 
 func _on_player_disconnected():
+	if hooks:
+		hooks.player_disconnected()
 	$"%OpponentDisconnectedLabel".show()
 #	ui_layer._on_forfeit_button_pressed()
 	ui_layer._on_opponent_disconnected()
@@ -171,6 +186,8 @@ func _on_game_started(singleplayer):
 	$"%DirectConnectLobby".hide()
 	$"%Lobby".hide()
 	$"%SteamLobby".hide()
+	if hooks:
+		hooks.game_started(singleplayer)
 
 func _on_ghost_wait_timer_timeout():
 	if is_instance_valid(game):
@@ -201,6 +218,8 @@ func _on_received_spectator_match_data(data):
 func _on_match_ready(data):
 	Utils.normalize_timer_settings(data)
 	match_data = data
+	if hooks:
+		hooks.match_ready(data)
 	# New match (incl. a freshly-accepted spectate): re-arm the once-per-match
 	# autosave guard. Replay loops rebuild the game through _on_playback_requested
 	# -> setup_game, which does NOT pass through here, so the flag survives them
@@ -279,6 +298,8 @@ func setup_game(singleplayer, data):
 		game.queue_free()
 	call_deferred("setup_game_deferred", singleplayer, data)
 	emit_signal("game_setup")
+	if hooks:
+		hooks.game_setup(singleplayer, data)
 
 func setup_main_menu_game():
 	game = preload("res://Game.tscn").instance()
@@ -289,6 +310,8 @@ func save_replay():
 	$"%SaveReplayButton".disabled = true
 	$"%SaveReplayButton".text = "saved"
 	$"%SaveReplayLabel".text = "saved replay to " + filename
+	if hooks:
+		hooks.replay_saved(filename)
 
 # Save-replay shortcut (rebindable, default Ctrl+S). With the pause menu open,
 # mirrors the Save Replay button (and updates its label inside the panel).
@@ -643,6 +666,8 @@ func _on_ghost_button_toggled(toggled):
 func _on_player_actionable():
 #	if singleplayer or Network.player_id == id:
 	ui_layer.on_player_actionable()
+	if hooks:
+		hooks.turn_ui_opened()
 	$"%GhostWaitTimer".start()
 	start_ghost()
 	_maybe_save_backup()
@@ -674,6 +699,8 @@ func _maybe_save_backup():
 	has_submitted_a_turn = true
 
 func on_action_clicked(action, data, extra, player_id):
+	if hooks:
+		hooks.action_clicked(player_id, action, data, extra)
 	if player_id == 1:
 		p1_ghost_action = action
 		p1_ghost_data = data
