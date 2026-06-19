@@ -410,20 +410,6 @@ animations = [ {
 
 [node name="BaseChar" groups=["Fighter"] instance=ExtResource( 3 )]
 script = ExtResource( 1 )
-__meta__ = {
-"limb_data": {
-"Head": {
-},
-"LeftFoot": {
-},
-"LeftHand": {
-},
-"RightFoot": {
-},
-"RightHand": {
-}
-}
-}
 gravity = "0.5"
 max_air_speed = "13"
 max_fall_speed = "8"
@@ -934,6 +920,7 @@ height = 38
 hitbox_type = 4
 hitstun_ticks = 23
 victim_hitlag = 4
+damage_proration = 3
 cancellable = false
 hits_otg = true
 can_counter_hit = false
@@ -986,6 +973,7 @@ height = 38
 hitbox_type = 4
 hitstun_ticks = 23
 victim_hitlag = 4
+damage_proration = 3
 cancellable = false
 hits_otg = true
 can_counter_hit = false
@@ -2111,7 +2099,7 @@ theme = ExtResource( 47 )
 text = "Grounded"
 align = 1
 
-[node name="Hooks" parent="."]
+[node name="Hooks" parent="." index="15"]
 script = ExtResource( 199 )
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

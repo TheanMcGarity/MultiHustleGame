@@ -59,17 +59,27 @@ func _ready() -> void:
 		root.set_meta(SESSION_FLAG, true)
 		_feed_request.request(FEED_URL)  # HTTPRequest runs off the main thread
 
-	# Hide the whole panel whenever the roadmap is hidden, and show it when the roadmap does.
+	# Panel visibility tracks the roadmap AND the "show community events" option.
 	var roadmap := get_node_or_null("%RoadmapContainer")
 	if roadmap != null:
-		roadmap.connect("visibility_changed", self, "_mirror_roadmap", [roadmap])
-		_mirror_roadmap(roadmap)
+		roadmap.connect("visibility_changed", self, "_apply_visibility")
+	var events_toggle := get_node_or_null("%ShowCommunityEventsButton")
+	if events_toggle != null:
+		events_toggle.connect("toggled", self, "_on_events_toggle")
+	_apply_visibility()
 
 
-func _mirror_roadmap(roadmap: Control) -> void:
+func _on_events_toggle(_pressed) -> void:
+	_apply_visibility()
+
+
+func _apply_visibility() -> void:
 	var panel := get_parent()  # AnnouncementScrollContainer
-	if panel != null:
-		panel.visible = roadmap.visible
+	if panel == null:
+		return
+	var roadmap := get_node_or_null("%RoadmapContainer")
+	var roadmap_visible = roadmap.visible if roadmap != null else true
+	panel.visible = roadmap_visible and Global.show_community_events
 
 
 # ---------------------------------------------------------------------------
@@ -164,7 +174,8 @@ func _make_row(ev: Dictionary) -> void:
 
 func _row_bbcode(ev: Dictionary) -> String:
 	# Opaque greys (no alpha) so the menu's brownish background doesn't bleed through.
-	# Title slightly brighter than the description for hierarchy.
+	# Title slightly brighter than the description for hierarchy. Strip [ ] so event text
+	# can't accidentally open bbcode tags.
 	var title := str(ev.title).replace("[", "").replace("]", "") if ev.has("title") else ""
 	var desc := str(ev.description).replace("[", "").replace("]", "") if ev.has("description") else ""
 	return "[center][color=#dcdcdc]%s[/color]\n[color=#b1b1b1]%s[/color][/center]" % [title, desc]

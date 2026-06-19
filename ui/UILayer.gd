@@ -97,6 +97,7 @@ onready var global_option_check_buttons = {
 	$"%EnableStyleColorsButton": "enable_custom_colors",
 	$"%EnableAurasButton": "enable_custom_particles",
 	$"%EnableHitsparksButton": "enable_custom_hit_sparks",
+	$"%ShowCommunityEventsButton": "show_community_events",
 	$"%EnableEmotes": "enable_emotes",
 	$"%LastMoveIndicatorButton": "show_last_move_indicators",
 	$"%ProjectileOwnersButton": "show_projectile_owners",

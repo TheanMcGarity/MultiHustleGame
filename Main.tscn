@@ -2565,7 +2565,7 @@ size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer"]
 margin_right = 220.0
-margin_bottom = 365.0
+margin_bottom = 378.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -2715,6 +2715,13 @@ margin_top = 239.0
 margin_right = 214.0
 margin_bottom = 251.0
 text = "enable custom hitsparks"
+
+[node name="ShowCommunityEventsButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_right = 214.0
+margin_bottom = 12.0
+pressed = true
+text = "show community events"
 
 [node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 margin_top = 252.0

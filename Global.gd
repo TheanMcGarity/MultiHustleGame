@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.9.101-steam-unstable"
+var VERSION = "1.9.102-steam-unstable"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -60,6 +60,7 @@ var enable_emotes = true
 var enable_timer_sound = true
 var steam_demo_version = false
 var show_last_move_indicators = true
+var show_community_events = true
 var speed_lines_enabled = true
 var replay_extra_freeze_frames = true
 var enable_replay_backups = true
@@ -392,6 +393,7 @@ func save_options():
 			"xyplot_invert_snap": xyplot_invert_snap,
 			"show_hitboxes": show_hitboxes,
 			"show_last_move_indicators": show_last_move_indicators,
+			"show_community_events": show_community_events,
 			"show_playback_controls": show_playback_controls,
 			"playback_hotkeys_require_window": playback_hotkeys_require_window,
 			"show_projectile_owners": show_projectile_owners,
@@ -476,6 +478,7 @@ func get_default_player_data():
 			"name_saturation": 0.5,
 			"name_color_customized": false,
 			"show_health_count": false,
+			"show_community_events": true,
 			"show_next_turn_info_hud": false,
 			"show_next_turn_info_on_chars": true,
 		}

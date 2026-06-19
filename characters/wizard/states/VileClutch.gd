@@ -13,7 +13,7 @@ func _frame_0():
 	if host.combo_count > 0:
 		iasa_at = 11
 	else:
-		iasa_at = 13
+		iasa_at = 12
 
 func process_projectile(_projectile):
 	host.can_vile_clutch = false

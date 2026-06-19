@@ -345,7 +345,7 @@ margin_left = 202.0
 margin_top = 287.0
 margin_bottom = 33.0
 min_value = 2.0
-max_value = 64.0
+max_value = 32.0
 value = 32.0
 
 [node name="LobbySizeLabel" type="Label" parent="CreateLobbyDialog"]
@@ -369,7 +369,7 @@ margin_left = 5.0
 margin_top = 21.0
 margin_right = 18.0
 margin_bottom = 33.0
-text = "32"
+text = "16"
 
 [node name="LobbyName" type="LineEdit" parent="CreateLobbyDialog"]
 unique_name_in_owner = true

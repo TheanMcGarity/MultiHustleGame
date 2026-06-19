@@ -6448,7 +6448,7 @@ type = 2
 data_ui_scene = ExtResource( 291 )
 button_texture = ExtResource( 199 )
 air_type = 2
-iasa_at = 13
+iasa_at = 12
 interrupt_from_string = "Grounded
 Aerial
 GroundedSpecial
