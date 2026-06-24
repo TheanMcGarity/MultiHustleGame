@@ -39,6 +39,12 @@ func _process(delta):
 		var idx = i if player_id == 1 else fighter.JUKE_PIPS - i - 1
 		child.visible = fighter.juke_pips > idx
 		child.texture = preload("res://characters/mutant/ActivePip.tres") if (fighter.juke_pips / 2) > idx / 2 else preload("res://characters/mutant/pip3.png")
-	separator_1.visible = fighter.juke_pips > 2
-	separator_2.visible = fighter.juke_pips > 4
+	if player_id == 1:
+		separator_1.visible = fighter.juke_pips > 2
+		separator_2.visible = fighter.juke_pips > 4
+	else:
+		# p2 reverses the child order, so Sep2 ends up after the first
+		# two pips and Sep1 after the first four — swap the thresholds.
+		separator_2.visible = fighter.juke_pips > 2
+		separator_1.visible = fighter.juke_pips > 4
 

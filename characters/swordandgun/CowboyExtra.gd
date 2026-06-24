@@ -61,7 +61,7 @@ func reset():
 	# player can arm the cancel via the hold button without selecting it first.
 	# Hold is the default selection here, so the draw is conditional.
 	$"%ShootButton".visible = draw_cancel_available()
-	$"%ShootButton".text = "Draw?"
+	$"%ShootButton".text = "Draw on Block" if fighter.draw_cancel_on_block_only(fighter.current_state(), true) else "Draw"
 
 	block_disable()
 
@@ -128,8 +128,10 @@ func update_selected_move(move_state):
 	else:
 		show_draw = fighter.draw_cancel_possible(move_state, false)
 	$"%ShootButton".visible = show_draw
-	# On hold the draw is conditional on the held move reaching its shoot tick.
-	$"%ShootButton".text = "Draw?" if move_state == null else "Draw"
+	# "Draw on Block" only for moves whose sole draw route is the on-block one;
+	# a try_shoot move draws on hit/whiff too, so it stays "Draw".
+	var label_state = fighter.current_state() if move_state == null else move_state
+	$"%ShootButton".text = "Draw on Block" if fighter.draw_cancel_on_block_only(label_state, move_state == null) else "Draw"
 	if fighter.after_image_object != null:
 		$"%DetonateButton".show()
 		update_tp_button()

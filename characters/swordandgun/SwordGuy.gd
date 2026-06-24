@@ -366,6 +366,17 @@ func draw_cancel_possible(state, respect_tick = true):
 		return true
 	return state.get("draw_cancel_on_block") and state.has_active_or_upcoming_hitbox(after_tick)
 
+# Of the two routes in draw_cancel_possible(), is `state` on the on-block one
+# only? i.e. it has no unfired try_shoot to fire on hit/whiff, so the draw won't
+# come out unless the opponent blocks. Drives the "Draw on Block" vs "Draw" label.
+func draw_cancel_on_block_only(state, respect_tick = true):
+	if state == null:
+		return false
+	var after_tick = state.current_tick if respect_tick else -1
+	if state.has_upcoming_host_command("try_shoot", after_tick):
+		return false
+	return bool(state.get("draw_cancel_on_block"))
+
 func on_got_hit():
 	.on_got_hit()
 	if cut_projectile:

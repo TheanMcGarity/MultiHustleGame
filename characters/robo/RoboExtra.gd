@@ -95,7 +95,7 @@ func update_selected_move(move_state):
 	else:
 		$"%DriveCancel".visible = fighter.drive_cancel_possible(move_state, false)
 	# On hold the drive cancel is conditional on the held move reaching its tick.
-	$"%DriveCancel".text = "Drive?" if move_state == null else "Drive"
+	$"%DriveCancel".text = "Drive"
 	if move_state:
 		if move_state.is_grab and $"%ArmorEnabled".pressed:
 			can_feint = false
@@ -171,7 +171,7 @@ func reset():
 	# player can arm the cancel via the hold button without selecting it first.
 	# Hold is the default selection here, so the drive cancel is conditional.
 	$"%DriveCancel".visible = drive_cancel_available()
-	$"%DriveCancel".text = "Drive?"
+	$"%DriveCancel".text = "Drive"
 
 	if fighter.current_state().get("disable_aerial_movement"):
 		$"%FlyEnabled".set_pressed_no_signal(false)
