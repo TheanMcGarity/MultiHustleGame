@@ -800,6 +800,17 @@ pressed = true
 text = "DI Enabled"
 expand_icon = true
 
+[node name="ProratedDI" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
+unique_name_in_owner = true
+margin_top = 303.0
+margin_right = 155.0
+margin_bottom = 315.0
+hint_tooltip = "Positively damage-prorated combos start with a scaled DI modifier."
+size_flags_horizontal = 15
+pressed = true
+text = "Prorated DI"
+expand_icon = true
+
 [node name="ShowLastDIState" type="CheckButton" parent="VBoxContainer/ScrollContainer/GameSettingsContainer"]
 unique_name_in_owner = true
 margin_top = 316.0

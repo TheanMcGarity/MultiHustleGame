@@ -291,10 +291,10 @@ var got_blocked = false
 var block_used_air_movement = false
 
 var di_enabled = true
-# Prorated DI is always on (a base mechanic, no longer a toggle): a
-# positively-prorated opener (damage_proration > 0) makes the victim's DI
-# scaling behave as if the combo were that many hits deeper — +2 proration
-# means DI starts where it would normally be on hit 3.
+# When on, a positively-prorated opener (damage_proration > 0) makes the
+# victim's DI scaling behave as if the combo were that many hits deeper —
+# +2 proration means DI starts where it would normally be on hit 3.
+var prorated_di = true
 # Gates when the prorated-DI boost is allowed to apply. The opener and any
 # follow-up hits that land in the SAME turn as the opener (multi-hit
 # starters) get unprorated DI. Flips to true at the next turn start, so
@@ -2219,7 +2219,7 @@ func get_di_scaling(brace=true, lookahead=0):
 	# combo_proration_ready gates the boost to hits in turn N+1+ of the
 	# combo — opener's-turn hits (including the rest of a multi-hit
 	# starter) don't get prorated DI.
-	if effective_count > 1 and opponent.combo_proration > 0 \
+	if prorated_di and effective_count > 1 and opponent.combo_proration > 0 \
 			and opponent.combo_proration_ready:
 		di_count += Utils.int_min(opponent.combo_proration, MAX_STALES)
 	var scaling_amount = str(Utils.int_clamp(di_count, 0, di_combo_limit))
