@@ -2,13 +2,6 @@ extends ThrowState
 
 func _frame_0():
 	host.play_sound("Swish")
-	# Skull Shaker's hit-grab opener has increment_combo = false, so it skips the
-	# scale_combo proration latch where a parry punish would normally pick up its
-	# +1 combo proration. Apply it here (once per combo) so Skull Shaker respects
-	# parry proration like any other opener.
-	if not host.combo_proration_set and (host.parry_combo or host.parried_burst_combo):
-		host.combo_proration = Utils.int_min(host.combo_proration + 1, host.MAX_STALES)
-		host.combo_proration_set = true
 	pass
 
 func _frame_6():
