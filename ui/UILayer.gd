@@ -816,19 +816,36 @@ func get_chess_timer_state():
 func restore_chess_timer_state(state):
 	if !state or !chess_timer:
 		return
+	# Seed each player's bank with their remaining time from the saved replay and
+	# keep it FROZEN. This only runs on a replay-challenge resume, which is
+	# immediately followed by the catch-up playback — the clock must not tick
+	# until live control hands over (on_player_actionable unpauses it then).
 	if state.has("p1_time_left"):
-		var paused = p1_turn_timer.paused
 		p1_turn_timer.start(state.p1_time_left)
-		p1_turn_timer.paused = paused
+		p1_turn_timer.paused = true
 	if state.has("p2_time_left"):
-		var paused = p2_turn_timer.paused
 		p2_turn_timer.start(state.p2_time_left)
-		p2_turn_timer.paused = paused
+		p2_turn_timer.paused = true
 	# Old replays predate debt tracking; default to 0 so they restore cleanly.
 	p1_debt = float(state.get("p1_debt", 0))
 	p2_debt = float(state.get("p2_debt", 0))
 	p1_just_ran_out = bool(state.get("p1_just_ran_out", false))
 	p2_just_ran_out = bool(state.get("p2_just_ran_out", false))
+	# Mark the clock as already underway. Without this, game_started is still
+	# false at the first live turn, so on_player_actionable takes the
+	# `!game_started` branch and calls a bare start() — which re-arms the timer
+	# to wait_time (the FULL per-player bank) and wipes the remainder we just
+	# restored, handing both players a fresh full clock ("30 min of fluff").
+	# Forcing it true routes that first turn through the per-turn `else` branch,
+	# which preserves the restored bank.
+	game_started = true
+	# The skipped !game_started branch is also where MIN_TURN_TIME (low-time
+	# threshold + chess refresh floor) gets seeded, so seed it here instead.
+	if is_instance_valid(game) and game.match_data:
+		if timer_mode == "chess":
+			MIN_TURN_TIME = game.match_data.get("turn_min_length", MIN_TURN_TIME)
+		elif timer_mode == "increment":
+			MIN_TURN_TIME = game.match_data.get("increment_per_turn", 0)
 
 func sync_timer(player_id):
 	if Network.multiplayer_active:
@@ -1315,6 +1332,16 @@ func hide_rematch_menu():
 		disconnected_label.hide()
 
 func _process(delta):
+	# Freeze the turn clocks while a replay is catching up (replay challenge /
+	# backup resume). During playback the recorded inputs drive the match and the
+	# players aren't on the clock yet — letting the real-time Timer nodes tick
+	# here would drain a player's bank through the whole catch-up and can even
+	# time a phantom turn out before live play resumes. `resimulating` is the
+	# fast rollback resync during live play (not a watched catch-up), so it's
+	# excluded — same split as game.gd's is_in_replay.
+	if timer_mode != "none" and ReplayManager.playback and not ReplayManager.resimulating:
+		p1_turn_timer.paused = true
+		p2_turn_timer.paused = true
 
 	if chess_timer and is_instance_valid(game) and game.match_data:
 		var state = {
