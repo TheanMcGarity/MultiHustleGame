@@ -620,13 +620,24 @@ func try_drive_cancel(fast=false):
 		change_state("DriveCancel" if !fast else "FastDriveCancel")
 
 # Whether a drive cancel can still come out of `state`. Both robot paths
-# (try_drive_cancel() on hit and on_attack_blocked() on block) require the
-# try_drive_cancel host command, so this is just "is that command still
-# upcoming". respect_tick as in SwordGuy.draw_cancel_possible.
+# (try_drive_cancel() on hit/whiff and on_attack_blocked() on block) require the
+# try_drive_cancel host command, so this is "is that command still upcoming".
+# respect_tick as in SwordGuy.draw_cancel_possible.
+#
+# The command fires during state_tick() (inside .tick()), BEFORE this tick's
+# toggle latches into drive_cancel (Robot.tick() sets it after .tick()), so
+# arming on the command's own tick is too late — the cancel already ran (or
+# didn't). Require it strictly ahead of current progress so the toggle stops
+# offering itself on the no-op frame. (The block path latches in time the same
+# way, but arming one tick earlier still covers it.)
 func drive_cancel_possible(state, respect_tick = true):
 	if state == null:
 		return false
-	var after_tick = state.current_tick if respect_tick else -1
+	# A decision at displayed tick T resolves with the first simulated tick
+	# advancing the move to T+1, and try_drive_cancel fires inside .tick() before
+	# the toggle latches into drive_cancel (Robot.tick() latches after .tick()), so
+	# arming at the decision only takes hold from T+2 — require command >= T+2.
+	var after_tick = state.current_tick + 2 if respect_tick else -1
 	return state.has_upcoming_host_command("try_drive_cancel", after_tick)
 
 func on_state_ended(state):

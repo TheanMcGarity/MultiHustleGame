@@ -88,13 +88,13 @@ func update_selected_move(move_state):
 #		else:
 #			$"%FlyEnabled".set_pressed_no_signal(false)
 
-	# Hold (no specific move): available if any reachable move can still drive
-	# cancel. A specific move: only if that move itself can (checked fresh).
-	if move_state == null:
-		$"%DriveCancel".visible = drive_cancel_available()
-	else:
-		$"%DriveCancel".visible = fighter.drive_cancel_possible(move_state, false)
-	# On hold the drive cancel is conditional on the held move reaching its tick.
+	# A DIFFERENT move we'd cancel into is a fresh cast (starts at tick 0), checked
+	# progress-free. "Hold" (null) and the move we're CURRENTLY in respect progress:
+	# a try_drive_cancel that already passed in this move won't fire again, so the
+	# toggle there is dead (e.g. a whiffed move in recovery while a waiting opponent
+	# keeps the game paused).
+	var fresh = move_state != null and move_state != fighter.current_state()
+	$"%DriveCancel".visible = fighter.drive_cancel_possible(move_state, false) if fresh else drive_cancel_available()
 	$"%DriveCancel".text = "Drive"
 	if move_state:
 		if move_state.is_grab and $"%ArmorEnabled".pressed:

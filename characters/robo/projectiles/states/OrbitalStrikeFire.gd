@@ -4,9 +4,9 @@ const GROUND_FIRE_DISTANCE = 64
 var last_ground_fire = 0
 const MOVE_SPEED = 3
 const ACTIVE_TIME = 20
-const NEUTRAL_PENALTY = 2
-const WIGGLE_PENALTY = 7
-const WIGGLE_PENALTY_INCREASE = 5
+const NEUTRAL_PENALTY = 1
+const WIGGLE_PENALTY = 3
+const WIGGLE_PENALTY_INCREASE = 3
 const ACCEL = 1
 
 var active_time = ACTIVE_TIME

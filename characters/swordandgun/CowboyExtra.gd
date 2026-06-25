@@ -27,6 +27,7 @@ func get_extra():
 	}
 
 func show_options():
+	print("[DRAWDBG] show_options id=", fighter.id, " (hiding) state=", fighter.current_state().state_name, " ctick=", fighter.current_state().current_tick)
 	$"%ShootButton".hide()
 	$"%ShootButton".pressed = false
 	$"%DetonateButton".hide()
@@ -62,6 +63,7 @@ func reset():
 	# Hold is the default selection here, so the draw is conditional.
 	$"%ShootButton".visible = draw_cancel_available()
 	$"%ShootButton".text = "Draw on Block" if fighter.draw_cancel_on_block_only(fighter.current_state(), true) else "Draw"
+	print("[DRAWDBG] reset id=", fighter.id, " state=", fighter.current_state().state_name, " ctick=", fighter.current_state().current_tick, " vis=", $"%ShootButton".visible)
 
 	block_disable()
 
@@ -120,18 +122,20 @@ func draw_cancel_available():
 
 func update_selected_move(move_state):
 	.update_selected_move(move_state)
-	# Hold (no specific move): available if any reachable move can still draw.
-	# A specific move: only if that move itself can draw (checked fresh).
-	var show_draw
-	if move_state == null:
-		show_draw = draw_cancel_available()
-	else:
-		show_draw = fighter.draw_cancel_possible(move_state, false)
+	# A DIFFERENT move we'd cancel into is a fresh cast (starts at tick 0), so its
+	# draw is checked progress-free. But "hold" (null) and the move we're CURRENTLY
+	# in must respect progress: a try_shoot that already passed in this move won't
+	# fire again, so offering the toggle there is a dead button. Without this, a
+	# whiffed Horiz. Slash in recovery (its try_shoot long gone) still lit the
+	# toggle every tick the waiting opponent kept the game paused.
+	var fresh = move_state != null and move_state != fighter.current_state()
+	var show_draw = fighter.draw_cancel_possible(move_state, false) if fresh else draw_cancel_available()
 	$"%ShootButton".visible = show_draw
 	# "Draw on Block" only for moves whose sole draw route is the on-block one;
 	# a try_shoot move draws on hit/whiff too, so it stays "Draw".
-	var label_state = fighter.current_state() if move_state == null else move_state
-	$"%ShootButton".text = "Draw on Block" if fighter.draw_cancel_on_block_only(label_state, move_state == null) else "Draw"
+	var label_state = move_state if fresh else fighter.current_state()
+	$"%ShootButton".text = "Draw on Block" if fighter.draw_cancel_on_block_only(label_state, !fresh) else "Draw"
+	print("[DRAWDBG] usm id=", fighter.id, " move=", (move_state.state_name if move_state else "null"), " cur=", fighter.current_state().state_name, " ctick=", fighter.current_state().current_tick, " fresh=", fresh, " vis=", show_draw)
 	if fighter.after_image_object != null:
 		$"%DetonateButton".show()
 		update_tp_button()

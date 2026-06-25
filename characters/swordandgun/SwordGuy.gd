@@ -356,15 +356,32 @@ func on_attack_blocked():
 # raw, punishable move like BackSlash) is what keeps that move uncancellable.
 # respect_tick measures from the move's current progress so a held move past its
 # window stops offering it; pass false for a fresh move you'd cancel into.
+#
+# The two routes have different latch timing within a tick:
+#  - try_shoot fires during state_tick() (inside .tick()), BEFORE this tick's
+#    toggle latches into bullet_cancelling (SwordGuy.tick() sets it after .tick()).
+#    So arming on the command's own tick is too late — the command already ran.
+#    Require it strictly ahead of current progress (current_tick + 1).
+#  - on_attack_blocked fires in apply_hitboxes(), AFTER the latch, so arming on
+#    the active-hitbox tick still connects — that route stays inclusive.
 func draw_cancel_possible(state, respect_tick = true):
 	if state == null or !can_bullet_cancel():
 		return false
 	if state.has_method("can_draw_cancel") and !state.can_draw_cancel():
 		return false
-	var after_tick = state.current_tick if respect_tick else -1
-	if state.has_upcoming_host_command("try_shoot", after_tick):
+	# A decision at displayed tick T resolves with the FIRST simulated tick
+	# advancing the move to T+1. try_shoot fires inside .tick() BEFORE the toggle
+	# latches into bullet_cancelling (SwordGuy.tick() latches after .tick()), so
+	# arming at the decision only takes hold from T+2 — require try_shoot >= T+2.
+	var shoot_after_tick = state.current_tick + 2 if respect_tick else -1
+	# on_attack_blocked fires in apply_hitboxes(), AFTER the latch in that same T+1
+	# tick, so the on-block route is reachable one tick sooner (>= T+1).
+	var block_after_tick = state.current_tick + 1 if respect_tick else -1
+	var shoot = state.has_upcoming_host_command("try_shoot", shoot_after_tick)
+	var blk = state.get("draw_cancel_on_block") and state.has_active_or_upcoming_hitbox(block_after_tick)
+	if shoot:
 		return true
-	return state.get("draw_cancel_on_block") and state.has_active_or_upcoming_hitbox(after_tick)
+	return blk
 
 # Of the two routes in draw_cancel_possible(), is `state` on the on-block one
 # only? i.e. it has no unfired try_shoot to fire on hit/whiff, so the draw won't
@@ -372,8 +389,10 @@ func draw_cancel_possible(state, respect_tick = true):
 func draw_cancel_on_block_only(state, respect_tick = true):
 	if state == null:
 		return false
-	var after_tick = state.current_tick if respect_tick else -1
-	if state.has_upcoming_host_command("try_shoot", after_tick):
+	# Match draw_cancel_possible's try_shoot timing (T+2): a command we can no
+	# longer arm in time doesn't count as an on-hit route for the label either.
+	var shoot_after_tick = state.current_tick + 2 if respect_tick else -1
+	if state.has_upcoming_host_command("try_shoot", shoot_after_tick):
 		return false
 	return bool(state.get("draw_cancel_on_block"))
 
