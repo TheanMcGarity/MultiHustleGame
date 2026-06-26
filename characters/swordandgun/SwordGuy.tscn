@@ -6847,6 +6847,7 @@ GroundedAttack
 GroundedSpecial"
 hit_cancel_exceptions_string = "3Combo"
 draw_cancel_on_block = true
+draw_cancel_on_block_min_tick = 13
 down = true
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/3ComboDown" index="0"]

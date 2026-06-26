@@ -29,7 +29,7 @@ func reset():
 	selected_move = null
 	pass
 
-func update_selected_move(move_state):
+func update_selected_move(move_state, will_restart := false):
 	can_feint = true
 	selected_move = move_state
 	pass

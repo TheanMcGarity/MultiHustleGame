@@ -340,6 +340,13 @@ func on_attack_blocked():
 		return
 	if !has_gun:
 		return
+	# Multi-hit moves can lock the on-block draw out of their early hitboxes via
+	# draw_cancel_on_block_min_tick — the attacker's current_tick at block time is
+	# which hitbox connected, so a block before that tick (e.g. 3 Combo Down's 1st
+	# hit) doesn't draw. Toggle stays armed; it just won't fire until a later hit.
+	var state = current_state()
+	if state.get("draw_cancel_on_block") and state.current_tick < state.draw_cancel_on_block_min_tick:
+		return
 	if bullets_left > 0:
 		bullet_cancelling = false
 		can_update_sprite = false
@@ -377,8 +384,12 @@ func draw_cancel_possible(state, respect_tick = true):
 	# on_attack_blocked fires in apply_hitboxes(), AFTER the latch in that same T+1
 	# tick, so the on-block route is reachable one tick sooner (>= T+1).
 	var block_after_tick = state.current_tick + 1 if respect_tick else -1
+	# draw_cancel_on_block_min_tick locks the on-block route out of a move's early
+	# hitboxes (e.g. 3 Combo Down's 1st hit), so only count hitboxes from that tick
+	# on when deciding if the toggle is still reachable.
+	var block_floor = Utils.int_max(block_after_tick, state.draw_cancel_on_block_min_tick)
 	var shoot = state.has_upcoming_host_command("try_shoot", shoot_after_tick)
-	var blk = state.get("draw_cancel_on_block") and state.has_active_or_upcoming_hitbox(block_after_tick)
+	var blk = state.get("draw_cancel_on_block") and state.has_active_or_upcoming_hitbox(block_floor)
 	if shoot:
 		return true
 	return blk

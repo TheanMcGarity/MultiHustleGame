@@ -45,8 +45,8 @@ func drive_pressed():
 func drive_cancel_available():
 	return fighter.drive_cancel_possible(fighter.current_state(), true)
 
-func update_selected_move(move_state):
-	.update_selected_move(move_state)
+func update_selected_move(move_state, will_restart := false):
+	.update_selected_move(move_state, will_restart)
 	$"%ArmorEnabled".disabled = false
 	$"%FlyEnabled".disabled = false
 
@@ -89,11 +89,15 @@ func update_selected_move(move_state):
 #			$"%FlyEnabled".set_pressed_no_signal(false)
 
 	# A DIFFERENT move we'd cancel into is a fresh cast (starts at tick 0), checked
-	# progress-free. "Hold" (null) and the move we're CURRENTLY in respect progress:
-	# a try_drive_cancel that already passed in this move won't fire again, so the
-	# toggle there is dead (e.g. a whiffed move in recovery while a waiting opponent
-	# keeps the game paused).
-	var fresh = move_state != null and move_state != fighter.current_state()
+	# progress-free. "Hold" (null) and the in-progress move being re-displayed
+	# respect progress: a try_drive_cancel that already passed in this move won't
+	# fire again, so the toggle there is dead (e.g. a whiffed move in recovery while
+	# a waiting opponent keeps the game paused).
+	# Re-selecting the move we're already in is the exception: it re-enters from
+	# tick 0 (e.g. a second consecutive Floor It out of Floor It), so the cancel is
+	# reachable again. will_restart (the selection isn't locked in yet) flags that
+	# so we treat the same-state pick as fresh instead of a held continuation.
+	var fresh = move_state != null and (move_state != fighter.current_state() or will_restart)
 	$"%DriveCancel".visible = fighter.drive_cancel_possible(move_state, false) if fresh else drive_cancel_available()
 	$"%DriveCancel".text = "Drive"
 	if move_state:

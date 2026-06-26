@@ -112,6 +112,10 @@ export var whiff_meter_gain_multiplier = "1.0"
 # command show the toggle. Lets the Taunt/Hustle draw-cancel without lighting it
 # up on every raw attack with a hitbox.
 export var draw_cancel_on_block = false
+# Cowboy: lock the on-block draw cancel out of a multi-hit move's early hitboxes.
+# Blocking before this tick won't draw (e.g. 3 Combo Down only becomes draw-on-
+# block-cancellable from its 2nd hit). 0 = available from the first hitbox.
+export var draw_cancel_on_block_min_tick = 0
 
 
 export var _c_Super = 0
