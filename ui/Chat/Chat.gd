@@ -360,14 +360,27 @@ func on_chat_message_received(player_id: int, message: String):
 	node.fit_content_height = true
 	if !(player_id == Network.player_id):
 		play_chat_sound()
-	var stick = _at_bottom($"%ScrollContainer")
-	$"%MessageContainer".call_deferred("add_child", node)
-	if $"%MessageContainer".get_child_count() + 1 > MAX_LINES:
-		$"%MessageContainer".call_deferred("remove_child", $"%MessageContainer".get_child(0))
+	# Network-path messages (non-steam chat + the resync request/deny notices)
+	# all originate during an active match. On Steam that means they belong in
+	# the match tab — defaulting to %MessageContainer dumped them in lobby chat.
+	# Off Steam there's no match tab, so this falls through to lobby as before.
+	var category = "match" if SteamLobby.get_status() in ["fighting", "spectating"] else "lobby"
+	var container = _container_for(category)
+	var scroll = match_scroll if category == "match" else $"%ScrollContainer"
+	var stick = _at_bottom(scroll)
+	container.call_deferred("add_child", node)
+	if container.get_child_count() + 1 > MAX_LINES:
+		container.call_deferred("remove_child", container.get_child(0))
+	if category != _active_category():
+		if category == "match":
+			unread_match = true
+		else:
+			unread_lobby = true
+		_refresh_tab_titles()
 	yield(get_tree(), 'idle_frame')
 	yield(get_tree(), 'idle_frame')
 	if stick:
-		$"%ScrollContainer".scroll_vertical = 10000000000000000
+		scroll.scroll_vertical = 10000000000000000
 
 func god_message(message: String):
 	# Respect the chat-wide mute toggle for the join/leave + system notice

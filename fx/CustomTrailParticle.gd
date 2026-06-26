@@ -698,7 +698,14 @@ func tick():
 		particles.angle = 360 - default_angle if facing == -1 else default_angle
 		particles.position.x = default_x_offset
 	else:
-		rotation = extra_rotation
+		# flip_with_character off: cancel Flip's facing-mirror so the aura reads
+		# identically on both sides. scale.x below already counters the
+		# horizontal mirror — but that mirror also turns transform_rotation θ
+		# into -θ when facing left, so the rotation has to be negated too.
+		# Without this the manual angle visibly flips when you switch sides (the
+		# reported "transform angle still gets flipped"). transform_rotation
+		# defaults to 0, so 0 * facing leaves untilted auras untouched.
+		rotation = extra_rotation * facing
 		particles.gravity.x = default_gravity_x
 		particles.angle = default_angle
 		scale.x = facing * transform_scale_x

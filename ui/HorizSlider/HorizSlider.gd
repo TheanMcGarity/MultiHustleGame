@@ -17,11 +17,13 @@ func _input(event: InputEvent):
 			$Direction.value = default
 
 func _ready():
+	if filename == "res://ui/HorizSlider/HorizSlider.tscn":
+		$Direction.min_value = min_value
+		$Direction.max_value = max_value
 	if !centered:
 		$Direction.min_value = 0
 	$Label.text = name
 	$Direction.connect("value_changed", self, "on_value_changed")
-	pass # Replace with function body.
 
 func on_value_changed(value):
 	buffer_value_changed = true
