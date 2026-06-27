@@ -127,8 +127,19 @@ var active_objects: Array = []
 # stay deterministic without padding objs_map with null entries.
 var objs_spawned_count = 0
 var objs_map = {
-	
+
 }
+# Disabled projectile husks that have lingered past DISABLED_HUSK_LINGER_TICKS:
+# already erased from objs_map and dropped from `objects` (so sim no longer sees
+# them), kept alive only until their tail sounds finish, then freed. See
+# reclaim_disabled_husks() / free_finished_husks().
+var detached_husks: Array = []
+# How many sim ticks a projectile stays in objs_map after being disabled before
+# its husk is reclaimed. Counted deterministically (once per tick on every peer)
+# so the objs_map erase lands on the same tick everywhere — keeps the rollback
+# netcode's per-tick state identical. Generous on purpose: well past any
+# realistic post-disable objs_map.has() check and past the prediction horizon.
+const DISABLED_HUSK_LINGER_TICKS = 300
 var effects: Array = []
 
 var drag_position = null
@@ -496,6 +507,7 @@ func start_game(singleplayer: bool, match_data: Dictionary):
 		"P1": p1,
 		"P2": p2,
 	}
+	detached_husks = []
 	objs_spawned_count = objs_map.size()
 	p1.objs_map = objs_map
 	p2.objs_map = objs_map
@@ -618,6 +630,50 @@ func clean_objects():
 	objects = kept
 	active_objects = active
 
+# Deterministic memory reclaim for disabled projectiles. Without this their
+# husks sit in objs_map (and the scene tree) forever — a long-match leak as
+# projectiles pile up. The constraint: ~20 sim sites iterate objs_map or probe
+# membership every tick, and the rollback netcode needs every peer's objs_map
+# identical per tick, so the erase MUST happen on the same tick everywhere.
+#
+# This runs exactly once per sim tick (NOT in clean_objects, which copy_to calls
+# an extra time), counting a fixed linger per husk. When it expires we detach the
+# husk deterministically: erase from objs_map and drop from `objects` so sim
+# stops seeing it. The node stays parented (frozen at its disable position, since
+# disabled objects aren't ticked) so its tail sounds keep playing from where it
+# died; free_finished_husks() reaps it once those finish. Real game only —
+# ghosts never accumulate disabled husks (copy_to skips disabled objects), and
+# detaching in a ghost would dodge copy_to's wholesale free and leak.
+func reclaim_disabled_husks():
+	var kept = []
+	for object in objects:
+		if !is_instance_valid(object):
+			continue
+		if object is BaseProjectile and object.disabled:
+			object.disabled_linger += 1
+			if object.disabled_linger >= DISABLED_HUSK_LINGER_TICKS:
+				objs_map.erase(object.obj_name)
+				detached_husks.append(object)
+				continue  # drop from `objects`; node lives on for its sounds
+		kept.append(object)
+	objects = kept
+
+# Non-sim reaper for detached husks: free each once its sounds finish. Timing is
+# wall-clock (audio), NOT deterministic — but that's fine, the husk is already
+# out of objs_map/objects, so nothing in the simulation can observe when it goes.
+func free_finished_husks():
+	if detached_husks.empty():
+		return
+	var still_lingering = []
+	for husk in detached_husks:
+		if !is_instance_valid(husk):
+			continue
+		if husk.is_playing_sounds():
+			still_lingering.append(husk)
+		else:
+			husk.queue_free()
+	detached_husks = still_lingering
+
 func initialize_objects():
 	for object in active_objects:
 		if !object.initialized:
@@ -649,6 +705,12 @@ func tick():
 			Network.reset_action_inputs()
 
 	clean_objects()
+	# Reclaim long-disabled projectile husks so they stop piling up in objs_map
+	# for the whole match. Real game only (ghosts don't accumulate them); the
+	# detach is deterministic (once per tick), the free is audio-gated.
+	if not is_ghost:
+		reclaim_disabled_husks()
+		free_finished_husks()
 	for object in active_objects:
 		if object.disabled:
 			continue

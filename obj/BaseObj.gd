@@ -291,7 +291,10 @@ func change_state(state_name, state_data=null, enter=true, exit=true):
 func obj_from_name(name):
 	if name is String and name in objs_map:
 		var obj = objs_map[name]
-		if obj != null:
+		# is_instance_valid (not just != null): once a reclaimed projectile husk
+		# is freed its reference is non-null but invalid, and touching .disabled
+		# on it would error. See game.reclaim_disabled_husks / BaseProjectile.
+		if is_instance_valid(obj):
 			if !obj.disabled:
 				return obj
 

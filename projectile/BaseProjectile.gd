@@ -27,13 +27,24 @@ var got_parried = false
 
 var stopped = false
 
+# Sim-tick counter since this projectile was disabled. Driven by
+# game.reclaim_disabled_husks() (disabled projectiles aren't ticked themselves),
+# so it advances once per tick on every peer. Once it crosses the linger
+# threshold the husk is detached from sim and freed — see game.gd. Plain var,
+# not state: resim re-spawns and re-disables at the same ticks so it
+# re-accumulates identically, and copy_to never copies disabled objects.
+var disabled_linger = 0
+
 func _ready():
 	state_variables.append_array(
 		["got_parried", "immunity_susceptible", "roll_immunity_susceptible", "hit_by_self_projectiles", "deletes_other_projectiles", "fizzle_on_ceiling", "movable", "can_be_hit_by_melee", "hit_cancel_on_hit", "projectile_immune", "hitlag_modifier", "stopped"]
 	)
 
 func get_opponent():
-	if creator:
+	# is_instance_valid, not truthiness: a projectile's creator can itself be a
+	# projectile that got reclaimed (freed), leaving a non-null but invalid ref
+	# that errors on access. Fall back to the id-based opponent in that case.
+	if is_instance_valid(creator):
 		return creator.get_opponent()
 	else:
 		if id == 1:
@@ -42,7 +53,7 @@ func get_opponent():
 			return get_p1()
 
 func get_fighter():
-	if creator:
+	if is_instance_valid(creator):
 		return creator.get_fighter()
 	else:
 		if id == 1:
@@ -73,6 +84,34 @@ func on_got_parried():
 	emit_signal("got_parried")
 	if hooks:
 		hooks.on_got_parried()
+
+# True while any sound this projectile owns is still audible. game.gd checks
+# this before freeing a detached husk so a tail sound (hit/fizzle/whiff) isn't
+# cut off. Covers the four places a projectile can be playing audio from:
+# the `sounds` dict, raw $Sounds children, per-state VariableSound2D, and the
+# hitbox / state sfx players. (Adapted from Furious's projectile-deletion patch.)
+func is_playing_sounds():
+	for sound_node in sounds.values():
+		if sound_node and sound_node.playing:
+			return true
+
+	for sound_node in $Sounds.get_children():
+		if sound_node and sound_node.playing:
+			return true
+
+	for state in state_machine.get_children():
+		for child in state.get_children():
+			if child is VariableSound2D:
+				if child.playing:
+					return true
+			if child is Hitbox:
+				for player in [child.hit_sound_player, child.whiff_sound_player, child.hit_bass_sound_player]:
+					if player and player.playing:
+						return true
+		for player in [state.enter_sfx_player, state.sfx_player]:
+			if player and player.playing:
+				return true
+	return false
 
 func _process(delta):
 	if !disabled:
