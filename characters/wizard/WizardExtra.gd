@@ -27,8 +27,8 @@ func on_data_changed():
 		if lock_button.pressed:
 			orb_push.visible = false
 
-func update_selected_move(move_state, will_restart := false):
-	.update_selected_move(move_state, will_restart)
+func update_selected_move(move_state):
+	.update_selected_move(move_state)
 	$"%HoverButton".disabled = false
 	$"%FastFallButton".disabled = false
 #	if move_state and move_state.get("IS_NEW_PARRY") and fighter.current_state().get("disable_aerial_movement"):

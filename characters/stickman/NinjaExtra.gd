@@ -63,8 +63,8 @@ func show_options():
 
 	update_missed_block()
 
-func update_selected_move(move_state, will_restart := false):
-	.update_selected_move(move_state, will_restart)
+func update_selected_move(move_state):
+	.update_selected_move(move_state)
 	release_button.disabled = false
 	pull_button.disabled = false
 	if move_state is CharacterState:

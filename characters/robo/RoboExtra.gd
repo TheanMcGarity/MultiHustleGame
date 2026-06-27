@@ -45,8 +45,8 @@ func drive_pressed():
 func drive_cancel_available():
 	return fighter.drive_cancel_possible(fighter.current_state(), true)
 
-func update_selected_move(move_state, will_restart := false):
-	.update_selected_move(move_state, will_restart)
+func update_selected_move(move_state):
+	.update_selected_move(move_state)
 	$"%ArmorEnabled".disabled = false
 	$"%FlyEnabled".disabled = false
 
@@ -95,9 +95,9 @@ func update_selected_move(move_state, will_restart := false):
 	# a waiting opponent keeps the game paused).
 	# Re-selecting the move we're already in is the exception: it re-enters from
 	# tick 0 (e.g. a second consecutive Floor It out of Floor It), so the cancel is
-	# reachable again. will_restart (the selection isn't locked in yet) flags that
-	# so we treat the same-state pick as fresh instead of a held continuation.
-	var fresh = move_state != null and (move_state != fighter.current_state() or will_restart)
+	# reachable again. selected_move_will_restart (the selection isn't locked in
+	# yet) flags that, so the same-state pick reads as fresh, not a held continuation.
+	var fresh = move_state != null and (move_state != fighter.current_state() or selected_move_will_restart)
 	$"%DriveCancel".visible = fighter.drive_cancel_possible(move_state, false) if fresh else drive_cancel_available()
 	$"%DriveCancel".text = "Drive"
 	if move_state:

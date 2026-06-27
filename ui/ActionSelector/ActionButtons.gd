@@ -448,7 +448,9 @@ func extra_updated():
 		# resolves, so a re-selected current move (e.g. Floor It out of Floor It)
 		# counts as a fresh cast, not a held continuation. Once locked in the move
 		# is genuinely in-progress, so this passes false and progress is respected.
-		fighter_extra.update_selected_move(current_button.state, !locked_in)
+		# Field, not a method arg, so mod PlayerExtra overrides keep their signature.
+		fighter_extra.selected_move_will_restart = !locked_in
+		fighter_extra.update_selected_move(current_button.state)
 	if !fighter_extra.can_feint:
 		$"%FeintButton".pressed = false
 		$"%FeintButton".set_disabled(true)
@@ -463,8 +465,9 @@ func on_action_selected(action, button):
 	button.set_pressed_no_signal(true)
 	if fighter_extra:
 		# An active pick is never locked in, so it always re-enters from tick 0 —
-		# pass !locked_in so re-selecting the move we're already in reads as fresh.
-		fighter_extra.update_selected_move(button.state, !locked_in)
+		# flag it so re-selecting the move we're already in reads as fresh.
+		fighter_extra.selected_move_will_restart = !locked_in
+		fighter_extra.update_selected_move(button.state)
 	var same_button = button == current_button
 	current_button = button
 	current_action = action

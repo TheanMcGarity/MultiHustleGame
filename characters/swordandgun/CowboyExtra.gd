@@ -120,8 +120,8 @@ func draw_cancel_available():
 		return false
 	return fighter.draw_cancel_possible(fighter.current_state(), true)
 
-func update_selected_move(move_state, will_restart := false):
-	.update_selected_move(move_state, will_restart)
+func update_selected_move(move_state):
+	.update_selected_move(move_state)
 	# A DIFFERENT move we'd cancel into is a fresh cast (starts at tick 0), so its
 	# draw is checked progress-free. But "hold" (null) and the in-progress move
 	# being re-displayed must respect progress: a try_shoot that already passed in
@@ -129,9 +129,9 @@ func update_selected_move(move_state, will_restart := false):
 	# Without this, a whiffed Horiz. Slash in recovery (its try_shoot long gone)
 	# still lit the toggle every tick the waiting opponent kept the game paused.
 	# Re-selecting the move we're already in is the exception: it re-enters from
-	# tick 0, so the draw is reachable again. will_restart (the pick isn't locked
-	# in yet) flags that, so the same-state re-pick counts as fresh.
-	var fresh = move_state != null and (move_state != fighter.current_state() or will_restart)
+	# tick 0, so the draw is reachable again. selected_move_will_restart (the pick
+	# isn't locked in yet) flags that, so the same-state re-pick counts as fresh.
+	var fresh = move_state != null and (move_state != fighter.current_state() or selected_move_will_restart)
 	var show_draw = fighter.draw_cancel_possible(move_state, false) if fresh else draw_cancel_available()
 	$"%ShootButton".visible = show_draw
 	# "Draw on Block" only for moves whose sole draw route is the on-block one;

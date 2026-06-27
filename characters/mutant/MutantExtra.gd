@@ -49,8 +49,8 @@ func show_options():
 func is_invalid_state(state):
 	return state.type == CharacterState.ActionType.Defense or state.state_name == "DashBackward"
 
-func update_selected_move(move_state, will_restart := false):
-	.update_selected_move(move_state, will_restart)
+func update_selected_move(move_state):
+	.update_selected_move(move_state)
 	if fighter.current_state().state_name == "Knockdown" or fighter.current_state().state_name == "HardKnockdown":
 		juke_button.set_pressed_no_signal(false)
 		juke_button.disabled = true
