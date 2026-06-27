@@ -172,6 +172,9 @@ func _on_received_spectator_match_data(data):
 
 func _on_match_ready(data):
 	match_data = data
+	singleplayer = true if match_data.has("replay") else data["singleplayer"]
+	if (singleplayer):
+		SteamLobby.per_user_settings = null
 	if (SteamLobby.per_user_settings != null):
 		data["user_settings"] = SteamLobby.per_user_settings
 		"""
@@ -185,14 +188,12 @@ func _on_match_ready(data):
 				"handicap":user.handicap.value
 			})
 		"""
-	singleplayer = true if match_data.has("replay") else data["singleplayer"]
 	if !match_data.has("replay"):
 		ReplayManager.playback = false
 	SteamLobby.SETTINGS_LOCKED = false
 	setup_game(singleplayer, data)
 	emit_signal("game_started")
-	SteamLobby.per_user_settings = null
-
+	
 
 func show_lobby():
 	$"%DirectConnectLobby".show()

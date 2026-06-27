@@ -564,12 +564,14 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player_datas[index] = player.data
 		match(index):
 			1:
+				player.timescale = 2
 				p1_data = player.data
 			2:
 				p2_data = player.data
 	if (match_data.has("user_settings")):
 		for index in players.keys():
 			var player = players[index]
+			player.timescale = match_data.user_settings[index].timescale
 			player.MAX_HEALTH = int(match_data.user_settings[index].handicap * player.MAX_HEALTH)
 			player.hp = int(match_data.user_settings[index].handicap * player.hp)
 	#print("PLR DICT: "+str(players))
@@ -756,7 +758,7 @@ func tick():
 						
 					player_actionable = true
 					
-					assert(false, "this should be seen..?")
+					#assert(false, "this should be seen..?")
 			else :
 				if self.current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else get_max_replay_tick() - 2):
 					if not Network.multiplayer_active:
@@ -941,7 +943,7 @@ func should_game_end() -> Dictionary:
 	
 	#print("alive teams: %d, ffa alive: %s, ffa living count: %d, is team win: %s." % [alive_teams, ffa_alive, ffa_living, is_team_win])
 
-	if (ffa_alive):
+	if (ffa_alive and alive_teams == 0):
 		result.team_win = false
 		var living_player := 0
 		if ffa_living == 1:
@@ -951,6 +953,9 @@ func should_game_end() -> Dictionary:
 			result.winning_player = living_player
 			result.end = true
 		#return (self.current_tick > self.time or liveCount <= 1)
+	elif ffa_alive and alive_teams != 0:
+		result.end = false
+		return result
 	else:
 		if result.team_win:
 			var winning_team := 0
@@ -1195,7 +1200,7 @@ func is_waiting_on_player():
 		if not player.game_over:
 			if player.state_interruptable:
 				# Testing some sort of balancing for mh..? this is just a random idea i had.
-				if (player.interruptable_for_ticks < players.size() - 2):
+				if (player.interruptable_for_ticks <= players.size() - 2):
 					return true
 	return false
 
@@ -1933,16 +1938,11 @@ func process_player_positions():
 				tempDistance = self.char_distance + tempDistance
 
 				player.stage_width = self.stage_width
-	
-
-
 
 func calc_team_is_living(var team:int) -> bool:
 	var team_alive = Network.team_living[team]
 	
 	return !(team_alive < 1)
-
-
 
 func calc_team_living_count(var team:int) -> int:
 	var team_alive = Network.team_living[team]

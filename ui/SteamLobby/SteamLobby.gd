@@ -8,12 +8,16 @@ var errorMsg = Label.new()
 
 func get_matches_list_children():
 	var result = {}
+	var i = 1
 	for match_ in $"%MatchList".get_children():
-		result.append(SteamLobby.get_pid_from_nid(match_.id),
-			{
-				"team":match_.team.get_selected_id(),
-				"handicap":match_.handicap.value
-			})
+		#result[SteamLobby.get_pid_from_nid(match_.id)] = {
+		result[i] = {
+				"team":match_.team.selected - 1,
+				"handicap":match_.handicap.value,
+				"timescale":match_.timescale.value,
+			}
+		i += 1
+	return result
 
 func _ready():
 	add_child(errorMsg)
@@ -31,14 +35,7 @@ func _process(delta):
 	if css != null:
 		for game in $"%MatchList".get_children():
 			#print("jesus")
-			game.get_node("%P1Character").text = css.getCharName(game.p1.character)
-			game.get_node("%P2Character").text = css.getCharName(game.p2.character)
 			var cNames = css.name_to_index.keys()
-
-			game.get_node("%SpectateButton").disabled = false
-			
-			if (!(game.p1.character in cNames) and css.isCustomChar(game.p1.character)) or (!(game.p2.character in cNames) and css.isCustomChar(game.p2.character)):
-				game.get_node("%SpectateButton").disabled = true
 	loading_mods_rect.visible = !Global.mods_loaded and !loading_lobby_rect.visible
 
 func init():
@@ -46,7 +43,7 @@ func init():
 		Network.log_to_file("MultiHustle doesn't support rematch button yet")
 		SteamLobby.REMATCHING_ID = 0
 	.init()
-	$"%MatchList".hide()
+	#$"%MatchList".hide()
 
 func _on_retrieved_lobby_members(members):
 	._on_retrieved_lobby_members(members)

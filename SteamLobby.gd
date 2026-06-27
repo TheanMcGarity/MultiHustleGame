@@ -499,8 +499,9 @@ func _read_P2P_Packet():
 				Network.player_forfeit(readable.spectator_player_forfeit)
 		if readable.has("validate_auth_session"):
 			_validate_Auth_Session(readable.validate_auth_session, PACKET_SENDER)
-
-
+		
+		if readable.has("per_user_settings"):
+			per_user_settings = readable.per_user_settings
 
 
 func _read_P2P_Packet_custom(readable):
@@ -512,7 +513,6 @@ func _read_P2P_Packet_custom(readable):
 				
 	if readable.has("multihustle_start"):
 		send_sync(readable.multihustle_start)
-		per_user_settings = readable.per_user_settings
 	#if readable.has("sync_confirm"):
 	#	sync_confirm(readable.steam_id)
 
@@ -963,12 +963,13 @@ signal start_game()
 
 var per_user_settings
 
-func host_game_vs_all(per_user_settings_ = null):
+func host_game_vs_all(per_user_settings = null):
 	Network.log_to_file("host_game_vs_all called")
 	if SteamHustle.STEAM_ID != LOBBY_OWNER:
 		Network.log_to_file("Only host can setup")
 		return
-	per_user_settings = per_user_settings_
+	if per_user_settings != null:
+		self.per_user_settings = per_user_settings
 	Network.log_to_file("registering players")
 	REMATCHING_ID = 0
 	OPPONENT_IDS.clear()

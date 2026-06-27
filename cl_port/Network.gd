@@ -598,7 +598,7 @@ func select_opponent(self_id, opp_id):
 var player_character_names:Dictionary = {}
 var player_character_uses:Dictionary = {}
 
-func team_init(player:int, forced_team:int = 0):
+func team_init(player:int,  singleplayer:bool = false, forced_team:int = 0):
 
 	#if get_team(player) != 0:
 	#	return # Already on a team, no need to initialize.
@@ -606,7 +606,7 @@ func team_init(player:int, forced_team:int = 0):
 	print("Teams Initialized for player %d!" % player)
 
 
-	if not multiplayer_active:
+	if singleplayer:
 		singleplayer_on_team_change(forced_team, ("p%d" % player), player)
 		return
 

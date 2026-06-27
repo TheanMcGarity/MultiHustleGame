@@ -10,9 +10,9 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 margin_left = -138.0
 margin_top = -20.0
-margin_right = 138.0
-margin_bottom = 20.0
-rect_min_size = Vector2( 0, 40 )
+margin_right = 81.0
+margin_bottom = 26.0
+rect_min_size = Vector2( 0, 50 )
 rect_pivot_offset = Vector2( -303, -172 )
 theme = ExtResource( 1 )
 script = ExtResource( 2 )
@@ -36,12 +36,17 @@ size_flags_horizontal = 3
 size_flags_vertical = 6
 text = "USER1"
 
-[node name="HandicapMultiplier" type="SpinBox" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_left = 171.0
+margin_right = 219.0
+margin_bottom = 50.0
+alignment = 1
+
+[node name="HandicapMultiplier" type="SpinBox" parent="VBoxContainer"]
 unique_name_in_owner = true
-margin_left = 226.0
-margin_top = 3.0
-margin_right = 274.0
-margin_bottom = 17.0
+margin_top = 7.0
+margin_right = 48.0
+margin_bottom = 18.0
 min_value = 0.1
 max_value = 5.0
 step = 0.1
@@ -49,7 +54,7 @@ value = 1.0
 allow_greater = true
 suffix = "x"
 
-[node name="HandicapLabel" type="Label" parent="HandicapMultiplier"]
+[node name="HandicapLabel" type="Label" parent="VBoxContainer/HandicapMultiplier"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = -62.0
@@ -60,17 +65,16 @@ size_flags_horizontal = 3
 size_flags_vertical = 6
 text = "HP Handicap"
 
-[node name="ForcedTeam" type="OptionButton" parent="."]
+[node name="ForcedTeam" type="OptionButton" parent="VBoxContainer"]
 unique_name_in_owner = true
-margin_left = 226.0
 margin_top = 19.0
-margin_right = 274.0
-margin_bottom = 33.0
+margin_right = 48.0
+margin_bottom = 31.0
 text = "Any"
-items = [ "Any", null, false, -1, null, "FFA", null, false, 0, null, "Red", null, false, 1, null, "Blue", null, false, 2, null, "Yellow", null, false, 3, null, "Green", null, false, 4, null ]
+items = [ "Any", null, false, 0, null, "FFA", null, false, 0, null, "Red", null, false, 1, null, "Blue", null, false, 2, null, "Yellow", null, false, 3, null, "Green", null, false, 4, null ]
 selected = 0
 
-[node name="TeamLabel" type="Label" parent="ForcedTeam"]
+[node name="TeamLabel" type="Label" parent="VBoxContainer/ForcedTeam"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = -62.0
@@ -80,4 +84,26 @@ margin_bottom = -2.0
 size_flags_horizontal = 3
 size_flags_vertical = 6
 text = "Team"
+align = 2
+
+[node name="Timescale" type="SpinBox" parent="VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 32.0
+margin_right = 48.0
+margin_bottom = 43.0
+min_value = 1.0
+max_value = 4.0
+value = 1.0
+suffix = "x"
+
+[node name="TimescaleLabel" type="Label" parent="VBoxContainer/Timescale"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -62.0
+margin_top = 1.0
+margin_right = -51.0
+margin_bottom = -2.0
+size_flags_horizontal = 3
+size_flags_vertical = 6
+text = "Timescale"
 align = 2

@@ -2300,30 +2300,57 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -131.0
-margin_top = -145.0
-margin_right = 153.0
-margin_bottom = 139.0
+margin_left = -142.0
+margin_top = -54.0
+margin_right = 142.0
+margin_bottom = 49.0
 mouse_filter = 2
 texture = ExtResource( 15 )
 expand = true
 stretch_mode = 6
 script = ExtResource( 82 )
 
-[node name="IvySlyLinkButton" type="LinkButton" parent="UILayer/MainMenu/Title"]
+[node name="TitleLinkBar" type="HBoxContainer" parent="UILayer/MainMenu/Title"]
 unique_name_in_owner = true
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = 149.0
-margin_top = 9.0
-margin_right = 201.0
-margin_bottom = 20.0
+margin_left = -88.5
+margin_top = 34.0
+margin_right = 88.5
+margin_bottom = 45.0
 grow_horizontal = 2
-rect_pivot_offset = Vector2( -324, 59.5 )
+focus_mode = 2
+alignment = 1
+
+[node name="IvySlyLinkButton" type="LinkButton" parent="UILayer/MainMenu/Title/TitleLinkBar"]
+unique_name_in_owner = true
+margin_right = 81.0
+margin_bottom = 11.0
+grow_horizontal = 2
 custom_colors/font_color = Color( 0.113725, 0.552941, 0.960784, 1 )
-text = "BY IVY SLY"
+text = "GAME BY IVY SLY"
+underline = 1
+
+[node name="Control" type="Control" parent="UILayer/MainMenu/Title/TitleLinkBar"]
+margin_left = 82.0
+margin_right = 87.0
+margin_bottom = 11.0
+rect_min_size = Vector2( 5, 0 )
+
+[node name="PinkTarrLinkButton" type="LinkButton" parent="UILayer/MainMenu/Title/TitleLinkBar"]
+unique_name_in_owner = true
+margin_left = 88.0
+margin_right = 177.0
+margin_bottom = 11.0
+grow_horizontal = 2
+hint_tooltip = "*Mod EXTENDED by PinkTarr, some of the mod was also made by ctag07 and uGaurdian.
+
+It looked simpler to hide this here, sorry if it looks like im trying to take credit for the mod"
+focus_mode = 2
+custom_colors/font_color = Color( 0.360784, 0.823529, 0.529412, 1 )
+text = "MOD BY PINKTARR*"
 underline = 1
 
 [node name="WishlistButton" type="LinkButton" parent="UILayer/MainMenu/Title"]

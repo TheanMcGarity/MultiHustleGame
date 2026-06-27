@@ -101,6 +101,7 @@ func _enter_tree():
 func _ready():
 	$"%FullScreenRescueButton".connect("pressed", self, "_fix_window_position")
 	$"%MHDiscordLink".connect("pressed", self, "_invite_to_mh_discord")
+	$"%PinkTarrLinkButton".connect("pressed", self, "_invite_to_mh_discord")
 	$"%SingleplayerButton".connect("pressed", self, "_on_singleplayer_pressed")
 	$"%MultiplayerButton".connect("pressed", self, "_on_multiplayer_pressed")
 	$"%SteamMultiplayerButton".connect("pressed", self, "_on_steam_multiplayer_pressed")

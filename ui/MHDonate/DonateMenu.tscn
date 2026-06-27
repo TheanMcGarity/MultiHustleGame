@@ -63,7 +63,7 @@ margin_bottom = 109.0
 margin_right = 397.0
 margin_bottom = 20.0
 rect_min_size = Vector2( 0, 20 )
-text = "uGaurdian - Main Developer"
+text = "uGaurdian - Original Developer"
 script = ExtResource( 4 )
 page = "uguardian"
 

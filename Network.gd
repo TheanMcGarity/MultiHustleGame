@@ -391,6 +391,10 @@ func player_connected(id):
 		rpc_("register_player", [player_name, id, Global.VERSION])
 
 func pid_to_username(player_id):
+	
+	
+	#return Steam.getFriendPersonaName(network_ids[player_id])
+	#"""
 		if player_id != 1 and player_id != 2 or !is_instance_valid(game):
 			return ""
 		if SteamLobby.SPECTATING or !network_ids.has(player_id):
@@ -401,7 +405,7 @@ func pid_to_username(player_id):
 		if !players.has(net_id):
 			return 1
 		return players[net_id]
-
+	#"""
 
 func opponent_id(pid=player_id):
 	if pid == 1:

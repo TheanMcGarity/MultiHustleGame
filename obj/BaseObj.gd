@@ -135,6 +135,9 @@ var logic_rng_static: BetterRng
 var logic_rng_seed = 0
 var logic_rng_static_seed = 0
 
+var timescale := 1
+var _timescale_sim := false
+
 func _enter_tree():
 	if obj_name:
 		name = obj_name
@@ -879,6 +882,12 @@ func distance_to(object: BaseObj):
 	return fixed.vec_dist(str(p1.x), str(p1.y), str(p2.x), str(p2.y))
 
 func tick():
+	if (!_timescale_sim):
+		for i in range(timescale - 1):
+			_timescale_sim = true
+			tick()
+		_timescale_sim = false
+	
 	if current_tick <= 0:
 		update_data()
 

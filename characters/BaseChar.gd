@@ -441,6 +441,7 @@ var hidden_sprite := false
 
 var interruptable_for_ticks := 0
 
+
 onready var fake_emote_label = $"%EmoteLabel"
 onready var real_emote_label = $"%EmoteLabelReal"
 onready var emote_display = $"%EmoteDisplay"
@@ -1942,6 +1943,12 @@ func can_be_thrown():
 	return .can_be_thrown() and blockstun_ticks <= 0
 
 func tick():
+	if (!_timescale_sim):
+		for i in range(timescale - 1):
+			_timescale_sim = true
+			tick()
+		_timescale_sim = false
+	
 	if state_interruptable:
 		interruptable_for_ticks += 1
 	else:
@@ -2437,6 +2444,12 @@ func set_name_text(txt):
 
 # Vanilla function but with opponent select sync
 func tick_before():
+	if (!_timescale_sim):
+		for i in range(timescale - 1):
+			_timescale_sim = true
+			tick_before()
+		_timescale_sim = false
+	
 	emote_live_counter += 1
 	
 	if emote_live_counter > EMOTE_TIME:

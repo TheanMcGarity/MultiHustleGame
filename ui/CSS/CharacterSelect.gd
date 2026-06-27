@@ -298,12 +298,12 @@ func init(singleplayer=true):
 	Network.rpc_("sync_chars", [name_to_folder, hash_to_folder, Network.player_id])
 	
 	if singleplayer:
-		Network.team_init(1)
+		Network.team_init(1, true)
 	else:
-		$"%TeamButtons".get_container().visible = SteamLobby.per_user_settings[current_player_real].team == -1
-		var team = SteamLobby.per_user_settings[current_player_real].team
-		
-		Network.team_init(Network.player_id, 0 if team == -1 else team)
+		$"%TeamButtons".visible = SteamLobby.per_user_settings[Network.player_id].team == -1
+		var team = SteamLobby.per_user_settings[Network.player_id].team
+		var forced = 0 if team == -1 else team
+		Network.team_init(Network.player_id, false, forced)
 	
 	show()
 	emit_signal("opened")
@@ -479,12 +479,6 @@ func go():
 		network_match_data["selected_characters"] = selected_characters
 		emit_signal("match_ready", network_match_data)
 	else:
-		
-		#if not player_selected_team:
-		#	Network.team_init(current_player_real)
-	
-		#player_selected_team = false
-		#selected_characters.erase(current_player_real)
 		emit_signal("match_ready", get_match_data())
 	hide()
 
@@ -781,7 +775,7 @@ func buffer_select(button):
 		Network.select_character(data, $"%P1Display".selected_style if current_player == 1 else $"%P2Display".selected_style)
 		
 	if singleplayer and not player_selected_team:
-		Network.team_init(current_player_real)
+		Network.team_init(current_player_real, true)
 	
 	player_selected_team = false
 	
@@ -1397,7 +1391,7 @@ func _on_style_selected(style, pidx):
 		real_selected_styles[current_player_real] = style
 
 func _on_button_pressed(button):
-	Network.rpc_("on_team_change", [selected_team, "player%d" % current_player_real, current_player_real])
+	#Network.rpc_("on_team_change", [selected_team, "player%d" % current_player_real, current_player_real])
 	selected_team = 0
 	if singleplayer:
 		Network.player_character_names[current_player_real] = button.text
