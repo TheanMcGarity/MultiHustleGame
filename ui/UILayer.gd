@@ -192,6 +192,11 @@ func _ready():
 	Network.connect("force_open_action_buttons", self, "on_player_actionable")
 	
 	if should_open_mod_warning_window():
+		# Consume the flag so the warning shows once per launch, not on every
+		# scene reload. ModLoader._init (autoload) sets it once and never clears
+		# it, but UILayer._ready re-runs on each Global.reload(), so without this
+		# the window reappears every time the main scene reloads.
+		Global.mods_disabled_by_version_transition = false
 		$"%ModWarningWindow".start()
 
 	SteamLobby.connect("join_lobby_success", self, "_on_join_lobby_success")
