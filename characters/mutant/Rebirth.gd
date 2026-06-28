@@ -23,6 +23,7 @@ func _tick():
 		host.opponent.apply_force(force.x, force.y if !host.opponent.is_grounded() else "0")
 
 func on_got_blocked():
+	.on_got_blocked()
 	host.refresh_air_movements()
 	host.add_juke_pips(host.JUKE_PIPS_PER_USE - 1)
 	pulling = false

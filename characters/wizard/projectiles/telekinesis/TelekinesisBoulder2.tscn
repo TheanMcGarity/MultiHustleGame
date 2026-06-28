@@ -53,4 +53,9 @@ frames = SubResource( 2 )
 [node name="ParticleEffect" parent="Flip/Particles" index="0"]
 material = SubResource( 3 )
 
+[node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
+__meta__ = {
+"_editor_description_": ""
+}
+
 [editable path="Flip/Particles/ParticleEffect"]

@@ -5,7 +5,7 @@ class_name Utils
 const cardinal_dirs = [Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0), Vector2(0, -1)]
 const diagonal_dirs = [Vector2(1, 1), Vector2(1, -1), Vector2(-1, -1), Vector2(-1, 1)]
 const dirs = [Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0), Vector2(0, -1), Vector2(1, 1), Vector2(1, -1), Vector2(-1, -1), Vector2(-1, 1)]
-const INVALID_FILE_CHARS = "<>:/\\|?*"
+const INVALID_FILE_CHARS = '<>:/\\|?*"'
 
 #func _input(event):
 #	if event is InputEventKey:
@@ -99,6 +99,27 @@ static func int_max(n1: int, n2: int):
 
 static func starts_with(string: String, pattern: String):
 	return string.trim_prefix(pattern) != string
+
+# Backwards compat for the old `chess_timer: bool` field. Mutates match_data
+# in place so downstream code can rely on `match_data.timer_mode` being one
+# of "default" / "none" / "chess" / "increment". Older replays stored only the
+# bool — new saves always carry the string. Old false → "default" (the
+# 30-sec-per-turn clock that has always been the baseline behavior).
+static func normalize_timer_settings(match_data: Dictionary):
+	if !match_data.has("timer_mode"):
+		if match_data.get("chess_timer", false):
+			match_data["timer_mode"] = "chess"
+		else:
+			match_data["timer_mode"] = "default"
+	# Increment mode: starting bank must be at least the increment (the
+	# increment functions as the minimum). Otherwise turn one already kicks
+	# off below baseline, which feels broken rather than mechanical. Silently
+	# bump up at load time.
+	if match_data["timer_mode"] == "increment":
+		var inc = int(match_data.get("increment_per_turn", 0))
+		var starting = int(match_data.get("increment_starting_time", 0))
+		if starting < inc:
+			match_data["increment_starting_time"] = inc
 
 static func map(value, istart, istop, ostart, ostop):
 	return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))

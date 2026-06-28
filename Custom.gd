@@ -2,14 +2,169 @@ extends Node
 
 const SUPPORTER_PACK = 2232850
 
+# Pair-attach limb keys → the two underlying limb names. When an aura's
+# attach_limb is one of these, two particles are spawned (one per limb).
+const ATTACH_PAIRS = {
+	"Hands": ["LeftHand", "RightHand"],
+	"Feet": ["LeftFoot", "RightFoot"],
+	# Eyes pair maps both indices to "Head" — the two particles share the
+	# head limb's position and the per-eye spacing / y-offset settings
+	# (attach_eye_spacing, attach_eye_left_y_offset, attach_eye_right_y_offset)
+	# are applied on top in BaseChar._apply_aura_state.
+	"Eyes": ["Head", "Head"],
+}
+
+# Renames from the older limb naming scheme. Applied at runtime so old saved
+# styles still work without re-authoring.
+const ATTACH_LIMB_MIGRATIONS := {
+	"UpperBody": "",
+	"LowerBody": "",
+	"Body": "",
+	"LeftArm": "LeftHand",
+	"RightArm": "RightHand",
+	"LeftLeg": "LeftFoot",
+	"RightLeg": "RightFoot",
+}
+
+func migrate_attach_limb(name: String) -> String:
+	if name in ATTACH_LIMB_MIGRATIONS:
+		return ATTACH_LIMB_MIGRATIONS[name]
+	return name
+
+# Swaps "Left*" and "Right*" prefixes — used when the aura should follow the
+# screen-side rather than the anatomical limb when the character is mirrored.
+func swap_left_right_limb(name: String) -> String:
+	if name.begins_with("Left"):
+		return "Right" + name.substr(4)
+	if name.begins_with("Right"):
+		return "Left" + name.substr(5)
+	return name
+
+# Caps on internal particle count when expanding the aura array. Up to 3
+# single-limb auras and up to 6 internal particles total (every slot could be
+# a pair attach, so 3 slots × 2 limbs = 6). Anyone trying to stack >3
+# single-limb auras will have the extras silently ignored — they need pair
+# attaches (Hands/Feet) to actually use their later slots.
+const MAX_AURA_SINGLES = 3
+const MAX_AURA_INTERNAL = 6
+
+# Returns true if the attach_limb string spawns a pair of particles.
+func is_pair_attach(attach_limb: String) -> bool:
+	return attach_limb in ATTACH_PAIRS
+
+# Returns the two limb names for a pair attach, or null for a single attach.
+func pair_limbs(attach_limb: String):
+	if attach_limb in ATTACH_PAIRS:
+		return ATTACH_PAIRS[attach_limb]
+	return null
+
+# Pulls the aura entries out of a style — supports the old aura_settings/
+# aura_settings_2 schema and the new "auras" array. Returns array of dicts
+# {show: bool, settings: dict}.
+func style_auras(style) -> Array:
+	if style == null:
+		return []
+	if style.has("auras") and style["auras"] is Array:
+		var out := []
+		for entry in style["auras"]:
+			if entry is Dictionary:
+				out.append({
+					"show": entry.get("show", false),
+					"settings": entry.get("settings"),
+				})
+		return out
+	var legacy := []
+	if style.get("show_aura") and style.get("aura_settings"):
+		legacy.append({"show": true, "settings": style.get("aura_settings")})
+	if style.get("show_aura_2") and style.get("aura_settings_2"):
+		legacy.append({"show": true, "settings": style.get("aura_settings_2")})
+	return legacy
+
+# Expands the aura entries into the per-internal-particle list, capping at
+# MAX_AURA_SINGLES singles and MAX_AURA_INTERNAL total. Each output entry is
+# {settings, attach_limb, pair_index} where pair_index is 0 for first/single
+# and 1 for the second limb in a pair.
+func expand_aura_entries(entries: Array) -> Array:
+	var out := []
+	var single_count := 0
+	for e in entries:
+		if !e.get("show", false):
+			continue
+		var s = e.get("settings")
+		if !(s is Dictionary):
+			continue
+		var attach = migrate_attach_limb(s.get("attach_limb", ""))
+		if is_pair_attach(attach):
+			if out.size() + 2 > MAX_AURA_INTERNAL:
+				continue
+			out.append({"settings": s, "attach_limb": attach, "pair_index": 0})
+			out.append({"settings": s, "attach_limb": attach, "pair_index": 1})
+		else:
+			if single_count >= MAX_AURA_SINGLES:
+				continue
+			if out.size() + 1 > MAX_AURA_INTERNAL:
+				continue
+			single_count += 1
+			out.append({"settings": s, "attach_limb": attach, "pair_index": 0})
+	return out
+
+# Resolves the actual single limb name for an entry — for pair attaches this
+# is one of the two real limbs; for singles it's the attach_limb itself.
+func resolve_attach_limb(entry: Dictionary) -> String:
+	var attach = entry.get("attach_limb", "")
+	if is_pair_attach(attach):
+		var pair = ATTACH_PAIRS[attach]
+		return pair[entry.get("pair_index", 0)]
+	return attach
+
 var hitsparks = {
 	"bash": "res://fx/HitEffect1.tscn",
 	"bash2": "res://fx/hitsparks/HitEffect1Alt.tscn",
+	"bash3": "res://fx/hitsparks/HitEffect2Alt.tscn",
 	"fire": "res://fx/hitsparks/FireHitEffect.tscn",
 	"hearts": "res://fx/hitsparks/HeartHitEffect.tscn",
 	"petals": "res://fx/hitsparks/PetalHitEffect.tscn",
 	"coins": "res://fx/hitsparks/CoinHitEffect.tscn",
+	"dust": "res://fx/hitsparks/DustHitEffect.tscn",
+	"acid": "res://fx/hitsparks/AcidHitEffect.tscn",
+	"elec": "res://fx/hitsparks/ElectricHitEffect.tscn",
 }
+
+# Sprite-frame resources usable by the custom hitspark editor's "advanced"
+# tab. Order is the order they appear in the OptionButton; the empty string
+# is the "(none)" option which renders no animated sprite at all.
+const HITSPARK_SPRITE_NAMES = ["", "bash", "bash2", "bash3", "fire", "hearts", "petals", "acid", "elec"]
+const HITSPARK_SPRITE_NONE_LABEL = "(none)"
+const CUSTOM_HITSPARK_SCENE_PATH = "res://fx/hitsparks/CustomHitEffect.tscn"
+# Non-default AnimatedSprite scales for sprite frame sets that need them — the
+# elec frames are designed to be drawn wide-and-short and look wrong at 1:1.
+# Names absent from this dict default to Vector2(1, 1).
+const HITSPARK_SPRITE_SCALES = {
+	"elec": Vector2(1.36, 0.68),
+}
+
+# Display label for a sprite name in the option button — the empty-string
+# "no animation" entry shows up as "(none)".
+func hitspark_sprite_label(sprite_name: String) -> String:
+	if sprite_name == "":
+		return HITSPARK_SPRITE_NONE_LABEL
+	return sprite_name
+
+# Build a fresh PackedScene of a custom hitspark with the user's chosen
+# animated-sprite frames already applied. The result can be assigned to
+# Hitbox.HIT_PARTICLE just like the named-preset scenes — each hit instance()s
+# its own copy. Returns null if the template can't be loaded.
+func make_custom_hitspark_scene(config) -> PackedScene:
+	var template = load(CUSTOM_HITSPARK_SCENE_PATH)
+	if template == null:
+		return null
+	# Per-instance config goes through the CustomHitEffect script's
+	# `custom_config` member (set by spawners before add_child), not through
+	# PackedScene.pack — which doesn't reliably preserve Dictionary or
+	# sub-scene-instance overrides in Godot 3 and was leaving particles
+	# unconfigured. The packed template itself is identical for every style;
+	# the spawn site decides what config to apply.
+	return template
 
 #var hitspark_dlc = {
 #	"bash": false,
@@ -123,6 +278,9 @@ func save_style(style):
 	make_custom_folder()
 	var file = File.new()
 	var filename_ = "user://custom/"+ style.style_name + ".style"
+	# Empty dict reserved for mod-specific data attached to the style.
+	if !style.has("mod_data"):
+		style["mod_data"] = {}
 	file.open(filename_, File.WRITE)
 	file.store_var(style, true)
 	file.close()
@@ -135,6 +293,8 @@ func save_style_workshop(style):
 	if !dir.dir_exists(folder_path):
 		dir.make_dir(folder_path)
 	var filename_ = folder_path + "/" + style.style_name + ".style"
+	if !style.has("mod_data"):
+		style["mod_data"] = {}
 	file.open(filename_, File.WRITE)
 	file.store_var(style, true)
 	file.close()
@@ -168,9 +328,14 @@ func load_all_styles():
 	for path in files:
 		var file = File.new()
 		file.open(path, File.READ)
-		var data: Dictionary = file.get_var()
-		styles.append(data)
+		var data = file.get_var()
 		file.close()
+		if !(data is Dictionary):
+			continue
+		if !data.has("mod_data"):
+			data["mod_data"] = {}
+		styles.append(data)
+
 	return [styles, files]
 
 func get_style_name(path):

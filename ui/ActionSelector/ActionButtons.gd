@@ -60,6 +60,11 @@ func _input(event):
 func _ready():
 
 	$"%SelectButton".connect("pressed", self, "_on_submit_pressed")
+	_rebuild_select_button_shortcut()
+	# Track rebinds so the tooltip's key prefix updates live when the user
+	# re-maps LOCK_IN.
+	if not Hotkeys.is_connected("binding_changed", self, "_on_hotkey_binding_changed"):
+		Hotkeys.connect("binding_changed", self, "_on_hotkey_binding_changed")
 #	$"%ContinueButton".connect("pressed", self, "on_action_selected", [$"%ContinueButton"])
 	buttons.append($"%ContinueButton")
 	$"%UndoButton".connect("pressed", self, "_on_undo_pressed")
@@ -110,11 +115,23 @@ func _on_continue_pressed():
 func _on_undo_pressed():
 	Global.current_game.undo()
 
+# Hotkey entry point — submit Undo only if this panel currently allows it
+# (mirrors the UndoButton's own visible/enabled gating: singleplayer, game
+# past tick 0, panel active). Returns whether it fired so the caller can
+# stop after the first panel that handles it.
+func try_undo() -> bool:
+	if not active or not visible:
+		return false
+	var btn = $"%UndoButton"
+	if btn.disabled or not btn.visible:
+		return false
+	_on_undo_pressed()
+	return true
+
 func space_pressed():
 	if visible:
 		if !$"%SelectButton".disabled and $"%SelectButton".visible:
 			_on_submit_pressed()
-	
 
 func _physics_process(delta):
 	if is_instance_valid(game):
@@ -122,7 +139,6 @@ func _physics_process(delta):
 			visible = false
 
 func _process(delta):
-	#rect_position.y = 57
 	$"%DI".set_flash(false)
 	if active and is_instance_valid(fighter):
 		if fighter.will_forfeit:
@@ -138,11 +154,38 @@ func _process(delta):
 		_send_ui_action(buffered_ui_actions[-1])
 		buffered_ui_actions = []
 	
-	
-	
+var _select_button_shortcut: ShortCut
+
+# Build a shortcut backed by the user's currently-bound LOCK_IN key. We use
+# InputEventKey rather than InputEventAction so Godot's default button-tooltip
+# prefix is a clean key name like "Space" instead of the raw debug string
+# `(InputEventAction : action=submit_action, pressed=(true)`.
+func _build_select_button_shortcut() -> ShortCut:
+	var sc = ShortCut.new()
+	var scancode = Hotkeys.get_bound_scancode(Hotkeys.LOCK_IN)
+	if scancode == 0:
+		# No key bound — leave the shortcut empty so no tooltip prefix is shown.
+		return sc
+	var ev = InputEventKey.new()
+	ev.scancode = scancode
+	ev.pressed = true
+	sc.shortcut = ev
+	return sc
+
+func _rebuild_select_button_shortcut():
+	_select_button_shortcut = _build_select_button_shortcut()
+	if has_node("%SelectButton"):
+		$"%SelectButton".shortcut = _select_button_shortcut
+
+func _on_hotkey_binding_changed(action: String):
+	if action == Hotkeys.LOCK_IN:
+		_rebuild_select_button_shortcut()
+
 func unpress_extra_on_lock_in():
 	var select_button: Button = $"%SelectButton"
-	select_button.shortcut = preload("res://ui/ActionSelector/SelectButtonShortcut.tres")
+	if _select_button_shortcut == null:
+		_select_button_shortcut = _build_select_button_shortcut()
+	select_button.shortcut = _select_button_shortcut
 	if lock_in_pressed:
 		check_extra_button_pressed(fighter_extra)
 #
@@ -264,7 +307,6 @@ func _on_prediction_selected(selected_category):
 	_get_opposite_buttons().send_ui_action()
 
 func send_ui_action(action=null):
-	
 	buffered_ui_actions.append(action)
 
 func _send_ui_action(action=null):
@@ -326,6 +368,12 @@ func _send_ui_action(action=null):
 
 func extra_updated():
 	if fighter_extra:
+		# !locked_in: a pick that isn't committed yet re-enters from tick 0 when it
+		# resolves, so a re-selected current move (e.g. Floor It out of Floor It)
+		# counts as a fresh cast, not a held continuation. Once locked in the move
+		# is genuinely in-progress, so this passes false and progress is respected.
+		# Field, not a method arg, so mod PlayerExtra overrides keep their signature.
+		fighter_extra.selected_move_will_restart = !locked_in
 		fighter_extra.update_selected_move(current_button.state)
 	if !fighter_extra.can_feint:
 		$"%FeintButton".pressed = false
@@ -340,6 +388,9 @@ func on_action_selected(action, button):
 			b.set_pressed_no_signal(false)
 	button.set_pressed_no_signal(true)
 	if fighter_extra:
+		# An active pick is never locked in, so it always re-enters from tick 0 —
+		# flag it so re-selecting the move we're already in reads as fresh.
+		fighter_extra.selected_move_will_restart = !locked_in
 		fighter_extra.update_selected_move(button.state)
 	var same_button = button == current_button
 	current_button = button
@@ -886,13 +937,15 @@ func update_select_button():
 	var user_facing = game.singleplayer or Network.player_id == id
 	if not user_facing:
 		$"%SelectButton".disabled = true
-	else :
+	else:
 		$"%SelectButton".disabled = game.spectating or locked_in or game.get_player(id).game_over
 
 func activate(refresh = true):
-
 	Network.log_to_file("Action buttons should be showing: " + str(visible) + " | " + str(active))
-
+	
+	if is_instance_valid(fighter) and is_instance_valid(game) and game.show_last_di_state:
+		$"%DI".set_last_di(fighter.current_di)
+		
 	if visible and refresh:
 		Network.log_to_file("Returning at point A")
 		return
@@ -914,7 +967,18 @@ func activate(refresh = true):
 	var restored_selection = false
 
 	if is_instance_valid(fighter):
-		$"%DI".set_label("DI" + " x%.1f" % float(fighter.get_di_scaling(false)))
+		# Show the raw scaling only when being comboed — otherwise the "x1.3"
+		# the combo_count=1 floor would show in neutral reads as misleading
+		# (no DI is ever actually applied with combo_count=0 since the
+		# pre-_enter increment guarantees a hit starts at combo_count=1).
+		if fighter.opponent and fighter.opponent.combo_count > 0:
+			$"%DI".set_label("DI" + " x%.1f" % float(fighter.get_di_scaling(false, 1)))
+		else:
+			$"%DI".set_label("DI")
+		if is_instance_valid(game) and game.show_last_di_state:
+			$"%DI".set_last_di(fighter.current_di)
+		else:
+			$"%DI".set_last_di(null)
 		var last_action_name = ReplayManager.get_last_action(fighter.id)
 
 		if last_action_name and fighter.state_machine.states_map.has(last_action_name.action):
@@ -936,15 +1000,15 @@ func activate(refresh = true):
 			$"%YouLabel".show()
 			modulate = Color.white
 			Network.action_submitted = false
-		else :
+		else:
 			$"%YouLabel".hide()
 			modulate = Color("b3b3b3")
-	else :
+	else:
 		$"%YouLabel".hide()
 
 	if game.current_tick == 0:
 		$"%UndoButton".set_disabled(true)
-	else :
+	else:
 		$"%UndoButton".set_disabled(false)
 	if Network.multiplayer_active or SteamLobby.SPECTATING:
 		$"%UndoButton".hide()
@@ -960,9 +1024,9 @@ func activate(refresh = true):
 
 	if (not user_facing) or stored_locked_in or fighter.game_over:
 		$"%SelectButton".disabled = true
-	else :
+	else:
 		$"%SelectButton".disabled = game.spectating
-
+		
 	fighter_extra.hide()
 	update_buttons(refresh)
 
@@ -973,10 +1037,7 @@ func activate(refresh = true):
 		fighter_extra.show_options()
 
 	fighter_extra.reset()
-
-	#if not fighter.dummy:
-	#	restored_selection = _restore_fighter_selection(stored_action, stored_reverse, stored_feint, stored_di)
-
+	
 	if fighter.dummy:
 		on_action_submitted("ContinueAuto", null)
 		hide()
@@ -993,7 +1054,7 @@ func activate(refresh = true):
 			current_action = "Continue"
 
 	$"%ReverseButton".hide()
-	yield (get_tree(), "idle_frame")
+	yield(get_tree(), "idle_frame")
 
 	$"%ReverseButton".show()
 	if not refresh:
@@ -1005,7 +1066,7 @@ func activate(refresh = true):
 		send_ui_action("Continue")
 	if user_facing:
 		if Network.multiplayer_active:
-			yield (get_tree().create_timer(0.25), "timeout")
+			yield(get_tree().create_timer(0.25), "timeout")
 		$"%SelectButton".shortcut = preload("res://ui/ActionSelector/SelectButtonShortcut.tres")
 
 	if player_id == 1:

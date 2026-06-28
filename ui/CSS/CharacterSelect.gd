@@ -39,6 +39,8 @@ var buttonsToLoad = [] # will hold the same data as charList, but is used only t
 
 var charPortrait = {} # will hold the portrait textures to be shown on unloaded characters
 var errorMessage = {} # will hold a list of missing files for any characters that don't load correctly
+var importWarnings = {} # chars that loaded but still have import issues (will show in the bottom warning regardless of load success)
+var charExColors = {} # will hold the dictionaries containing the extra colors of unloaded characters
 
 var loadThread # a thread that will be used to load characters so the game doesn't get completely stuck
 var loadThread2
@@ -76,6 +78,7 @@ var hash_to_folder = {}
 
 # Label things #
 var loadingLabel
+var importWarningLabel
 var loadingText = ""
 var retract_loaded = false # whenever this is true the loading label will start to dissapear after a few seconds...
 var labelTimer = 0 # ...using this timer
@@ -153,6 +156,7 @@ func _ready():
 	if (dir.file_exists("res://characters/PlayerInfo.tscn") && !dir.file_exists("res://ui/PlayerInfo.tscn")):
 		var pi_scene = load("res://characters/PlayerInfo.tscn").instance()
 		ModLoader.saveScene(pi_scene, "res://ui/PlayerInfo.tscn")
+		pi_scene.queue_free()
 
 	#get headers
 	var h = File.new()
@@ -162,8 +166,11 @@ func _ready():
 	h.open("res://cl_port/headers/oggstr.header", File.READ)
 	oggstr_header = h.get_buffer(h.get_len())
 	h.close()
-	loadingLabel = createLabel("Character Loaded", "Loaded", 0, 345)
+	loadingLabel = createLabel("Character Loaded", "Loaded", 4, 345)
 	loadingLabel.percent_visible = 0
+	importWarningLabel = createLabel("", "ImportWarning", 4, 332)
+	importWarningLabel.modulate = Color(1, 0.45, 0.35)
+	importWarningLabel.rect_min_size = Vector2(632, 0)
 	
 	# get all of the modsses
 	_Global.css_instance = self
@@ -307,6 +314,10 @@ func init(singleplayer=true):
 	
 	show()
 	emit_signal("opened")
+	loadingLabel_vanish()
+	loadingLabel.text = ""
+	_update_import_warning()
+	currentlyLoading = false
 #	if Network.steam:
 #		$"%QuitButton".hide()
 	for button in buttons:
@@ -409,13 +420,36 @@ func get_character_data(button):
 func get_display_data(button):
 	var data = {}
 	if !isCustomChar(button.name) or (button.name in loadedChars):
-		var scene = button.character_scene.instance()
+		var scene = button.character_scene.instance() if button.character_scene else null
+		if scene == null:
+			data["name"] = "(broken)"
+			data["portrait"] = null
+			# Failed to instance means the cache is broken even if loading
+			# previously appeared to succeed. Surface it in the bottom warning.
+			importWarnings[button.name] = ["character_scene failed to instance"]
+			_update_import_warning()
+			return data
 		data["name"] = scene.name
 		data["portrait"] = scene.character_portrait
+		if scene.has_method("get_limb_data"):
+			data["limb_data"] = scene.get_limb_data().duplicate(true)
+		if scene.use_extra_color_1:
+			data["use_extra_color_1"] = scene.use_extra_color_1
+			data["extra_color_1"] = scene.extra_color_1
+		if scene.use_extra_color_2:
+			data["use_extra_color_2"] = scene.use_extra_color_2
+			data["extra_color_2"] = scene.extra_color_2
 		scene.free()
 	else:
 		data["name"] = button.name
 		data["portrait"] = charPortrait[button.name]
+		if isCustomChar(button.name) and button.name in charExColors:
+			if charExColors[button.name].get("use_extra_color_1") == true:
+				data["use_extra_color_1"] = true
+				data["extra_color_1"] = charExColors[button.name].get("extra_color_1")
+			if charExColors[button.name].get("use_extra_color_2") == true:
+				data["use_extra_color_2"] = true
+				data["extra_color_2"] = charExColors[button.name].get("extra_color_2")
 
 		if (button.name in errorMessage.keys()):
 			data["name"] = errorMessage[button.name]
@@ -692,14 +726,22 @@ func loadListChar(index, hideName = false, player_num = -1): # hide name paramet
 	# the scene is edited, the node name gets updated
 	var char_scene
 	if (miss == []):
-		char_scene = load(_charPath).instance()
-		char_scene.name = curFighter
+		var packed = load(_charPath)
+		char_scene = packed.instance() if packed else null
+		if char_scene == null:
+			# Validation passed but instance still failed — treat as broken.
+			miss = ["scene at " + _charPath + " failed to instance"]
+			errorMessage[curFighter] = "ERROR - scene failed to load:\n" + _charPath
+		else:
+			char_scene.name = curFighter
 	else:
 		errorMessage[curFighter] = "ERROR - these files are missing:"
 		for f in miss:
 			errorMessage[curFighter] += "\n" + f
-	
-	ModLoader.saveScene(char_scene, _charPath)
+
+	if miss == []:
+		ModLoader.saveScene(char_scene, _charPath)
+		char_scene.queue_free()
 
 	# update the button's character scene
 	bttContainer.get_node(curFighter).character_scene = load(_charPath)
@@ -743,12 +785,35 @@ func updateButtonHeight(_divisions):
 func async_loadButtonChar(button):
 	var miss = loadListChar(name_to_index[button.name])
 	_on_button_mouse_entered(button)
-	
+	_update_import_warning()
+
 	if (miss == []):
 		buffer_select(button)
 	loadingText = getCharName(button.name) + " Loaded"
 	loadingLabel_vanish()
 	currentlyLoading = false
+
+func _update_import_warning():
+	if !importWarningLabel:
+		return
+	var keys = []
+	for k in errorMessage.keys():
+		if !(k in keys):
+			keys.append(k)
+	for k in importWarnings.keys():
+		if !(k in keys):
+			keys.append(k)
+	if keys.empty():
+		importWarningLabel.text = ""
+		return
+	var joined = ""
+	var first = true
+	for n in keys:
+		if !first:
+			joined += ", "
+		joined += n
+		first = false
+	importWarningLabel.text = "[!] Broken imports: " + joined + "  --  modder, fix your .import files. user: try Options > Delete Character Cache"
 
 # this function encapsulates character selection, to be called either when a character finishes loading or when pressing a base character button
 func buffer_select(button):
@@ -1135,25 +1200,40 @@ func save_oggstr(og_file, dest_file):
 	f.store_string("RSRC")
 	f.close()
 
-# this function finds the portrait image path inside a .tscn file
+# this function finds the portrait image path inside a .tscn file, as well as the extra colors
 func _importHolderPortrait(folder, scenePath, charName):
 	var sc
 
 	var f = File.new()
 	f.open(scenePath, File.READ)
 	var portPath = "res://characters/stickman/sprites/idle.png"
+	var usesEx1 = false
+	var usesEx2 = false
+	var ex1Color = Color(0,0,0,1)
+	var ex2Color = Color(0,0,0,1)
 	var content = f.get_as_text()
 	var portSource = 0
 	var portSourceInd = content.find("character_portrait = ExtResource")
 
+	var usesEx1SourceInd = content.find("use_extra_color_1 = true")
+	var usesEx2SourceInd = content.find("use_extra_color_2 = true")
+
+	var ex1SourceInd = content.find("\nextra_color_1 = Color")
+	var ex2SourceInd = content.find("\nextra_color_2 = Color")
+
+	if (usesEx1SourceInd != -1):
+		usesEx1 = true
+	if (usesEx2SourceInd != -1):
+		usesEx2 = true
+
 	if (portSourceInd != -1):
 		var startNumInd = portSourceInd + 33
 		portSource = int(content.substr(startNumInd, content.find(" )", portSourceInd) - startNumInd))
-	
+
 		f.seek(0)
 		var ids = ""
 		var line = ""
-		
+
 
 		while ids != str(portSource) + "]":
 			line = f.get_line().replace("\n", "").replace("\r", "")
@@ -1165,14 +1245,34 @@ func _importHolderPortrait(folder, scenePath, charName):
 				sc = load("res://characters/BaseChar.tscn").instance()
 				sc.name = "Error\ncharacter scene must be unedited"
 				ModLoader.saveScene(sc, scenePath)
+				sc.queue_free()
 
 				return scenePath
 				break
-	
+
 		portPath = line.split("=")[1].split(" typ")[0].replace("\"", "")
+
+	if (ex1SourceInd != -1):
+		var startNumInd = ex1SourceInd + 24
+		var ex1Source = content.substr(startNumInd, content.find(" )", ex1SourceInd) - startNumInd)
+		var split = ex1Source.split(', ')
+		ex1Color = Color(split[0].strip_edges(), split[1].strip_edges(), split[2].strip_edges(), split[3].strip_edges())
+
+	if (ex2SourceInd != -1):
+		var startNumInd = ex2SourceInd + 24
+		var ex2Source = content.substr(startNumInd, content.find(" )", ex2SourceInd) - startNumInd)
+		var split = ex2Source.split(', ')
+		ex2Color = Color(split[0].strip_edges(), split[1].strip_edges(), split[2].strip_edges(), split[3].strip_edges())
 
 	f.close()
 	charPortrait[charName] = textureGet(portPath)
+	charExColors[charName] = {}
+	if usesEx1:
+		charExColors[charName]["use_extra_color_1"] = true
+		charExColors[charName]["extra_color_1"] = ex1Color
+	if usesEx2:
+		charExColors[charName]["use_extra_color_2"] = true
+		charExColors[charName]["extra_color_2"] = ex2Color
 
 # iterates through all paths listed in a .tscn file and checks if they exist
 func _validateScene(scenePath, _modFolder):
@@ -1237,8 +1337,36 @@ func _createImportFiles(folder, _charName, _charPath): # returns an array of mis
 	if (modName in charPackages.keys()):
 		loadingText = "Loading Cached Package"
 		ProjectSettings.load_resource_pack(charPackages[modName])
+		# Run the same lightweight validation checks fresh import does so we
+		# can surface broken imports as a warning. Avoid instancing the scene
+		# here — instance() is not thread-safe in Godot 3 and this function
+		# runs on the character-load worker thread, so an extra instance/free
+		# pair was a likely source of intermittent crashes. The null-guard in
+		# loadListChar still protects against a genuinely-broken cache.
+		var soft_issues = []
+		# 1. every asset must have a .import sidecar
+		var assets = ModLoader._get_all_files(folder, "png") + ModLoader._get_all_files(folder, "wav") + ModLoader._get_all_files(folder, "ogg")
+		for asset_path in assets:
+			if !dir.file_exists(asset_path + ".import"):
+				soft_issues.append(asset_path + ".import")
+		# 2. every .import's expected destination must exist (on disk or in pck)
+		var imports = ModLoader._get_all_files(folder, "import")
+		for f in imports:
+			if dir.file_exists(f.replace(".import", "")):
+				var im = ConfigFile.new()
+				im.load(f)
+				var expected = im.get_value("remap", "path")
+				if !dir.file_exists(expected) and !ResourceLoader.exists(expected):
+					soft_issues.append(expected)
+		# 3. the scene's referenced resources must exist
+		soft_issues += _validateScene(_charPath, name_to_folder.get(curFighter, ""))
+		if !soft_issues.empty():
+			importWarnings[curFighter] = soft_issues
+			print("Cache loaded for '" + curFighter + "' but validation found issues: ", soft_issues)
+		else:
+			importWarnings.erase(curFighter)
 		return []
-	
+
 	_import_start()
 
 	var assets = ModLoader._get_all_files(folder, "png") + ModLoader._get_all_files(folder, "wav") + ModLoader._get_all_files(folder, "ogg")

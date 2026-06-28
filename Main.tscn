@@ -1,4 +1,4 @@
-[gd_scene load_steps=94 format=2]
+[gd_scene load_steps=95 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -81,6 +81,13 @@
 [ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
 [ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
 [ext_resource path="res://TitleSecret.gd" type="Script" id=82]
+[ext_resource path="res://ModWarningWindow.tscn" type="PackedScene" id=83]
+[ext_resource path="res://ui/burstp2_4.png" type="Texture" id=84]
+[ext_resource path="res://HotkeysTab.gd" type="Script" id=85]
+[ext_resource path="res://ui/steed.png" type="Texture" id=86]
+[ext_resource path="res://ui/Window/Window.gd" type="Script" id=201]
+[ext_resource path="res://ui/CommunityEvents.gd" type="Script" id=202]
+[ext_resource path="res://MainHooks.gd" type="Script" id=203]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -235,7 +242,6 @@ anchor_bottom = 1.0
 mouse_filter = 2
 script = ExtResource( 51 )
 dir = Vector2( -0.413931, -0.910308 )
-intensity = 0.0
 noise = SubResource( 20 )
 noise2 = SubResource( 21 )
 on = true
@@ -327,6 +333,8 @@ visible = false
 margin_right = 40.0
 margin_bottom = 40.0
 texture = ExtResource( 21 )
+expand = true
+stretch_mode = 1
 
 [node name="P2SuperEffectsNode" type="Node2D" parent="HudLayer/P2SuperTexture"]
 unique_name_in_owner = true
@@ -376,7 +384,6 @@ unique_name_in_owner = true
 margin_left = 34.0
 margin_right = 262.0
 margin_bottom = 19.0
-mouse_filter = 2
 size_flags_horizontal = 10
 size_flags_vertical = 0
 max_value = 1000.0
@@ -434,6 +441,15 @@ value = 1000.0
 texture_progress = ExtResource( 25 )
 fill_mode = 1
 
+[node name="P1HpCount" type="Label" parent="HudLayer/HudLayer/VBoxContainer/TopBar/P1HealthBar"]
+unique_name_in_owner = true
+visible = false
+margin_left = 5.0
+margin_top = 2.0
+margin_right = 71.0
+margin_bottom = 13.0
+text = "15000 / 15000"
+
 [node name="Timer" type="Label" parent="HudLayer/HudLayer/VBoxContainer/TopBar"]
 unique_name_in_owner = true
 margin_left = 263.0
@@ -452,7 +468,7 @@ margin_left = 304.0
 margin_right = 533.0
 margin_bottom = 19.0
 rect_min_size = Vector2( 0, 16 )
-mouse_filter = 2
+rect_pivot_offset = Vector2( 139, -24 )
 size_flags_horizontal = 3
 size_flags_vertical = 0
 max_value = 1000.0
@@ -505,6 +521,16 @@ size_flags_vertical = 0
 max_value = 1000.0
 value = 1000.0
 texture_progress = ExtResource( 27 )
+
+[node name="P2HpCount" type="Label" parent="HudLayer/HudLayer/VBoxContainer/TopBar/P2HealthBar"]
+unique_name_in_owner = true
+visible = false
+margin_left = 152.0
+margin_top = 2.0
+margin_right = 224.0
+margin_bottom = 13.0
+text = "15000 / 15000"
+align = 2
 
 [node name="P2Portrait" type="TextureRect" parent="HudLayer/HudLayer/VBoxContainer/TopBar"]
 unique_name_in_owner = true
@@ -602,6 +628,7 @@ anchor_right = 0.5
 margin_left = -189.0
 margin_right = 189.0
 margin_bottom = 77.0
+mouse_filter = 2
 alignment = 1
 
 [node name="Label" type="Label" parent="HudLayer/HudLayer/FeintDisplay"]
@@ -624,6 +651,21 @@ margin_right = 31.0
 margin_bottom = 19.5
 grow_horizontal = 2
 script = ExtResource( 63 )
+
+[node name="P1NextTurnReadyLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label"]
+unique_name_in_owner = true
+margin_left = 100.0
+margin_top = 55.0
+margin_right = 168.0
+margin_bottom = 66.0
+
+[node name="P1NextTurnHitLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label"]
+unique_name_in_owner = true
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_left = 100.0
+margin_top = 65.0
+margin_right = 168.0
+margin_bottom = 76.0
 
 [node name="Control" type="Control" parent="HudLayer/HudLayer/FeintDisplay"]
 margin_left = 69.0
@@ -654,6 +696,23 @@ margin_bottom = 19.5
 grow_horizontal = 2
 script = ExtResource( 63 )
 player_id = 2
+
+[node name="P2NextTurnReadyLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label2"]
+unique_name_in_owner = true
+margin_left = -100.0
+margin_top = 55.0
+margin_right = -32.0
+margin_bottom = 66.0
+align = 2
+
+[node name="P2NextTurnHitLabel" type="Label" parent="HudLayer/HudLayer/FeintDisplay/Label2"]
+unique_name_in_owner = true
+modulate = Color( 1, 0.2, 0.239216, 1 )
+margin_left = -100.0
+margin_top = 65.0
+margin_right = -32.0
+margin_bottom = 76.0
+align = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HudLayer/HudLayer"]
 margin_left = 27.0
@@ -798,7 +857,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 0
 max_value = 1.0
 step = 0.001
-texture_over = ExtResource( 29 )
+texture_over = ExtResource( 84 )
 texture_progress = ExtResource( 28 )
 fill_mode = 1
 script = ExtResource( 9 )
@@ -1227,13 +1286,13 @@ script = ExtResource( 11 )
 
 [node name="BottomSuperBar" type="HBoxContainer" parent="UILayer/GameUI/BottomBar"]
 visible = false
-margin_right = 640.0
+margin_right = 641.0
 margin_bottom = 15.0
 mouse_filter = 2
 theme = ExtResource( 4 )
 
 [node name="Timer" type="Control" parent="UILayer/GameUI/BottomBar/BottomSuperBar"]
-margin_right = 640.0
+margin_right = 641.0
 margin_bottom = 15.0
 rect_min_size = Vector2( 40, 15 )
 mouse_filter = 2
@@ -1498,6 +1557,15 @@ rect_min_size = Vector2( 12, 0 )
 toggle_mode = true
 text = "x0.25"
 
+[node name="5Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/GhostSpeed"]
+unique_name_in_owner = true
+margin_left = 114.0
+margin_right = 134.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 12, 0 )
+toggle_mode = true
+text = "x0.5"
+
 [node name="2Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/GhostSpeed"]
 unique_name_in_owner = true
 margin_left = 114.0
@@ -1574,9 +1642,8 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 margin_left = -70.5
-margin_top = -33.0
 margin_right = 70.5
-margin_bottom = 33.0
+grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/GameUI/PausePanel"]
 margin_left = 1.0
@@ -1616,6 +1683,53 @@ margin_right = 139.0
 margin_bottom = 37.0
 rect_min_size = Vector2( 60, 0 )
 text = "save replay"
+
+[node name="SaveStylesButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 38.0
+margin_right = 139.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 60, 0 )
+text = "save styles"
+
+[node name="StyleName" type="LineEdit" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 38.0
+margin_right = 139.0
+margin_bottom = 49.0
+size_flags_horizontal = 3
+size_flags_vertical = 0
+align = 1
+placeholder_text = "style name"
+caret_blink = true
+
+[node name="SaveP1StyleButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 50.0
+margin_right = 139.0
+margin_bottom = 62.0
+rect_min_size = Vector2( 60, 0 )
+text = "save p1 style"
+
+[node name="SaveP2StyleButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 63.0
+margin_right = 139.0
+margin_bottom = 75.0
+rect_min_size = Vector2( 60, 0 )
+text = "save p2 style"
+
+[node name="StyleBackButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+margin_top = 76.0
+margin_right = 139.0
+margin_bottom = 88.0
+rect_min_size = Vector2( 60, 0 )
+text = "back"
 
 [node name="PauseOptionsButton" type="Button" parent="UILayer/GameUI/PausePanel/VBoxContainer"]
 unique_name_in_owner = true
@@ -2520,6 +2634,62 @@ text = "Known Bugs:
 - Resync re-broke itself..."
 autowrap = true
 
+[node name="WinwsLabel" type="Label" parent="UILayer/MainMenu"]
+unique_name_in_owner = true
+visible = false
+margin_left = 90.0
+margin_top = 129.0
+margin_right = 550.0
+margin_bottom = 154.0
+custom_colors/font_color = Color( 1, 0.2, 0.239216, 1 )
+text = "incompatible network script detected! (winws.exe - zapret?)
+please disable it and restart the game to play in multiplayer lobbies."
+align = 1
+autowrap = true
+
+[node name="AnnouncementScrollContainer" type="ScrollContainer" parent="UILayer/MainMenu"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -114.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = 330.0
+
+[node name="AnnouncementContainer" type="VBoxContainer" parent="UILayer/MainMenu/AnnouncementScrollContainer"]
+unique_name_in_owner = true
+margin_right = 112.0
+margin_bottom = 328.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 202 )
+
+[node name="TopLabel" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_right = 112.0
+margin_bottom = 11.0
+text = "COMMUNITY EVENTS"
+align = 1
+
+[node name="EventTexture" type="TextureRect" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_top = 12.0
+margin_right = 112.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 0, 30 )
+texture = ExtResource( 79 )
+expand = true
+stretch_mode = 1
+
+[node name="EventDescription" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_top = 42.0
+margin_right = 112.0
+margin_bottom = 74.531
+rect_min_size = Vector2( 0, 32.531 )
+text = "tournament announcement here!!!
+"
+align = 1
+autowrap = true
+clip_text = true
+
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
 unique_name_in_owner = true
 visible = false
@@ -2581,10 +2751,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -81.0
-margin_top = -123.0
-margin_right = 81.0
-margin_bottom = 123.0
+margin_left = -112.0
+margin_top = -137.0
+margin_right = 112.0
+margin_bottom = 137.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_horizontal = 12
@@ -2595,11 +2765,11 @@ script = ExtResource( 53 )
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer"]
 margin_left = 1.0
 margin_top = 1.0
-margin_right = 166.0
-margin_bottom = 246.0
+margin_right = 223.0
+margin_bottom = 273.0
 
 [node name="TitleBar" type="Panel" parent="UILayer/OptionsContainer/VBoxContainer"]
-margin_right = 165.0
+margin_right = 222.0
 margin_bottom = 9.0
 rect_min_size = Vector2( 0, 9 )
 mouse_filter = 1
@@ -2616,8 +2786,8 @@ align = 1
 
 [node name="Contents" type="PanelContainer" parent="UILayer/OptionsContainer/VBoxContainer"]
 margin_top = 10.0
-margin_right = 165.0
-margin_bottom = 245.0
+margin_right = 222.0
+margin_bottom = 272.0
 rect_min_size = Vector2( 0, 100 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -2625,227 +2795,469 @@ size_flags_vertical = 3
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents"]
 margin_left = 1.0
 margin_top = 1.0
-margin_right = 164.0
-margin_bottom = 234.0
+margin_right = 221.0
+margin_bottom = 261.0
 
-[node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer"]
-margin_right = 163.0
-margin_bottom = 220.0
-rect_min_size = Vector2( 0, 220 )
-scroll_horizontal_enabled = false
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer"]
-margin_right = 157.0
-margin_bottom = 292.0
-size_flags_vertical = 3
-alignment = 1
-
-[node name="HBoxContainer" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-margin_right = 157.0
-
-[node name="UninstallMH" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-visible = false
-margin_top = 1.0
-margin_right = 157.0
-margin_bottom = 13.0
-text = "todo: make uninstall tutorial"
-
-[node name="FullscreenButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="TabContainer" type="TabContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 1.0
-margin_right = 157.0
-margin_bottom = 13.0
+margin_right = 220.0
+margin_bottom = 229.0
+rect_min_size = Vector2( 0, 184 )
+size_flags_horizontal = 3
+size_flags_vertical = 3
+tab_align = 0
+
+[node name="Options" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 11.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options"]
+margin_right = 220.0
+margin_bottom = 218.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer"]
+margin_right = 220.0
+margin_bottom = 378.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="FullscreenButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_right = 214.0
+margin_bottom = 12.0
 text = "fullscreen"
 
-[node name="MusicButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="CapFramerateButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 14.0
-margin_right = 157.0
-margin_bottom = 26.0
-pressed = true
-text = "enable music"
+margin_top = 13.0
+margin_right = 214.0
+margin_bottom = 25.0
+hint_tooltip = "Caps framerate to 60. Disable for uncapped framerate."
+text = "cap framerate to 60fps"
 
-[node name="HitboxesButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="VsyncButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 27.0
-margin_right = 157.0
-margin_bottom = 39.0
+margin_top = 26.0
+margin_right = 214.0
+margin_bottom = 38.0
+hint_tooltip = "Enable vsync. Disable for reduced input latency."
+text = "enable vsync"
+
+[node name="HSeparator3" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+margin_top = 39.0
+margin_right = 214.0
+margin_bottom = 43.0
+
+[node name="HitboxesButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 44.0
+margin_right = 214.0
+margin_bottom = 56.0
 text = "show hitboxes"
 
-[node name="ExtraInfoButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="ExtraInfoButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 40.0
-margin_right = 157.0
-margin_bottom = 52.0
+margin_top = 57.0
+margin_right = 214.0
+margin_bottom = 69.0
 text = "show extra game info"
 
-[node name="AutoFCButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="HealthCountButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 53.0
-margin_right = 157.0
-margin_bottom = 65.0
-pressed = true
-text = "enable auto free cancel"
+margin_top = 70.0
+margin_right = 214.0
+margin_bottom = 82.0
+text = "show precise health count"
 
-[node name="LastMoveIndicatorButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="NextTurnHudButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 66.0
-margin_right = 157.0
-margin_bottom = 78.0
+margin_top = 83.0
+margin_right = 214.0
+margin_bottom = 95.0
+text = "show next-turn info on hud"
+
+[node name="ShowNextTurnOnCharsButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 96.0
+margin_right = 214.0
+margin_bottom = 108.0
+pressed = true
+text = "show next-turn info on characters"
+
+[node name="LastMoveIndicatorButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 109.0
+margin_right = 214.0
+margin_bottom = 121.0
 pressed = true
 text = "show last moves played"
 
-[node name="ProjectileOwnersButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="ProjectileOwnersButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 79.0
-margin_right = 157.0
-margin_bottom = 91.0
+margin_top = 122.0
+margin_right = 214.0
+margin_bottom = 134.0
 pressed = true
 text = "show projectile owners"
 
-[node name="SpeedLinesButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="PlaybackHotkeysRequireWindowButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 92.0
-margin_right = 157.0
-margin_bottom = 104.0
+margin_top = 135.0
+margin_right = 214.0
+margin_bottom = 147.0
+pressed = true
+text = "playback hotkeys require window"
+
+[node name="SpeedLinesButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 148.0
+margin_right = 214.0
+margin_bottom = 160.0
 pressed = true
 text = "show speed lines"
 
-[node name="TimerSoundButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="TimerSoundButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 105.0
-margin_right = 157.0
-margin_bottom = 117.0
+margin_top = 161.0
+margin_right = 214.0
+margin_bottom = 173.0
 pressed = true
 text = "enable low timer sound"
 
-[node name="ExtraFreezeFrames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="ExtraFreezeFrames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 118.0
-margin_right = 157.0
-margin_bottom = 130.0
+margin_top = 174.0
+margin_right = 214.0
+margin_bottom = 186.0
 pressed = true
 text = "enable hit freeze frames"
 
-[node name="PlaybackControls" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="PlaybackControls" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 131.0
-margin_right = 157.0
-margin_bottom = 143.0
+margin_top = 187.0
+margin_right = 214.0
+margin_bottom = 199.0
 text = "show playback controls"
 
-[node name="HSeparator" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-margin_top = 144.0
-margin_right = 157.0
-margin_bottom = 148.0
-
-[node name="EnableEmotes" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="EnableEmotes" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 149.0
-margin_right = 157.0
-margin_bottom = 161.0
+margin_top = 200.0
+margin_right = 214.0
+margin_bottom = 212.0
 pressed = true
 text = "show emotes"
 
-[node name="EnableStyleColorsButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="EnableStyleColorsButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 162.0
-margin_right = 157.0
-margin_bottom = 174.0
+margin_top = 213.0
+margin_right = 214.0
+margin_bottom = 225.0
 text = "enable style colors"
 
-[node name="EnableAurasButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="EnableAurasButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 175.0
-margin_right = 157.0
-margin_bottom = 187.0
+margin_top = 226.0
+margin_right = 214.0
+margin_bottom = 238.0
 text = "enable particle auras"
 
-[node name="EnableHitsparksButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="EnableHitsparksButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 188.0
-margin_right = 157.0
-margin_bottom = 200.0
+margin_top = 239.0
+margin_right = 214.0
+margin_bottom = 251.0
 text = "enable custom hitsparks"
 
-[node name="HSeparator3" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-margin_top = 201.0
-margin_right = 157.0
-margin_bottom = 205.0
-rect_pivot_offset = Vector2( -375.5, -172 )
-
-[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-margin_top = 206.0
-margin_right = 157.0
-margin_bottom = 217.0
-text = "MultiHustle Settings"
-align = 1
-
-[node name="EnablePlayerNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="ShowCommunityEventsButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 218.0
-margin_right = 157.0
-margin_bottom = 230.0
+margin_right = 214.0
+margin_bottom = 12.0
 pressed = true
-text = "enable player nametags"
+text = "show community events"
 
-[node name="EnableGhostNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-unique_name_in_owner = true
-margin_top = 231.0
-margin_right = 157.0
-margin_bottom = 243.0
-pressed = true
-text = "enable prediction nametags"
-
-[node name="EnableHealthbarLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-unique_name_in_owner = true
-margin_top = 244.0
-margin_right = 157.0
+[node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+margin_top = 252.0
+margin_right = 214.0
 margin_bottom = 256.0
-text = "show healthbar value"
 
-[node name="EnableCharHealthLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="MusicButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
 margin_top = 257.0
-margin_right = 157.0
+margin_right = 214.0
 margin_bottom = 269.0
 pressed = true
-text = "show character hp"
+text = "enable music"
 
-[node name="TournamentModeButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-unique_name_in_owner = true
-visible = false
-margin_top = 283.0
-margin_right = 157.0
-margin_bottom = 295.0
-text = "Tourament Mode"
-
-[node name="HSeparator4" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 margin_top = 270.0
-margin_right = 157.0
-margin_bottom = 274.0
-rect_pivot_offset = Vector2( -375.5, -172 )
+margin_right = 214.0
+margin_bottom = 282.0
 
-[node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
-margin_top = 275.0
-margin_right = 157.0
-margin_bottom = 279.0
-rect_pivot_offset = Vector2( -375.5, -172 )
+[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer"]
+margin_right = 106.0
+margin_bottom = 11.0
+size_flags_horizontal = 3
+text = "master volume "
 
-[node name="ModToggle" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="MasterSlider" type="HSlider" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-margin_top = 280.0
-margin_right = 157.0
-margin_bottom = 292.0
+margin_left = 107.0
+margin_right = 214.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+margin_top = 283.0
+margin_right = 214.0
+margin_bottom = 295.0
+
+[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer2"]
+margin_right = 106.0
+margin_bottom = 11.0
+size_flags_horizontal = 3
+text = "fx volume "
+
+[node name="FXSlider" type="HSlider" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+margin_left = 107.0
+margin_right = 214.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+margin_top = 296.0
+margin_right = 214.0
+margin_bottom = 308.0
+
+[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer3"]
+margin_right = 106.0
+margin_bottom = 11.0
+size_flags_horizontal = 3
+text = "ui volume "
+
+[node name="UISlider" type="HSlider" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+margin_left = 107.0
+margin_right = 214.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+margin_top = 309.0
+margin_right = 214.0
+margin_bottom = 321.0
+
+[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer4"]
+margin_right = 106.0
+margin_bottom = 11.0
+size_flags_horizontal = 3
+text = "music volume "
+
+[node name="MusicSlider" type="HSlider" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer4"]
+unique_name_in_owner = true
+margin_left = 107.0
+margin_right = 214.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="HSeparator4" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+margin_top = 322.0
+margin_right = 214.0
+margin_bottom = 326.0
+
+[node name="EnableReplayBackups" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 327.0
+margin_right = 214.0
+margin_bottom = 339.0
+hint_tooltip = "Save a backup replay every turn (max 10), so you can recover unfinished matches."
+pressed = true
+text = "enable per-turn backups"
+
+[node name="AutoFCButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 340.0
+margin_right = 214.0
+margin_bottom = 352.0
+pressed = true
+text = "enable auto free cancel"
+
+[node name="XYPlotInvertSnapButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 353.0
+margin_right = 214.0
+margin_bottom = 365.0
+hint_tooltip = "XY plots don't snap by default. Hold Shift to snap."
+text = "hold shift to snap xy plots"
+
+[node name="Hotkeys" type="Control" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 11.0
+script = ExtResource( 78 )
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Hotkeys"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="HotkeysList" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Hotkeys/ScrollContainer"]
+unique_name_in_owner = true
+margin_right = 220.0
+margin_bottom = 218.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Personalization" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 11.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization"]
+margin_right = 220.0
+margin_bottom = 218.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer"]
+margin_right = 220.0
+margin_bottom = 218.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="CustomNameLabel" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+margin_right = 220.0
+margin_bottom = 11.0
+text = "Legacy Multiplayer/Character Name"
+
+[node name="CustomNameRow" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+margin_top = 12.0
+margin_right = 220.0
+margin_bottom = 24.0
+
+[node name="CustomName" type="LineEdit" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer/CustomNameRow"]
+unique_name_in_owner = true
+margin_right = 190.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+
+[node name="CustomNameReset" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer/CustomNameRow"]
+unique_name_in_owner = true
+margin_left = 191.0
+margin_right = 220.0
+margin_bottom = 12.0
+text = "reset"
+
+[node name="HSeparator" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+margin_top = 25.0
+margin_right = 220.0
+margin_bottom = 29.0
+
+[node name="NameColorLabel" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+margin_top = 30.0
+margin_right = 220.0
+margin_bottom = 41.0
+text = "Name Color"
+
+[node name="HueRow" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+margin_top = 42.0
+margin_right = 220.0
+margin_bottom = 54.0
+
+[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer/HueRow"]
+margin_right = 109.0
+margin_bottom = 11.0
+size_flags_horizontal = 3
+text = "hue"
+
+[node name="NameHueSlider" type="HSlider" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer/HueRow"]
+unique_name_in_owner = true
+margin_left = 110.0
+margin_right = 220.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+
+[node name="SaturationRow" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+margin_top = 55.0
+margin_right = 220.0
+margin_bottom = 67.0
+
+[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer/SaturationRow"]
+margin_right = 109.0
+margin_bottom = 11.0
+size_flags_horizontal = 3
+text = "saturation"
+
+[node name="NameSaturationSlider" type="HSlider" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer/SaturationRow"]
+unique_name_in_owner = true
+margin_left = 110.0
+margin_right = 220.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="NameColorPreview" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 68.0
+margin_right = 220.0
+margin_bottom = 79.0
+text = "preview"
+align = 1
+
+[node name="NameColorReset" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Personalization/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 80.0
+margin_right = 220.0
+margin_bottom = 92.0
+text = "reset color"
+
+[node name="HSeparator" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer"]
+margin_top = 230.0
+margin_right = 220.0
+margin_bottom = 234.0
+
+[node name="ModToggle" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 235.0
+margin_right = 220.0
+margin_bottom = 247.0
 custom_colors/font_color = Color( 0.396078, 0.901961, 1, 1 )
 text = "enable mods (must restart)"
 
 [node name="OptionsBackButton" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 221.0
-margin_right = 163.0
-margin_bottom = 233.0
+margin_top = 248.0
+margin_right = 220.0
+margin_bottom = 260.0
 text = "done"
+
+[node name="OptionsSoundPlayer" type="AudioStreamPlayer" parent="UILayer/OptionsContainer"]
+unique_name_in_owner = true
+volume_db = -20.0
 
 [node name="Lobby" parent="UILayer" instance=ExtResource( 5 )]
 unique_name_in_owner = true
@@ -2953,6 +3365,23 @@ text = "30:00"
 align = 1
 valign = 1
 
+[node name="P1TurnDebtLabel" type="Label" parent="UILayer"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -287.0
+margin_top = -142.0
+margin_right = -247.0
+margin_bottom = -131.0
+theme = ExtResource( 4 )
+custom_colors/font_color = Color( 1, 0.35, 0.35, 1 )
+text = "-0:00"
+align = 1
+valign = 1
+
 [node name="P2TurnTimerBar" type="TextureProgress" parent="UILayer"]
 unique_name_in_owner = true
 visible = false
@@ -2991,6 +3420,23 @@ margin_right = 287.0
 margin_bottom = -138.0
 theme = ExtResource( 4 )
 text = "30:00"
+align = 1
+valign = 1
+
+[node name="P2TurnDebtLabel" type="Label" parent="UILayer"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = 247.0
+margin_top = -142.0
+margin_right = 287.0
+margin_bottom = -131.0
+theme = ExtResource( 4 )
+custom_colors/font_color = Color( 1, 0.35, 0.35, 1 )
+text = "-0:00"
 align = 1
 valign = 1
 
@@ -3040,16 +3486,75 @@ margin_top = 1.0
 margin_right = 469.0
 margin_bottom = 281.0
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="UILayer/ReplayWindow/VBoxContainer"]
+[node name="ReplayChallengeTitle" type="Label" parent="UILayer/ReplayWindow/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
 margin_right = 468.0
 margin_bottom = 11.0
+text = "Select a replay to resume with"
+align = 1
+
+[node name="ReplaySearchRow" type="HBoxContainer" parent="UILayer/ReplayWindow/VBoxContainer"]
+unique_name_in_owner = true
+margin_right = 468.0
+margin_bottom = 12.0
+
+[node name="ReplaySearchLabel" type="Label" parent="UILayer/ReplayWindow/VBoxContainer/ReplaySearchRow"]
+margin_right = 37.0
+margin_bottom = 11.0
+text = "search:"
+
+[node name="ReplaySearchEdit" type="LineEdit" parent="UILayer/ReplayWindow/VBoxContainer/ReplaySearchRow"]
+unique_name_in_owner = true
+margin_left = 38.0
+margin_right = 285.0
+margin_bottom = 12.0
+size_flags_horizontal = 3
+placeholder_text = "filter by substring or regex"
+
+[node name="VersionModeButton" type="Button" parent="UILayer/ReplayWindow/VBoxContainer/ReplaySearchRow"]
+unique_name_in_owner = true
+margin_left = 286.0
+margin_right = 331.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 45, 0 )
+hint_tooltip = "Click to cycle replay version filter: all / warn / same."
+text = "version"
+
+[node name="VersionModeLabel" type="Label" parent="UILayer/ReplayWindow/VBoxContainer/ReplaySearchRow"]
+unique_name_in_owner = true
+margin_left = 332.0
+margin_right = 362.0
+margin_bottom = 11.0
+rect_min_size = Vector2( 30, 0 )
+align = 1
+
+[node name="NoMissingCharactersToggle" type="CheckButton" parent="UILayer/ReplayWindow/VBoxContainer/ReplaySearchRow"]
+unique_name_in_owner = true
+margin_left = 363.0
+margin_right = 468.0
+margin_bottom = 12.0
+hint_tooltip = "Hide replays with characters you don't have installed."
+text = "no missing chars"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="UILayer/ReplayWindow/VBoxContainer"]
+margin_top = 13.0
+margin_right = 468.0
+margin_bottom = 24.0
 
 [node name="Label" type="Label" parent="UILayer/ReplayWindow/VBoxContainer/HBoxContainer2"]
+margin_right = 160.0
+margin_bottom = 11.0
+rect_min_size = Vector2( 160, 0 )
+text = "Replay"
+align = 1
+
+[node name="MatchupHeader" type="Label" parent="UILayer/ReplayWindow/VBoxContainer/HBoxContainer2"]
+margin_left = 161.0
 margin_right = 301.0
 margin_bottom = 11.0
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.83
-text = "Replay"
+rect_min_size = Vector2( 140, 0 )
+text = "Matchup"
 align = 1
 
 [node name="Label2" type="Label" parent="UILayer/ReplayWindow/VBoxContainer/HBoxContainer2"]
@@ -3058,9 +3563,10 @@ margin_right = 468.0
 margin_bottom = 11.0
 size_flags_horizontal = 3
 text = "Game Version"
+align = 1
 
 [node name="Panel" type="Panel" parent="UILayer/ReplayWindow/VBoxContainer"]
-margin_top = 12.0
+margin_top = 25.0
 margin_right = 468.0
 margin_bottom = 267.0
 size_flags_horizontal = 3
@@ -3074,7 +3580,7 @@ scroll_horizontal_enabled = false
 [node name="ReplayContainer" type="VBoxContainer" parent="UILayer/ReplayWindow/VBoxContainer/Panel/ScrollContainer"]
 unique_name_in_owner = true
 margin_right = 468.0
-margin_bottom = 255.0
+margin_bottom = 242.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -3086,25 +3592,200 @@ alignment = 2
 
 [node name="OpenReplayFolderButton" type="Button" parent="UILayer/ReplayWindow/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-margin_right = 161.0
+margin_right = 135.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
 text = "open folder"
 
 [node name="ShowAutosavedReplays" type="CheckButton" parent="UILayer/ReplayWindow/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-margin_left = 162.0
-margin_right = 305.0
+margin_left = 136.0
+margin_right = 239.0
 margin_bottom = 12.0
-text = "show autosaved replays"
+text = "show autosaved"
+
+[node name="ShowBackupReplays" type="CheckButton" parent="UILayer/ReplayWindow/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+margin_left = 240.0
+margin_right = 332.0
+margin_bottom = 12.0
+text = "show backups"
 
 [node name="ReplayCancelButton" type="Button" parent="UILayer/ReplayWindow/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-margin_left = 306.0
+margin_left = 333.0
 margin_right = 468.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
 text = "go back"
+
+[node name="MissingCharConfirmDialog" type="PanelContainer" parent="UILayer"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -180.0
+margin_top = -55.0
+margin_right = 180.0
+margin_bottom = 55.0
+size_flags_horizontal = 12
+size_flags_vertical = 12
+theme = ExtResource( 4 )
+script = ExtResource( 201 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MissingCharConfirmDialog"]
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 359.0
+margin_bottom = 109.0
+
+[node name="TitleBar" type="Panel" parent="UILayer/MissingCharConfirmDialog/VBoxContainer"]
+margin_right = 358.0
+margin_bottom = 9.0
+rect_min_size = Vector2( 0, 9 )
+mouse_filter = 1
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="UILayer/MissingCharConfirmDialog/VBoxContainer/TitleBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -1.0
+margin_bottom = 2.0
+mouse_filter = 1
+text = "Missing character"
+align = 1
+
+[node name="Contents" type="PanelContainer" parent="UILayer/MissingCharConfirmDialog/VBoxContainer"]
+margin_top = 10.0
+margin_right = 358.0
+margin_bottom = 108.0
+rect_min_size = Vector2( 0, 80 )
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MissingContentVBox" type="VBoxContainer" parent="UILayer/MissingCharConfirmDialog/VBoxContainer/Contents"]
+margin_right = 358.0
+margin_bottom = 98.0
+custom_constants/separation = 12
+
+[node name="MissingMessageLabel" type="Label" parent="UILayer/MissingCharConfirmDialog/VBoxContainer/Contents/MissingContentVBox"]
+margin_right = 358.0
+margin_bottom = 58.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "This replay has a character you don't have installed. Load anyway?"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="MissingButtonRow" type="HBoxContainer" parent="UILayer/MissingCharConfirmDialog/VBoxContainer/Contents/MissingContentVBox"]
+margin_top = 70.0
+margin_right = 358.0
+margin_bottom = 98.0
+custom_constants/separation = 12
+alignment = 1
+
+[node name="MissingCancelButton" type="Button" parent="UILayer/MissingCharConfirmDialog/VBoxContainer/Contents/MissingContentVBox/MissingButtonRow"]
+unique_name_in_owner = true
+margin_left = 53.0
+margin_right = 173.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 120, 28 )
+text = "cancel"
+
+[node name="MissingConfirmButton" type="Button" parent="UILayer/MissingCharConfirmDialog/VBoxContainer/Contents/MissingContentVBox/MissingButtonRow"]
+unique_name_in_owner = true
+margin_left = 185.0
+margin_right = 305.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 120, 28 )
+text = "load anyway"
+
+[node name="OldVersionConfirmDialog" type="PanelContainer" parent="UILayer"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -220.0
+margin_top = -95.0
+margin_right = 220.0
+margin_bottom = 95.0
+size_flags_horizontal = 12
+size_flags_vertical = 12
+theme = ExtResource( 4 )
+script = ExtResource( 201 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OldVersionConfirmDialog"]
+margin_left = 1.0
+margin_top = 1.0
+margin_right = 439.0
+margin_bottom = 189.0
+
+[node name="TitleBar" type="Panel" parent="UILayer/OldVersionConfirmDialog/VBoxContainer"]
+margin_right = 438.0
+margin_bottom = 9.0
+rect_min_size = Vector2( 0, 9 )
+mouse_filter = 1
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="UILayer/OldVersionConfirmDialog/VBoxContainer/TitleBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -1.0
+margin_bottom = 2.0
+mouse_filter = 1
+text = "Old version"
+align = 1
+
+[node name="Contents" type="PanelContainer" parent="UILayer/OldVersionConfirmDialog/VBoxContainer"]
+margin_top = 10.0
+margin_right = 438.0
+margin_bottom = 188.0
+rect_min_size = Vector2( 0, 160 )
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="OldVersionContentVBox" type="VBoxContainer" parent="UILayer/OldVersionConfirmDialog/VBoxContainer/Contents"]
+margin_right = 438.0
+margin_bottom = 178.0
+custom_constants/separation = 12
+
+[node name="OldVersionMessageLabel" type="Label" parent="UILayer/OldVersionConfirmDialog/VBoxContainer/Contents/OldVersionContentVBox"]
+margin_right = 438.0
+margin_bottom = 138.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "This replay is from an old version. Load it anyway?
+
+Tip: to view or edit broken replays from older versions, right-click Your Only Move Is HUSTLE in your Steam library, select \"properties\", then \"betas\", and select the correct patch."
+autowrap = true
+
+[node name="OldVersionButtonRow" type="HBoxContainer" parent="UILayer/OldVersionConfirmDialog/VBoxContainer/Contents/OldVersionContentVBox"]
+margin_top = 150.0
+margin_right = 438.0
+margin_bottom = 178.0
+custom_constants/separation = 12
+alignment = 1
+
+[node name="OldVersionCancelButton" type="Button" parent="UILayer/OldVersionConfirmDialog/VBoxContainer/Contents/OldVersionContentVBox/OldVersionButtonRow"]
+unique_name_in_owner = true
+margin_left = 93.0
+margin_right = 213.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 120, 28 )
+text = "cancel"
+
+[node name="OldVersionConfirmButton" type="Button" parent="UILayer/OldVersionConfirmDialog/VBoxContainer/Contents/OldVersionContentVBox/OldVersionButtonRow"]
+unique_name_in_owner = true
+margin_left = 225.0
+margin_right = 345.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 120, 28 )
+text = "load anyway"
 
 [node name="NagWindow" parent="UILayer" instance=ExtResource( 60 )]
 unique_name_in_owner = true
@@ -3113,6 +3794,10 @@ margin_left = -279.0
 margin_top = -121.0
 margin_right = -101.0
 margin_bottom = -9.0
+
+[node name="ModWarningWindow" parent="UILayer" instance=ExtResource( 76 )]
+unique_name_in_owner = true
+visible = false
 
 [node name="ResimRequestScreen" type="ColorRect" parent="UILayer"]
 visible = false
@@ -3168,7 +3853,7 @@ size_flags_horizontal = 3
 text = "no"
 
 [node name="ButtonSoundPlayer" parent="UILayer" instance=ExtResource( 18 )]
-button_containers = [ NodePath("../MainMenu/ButtonContainer"), NodePath("../GameUI/PausePanel/VBoxContainer"), NodePath("../OptionsContainer/VBoxContainer/Contents/VBoxContainer/ScrollContainer/VBoxContainer") ]
+button_containers = [ NodePath("../MainMenu/ButtonContainer"), NodePath("../GameUI/PausePanel/VBoxContainer"), NodePath("") ]
 
 [node name="TurnReadySound" type="AudioStreamPlayer" parent="UILayer"]
 unique_name_in_owner = true
@@ -3296,6 +3981,9 @@ align = 1
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
+
+[node name="Hooks" type="Node" parent="."]
+script = ExtResource( 203 )
 
 [connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/ClearParticlesButton" to="UILayer" method="_on_ClearParticlesButton_pressed"]
 [connection signal="pressed" from="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/DebugBar/CalcEndMatch" to="UILayer" method="_on_ClearParticlesButton_pressed"]

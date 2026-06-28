@@ -105,7 +105,15 @@ func _tick():
 
 func _frame_7():
 	var dir = xy_to_dir(data["Direction"]["x"], data["Direction"]["y"])
+	# The jet fires in the absolute (world-space) direction set on the aim
+	# wheel — identical for both players, never mirrored by facing. Orient it by
+	# rotation alone, straight to the wheel's angle, and force scale.x = +1
+	# (_spawn_particle_effect's facing<0 branch would otherwise x-flip the
+	# sprite when the wheel points left).
 	particle = host._spawn_particle_effect(PARTICLES[charges - 1], particle_position, Vector2(float(dir.x), float(dir.y)))
+	if particle:
+		particle.scale.x = 1
+		particle.rotation = Vector2(float(dir.x), float(dir.y)).angle()
 
 #	host.start_geyser_particle(charges - 1, Vector2(float(dir.x), float(dir.y)).angle())
 	var pos = host.get_pos()

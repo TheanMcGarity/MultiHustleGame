@@ -61,6 +61,8 @@ func show_options():
 	if obj:
 		detach_button.show()
 
+	update_missed_block()
+
 func update_selected_move(move_state):
 	.update_selected_move(move_state)
 	release_button.disabled = false
@@ -76,15 +78,33 @@ func update_selected_move(move_state):
 		release_button.set_pressed_no_signal(false)
 		release_button.disabled = true
 
-	if (move_state and move_state is GroundedParryState) or (move_state == null and fighter.current_state() is GroundedParryState):
+	if (move_state and move_state is ParryState) or (move_state == null and fighter.current_state() is ParryState):
 		pull_button.set_pressed_no_signal(false)
 		pull_button.disabled = true
+#	if move_state and move_state.name in ["Uppercut", "UppercutAir"]:
+#	if move_state and move_state.name in ["Uppercut"]:
+#		if fighter:
+#			var hook = fighter.obj_from_name(fighter.grappling_hook_projectile)
+#			if hook:
+#				if hook.is_locked and not hook.attached_to:
+#					pull_button.set_pressed_no_signal(false)
+#					pull_button.disabled = true
+
+	update_missed_block()
+
+func update_missed_block():
+	if fighter.current_state().get("disable_aerial_movement"):
+		boost_dir.hide()
+		release_button.set_pressed_no_signal(false)
+		release_button.disabled = true
+		pull_button.disabled = true
+		pull_button.set_pressed_no_signal(false)
 
 
 func get_extra():
 	var extra = {
 		"explode": bomb_button.pressed,
-		"pull": pull_button.pressed,
+		"pull": pull_button.pressed if pull_button.visible else fighter.pulling,
 		"detach": detach_button.pressed,
 #		"store": store_button.pressed,
 		"release": release_button.pressed,

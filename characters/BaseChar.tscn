@@ -202,6 +202,8 @@
 [ext_resource path="res://characters/HPLabel.gd" type="Script" id=200]
 [ext_resource path="res://ui/ActionSelector/StateIcons/team_rescue.png" type="Texture" id=201]
 [ext_resource path="res://ui/ActionSelector/StateIcons/team_boost.png" type="Texture" id=202]
+[ext_resource path="res://characters/states/Frozen.gd" type="Script" id=203]
+[ext_resource path="res://characters/FighterHooks.gd" type="Script" id=204]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
@@ -929,6 +931,7 @@ height = 38
 hitbox_type = 4
 hitstun_ticks = 23
 victim_hitlag = 4
+damage_proration = 3
 cancellable = false
 hits_otg = true
 can_counter_hit = false
@@ -981,6 +984,7 @@ height = 38
 hitbox_type = 4
 hitstun_ticks = 23
 victim_hitlag = 4
+damage_proration = 3
 cancellable = false
 hits_otg = true
 can_counter_hit = false
@@ -2081,6 +2085,13 @@ particle_position = Vector2( 0, -16 )
 spawn_particle_on_enter = true
 enter_sfx = ExtResource( 141 )
 
+[node name="Frozen" type="Node2D" parent="StateMachine" index="57"]
+script = ExtResource( 203 )
+endless = true
+busy_interrupt_type = 1
+interrupt_into_string = "Grounded
+Aerial"
+
 [node name="YouLabel" type="Label" parent="." index="5"]
 visible = false
 margin_left = -20.0
@@ -2301,5 +2312,8 @@ unique_name_in_owner = true
 position = Vector2( 0, -60 )
 texture = SubResource( 3 )
 flip_v = true
+
+[node name="Hooks" parent="." index="15"]
+script = ExtResource( 204 )
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

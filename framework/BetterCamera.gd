@@ -8,6 +8,10 @@ const SCREENSHAKE_TIME_MODIFIER = 1.5
 
 export var default_screenshake_amount = 2.0
 export var default_screenshake_time = 0.1
+
+# Modding hooks node (CameraHooks). Grabbed from the scene in _ready, gated on
+# mods. Carried as the camera's Hooks child in Game.tscn. See CameraHooks.gd.
+var hooks = null
 #@onready var noise = FastNoiseLite.new()
 #var noise_y = 0
 
@@ -39,6 +43,11 @@ class Offset extends Reference:
 	
 func _ready():
 	rng.randomize()
+	if ModLoader.active:
+		hooks = get_node_or_null("Hooks")
+		if hooks:
+			hooks.host = self
+			hooks.ready()
 
 func bump_at_location(dir, location=global_position, amount:=default_screenshake_amount, time:=default_screenshake_time, falloff=1400, power=4):
 #	if !Global.screen_shake:
@@ -58,6 +67,10 @@ func bump(dir=Vector2(), amount=default_screenshake_amount, time=default_screens
 	time = float(time)
 	amount *= SCREENSHAKE_MODIFIER
 	time *= SCREENSHAKE_TIME_MODIFIER
+	# Stretch the shake duration so it scales with the current playback speed.
+	time /= Global.get_playback_speed_factor()
+	if hooks:
+		hooks.screenshake(dir, amount, time)
 #	if !Global.screen_shake:
 #		return
 	var shake_tween = create_tween()

@@ -39,8 +39,11 @@ func _tick():
 		if current_tick == hit_frame + SHOOT_FRAMES_AFTER_HITTING + PICKUP_TICKS_AFTER_SHOOT and host.shot:
 			host.can_be_picked_up = true
 	
-	if host.is_grounded():
+	if host.reeled and current_tick > 2:
 		host.can_be_picked_up = true
+	if host.is_grounded():
+		if !host.reeled:
+			host.can_be_picked_up = true
 		if !host.lassoed:
 			anim_name = "Idle"
 			hitbox.deactivate()
@@ -75,4 +78,7 @@ func pop_up():
 
 func _on_hit_something(obj, _hitbox):
 	if obj.is_in_group("Fighter"):
-		pop_up()
+		if !host.reeled:
+			hit_frame = current_tick
+			pop_up()
+	._on_hit_something(obj, _hitbox)

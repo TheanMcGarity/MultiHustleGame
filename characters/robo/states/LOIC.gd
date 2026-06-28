@@ -10,6 +10,14 @@ func _enter():
 	host.loic_draining = true
 	host.can_loic = false
 	self_ = data.Self
+	# Steer the strike on the cast turn itself — the persistent %LOIC dir
+	# selector only shows up once orbital_strike_out is set (next turn), so
+	# without this the strike always starts at loic_dir 0. Runs after
+	# process_extra (which would otherwise reset loic_dir to 0 here), so the
+	# cast-turn pick wins. data.Dir is the same absolute (consider_facing off)
+	# 8Way value the steering control feeds into loic_dir.
+	if data.has("Dir"):
+		host.loic_dir = data.Dir.x
 
 
 func process_projectile(obj):

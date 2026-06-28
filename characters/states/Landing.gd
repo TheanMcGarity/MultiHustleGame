@@ -17,6 +17,7 @@ func set_lag(lag=null):
 	iasa_at = lag - 1
 	self.lag = lag
 
+
 func _frame_0():
 	set_lag(null)
 

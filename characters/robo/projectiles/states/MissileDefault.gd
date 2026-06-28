@@ -22,4 +22,5 @@ func _tick():
 			host.play_sound("FlySound")
 
 func on_got_blocked():
+	.on_got_blocked()
 	host.disable()

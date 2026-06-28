@@ -11,14 +11,21 @@ onready var hitbox = $Hitbox
 onready var hitbox2 = $Hitbox2
 var particle_x
 var particle_y
+var early_interrupt = false
+export var spark = false
 
 func _frame_0():
 	land_cancel = false
+#	if host.combo_count > 0:
+	early_interrupt = false
 	if host.fast_falling:
 		host.hover_left -= FAST_FALL_REDUCTION
 	hitbox2.plus_frames = 2
 	landing_recovery = 6
 	
+func is_usable():
+	return ((spark and host.spark_speed_frames > 0) or ((not spark) and host.spark_speed_frames == 0)) and .is_usable()
+
 func _frame_6():
 	host.reset_momentum()
 #	host.move_directly(0, -1)
@@ -49,7 +56,13 @@ func _frame_6():
 	host.screen_bump(Vector2(), 3, 0.15)
 	host.colliding_with_opponent = false
 
+func _frame_21():
+	if early_interrupt:
+		enable_interrupt()
+
 func _tick():
+	if host.combo_count > 0:
+		early_interrupt = true
 	if host.spark_speed_frames > 0:
 		hitbox2.plus_frames = 3
 #	if host.spark_speed_frames <= 0:

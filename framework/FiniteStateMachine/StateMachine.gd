@@ -150,6 +150,17 @@ func update(delta):
 	if next_state_name:
 		queue_state(next_state_name,null,state,true)
 
+# Route a state lifecycle event to the host object's modding hooks node, if
+# any. Bundled into the object's Hooks (like Hitbox) instead of a per-state
+# node. host.hooks is null when mods are disabled (BaseObj._ready gates it),
+# so this is free with mods off.
+func _state_cb(method, st):
+	if !host:
+		return
+	var cb = host.get("hooks")
+	if cb:
+		cb.call(method, st)
+
 func tick():
 	if queued_states.size() > 0:
 		var state = queued_states.pop_front()
@@ -161,6 +172,7 @@ func tick():
 		next_state_name = state._tick()
 	if next_state_name == null:
 		next_state_name = state._tick_after()
+	_state_cb("state_ticked", state)
 	if next_state_name:
 		queue_state(next_state_name,null,state,true)
 
@@ -168,6 +180,7 @@ func deactivate():
 	state.active = false
 	state._exit_shared()
 	state._exit()
+	_state_cb("state_exited", state)
 	emit_signal("state_exited", state)
 
 func integrate(st):
@@ -186,6 +199,7 @@ func _change_state(state_name: String, data=null, enter=true, exit=true) -> void
 		if exit:
 			state._exit_shared()
 			state._exit()
+			_state_cb("state_exited", state)
 			emit_signal("state_exited", state)
 		state.active = false
 		state.set_physics_process(false)
@@ -222,7 +236,8 @@ func _change_state(state_name: String, data=null, enter=true, exit=true) -> void
 		if new_state:
 			_change_state(new_state)
 			return
-	
+		_state_cb("state_entered", state)
+
 	emit_signal("state_changed", states_stack)
 
 func try(method: String, args: Array = []):

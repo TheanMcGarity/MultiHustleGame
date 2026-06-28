@@ -21,6 +21,20 @@ animations = [ {
 
 [node name="NewBullet" instance=ExtResource( 1 )]
 script = ExtResource( 2 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 max_fall_speed = "15"
 extra_state_variables = "dir_x
 dir_y
@@ -34,6 +48,7 @@ has_projectile_parry_window = false
 deletes_other_projectiles = false
 can_be_hit_by_melee = true
 color = Color( 0.94902, 1, 0.192157, 1 )
+is_time_bullet = false
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 2 )
@@ -89,6 +104,7 @@ chip_damage_modifier = "0.75"
 hitstun_ticks = 18
 hitlag_ticks = 3
 victim_hitlag = 6
+damage_proration = 1
 di_modifier = "0.7"
 plus_frames = 2
 hit_sound = ExtResource( 10 )
@@ -114,6 +130,7 @@ chip_damage_modifier = "0.75"
 hitstun_ticks = 18
 hitlag_ticks = 3
 victim_hitlag = 6
+damage_proration = 1
 di_modifier = "0.7"
 plus_frames = 2
 hit_sound = ExtResource( 10 )
@@ -139,6 +156,7 @@ chip_damage_modifier = "0.75"
 hitstun_ticks = 18
 hitlag_ticks = 3
 victim_hitlag = 6
+damage_proration = 1
 di_modifier = "0.7"
 plus_frames = 2
 hit_sound = ExtResource( 10 )

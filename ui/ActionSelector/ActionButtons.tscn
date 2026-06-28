@@ -202,9 +202,10 @@ expand_icon = true
 
 [node name="ReverseButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
-margin_top = 26.0
+visible = false
+margin_top = 30.0
 margin_right = 45.0
-margin_bottom = 38.0
+margin_bottom = 44.0
 hint_tooltip = "Perform your action backwards."
 size_flags_horizontal = 3
 size_flags_vertical = 3

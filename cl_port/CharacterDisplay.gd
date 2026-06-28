@@ -13,3 +13,13 @@ func load_character_data(data):
 		get_node("CharacterLabel").align = 0
 		theme = load("res://cl_port/visuals/error.tres")
 	$"%CharacterLabel".text = n
+	if data.get("use_extra_color_1"):
+		$"%CharacterPortrait".get_material().set_shader_param("extra_replace_color_1", data.get("extra_color_1"))
+	if data.get("use_extra_color_2"):
+		$"%CharacterPortrait".get_material().set_shader_param("extra_replace_color_2", data.get("extra_color_2"))
+	# Cache limb data and refresh auras so attached auras can find the limbs
+	# on the new portrait. Done here (instead of calling super) because this
+	# override sets the label/material differently — but we still need the
+	# limb-data plumbing from the base class.
+	character_limb_data = data.get("limb_data", {})
+	_refresh_auras()

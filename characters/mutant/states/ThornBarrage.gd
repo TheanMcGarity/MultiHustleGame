@@ -11,9 +11,9 @@ var projectiles_left = 0
 
 export var air = false
 
-
 func _frame_5():
 	projectiles_left = NUM_PROJECTILES
+	host.thorn_set = []
 	host.play_sound("HitBass")
 	if air:
 #		host.set_vel(host.get_vel().x, "0")
@@ -34,7 +34,8 @@ func _tick():
 	#		print(angle)
 			var vec = fixed.rotate_vec("0", "-1" if !air else "1", angle)
 			var projectile = PROJECTILE
-			host.spawn_object(PROJECTILE, -8, -16 if !air else -32, true, {"dir": vec, "angle": angle})
+			var thorn = host.spawn_object(PROJECTILE, -8, -16 if !air else -32, true, {"dir": vec, "angle": angle})
+			host.thorn_set.append(thorn.obj_name)
 			projectiles_left -= 1
 
 #

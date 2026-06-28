@@ -100,6 +100,15 @@ func on_got_perfect_parried():
 		host.hitlag_ticks += 8
 		
 
+func _exit_shared():
+	# Natural transition to DiveKickHopLong should carry the feint over —
+	# the parent _exit_shared clears host.feinting if end_feint is set, so
+	# capture and restore it across the call.
+	var pass_feint = data is Dictionary and data.y < 0 and current_tick > 20 and feinting
+	._exit_shared()
+	if pass_feint:
+		host.feinting = true
+
 func _tick():
 	if !grounded and current_tick == 3:
 		if host.initiative:
@@ -109,7 +118,7 @@ func _tick():
 
 	if grounded and data.y < 0 and current_tick == 4:
 		current_tick = 8
-	
+
 	if data.y < 0 and current_tick > 20:
 		return "DiveKickHopLong"
 

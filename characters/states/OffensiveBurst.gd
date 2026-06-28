@@ -1,5 +1,7 @@
 extends CharacterState
 
+const IS_BURST = true
+
 var started_falling = false
 
 func _enter():

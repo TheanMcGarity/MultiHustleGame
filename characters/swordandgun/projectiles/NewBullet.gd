@@ -8,6 +8,12 @@ const SPEED = "50"
 const NEW_BULLET = true
 
 export var color = Color("f2ff31")
+# Distinguishes NewTimeBullet (spawned by Cowboy's temporal_round) from the
+# regular NewBullet — same script + scene shape, so we tag the scene file
+# instead. SwordGuy.gain_super_meter reads this to keep the time-projectile
+# meter penalty active for as long as ANY of his NewTimeBullets exist, not
+# just the frozen-round itself.
+export var is_time_bullet = false
 
 var dir_x = "0"
 var dir_y = "0"
@@ -47,12 +53,21 @@ func _draw():
 		if to_local(last_pos_visual) == Vector2():
 			draw_circle(Vector2(), 6.0, color)
 
+func disable():
+	# Pair with TemporalRoundDefault's _register_time_bullet so the count
+	# stays accurate across ricochets, hit-cancels, end-of-life, etc.
+	# Idempotent on the SwordGuy side (clamps at 0).
+	if is_time_bullet and creator and creator.has_method("_unregister_time_bullet"):
+		creator._unregister_time_bullet()
+	.disable()
+
 func _on_hit_something(obj, hitbox):
 	._on_hit_something(obj, hitbox)
 	if obj == get_opponent():
 		emit_signal("bullet_made_contact")
 
 func on_got_blocked():
+	.on_got_blocked()
 	emit_signal("bullet_made_contact")
 
 func on_got_push_blocked():

@@ -3,6 +3,11 @@ extends CharacterState
 const X_FRIC = "0.06"
 const SPEED_LIMIT = "22"
 
+func _frame_0():
+	force_tick = 3
+	if host.initiative:
+		force_tick = 1
+
 func _frame_2():
 	if host.initiative:
 		host.start_projectile_invulnerability()

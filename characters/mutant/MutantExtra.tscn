@@ -35,10 +35,21 @@ alignment = 2
 
 [node name="JukeDir" parent="VBoxContainer3" index="0" instance=ExtResource( 4 )]
 unique_name_in_owner = true
-margin_top = 285.0
-margin_bottom = 347.0
+margin_top = 272.0
+margin_bottom = 334.0
 
 [node name="JukeButton" type="CheckButton" parent="VBoxContainer3" index="1"]
+unique_name_in_owner = true
+margin_top = 335.0
+margin_right = 50.0
+margin_bottom = 347.0
+rect_min_size = Vector2( 34, 0 )
+size_flags_vertical = 0
+theme = ExtResource( 3 )
+pressed = true
+text = "Juke"
+
+[node name="BloomButton" type="CheckButton" parent="VBoxContainer3" index="2"]
 unique_name_in_owner = true
 margin_top = 348.0
 margin_right = 50.0
@@ -46,8 +57,7 @@ margin_bottom = 360.0
 rect_min_size = Vector2( 34, 0 )
 size_flags_vertical = 0
 theme = ExtResource( 3 )
-pressed = true
-text = "Juke"
+text = "Bloom"
 
 [connection signal="data_changed" from="VBoxContainer3/JukeDir" to="." method="_on_JukeDir_data_changed"]
 [connection signal="toggled" from="VBoxContainer3/JukeButton" to="." method="_on_JukeButton_toggled"]

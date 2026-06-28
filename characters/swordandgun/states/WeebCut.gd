@@ -6,7 +6,7 @@ const IASA = 20
 const WHIFF_LANDING_LAG = 4
 const WHIFF_IASA = 20
 const EXPLOSION = preload("res://characters/swordandgun/projectiles/AfterImageExplosionEffect.tscn")
-const HITBOX_START_FRAME = 6
+const HITBOX_START_FRAME = 15
 
 var hitboxes = []
 
@@ -24,12 +24,12 @@ func is_usable():
 
 func setup_hitboxes():
 	hitboxes = []
-	var hitbox_frame = HITBOX_START_FRAME
+#	var hitbox_frame = HITBOX_START_FRAME
 	for child in get_children():
 		if child is Hitbox:
 			hitboxes.append(child)
-			child.start_tick = hitbox_frame
-			hitbox_frame += 1
+			child.start_tick = HITBOX_START_FRAME
+#			hitbox_frame += 1
 
 	.setup_hitboxes()
 
@@ -87,6 +87,9 @@ func _frame_4():
 	host.prediction_effect()
 
 func _frame_5():
+	host.end_invulnerability()
+
+func _frame_10():
 	var start_pos_x = host.fatal_cut_start_pos_x
 	var start_pos_y = host.fatal_cut_start_pos_y
 	
@@ -102,8 +105,6 @@ func _frame_5():
 	
 	var move_dir_x = host.fatal_cut_move_dir_x
 	var move_dir_y = host.fatal_cut_move_dir_y
-	host.end_invulnerability()
-
 
 func on_got_blocked():
 	.on_got_blocked()

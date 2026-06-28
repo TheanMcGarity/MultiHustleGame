@@ -9,6 +9,11 @@ var _savedObjects = [] # Things to keep to ensure they are not garbage collected
 var mods_w_depend = []
 var mods_w_overwrites = []
 var mods_w_missing_depend = {}
+# Maps a mod's metadata `name` to the filesystem path of the zip it loaded from.
+# Lets a mod find where it's installed without relying on _modZipFiles order,
+# which dependency resolution does NOT keep in sync with active_mods. The same
+# path is also stamped onto each mod's metadata dict as `zip_path` (modInfo[2]).
+var zips_by_name = {}
 var active = false
 var charLoaderModDetected = false
 var charFolders = []
@@ -23,8 +28,24 @@ func _init():
 		
 	file.open("user://modded.json", File.READ)
 	var mod_options = JSON.parse(file.get_as_text()).result
-	
+
 	file.close()
+
+	# Version-transition gate: first launch on a MOD_DISABLE_VERSIONS entry
+	# (with an existing save) skips mod loading this session and flips
+	# modsEnabled off in modded.json so the user has to deliberately
+	# re-enable for the next session. The base version is logged in
+	# player_data so the gate only fires once. UILayer.should_open_mod
+	# _warning_window reads the flag and shows the warning explaining
+	# the user can re-enable in options if they want.
+	if Global.should_disable_mods_for_version_transition():
+		Global.mods_disabled_by_version_transition = true
+		Global.mark_mod_sensitive_version_opened(Global.current_base_version())
+		mod_options.modsEnabled = false
+		file.open("user://modded.json", File.WRITE)
+		file.store_string(JSON.print(mod_options, "  "))
+		file.close()
+		return
 
 	if !mod_options.modsEnabled:
 		return
@@ -122,6 +143,11 @@ func _initMods():
 				var metaRes = _checkMetadata(modSubFolder, gdunzip.files, modEntryPath)
 				if metaRes != null:
 					var modInfo = [metaRes[0], modHash, metaRes[1]]
+					# Record where this mod loaded from. On the metadata dict so it
+					# rides along through _dependencyCheck (which reorders modInfos),
+					# and in zips_by_name for direct order-independent lookup.
+					modInfo[2].zip_path = modFSPath
+					zips_by_name[modInfo[2].name] = modFSPath
 					if metaRes[1].name == "char_loader" and metaRes[1].id == "12345":
 						charLoaderModDetected = true
 						continue
@@ -278,29 +304,32 @@ func _overwriteCharacterTexs(modFolderName, charName): #Base Asset replacement s
 			instCharFrames.set_frame(media.split("/")[ - 2], int(media.get_file()), newFrameTex)
 			instCharAnim = instCharTS.get_node("Flip/Sprite")
 			instCharFrames = instCharAnim.get_sprite_frames()
-		#Changes the sprite for the in air sprite because it's a seperate node like coboys arm. -Valkarin
+		#Changes the sprite for the in air sprite because it's a seperate node like cowboys arm. -Valkarin
 		elif charName == "Wizard" and media.split("/")[ - 3 ] == "LiftoffAir":
-			
 			instCharAnim = instCharTS.get_node("Flip/LiftoffSprite")
 			instCharFrames = instCharAnim.get_sprite_frames()
 			instCharFrames.set_frame(media.split("/")[ - 2], int(media.get_file()), newFrameTex)
 			instCharAnim = instCharTS.get_node("Flip/Sprite")
 			instCharFrames = instCharAnim.get_sprite_frames()
-		
 		elif charName == "Robot" and media.split("/")[ - 3 ] == "ChainsawArm":
 			instCharAnim = instCharTS.get_node("Flip/ChainsawArm")
 			instCharFrames = instCharAnim.get_sprite_frames()
 			instCharFrames.set_frame(media.split("/")[ - 2], int(media.get_file()), newFrameTex)
 			instCharAnim = instCharTS.get_node("Flip/Sprite")
 			instCharFrames = instCharAnim.get_sprite_frames()
-			
 		elif charName == "Robot" and media.split("/")[ - 3 ] == "DriveJumpSprite":
 			instCharAnim = instCharTS.get_node("Flip/DriveJumpSprite")
 			instCharFrames = instCharAnim.get_sprite_frames()
 			instCharFrames.set_frame(media.split("/")[ - 2], int(media.get_file()), newFrameTex)
 			instCharAnim = instCharTS.get_node("Flip/Sprite")
 			instCharFrames = instCharAnim.get_sprite_frames()
-		
+			# after 2 years mutant is now fixed for overwrites :P -Fleig
+		elif charName == "Mutant" and media.split("/")[ - 3 ] == "TwistAttackSprite":
+			instCharAnim = instCharTS.get_node("Flip/TwistAttackSprite")
+			instCharFrames = instCharAnim.get_sprite_frames()
+			instCharFrames.set_frame(media.split("/")[ - 2], int(media.get_file()), newFrameTex)
+			instCharAnim = instCharTS.get_node("Flip/Sprite")
+			instCharFrames = instCharAnim.get_sprite_frames()
 		else :
 			instCharFrames.set_frame(media.split("/")[ - 2], int(media.get_file()), newFrameTex)
 			
@@ -308,14 +337,8 @@ func _overwriteCharacterTexs(modFolderName, charName): #Base Asset replacement s
 	for charSound in instCharSounds:
 		for media in mediaSounds:
 			if media.get_file().split('.')[0] == charSound.name:
-				var file = File.new()
-				file.open(media, File.READ)
-				var buffer = file.get_buffer(file.get_len())
-				var stream = AudioStreamSample.new()
-				stream.format = AudioStreamSample.FORMAT_16_BITS
-				stream.data = buffer
-				file.close()
-				charSound.set_stream(stream)
+				var mediaStream = loadSound(media)
+				charSound.set_stream(mediaStream)
 				
 				charSound.pitch_scale = 2
 				
@@ -327,21 +350,16 @@ func _overwriteCharacterTexs(modFolderName, charName): #Base Asset replacement s
 			#".' is there because get_extnsion don't include it
 			var media_name = media.get_file().trim_suffix("."+media.get_extension()) 
 			if media_name.split('_')[0] == state.name:
-				var file = File.new()
-				file.open(media, File.READ)
-				var buffer = file.get_buffer(file.get_len())
-				var stream = AudioStreamSample.new()
-				stream.format = AudioStreamSample.FORMAT_16_BITS
-				stream.data = buffer
-				file.close()
+				var mediaStream = loadSound(media)
+				
 				#This checks to see if the name has enter stating that it's a on enter sfx
 				if media_name.split('_')[-1] != 'enter':
 					#if it isn't then it will set enter_sfx to null incase there isn't one
-					state.sfx = stream
+					state.sfx = mediaStream
 					state.enter_sfx = null
 				else:
 					#sets the enter_sfx if it's in the name
-					state.enter_sfx = stream
+					state.enter_sfx = mediaStream
 				#state.pitch_var = 0.0 #Sets the current state pitch_variation to 0
 				state.pitch_scale = 2
 		#Replace button textures
@@ -385,7 +403,17 @@ func textureGet(imagePath): #Snippet by:
 	var tex = ImageTexture.new()
 	tex.create_from_image(image, 0)
 	return tex
-		
+	
+func loadSound(soundPath): # Just moved it over here so that it can be used by other people, even tho this only supports wav -Fleig
+	var file = File.new()
+	file.open(soundPath, File.READ)
+	var buffer = file.get_buffer(file.get_len())
+	var stream = AudioStreamSample.new()
+	stream.format = AudioStreamSample.FORMAT_16_BITS
+	stream.data = buffer
+	file.close()
+	return stream
+
 func _hash_file(path):
 	var file = File.new()
 	var modZIPHash = file.get_md5(path)

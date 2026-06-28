@@ -14,9 +14,9 @@ func _enter():
 	for h in [hitbox, hitbox_2]:
 		h.scale_combo = !host.locked
 
-
 func _tick():
 	._tick()
+	anim_name = "SwordFire" if host.on_fire() else "Sword"
 	if !host.locked:
 		hitbox.scale_combo = true
 		hitbox_2.scale_combo = true

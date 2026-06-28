@@ -3,7 +3,7 @@ extends Fighter
 class_name Mutant
 
 const INSTALL_TICKS = 120
-const JUKE_PIPS = 10
+const JUKE_PIPS = 6
 const JUKE_PIPS_PER_USE = 2
 const JUKE_TICKS = 3
 const UP_JUKE_TICKS = 10
@@ -22,21 +22,48 @@ const JUKE_STARTUP_TICKS_NO_INITIATIVE = 2
 onready var twist_attack_sprite = $"%TwistAttackSprite"
 onready var rebirth_particle_effect = $"%RebirthParticleEffect"
 
+func get_current_limb_sprite_node():
+	if twist_attack_sprite and twist_attack_sprite.visible:
+		return twist_attack_sprite
+	return .get_current_limb_sprite_node()
+
+func is_in_install_super():
+	# Mutant's install lives in `can_air_dash`: Howl sets it true, SlopDash
+	# consumes it on _enter, and process_action re-arms it when the player
+	# chains an attack right after AirDash (so attacks "hold onto" SlopDash).
+	# Also treat the SlopDash state itself as install-active — can_air_dash
+	# briefly drops to false during the dash before the chained attack flips
+	# it back, and the trigger shouldn't flicker off mid-combo.
+	# install_ticks is declared in Beast.gd but never actually mutated;
+	# kept here as a future-proof.
+	if can_air_dash or install_ticks > 0:
+		return true
+	var state = current_state()
+	return state != null and state.state_name == "AirDash"
+
 var install_ticks = 0
 var shockwave_projectile = null
 var spike_projectile = null
 var bc_charge = false
 
 var juke_startup_ticks = 0
-var juke_pips = JUKE_PIPS_PER_USE * 2
+var juke_pips = 2
 var juke_dir_x = "0"
 var juke_dir_y = "0"
 var juke_ticks = 0
+var air_vaults = 0
 var up_juke_ticks = 0
 #var juke_dir_type = ""
 var juked_this_turn = false
 var started_up_juke_from_ground = false
 var can_air_dash = false
+var thorn_set = []
+var gas_bomb_projectile = null
+var poison_projectile = null
+# Set in process_extra when a "bloom" toggle is applied; locks out the
+# GasBomb (Acrid Bloom) action on the immediately-following turn. Cleared at
+# the start of the next process_extra, so the lockout lasts exactly one turn.
+var bloomed_last_turn = false
 
 func apply_grav():
 	if up_juke_ticks > 0:
@@ -67,14 +94,22 @@ func process_extra(extra):
 	bc_charge = false
 	juke_startup_ticks = 0
 	juked_this_turn = false
+	# Cleared each turn so the lockout naturally expires after one turn —
+	# re-set below only if THIS turn applies a bloom.
+	bloomed_last_turn = false
 	.process_extra(extra)
 	if extra.has("spike_enabled"):
 		var obj = obj_from_name(spike_projectile)
 		if obj:
 			if !extra.spike_enabled:
 				obj.disable()
+	if extra.has("bloom") and extra.bloom:
+		var bomb = obj_from_name(gas_bomb_projectile)
+		if bomb and bomb.current_state().get("bloom_queued") != null:
+			bomb.current_state().bloom_queued = true
+			bloomed_last_turn = true
 	var juke_dir = extra.get("juke_dir")
-	juke_ticks = 0
+#	juke_ticks = 0
 	if juke_dir != null:
 		juke_dir = fixed.normalized_vec(str(juke_dir.x), str(juke_dir.y))
 	var invalid_juke_states = ["DashBackward"]
@@ -87,7 +122,7 @@ func process_extra(extra):
 			create_speed_after_image_from_style()
 
 			if fixed.gt(juke_dir_y, "0"):
-#					juke_dir_type = "Down" 
+#					juke_dir_type = "Down"
 				pass
 			if fixed.lt(juke_dir_y, "0"):
 #					juke_dir_type = "Up"
@@ -98,13 +133,19 @@ func process_extra(extra):
 					use_air_movement()
 				apply_force("0", UP_JUKE_DOWN_FORCE)
 				started_up_juke_from_ground = is_grounded()
-			if fixed.eq(juke_dir_y, "0") and fixed.eq(juke_dir.x, "0"):
+			if fixed.eq(juke_dir_y, "0") and fixed.eq(juke_dir_x, "0"):
 				juke_ticks = NEUTRAL_JUKE_TICKS
+				add_juke_pips(-1)
 			elif fixed.gt(juke_dir_x, "0"):
 					juke_ticks = SIDE_JUKE_TICKS
+					add_juke_pips(-2)
 			elif fixed.lt(juke_dir_x, "0"):
 					juke_ticks = SIDE_JUKE_TICKS
-			add_juke_pips(-JUKE_PIPS_PER_USE)
+					add_juke_pips(-2)
+			else:
+				add_juke_pips(-2)
+			if extra.get("back_juke") and combo_count <= 0:
+				add_juke_pips(-1)
 #			create_speed_after_image_from_style()
 			juked_this_turn = true
 			play_sound("Juke")
@@ -122,17 +163,25 @@ func _on_hit_something(obj, hitbox):
 #	if !juked_this_turn:
 	if obj.is_in_group("Fighter"):
 		start_projectile_invulnerability()
-	add_juke_pips(1)
-	bc_charge = true
+	if obj.id != id or (obj.id == id and !obj.get("no_juke_pips")):
+		add_juke_pips(1)
+		bc_charge = true
 
 
 func on_parried():
+	.on_parried()
 	add_juke_pips(JUKE_PIPS_PER_USE)
 
 func on_got_blocked():
+	var state = current_state()
+	var type = state.type
+	var max_blocks = 0
+	if state.get("juke_pip_max_blocks"):
+		max_blocks = state.get("juke_pip_max_blocks")
+	if state.number_of_hits_blocked <= max_blocks:
+		if type == CharacterState.ActionType.Special:
+			add_juke_pips(1)
 	.on_got_blocked()
-#	if !juked_this_turn:
-	add_juke_pips(1)
 
 func on_blocked_melee_attack():
 	.on_blocked_melee_attack()
@@ -183,6 +232,17 @@ func tick():
 		
 		if combo_count > 0:
 			juke_speed = fixed.mul(juke_speed, JUKE_COMBO_MODIFIER)
+		else:
+			juke_speed = fixed.mul(juke_speed, "0.7")
+			if current_state().state_name == "DashForward":
+				juke_speed = fixed.mul(juke_speed, "1.4")
+			if !fixed.eq(juke_dir_x, "0"):
+				var opp_dir = get_opponent_dir()
+				if (fixed.lt(juke_dir_x, "0") and opp_dir == -1) or (fixed.gt(juke_dir_x, "0") and opp_dir == 1):
+					juke_speed = fixed.mul(juke_speed, "1.4")
+		
+		if current_state().state_name == "AirDash":
+			juke_speed = fixed.mul(juke_speed, "1.8")
 
 		if up_juke_ticks > 0:
 			up_juke_ticks -= 1
@@ -209,6 +269,9 @@ func tick():
 	elif juke_startup_ticks > 0:
 		juke_startup_ticks -= 1
 
+	if is_grounded():
+		air_vaults = 0
+
 	if penalty_ticks > 0:
 		juke_pips = 0
 
@@ -220,20 +283,19 @@ func tick():
 		juke_pips = JUKE_PIPS
 	.tick()
 
-
-
 func on_got_parried():
+	.on_got_parried()
 	if juked_this_turn:
 		juke_ticks = 0
 		up_juke_ticks = 0
 		hitlag_ticks += 5
 
-func passive_sadness_gain():
-	.passive_sadness_gain()
-	var dir = fixed.sign(last_vel.x)
-	var opp_dir = get_opponent_dir()
-	if dir != 0 and dir != opp_dir and current_tick % 6 == 0:
-		add_penalty(1)
+#func passive_sadness_gain():
+#	.passive_sadness_gain()
+#	var dir = fixed.sign(last_vel.x)
+#	var opp_dir = get_opponent_dir()
+#	if dir != 0 and dir != opp_dir and current_tick % 6 == 0:
+#		add_penalty(1)
 
 func on_got_push_blocked():
 	if is_neutral_juke():

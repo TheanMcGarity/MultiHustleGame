@@ -5,6 +5,7 @@ func _frame_0():
 
 
 func on_got_blocked():
+	.on_got_blocked()
 	host.colliding_with_opponent = true
 	host.reset_momentum()
 #func _tick():

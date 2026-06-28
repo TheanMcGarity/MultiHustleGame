@@ -21,7 +21,7 @@ func _tick():
 	if stall > 0:
 		stall -= 1
 		current_tick = 0
-
+	
 	if stall <= 0:
 		if dir != 0:
 			host.apply_force_relative(fixed.mul(SPEED, str(dir)), "0")
@@ -36,6 +36,9 @@ func _tick():
 func _frame_0():
 	if dir == 1:
 		host.has_projectile_armor = true
+	else:
+		if host.combo_count <= 0:
+			host.add_penalty(5)
 #	next_state_on_hold = !host.drive_cancel
 #	next_state_on_hold_on_opponent_turn = !host.drive_cancel
 

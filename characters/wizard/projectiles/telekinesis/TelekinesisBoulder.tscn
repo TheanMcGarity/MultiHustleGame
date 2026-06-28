@@ -55,19 +55,31 @@ shader_param/outline_color = Color( 0, 0, 0, 1 )
 material = SubResource( 2 )
 script = ExtResource( 7 )
 __meta__ = {
-"_editor_description_": ""
+"_editor_description_": "",
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
 }
 gravity = "0.45"
 air_friction = "0.0"
 max_ground_speed = "30"
 max_air_speed = "30"
 max_fall_speed = "30"
-has_projectile_parry_window = false
 projectile_immune = true
 disable_obj = null
 disable_particle = ExtResource( 9 )
 rumble = true
 no_hitlag = true
+disable_on_block = false
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 4 )
@@ -127,7 +139,33 @@ knockdown_extends_hitstun = false
 start_tick = 4
 always_on = true
 
-[node name="Drop" type="Node2D" parent="StateMachine" index="2"]
+[node name="LaunchRedirect" type="Node2D" parent="StateMachine" index="2"]
+script = ExtResource( 5 )
+apply_grav = true
+sprite_animation = "default"
+endless = true
+speed = "17"
+
+[node name="Hitbox" type="Node2D" parent="StateMachine/LaunchRedirect" index="0"]
+z_index = 1000
+script = ExtResource( 6 )
+width = 9
+height = 9
+damage = 105
+hitstun_ticks = 18
+hitlag_ticks = 3
+plus_frames = 1
+hit_sound = ExtResource( 8 )
+dir_y = "-0.70"
+knockback = "7.0"
+grounded_hit_state = "HurtAerial"
+minimum_grounded_frames = 4
+knockdown = true
+knockdown_extends_hitstun = false
+start_tick = 4
+always_on = true
+
+[node name="Drop" type="Node2D" parent="StateMachine" index="3"]
 script = ExtResource( 5 )
 apply_forces = true
 apply_fric = true

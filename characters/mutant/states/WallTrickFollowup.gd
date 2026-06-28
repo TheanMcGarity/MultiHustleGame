@@ -56,6 +56,7 @@ func _on_hit_something(obj, hitbox):
 #	host.set_vel(move.x, move.y)
 
 func on_got_blocked():
+	.on_got_blocked()
 	hit_opponent = true
 
 func _exit():

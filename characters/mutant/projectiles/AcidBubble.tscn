@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://projectile/BaseProjectile.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/mutant/projectiles/states/AcidBubbleDefault.gd" type="Script" id=2]
@@ -9,10 +9,11 @@
 [ext_resource path="res://characters/mutant/projectiles/AcidBubble.gd" type="Script" id=7]
 [ext_resource path="res://mechanics/Hitbox.gd" type="Script" id=8]
 [ext_resource path="res://characters/mutant/sound/bubble1.wav" type="AudioStream" id=9]
+[ext_resource path="res://characters/mutant/projectiles/sprites/acid_bubble4.png" type="Texture" id=10]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
-"frames": [ ExtResource( 4 ) ],
+"frames": [ ExtResource( 10 ), ExtResource( 10 ), ExtResource( 10 ), ExtResource( 10 ), ExtResource( 10 ), ExtResource( 10 ), ExtResource( 10 ), ExtResource( 10 ), ExtResource( 4 ) ],
 "loop": true,
 "name": "Default",
 "speed": 5.0
@@ -30,7 +31,6 @@ has_projectile_parry_window = false
 deletes_other_projectiles = false
 movable = false
 can_be_hit_by_melee = true
-free_cancel_on_hit = false
 apply_hitlag_when_hit_by_melee = false
 
 [node name="Sprite" parent="Flip" index="0"]
@@ -59,6 +59,7 @@ custom_y_fric = "0.15"
 fallback_state = "Pop"
 anim_length = 90
 endless = false
+poison = false
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/Default" index="0"]
 z_index = 1000
@@ -74,6 +75,7 @@ allowed_to_hit_own_team = false
 hit_sound = ExtResource( 9 )
 hit_sound_volume = -8.0
 bass_sound_volume = -8.0
+override_same_sfx = true
 knockback = "7.0"
 grounded_hit_state = "HurtAerial"
 minimum_grounded_frames = 10

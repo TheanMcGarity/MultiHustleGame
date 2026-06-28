@@ -126,11 +126,20 @@ size_flags_vertical = 3
 
 [node name="HexEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-margin_right = 137.0
+margin_right = 116.0
 margin_bottom = 22.0
 size_flags_horizontal = 3
 max_length = 7
 placeholder_text = "hex code here"
+
+[node name="RevertButton" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+margin_left = 117.0
+margin_right = 137.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 20, 0 )
+hint_tooltip = "Put the current color's hex code back in the box."
+text = "<--"
 
 [node name="ColorDisplay" type="ColorRect" parent="MarginContainer/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true

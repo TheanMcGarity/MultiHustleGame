@@ -66,6 +66,8 @@ func scale_hitstun(hitstun: int):
 
 func hit_by(hitbox):
 	.hit_by(hitbox)
+	if hitbox.throw and frozen:
+		return
 	if got_hit:
 		return
 	got_hit = true

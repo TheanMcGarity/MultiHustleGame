@@ -1,4 +1,4 @@
-[gd_scene load_steps=499 format=2]
+[gd_scene load_steps=502 format=2]
 
 [ext_resource path="res://characters/BaseChar.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/robo/Robot.gd" type="Script" id=2]
@@ -490,6 +490,9 @@
 [ext_resource path="res://characters/robo/projectiles/Missile.tscn" type="PackedScene" id=488]
 [ext_resource path="res://characters/robo/sprites/actionicons/missile.png" type="Texture" id=489]
 [ext_resource path="res://characters/robo/states/FastDriveCancel.gd" type="Script" id=490]
+[ext_resource path="res://characters/robo/projectiles/MissileArc.tscn" type="PackedScene" id=491]
+[ext_resource path="res://characters/robo/actionuidata/MissileActionUIData.tscn" type="PackedScene" id=492]
+[ext_resource path="res://characters/robo/sound/honk.wav" type="AudioStream" id=493]
 
 [sub_resource type="ShaderMaterial" id=2]
 resource_local_to_scene = true
@@ -1018,7 +1021,8867 @@ shader_param/outline_color = Color( 0, 0, 0, 1 )
 [node name="Robot" instance=ExtResource( 1 )]
 script = ExtResource( 2 )
 __meta__ = {
-"_editor_description_": "flying"
+"_editor_description_": "flying",
+"limb_data": {
+"Head": {
+ExtResource( 121 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 68,
+"y": 45
+},
+ExtResource( 274 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 67,
+"y": 48
+},
+ExtResource( 253 ): {
+"dir_x": 0.923077,
+"dir_y": -0.384615,
+"flipped": false,
+"x": 258,
+"y": 235
+},
+ExtResource( 188 ): {
+"dir_x": 0.964764,
+"dir_y": -0.263117,
+"flipped": false,
+"x": 125,
+"y": 110
+},
+ExtResource( 169 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 47
+},
+ExtResource( 141 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 126,
+"y": 108
+},
+ExtResource( 243 ): {
+"dir_x": 0.955403,
+"dir_y": -0.295306,
+"flipped": false,
+"x": 251,
+"y": 236
+},
+ExtResource( 80 ): {
+"dir_x": -0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 52,
+"y": 74
+},
+ExtResource( 224 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 109
+},
+ExtResource( 36 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 59,
+"y": 49
+},
+ExtResource( 171 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 64,
+"y": 46
+},
+ExtResource( 206 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 52
+},
+ExtResource( 79 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 53,
+"y": 53
+},
+ExtResource( 299 ): {
+"dir_x": 0.834276,
+"dir_y": -0.551347,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 174 ): {
+"dir_x": 0.908677,
+"dir_y": -0.4175,
+"flipped": false,
+"x": 127,
+"y": 111
+},
+ExtResource( 86 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 47
+},
+ExtResource( 240 ): {
+"dir_x": 0.992877,
+"dir_y": -0.119145,
+"flipped": false,
+"x": 62,
+"y": 45
+},
+ExtResource( 111 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 125,
+"y": 108
+},
+ExtResource( 165 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 113
+},
+ExtResource( 10 ): {
+"dir_x": 0.937749,
+"dir_y": -0.347314,
+"flipped": false,
+"x": 55,
+"y": 51
+},
+ExtResource( 198 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 64,
+"y": 46
+},
+ExtResource( 7 ): {
+"dir_x": 0.796162,
+"dir_y": -0.605083,
+"flipped": false,
+"x": 50,
+"y": 58
+},
+ExtResource( 212 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 110
+},
+ExtResource( 149 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 117,
+"y": 112
+},
+ExtResource( 246 ): {
+"dir_x": 0.961971,
+"dir_y": -0.273152,
+"flipped": false,
+"x": 259,
+"y": 235
+},
+ExtResource( 131 ): {
+"dir_x": 0.985695,
+"dir_y": -0.168539,
+"flipped": false,
+"x": 130,
+"y": 109
+},
+ExtResource( 78 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 64,
+"y": 45
+},
+ExtResource( 125 ): {
+"dir_x": 0.985695,
+"dir_y": -0.168539,
+"flipped": false,
+"x": 130,
+"y": 109
+},
+ExtResource( 110 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 107
+},
+ExtResource( 201 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 44
+},
+ExtResource( 231 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 103
+},
+ExtResource( 73 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 74,
+"y": 54
+},
+ExtResource( 255 ): {
+"dir_x": 0.933346,
+"dir_y": -0.358979,
+"flipped": false,
+"x": 250,
+"y": 237
+},
+ExtResource( 185 ): {
+"dir_x": 0.98546,
+"dir_y": -0.169907,
+"flipped": false,
+"x": 125,
+"y": 108
+},
+ExtResource( 306 ): {
+"dir_x": 0.834276,
+"dir_y": -0.551347,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 311 ): {
+"dir_x": 0.881083,
+"dir_y": 0.472962,
+"flipped": false,
+"x": 65,
+"y": 53
+},
+ExtResource( 331 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 46
+},
+ExtResource( 262 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 124 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 68,
+"y": 45
+},
+ExtResource( 189 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 140,
+"y": 110
+},
+ExtResource( 323 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": true,
+"x": 125,
+"y": 44
+},
+ExtResource( 358 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 63
+},
+ExtResource( 357 ): {
+"dir_x": 0.994743,
+"dir_y": 0.1024,
+"flipped": false,
+"x": 56,
+"y": 53
+},
+ExtResource( 354 ): {
+"dir_x": 0.994557,
+"dir_y": 0.104192,
+"flipped": false,
+"x": 80,
+"y": 63
+},
+ExtResource( 118 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 110
+},
+ExtResource( 328 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 46
+},
+ExtResource( 478 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 46
+},
+ExtResource( 428 ): {
+"dir_x": 0.864246,
+"dir_y": 0.503069,
+"flipped": false,
+"x": 88,
+"y": 58
+},
+ExtResource( 248 ): {
+"dir_x": 0.941075,
+"dir_y": -0.338199,
+"flipped": false,
+"x": 261,
+"y": 232
+},
+ExtResource( 408 ): {
+"dir_x": 0.0315632,
+"dir_y": -0.999502,
+"flipped": false,
+"x": 53,
+"y": 44
+},
+ExtResource( 338 ): {
+"dir_x": 0.959229,
+"dir_y": 0.28263,
+"flipped": false,
+"x": 252,
+"y": 45
+},
+ExtResource( 301 ): {
+"dir_x": 0.834276,
+"dir_y": -0.551347,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 372 ): {
+"dir_x": 0.981963,
+"dir_y": -0.189074,
+"flipped": false,
+"x": 60,
+"y": 46
+},
+ExtResource( 320 ): {
+"dir_x": 0.967075,
+"dir_y": 0.254493,
+"flipped": false,
+"x": 79,
+"y": 64
+},
+ExtResource( 409 ): {
+"dir_x": 0.999079,
+"dir_y": 0.0429052,
+"flipped": false,
+"x": 61,
+"y": 45
+},
+ExtResource( 307 ): {
+"dir_x": 0.834276,
+"dir_y": -0.551347,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 298 ): {
+"dir_x": 0.834276,
+"dir_y": -0.551347,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 352 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 65
+},
+ExtResource( 349 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 64
+},
+ExtResource( 355 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 64
+},
+ExtResource( 116 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 125,
+"y": 108
+},
+ExtResource( 98 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 138 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 105
+},
+ExtResource( 448 ): {
+"dir_x": -0.83147,
+"dir_y": -0.55557,
+"flipped": true,
+"x": 124,
+"y": 138
+},
+ExtResource( 341 ): {
+"dir_x": 0.947841,
+"dir_y": 0.318743,
+"flipped": false,
+"x": 255,
+"y": 47
+},
+ExtResource( 347 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 80,
+"y": 67
+},
+ExtResource( 333 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 71,
+"y": 48
+},
+ExtResource( 242 ): {
+"dir_x": 0.947341,
+"dir_y": -0.320228,
+"flipped": false,
+"x": 249,
+"y": 239
+},
+ExtResource( 304 ): {
+"dir_x": 0.910871,
+"dir_y": 0.412692,
+"flipped": false,
+"x": 67,
+"y": 51
+},
+ExtResource( 345 ): {
+"dir_x": 0.951445,
+"dir_y": 0.30782,
+"flipped": false,
+"x": 68,
+"y": 53
+},
+ExtResource( 475 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 47
+},
+ExtResource( 297 ): {
+"dir_x": 0.834276,
+"dir_y": -0.551347,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 374 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 43
+},
+ExtResource( 373 ): {
+"dir_x": 0.97116,
+"dir_y": 0.238429,
+"flipped": false,
+"x": 71,
+"y": 50
+},
+ExtResource( 288 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 44
+},
+ExtResource( 314 ): {
+"dir_x": 0.803904,
+"dir_y": 0.594759,
+"flipped": false,
+"x": 73,
+"y": 66
+},
+ExtResource( 103 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 361 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 56,
+"y": 57
+},
+ExtResource( 330 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 46
+},
+ExtResource( 375 ): {
+"dir_x": 0.986016,
+"dir_y": 0.166651,
+"flipped": false,
+"x": 69,
+"y": 47
+},
+ExtResource( 256 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 148 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 112,
+"y": 113
+},
+ExtResource( 334 ): {
+"dir_x": 0.947841,
+"dir_y": 0.318743,
+"flipped": false,
+"x": 255,
+"y": 47
+},
+ExtResource( 276 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 49
+},
+ExtResource( 204 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 44
+},
+ExtResource( 362 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 54,
+"y": 57
+},
+ExtResource( 101 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 429 ): {
+"dir_x": 0.890493,
+"dir_y": 0.454997,
+"flipped": false,
+"x": 77,
+"y": 69
+},
+ExtResource( 166 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 113
+},
+ExtResource( 104 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 108 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 133,
+"y": 111
+},
+ExtResource( 258 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 407 ): {
+"dir_x": 0.247833,
+"dir_y": -0.968803,
+"flipped": false,
+"x": 53,
+"y": 44
+},
+ExtResource( 316 ): {
+"dir_x": 0.993605,
+"dir_y": -0.11291,
+"flipped": false,
+"x": 77,
+"y": 62
+},
+ExtResource( 247 ): {
+"dir_x": 0.961971,
+"dir_y": -0.273152,
+"flipped": false,
+"x": 259,
+"y": 235
+},
+ExtResource( 202 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 44
+},
+ExtResource( 447 ): {
+"dir_x": 0.999912,
+"dir_y": 0.0132439,
+"flipped": false,
+"x": 138,
+"y": 133
+},
+ExtResource( 305 ): {
+"dir_x": 0.986738,
+"dir_y": 0.162321,
+"flipped": false,
+"x": 65,
+"y": 52
+},
+ExtResource( 360 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 177 ): {
+"dir_x": 0.908677,
+"dir_y": -0.4175,
+"flipped": false,
+"x": 125,
+"y": 110
+},
+ExtResource( 315 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 62,
+"y": 48
+},
+ExtResource( 190 ): {
+"dir_x": 0.964764,
+"dir_y": -0.263117,
+"flipped": false,
+"x": 125,
+"y": 110
+},
+ExtResource( 264 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 261 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 339 ): {
+"dir_x": 0.947841,
+"dir_y": 0.318743,
+"flipped": false,
+"x": 255,
+"y": 47
+},
+ExtResource( 249 ): {
+"dir_x": 0.941075,
+"dir_y": -0.338199,
+"flipped": false,
+"x": 261,
+"y": 232
+},
+ExtResource( 96 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 109
+},
+ExtResource( 152 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 119,
+"y": 109
+},
+ExtResource( 236 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 104
+},
+ExtResource( 42 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 54
+},
+ExtResource( 49 ): {
+"dir_x": 0.998053,
+"dir_y": 0.0623783,
+"flipped": false,
+"x": 77,
+"y": 52
+},
+ExtResource( 440 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 120
+},
+ExtResource( 109 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 141,
+"y": 112
+},
+ExtResource( 337 ): {
+"dir_x": 0.947841,
+"dir_y": 0.318743,
+"flipped": false,
+"x": 255,
+"y": 47
+},
+ExtResource( 105 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 126 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 68,
+"y": 45
+},
+ExtResource( 85 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 47
+},
+ExtResource( 260 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 113 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 128,
+"y": 108
+},
+ExtResource( 196 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 64,
+"y": 46
+},
+ExtResource( 179 ): {
+"dir_x": 0.991228,
+"dir_y": 0.132164,
+"flipped": false,
+"x": 137,
+"y": 111
+},
+ExtResource( 18 ): {
+"dir_x": 0.977131,
+"dir_y": 0.21264,
+"flipped": false,
+"x": 71,
+"y": 49
+},
+ExtResource( 106 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 469 ): {
+"dir_x": 0.995104,
+"dir_y": 0.0988289,
+"flipped": false,
+"x": 70,
+"y": 45
+},
+ExtResource( 278 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 81,
+"y": 52
+},
+ExtResource( 406 ): {
+"dir_x": 0.958673,
+"dir_y": -0.284509,
+"flipped": false,
+"x": 59,
+"y": 42
+},
+ExtResource( 329 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 45
+},
+ExtResource( 21 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 50
+},
+ExtResource( 353 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 42
+},
+ExtResource( 444 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 113
+},
+ExtResource( 431 ): {
+"dir_x": 0.732563,
+"dir_y": 0.6807,
+"flipped": false,
+"x": 72,
+"y": 65
+},
+ExtResource( 363 ): {
+"dir_x": 0.991228,
+"dir_y": -0.132164,
+"flipped": false,
+"x": 56,
+"y": 51
+},
+ExtResource( 442 ): {
+"dir_x": 0.997055,
+"dir_y": -0.0766965,
+"flipped": false,
+"x": 120,
+"y": 119
+},
+ExtResource( 213 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 110
+},
+ExtResource( 84 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 67,
+"y": 44
+},
+ExtResource( 441 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 134,
+"y": 117
+},
+ExtResource( 12 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 64,
+"y": 45
+},
+ExtResource( 430 ): {
+"dir_x": 0.910954,
+"dir_y": 0.412508,
+"flipped": false,
+"x": 80,
+"y": 53
+},
+ExtResource( 272 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 64,
+"y": 49
+},
+ExtResource( 205 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 44
+},
+ExtResource( 470 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 46
+},
+ExtResource( 15 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 64,
+"y": 44
+},
+ExtResource( 170 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 47
+},
+ExtResource( 19 ): {
+"dir_x": 0.999808,
+"dir_y": -0.0196041,
+"flipped": false,
+"x": 73,
+"y": 53
+},
+ExtResource( 405 ): {
+"dir_x": 0.981338,
+"dir_y": -0.192289,
+"flipped": false,
+"x": 60,
+"y": 44
+},
+ExtResource( 404 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 53,
+"y": 47
+},
+ExtResource( 210 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 110
+},
+ExtResource( 151 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 127,
+"y": 109
+},
+ExtResource( 115 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 127,
+"y": 108
+},
+ExtResource( 130 ): {
+"dir_x": 0.985695,
+"dir_y": -0.168539,
+"flipped": false,
+"x": 130,
+"y": 109
+},
+ExtResource( 438 ): {
+"dir_x": -1.0,
+"dir_y": 8.74228e-08,
+"flipped": false,
+"x": 127,
+"y": 135
+},
+ExtResource( 163 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 114
+},
+ExtResource( 282 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 61,
+"y": 45
+},
+ExtResource( 99 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 110
+},
+ExtResource( 309 ): {
+"dir_x": 0.990537,
+"dir_y": -0.137243,
+"flipped": false,
+"x": 59,
+"y": 44
+},
+ExtResource( 127 ): {
+"dir_x": 0.960466,
+"dir_y": -0.278396,
+"flipped": false,
+"x": 129,
+"y": 109
+},
+ExtResource( 480 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 71,
+"y": 47
+},
+ExtResource( 220 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 109
+},
+ExtResource( 176 ): {
+"dir_x": 0.991228,
+"dir_y": 0.132164,
+"flipped": false,
+"x": 137,
+"y": 111
+},
+ExtResource( 244 ): {
+"dir_x": 0.933346,
+"dir_y": -0.358979,
+"flipped": false,
+"x": 250,
+"y": 237
+},
+ExtResource( 241 ): {
+"dir_x": 0.999973,
+"dir_y": 0.0074072,
+"flipped": false,
+"x": 64,
+"y": 47
+},
+ExtResource( 439 ): {
+"dir_x": -0.0181788,
+"dir_y": 0.999835,
+"flipped": false,
+"x": 129,
+"y": 136
+},
+ExtResource( 229 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 103
+},
+ExtResource( 144 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 112
+},
+ExtResource( 285 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 68,
+"y": 46
+},
+ExtResource( 326 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 120,
+"y": 46
+},
+ExtResource( 186 ): {
+"dir_x": 0.98546,
+"dir_y": -0.169907,
+"flipped": false,
+"x": 125,
+"y": 108
+},
+ExtResource( 252 ): {
+"dir_x": 0.941075,
+"dir_y": -0.338199,
+"flipped": false,
+"x": 261,
+"y": 232
+},
+ExtResource( 233 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 103
+},
+ExtResource( 164 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 114
+},
+ExtResource( 332 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 46
+},
+ExtResource( 235 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 107
+},
+ExtResource( 54 ): {
+"dir_x": 0.923077,
+"dir_y": 0.384615,
+"flipped": false,
+"x": 66,
+"y": 54
+},
+ExtResource( 92 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 44
+},
+ExtResource( 226 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 103
+},
+ExtResource( 97 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 279 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 81,
+"y": 53
+},
+ExtResource( 251 ): {
+"dir_x": 0.941075,
+"dir_y": -0.338199,
+"flipped": false,
+"x": 261,
+"y": 232
+},
+ExtResource( 287 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 61,
+"y": 45
+},
+ExtResource( 139 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 122,
+"y": 107
+},
+ExtResource( 317 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 78,
+"y": 65
+},
+ExtResource( 227 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 103
+},
+ExtResource( 234 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 103
+},
+ExtResource( 476 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 72,
+"y": 46
+},
+ExtResource( 344 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 44
+},
+ExtResource( 275 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 46
+},
+ExtResource( 250 ): {
+"dir_x": 0.941075,
+"dir_y": -0.338199,
+"flipped": false,
+"x": 261,
+"y": 232
+},
+ExtResource( 351 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 64
+},
+ExtResource( 122 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 68,
+"y": 45
+},
+ExtResource( 445 ): {
+"dir_x": -1.0,
+"dir_y": -8.74228e-08,
+"flipped": true,
+"x": 129,
+"y": 133
+},
+ExtResource( 446 ): {
+"dir_x": 0.999924,
+"dir_y": 0.0123447,
+"flipped": false,
+"x": 139,
+"y": 133
+},
+ExtResource( 325 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 46
+},
+ExtResource( 197 ): {
+"dir_x": 0.984352,
+"dir_y": -0.176211,
+"flipped": false,
+"x": 61,
+"y": 47
+},
+ExtResource( 318 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 59,
+"y": 46
+},
+ExtResource( 112 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 133,
+"y": 112
+},
+ExtResource( 147 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 112,
+"y": 113
+},
+ExtResource( 211 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 128,
+"y": 110
+},
+ExtResource( 76 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 45
+},
+ExtResource( 50 ): {
+"dir_x": -0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 73,
+"y": 75
+},
+ExtResource( 336 ): {
+"dir_x": 0.947841,
+"dir_y": 0.318743,
+"flipped": false,
+"x": 255,
+"y": 47
+},
+ExtResource( 140 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 124,
+"y": 108
+},
+ExtResource( 340 ): {
+"dir_x": 0.947841,
+"dir_y": 0.318743,
+"flipped": false,
+"x": 255,
+"y": 47
+},
+ExtResource( 346 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 71,
+"y": 57
+},
+ExtResource( 479 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 72,
+"y": 47
+},
+ExtResource( 230 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 105
+},
+ExtResource( 263 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 348 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 64
+},
+ExtResource( 432 ): {
+"dir_x": 0.863927,
+"dir_y": 0.503616,
+"flipped": false,
+"x": 88,
+"y": 57
+},
+ExtResource( 175 ): {
+"dir_x": 0.991228,
+"dir_y": 0.132164,
+"flipped": false,
+"x": 137,
+"y": 111
+},
+ExtResource( 102 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 110
+},
+ExtResource( 173 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 47
+},
+ExtResource( 308 ): {
+"dir_x": 0.98387,
+"dir_y": -0.178885,
+"flipped": false,
+"x": 57,
+"y": 45
+},
+ExtResource( 178 ): {
+"dir_x": 0.908677,
+"dir_y": -0.4175,
+"flipped": false,
+"x": 125,
+"y": 110
+},
+ExtResource( 319 ): {
+"dir_x": 0.979877,
+"dir_y": 0.199604,
+"flipped": false,
+"x": 78,
+"y": 65
+},
+ExtResource( 114 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 123,
+"y": 108
+},
+ExtResource( 150 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 121,
+"y": 109
+},
+ExtResource( 225 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 104
+},
+ExtResource( 359 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 63
+},
+ExtResource( 254 ): {
+"dir_x": 0.941075,
+"dir_y": -0.338199,
+"flipped": false,
+"x": 261,
+"y": 232
+},
+ExtResource( 228 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 108
+},
+ExtResource( 310 ): {
+"dir_x": 0.999971,
+"dir_y": 0.00766261,
+"flipped": false,
+"x": 68,
+"y": 44
+},
+ExtResource( 335 ): {
+"dir_x": 0.947841,
+"dir_y": 0.318743,
+"flipped": false,
+"x": 255,
+"y": 47
+},
+ExtResource( 324 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 49
+},
+ExtResource( 136 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 110
+},
+ExtResource( 277 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 49
+},
+ExtResource( 300 ): {
+"dir_x": 0.834276,
+"dir_y": -0.551347,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 187 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 109
+},
+ExtResource( 161 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 113
+},
+ExtResource( 93 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 45
+},
+ExtResource( 172 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 47
+},
+ExtResource( 257 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 117 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 133,
+"y": 111
+},
+ExtResource( 40 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 41,
+"y": 75
+},
+ExtResource( 245 ): {
+"dir_x": 0.923077,
+"dir_y": -0.384615,
+"flipped": false,
+"x": 253,
+"y": 236
+},
+ExtResource( 477 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 72,
+"y": 46
+},
+ExtResource( 313 ): {
+"dir_x": 0.856108,
+"dir_y": 0.516797,
+"flipped": false,
+"x": 76,
+"y": 67
+},
+ExtResource( 95 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 131,
+"y": 109
+},
+ExtResource( 286 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 50
+},
+ExtResource( 123 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 67,
+"y": 45
+},
+ExtResource( 259 ): {
+"dir_x": 0.914349,
+"dir_y": -0.404926,
+"flipped": false,
+"x": 262,
+"y": 231
+},
+ExtResource( 437 ): {
+"dir_x": -0.0181788,
+"dir_y": 0.999835,
+"flipped": false,
+"x": 128,
+"y": 135
+},
+ExtResource( 162 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 135,
+"y": 114
+},
+ExtResource( 11 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 64,
+"y": 48
+},
+ExtResource( 62 ): {
+"dir_x": 0.9653,
+"dir_y": 0.261144,
+"flipped": false,
+"x": 70,
+"y": 52
+},
+ExtResource( 203 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 44
+},
+ExtResource( 135 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 128,
+"y": 108
+},
+ExtResource( 100 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 108
+},
+ExtResource( 46 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 51
+},
+ExtResource( 30 ): {
+"dir_x": 0.999746,
+"dir_y": -0.0225507,
+"flipped": false,
+"x": 67,
+"y": 46
+},
+ExtResource( 48 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 71,
+"y": 48
+},
+ExtResource( 22 ): {
+"dir_x": 0.918211,
+"dir_y": -0.396091,
+"flipped": false,
+"x": 56,
+"y": 46
+},
+ExtResource( 200 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 44
+},
+ExtResource( 232 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 253,
+"y": 103
+},
+ExtResource( 376 ): {
+"dir_x": 0.999985,
+"dir_y": 0.00549442,
+"flipped": false,
+"x": 73,
+"y": 48
+},
+ExtResource( 427 ): {
+"dir_x": 0.918719,
+"dir_y": 0.394912,
+"flipped": false,
+"x": 79,
+"y": 50
+}
+},
+"LeftFoot": {
+ExtResource( 121 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 274 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 253 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 188 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 139
+},
+ExtResource( 169 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 52,
+"y": 77
+},
+ExtResource( 141 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 113,
+"y": 140
+},
+ExtResource( 243 ): {
+"dir_x": 0.999635,
+"dir_y": 0.0270172,
+"flipped": false,
+"x": 246,
+"y": 268
+},
+ExtResource( 224 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 36 ): {
+"dir_x": 0.999028,
+"dir_y": -0.0440748,
+"flipped": false,
+"x": 54,
+"y": 77
+},
+ExtResource( 171 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 55,
+"y": 77
+},
+ExtResource( 206 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 31,
+"y": 77
+},
+ExtResource( 299 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 174 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 120,
+"y": 141
+},
+ExtResource( 86 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 71
+},
+ExtResource( 6 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 59,
+"y": 77
+},
+ExtResource( 43 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 240 ): {
+"dir_x": 0.19509,
+"dir_y": 0.980785,
+"flipped": false,
+"x": 49,
+"y": 75
+},
+ExtResource( 111 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 138,
+"y": 141
+},
+ExtResource( 165 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 140
+},
+ExtResource( 10 ): {
+"dir_x": 0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 73,
+"y": 76
+},
+ExtResource( 198 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 43,
+"y": 76
+},
+ExtResource( 7 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 78
+},
+ExtResource( 212 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 121,
+"y": 142
+},
+ExtResource( 149 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 140
+},
+ExtResource( 246 ): {
+"dir_x": 0.999635,
+"dir_y": 0.0270172,
+"flipped": false,
+"x": 247,
+"y": 268
+},
+ExtResource( 131 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 116,
+"y": 140
+},
+ExtResource( 78 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 59,
+"y": 77
+},
+ExtResource( 125 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 140
+},
+ExtResource( 110 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 141
+},
+ExtResource( 201 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 75
+},
+ExtResource( 231 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 255 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 245,
+"y": 268
+},
+ExtResource( 185 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 138
+},
+ExtResource( 306 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 311 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 71,
+"y": 76
+},
+ExtResource( 331 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 262 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 124 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 189 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 140
+},
+ExtResource( 323 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 114,
+"y": 75
+},
+ExtResource( 358 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 41,
+"y": 76
+},
+ExtResource( 357 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 71,
+"y": 77
+},
+ExtResource( 354 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 43,
+"y": 60
+},
+ExtResource( 118 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 116,
+"y": 141
+},
+ExtResource( 328 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 478 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 54,
+"y": 73
+},
+ExtResource( 428 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 53,
+"y": 75
+},
+ExtResource( 248 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 408 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 338 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 301 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 372 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 320 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 46,
+"y": 74
+},
+ExtResource( 409 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 307 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 298 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 352 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 42,
+"y": 75
+},
+ExtResource( 349 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 42,
+"y": 75
+},
+ExtResource( 355 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 42,
+"y": 75
+},
+ExtResource( 116 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 123,
+"y": 141
+},
+ExtResource( 98 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 143,
+"y": 141
+},
+ExtResource( 138 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 116,
+"y": 139
+},
+ExtResource( 448 ): {
+"dir_x": -0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 139,
+"y": 126
+},
+ExtResource( 341 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 347 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 44,
+"y": 75
+},
+ExtResource( 333 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 242 ): {
+"dir_x": 0.999635,
+"dir_y": 0.0270172,
+"flipped": false,
+"x": 245,
+"y": 268
+},
+ExtResource( 304 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 72,
+"y": 76
+},
+ExtResource( 345 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 44,
+"y": 75
+},
+ExtResource( 475 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 55,
+"y": 73
+},
+ExtResource( 297 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 374 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 41,
+"y": 76
+},
+ExtResource( 373 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 288 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 88
+},
+ExtResource( 314 ): {
+"dir_x": 0.19509,
+"dir_y": 0.980785,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 103 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 143,
+"y": 141
+},
+ExtResource( 361 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 88,
+"y": 74
+},
+ExtResource( 330 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 375 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 44,
+"y": 77
+},
+ExtResource( 256 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 148 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 140
+},
+ExtResource( 334 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 276 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 52,
+"y": 76
+},
+ExtResource( 204 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 75
+},
+ExtResource( 362 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 88,
+"y": 73
+},
+ExtResource( 101 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 140
+},
+ExtResource( 429 ): {
+"dir_x": 0.19509,
+"dir_y": 0.980785,
+"flipped": false,
+"x": 50,
+"y": 76
+},
+ExtResource( 166 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 140
+},
+ExtResource( 104 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 138,
+"y": 139
+},
+ExtResource( 108 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 127,
+"y": 141
+},
+ExtResource( 258 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 407 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 316 ): {
+"dir_x": 0.382683,
+"dir_y": 0.92388,
+"flipped": false,
+"x": 47,
+"y": 76
+},
+ExtResource( 247 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 247,
+"y": 267
+},
+ExtResource( 202 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 75
+},
+ExtResource( 447 ): {
+"dir_x": -0.551433,
+"dir_y": 0.834219,
+"flipped": false,
+"x": 142,
+"y": 114
+},
+ExtResource( 305 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 55,
+"y": 76
+},
+ExtResource( 360 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 55,
+"y": 76
+},
+ExtResource( 177 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 141
+},
+ExtResource( 315 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 75
+},
+ExtResource( 190 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 139
+},
+ExtResource( 264 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 261 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 339 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 249 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 96 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 116,
+"y": 140
+},
+ExtResource( 152 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 140
+},
+ExtResource( 236 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 42 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 76
+},
+ExtResource( 49 ): {
+"dir_x": 0.382683,
+"dir_y": 0.92388,
+"flipped": false,
+"x": 51,
+"y": 73
+},
+ExtResource( 440 ): {
+"dir_x": 0.228567,
+"dir_y": 0.973528,
+"flipped": false,
+"x": 114,
+"y": 134
+},
+ExtResource( 109 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 141
+},
+ExtResource( 337 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 105 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 140
+},
+ExtResource( 126 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 85 ): {
+"dir_x": 0.998941,
+"dir_y": 0.0460039,
+"flipped": false,
+"x": 78,
+"y": 76
+},
+ExtResource( 260 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 113 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 120,
+"y": 141
+},
+ExtResource( 196 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 43,
+"y": 76
+},
+ExtResource( 179 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 136,
+"y": 141
+},
+ExtResource( 18 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 76
+},
+ExtResource( 106 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 140
+},
+ExtResource( 469 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 278 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 76
+},
+ExtResource( 406 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 329 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 21 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 353 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 41,
+"y": 75
+},
+ExtResource( 444 ): {
+"dir_x": 0.999941,
+"dir_y": -0.0108689,
+"flipped": false,
+"x": 132,
+"y": 137
+},
+ExtResource( 431 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 49,
+"y": 74
+},
+ExtResource( 363 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 52,
+"y": 76
+},
+ExtResource( 442 ): {
+"dir_x": 0.19509,
+"dir_y": -0.980785,
+"flipped": false,
+"x": 140,
+"y": 131
+},
+ExtResource( 213 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 120,
+"y": 142
+},
+ExtResource( 84 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 67
+},
+ExtResource( 441 ): {
+"dir_x": 0.806405,
+"dir_y": 0.591364,
+"flipped": false,
+"x": 119,
+"y": 131
+},
+ExtResource( 12 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 81,
+"y": 69
+},
+ExtResource( 430 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 52,
+"y": 76
+},
+ExtResource( 272 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 47,
+"y": 76
+},
+ExtResource( 205 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 75
+},
+ExtResource( 470 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 15 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 69
+},
+ExtResource( 170 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 86,
+"y": 77
+},
+ExtResource( 19 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 56,
+"y": 76
+},
+ExtResource( 405 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 404 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 210 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 121,
+"y": 142
+},
+ExtResource( 151 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 116,
+"y": 140
+},
+ExtResource( 115 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 139,
+"y": 141
+},
+ExtResource( 130 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 116,
+"y": 140
+},
+ExtResource( 438 ): {
+"dir_x": 0.56921,
+"dir_y": -0.822192,
+"flipped": false,
+"x": 136,
+"y": 113
+},
+ExtResource( 163 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 115,
+"y": 140
+},
+ExtResource( 282 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 46,
+"y": 76
+},
+ExtResource( 99 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 140
+},
+ExtResource( 309 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 127 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 140
+},
+ExtResource( 480 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 55,
+"y": 73
+},
+ExtResource( 220 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 176 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 136,
+"y": 141
+},
+ExtResource( 244 ): {
+"dir_x": 0.999635,
+"dir_y": 0.0270172,
+"flipped": false,
+"x": 246,
+"y": 268
+},
+ExtResource( 241 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 60,
+"y": 77
+},
+ExtResource( 439 ): {
+"dir_x": -0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 140,
+"y": 115
+},
+ExtResource( 229 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 144 ): {
+"dir_x": 0.382683,
+"dir_y": 0.92388,
+"flipped": false,
+"x": 115,
+"y": 140
+},
+ExtResource( 285 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 326 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 116,
+"y": 75
+},
+ExtResource( 186 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 138
+},
+ExtResource( 252 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 233 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 164 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 140
+},
+ExtResource( 332 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 235 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 54 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 67,
+"y": 76
+},
+ExtResource( 92 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 58,
+"y": 77
+},
+ExtResource( 226 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 97 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 143,
+"y": 141
+},
+ExtResource( 279 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 54,
+"y": 76
+},
+ExtResource( 251 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 287 ): {
+"dir_x": 0.852202,
+"dir_y": 0.523213,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 139 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 116,
+"y": 140
+},
+ExtResource( 317 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 47,
+"y": 72
+},
+ExtResource( 227 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 234 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 476 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 55,
+"y": 73
+},
+ExtResource( 344 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 275 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 250 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 351 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 42,
+"y": 75
+},
+ExtResource( 122 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 76
+},
+ExtResource( 445 ): {
+"dir_x": -0.963634,
+"dir_y": 0.267226,
+"flipped": false,
+"x": 147,
+"y": 122
+},
+ExtResource( 446 ): {
+"dir_x": -0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 148,
+"y": 117
+},
+ExtResource( 325 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 119,
+"y": 76
+},
+ExtResource( 197 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 45,
+"y": 75
+},
+ExtResource( 318 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 112 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 135,
+"y": 141
+},
+ExtResource( 147 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 140
+},
+ExtResource( 211 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 120,
+"y": 142
+},
+ExtResource( 76 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 336 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 140 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 116,
+"y": 140
+},
+ExtResource( 340 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 346 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 43,
+"y": 75
+},
+ExtResource( 479 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 55,
+"y": 73
+},
+ExtResource( 230 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 263 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 348 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 42,
+"y": 75
+},
+ExtResource( 432 ): {
+"dir_x": 0.382683,
+"dir_y": 0.92388,
+"flipped": false,
+"x": 52,
+"y": 76
+},
+ExtResource( 175 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 136,
+"y": 141
+},
+ExtResource( 102 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 126,
+"y": 137
+},
+ExtResource( 173 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 75
+},
+ExtResource( 308 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 178 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 116,
+"y": 141
+},
+ExtResource( 319 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 46,
+"y": 71
+},
+ExtResource( 114 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 128,
+"y": 141
+},
+ExtResource( 150 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 140
+},
+ExtResource( 225 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 359 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 43,
+"y": 75
+},
+ExtResource( 254 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 228 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 310 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 77
+},
+ExtResource( 335 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 243,
+"y": 77
+},
+ExtResource( 324 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 119,
+"y": 76
+},
+ExtResource( 136 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 116,
+"y": 139
+},
+ExtResource( 277 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 52,
+"y": 76
+},
+ExtResource( 300 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 187 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 139
+},
+ExtResource( 161 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 140
+},
+ExtResource( 93 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 59,
+"y": 74
+},
+ExtResource( 172 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 77
+},
+ExtResource( 257 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 117 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 141
+},
+ExtResource( 40 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 84,
+"y": 74
+},
+ExtResource( 245 ): {
+"dir_x": 0.999635,
+"dir_y": 0.0270172,
+"flipped": false,
+"x": 246,
+"y": 268
+},
+ExtResource( 477 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 55,
+"y": 73
+},
+ExtResource( 313 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 47,
+"y": 73
+},
+ExtResource( 95 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 140
+},
+ExtResource( 286 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 123 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 259 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 248,
+"y": 266
+},
+ExtResource( 437 ): {
+"dir_x": 0.860292,
+"dir_y": -0.509802,
+"flipped": false,
+"x": 136,
+"y": 114
+},
+ExtResource( 162 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 115,
+"y": 140
+},
+ExtResource( 11 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 62 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 60,
+"y": 74
+},
+ExtResource( 203 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 75
+},
+ExtResource( 135 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 117,
+"y": 138
+},
+ExtResource( 100 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 143,
+"y": 141
+},
+ExtResource( 46 ): {
+"dir_x": 0.86753,
+"dir_y": -0.497384,
+"flipped": false,
+"x": 45,
+"y": 78
+},
+ExtResource( 30 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 50,
+"y": 75
+},
+ExtResource( 48 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 76
+},
+ExtResource( 22 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 75
+},
+ExtResource( 200 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 75
+},
+ExtResource( 232 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 244,
+"y": 140
+},
+ExtResource( 376 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 77
+},
+ExtResource( 427 ): {
+"dir_x": 0.382683,
+"dir_y": 0.92388,
+"flipped": false,
+"x": 57,
+"y": 72
+}
+},
+"LeftHand": {
+ExtResource( 121 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 70,
+"y": 61
+},
+ExtResource( 274 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 56,
+"y": 43
+},
+ExtResource( 253 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 369,
+"y": 188
+},
+ExtResource( 188 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 108,
+"y": 118
+},
+ExtResource( 169 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 52
+},
+ExtResource( 141 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 124
+},
+ExtResource( 243 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 235,
+"y": 252
+},
+ExtResource( 224 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 122
+},
+ExtResource( 36 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 42,
+"y": 63
+},
+ExtResource( 171 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 42
+},
+ExtResource( 206 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 104,
+"y": 78
+},
+ExtResource( 299 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 26
+},
+ExtResource( 174 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 119,
+"y": 121
+},
+ExtResource( 86 ): {
+"dir_x": 0.996898,
+"dir_y": -0.0787025,
+"flipped": false,
+"x": 66,
+"y": 62
+},
+ExtResource( 240 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 38,
+"y": 55
+},
+ExtResource( 111 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 137,
+"y": 122
+},
+ExtResource( 165 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 114,
+"y": 114
+},
+ExtResource( 10 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 50,
+"y": 72
+},
+ExtResource( 198 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 45,
+"y": 53
+},
+ExtResource( 7 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 45,
+"y": 78
+},
+ExtResource( 212 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 115,
+"y": 122
+},
+ExtResource( 149 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 132,
+"y": 106
+},
+ExtResource( 246 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 269,
+"y": 237
+},
+ExtResource( 131 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 114,
+"y": 123
+},
+ExtResource( 78 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 45,
+"y": 54
+},
+ExtResource( 125 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 112,
+"y": 124
+},
+ExtResource( 110 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 118
+},
+ExtResource( 201 ): {
+"dir_x": -1.0,
+"dir_y": 8.74228e-08,
+"flipped": false,
+"x": 48,
+"y": 64
+},
+ExtResource( 231 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 255 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 232,
+"y": 252
+},
+ExtResource( 185 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 107,
+"y": 116
+},
+ExtResource( 306 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 17
+},
+ExtResource( 311 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 79,
+"y": 67
+},
+ExtResource( 331 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 37
+},
+ExtResource( 262 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 289,
+"y": 226
+},
+ExtResource( 124 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 72,
+"y": 61
+},
+ExtResource( 323 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 111,
+"y": 59
+},
+ExtResource( 358 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 75
+},
+ExtResource( 357 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 56,
+"y": 74
+},
+ExtResource( 354 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 88,
+"y": 75
+},
+ExtResource( 118 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 121,
+"y": 106
+},
+ExtResource( 328 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 42,
+"y": 56
+},
+ExtResource( 478 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 97,
+"y": 54
+},
+ExtResource( 428 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 104,
+"y": 74
+},
+ExtResource( 248 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 371,
+"y": 188
+},
+ExtResource( 408 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 46,
+"y": 58
+},
+ExtResource( 338 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 235,
+"y": 55
+},
+ExtResource( 301 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 17
+},
+ExtResource( 372 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 39,
+"y": 56
+},
+ExtResource( 320 ): {
+"dir_x": 0.999959,
+"dir_y": -0.00900864,
+"flipped": false,
+"x": 82,
+"y": 77
+},
+ExtResource( 409 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 46,
+"y": 58
+},
+ExtResource( 307 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 17
+},
+ExtResource( 298 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 17
+},
+ExtResource( 352 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 75
+},
+ExtResource( 349 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 75
+},
+ExtResource( 355 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 75
+},
+ExtResource( 116 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 120,
+"y": 123
+},
+ExtResource( 98 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 196,
+"y": 115
+},
+ExtResource( 138 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 147,
+"y": 123
+},
+ExtResource( 448 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 108,
+"y": 126
+},
+ExtResource( 341 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 235,
+"y": 52
+},
+ExtResource( 347 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 83,
+"y": 75
+},
+ExtResource( 333 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 88,
+"y": 58
+},
+ExtResource( 242 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 232,
+"y": 253
+},
+ExtResource( 304 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382684,
+"flipped": false,
+"x": 82,
+"y": 65
+},
+ExtResource( 345 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 44,
+"y": 56
+},
+ExtResource( 475 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 58,
+"y": 53
+},
+ExtResource( 297 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 17
+},
+ExtResource( 374 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 51
+},
+ExtResource( 373 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 90,
+"y": 59
+},
+ExtResource( 288 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 66
+},
+ExtResource( 314 ): {
+"dir_x": 0.999808,
+"dir_y": -0.0196041,
+"flipped": false,
+"x": 99,
+"y": 77
+},
+ExtResource( 103 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 194,
+"y": 115
+},
+ExtResource( 361 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 62,
+"y": 76
+},
+ExtResource( 330 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 102,
+"y": 47
+},
+ExtResource( 375 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 93,
+"y": 56
+},
+ExtResource( 256 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 286,
+"y": 228
+},
+ExtResource( 148 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 113,
+"y": 117
+},
+ExtResource( 334 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 235,
+"y": 52
+},
+ExtResource( 276 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 97,
+"y": 53
+},
+ExtResource( 204 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 72,
+"y": 31
+},
+ExtResource( 362 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 57,
+"y": 76
+},
+ExtResource( 101 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 148,
+"y": 115
+},
+ExtResource( 429 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 91,
+"y": 76
+},
+ExtResource( 166 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 114,
+"y": 114
+},
+ExtResource( 104 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 194,
+"y": 115
+},
+ExtResource( 108 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 115,
+"y": 113
+},
+ExtResource( 258 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 325,
+"y": 209
+},
+ExtResource( 407 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 46,
+"y": 58
+},
+ExtResource( 316 ): {
+"dir_x": 0.999959,
+"dir_y": -0.00900864,
+"flipped": false,
+"x": 70,
+"y": 77
+},
+ExtResource( 247 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 364,
+"y": 192
+},
+ExtResource( 202 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 15
+},
+ExtResource( 447 ): {
+"dir_x": -0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 109,
+"y": 145
+},
+ExtResource( 305 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 78,
+"y": 55
+},
+ExtResource( 360 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 81,
+"y": 75
+},
+ExtResource( 177 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 109,
+"y": 120
+},
+ExtResource( 315 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 45,
+"y": 38
+},
+ExtResource( 190 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 108,
+"y": 119
+},
+ExtResource( 264 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 373,
+"y": 186
+},
+ExtResource( 261 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 289,
+"y": 226
+},
+ExtResource( 339 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 235,
+"y": 53
+},
+ExtResource( 249 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 372,
+"y": 187
+},
+ExtResource( 96 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 115,
+"y": 116
+},
+ExtResource( 152 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 132,
+"y": 111
+},
+ExtResource( 236 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 42 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 51,
+"y": 53
+},
+ExtResource( 49 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 89,
+"y": 54
+},
+ExtResource( 440 ): {
+"dir_x": 0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 119,
+"y": 107
+},
+ExtResource( 109 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 121,
+"y": 106
+},
+ExtResource( 337 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 235,
+"y": 52
+},
+ExtResource( 105 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 161,
+"y": 115
+},
+ExtResource( 126 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 71,
+"y": 61
+},
+ExtResource( 85 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 54,
+"y": 60
+},
+ExtResource( 260 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 289,
+"y": 226
+},
+ExtResource( 113 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 113,
+"y": 120
+},
+ExtResource( 451 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 144,
+"y": 151
+},
+ExtResource( 196 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 45,
+"y": 53
+},
+ExtResource( 179 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 184,
+"y": 98
+},
+ExtResource( 18 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 49,
+"y": 47
+},
+ExtResource( 106 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 186,
+"y": 115
+},
+ExtResource( 469 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 61
+},
+ExtResource( 278 ): {
+"dir_x": -0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 77,
+"y": 74
+},
+ExtResource( 406 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 46,
+"y": 58
+},
+ExtResource( 329 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 53
+},
+ExtResource( 21 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 62
+},
+ExtResource( 353 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 52
+},
+ExtResource( 444 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 114,
+"y": 122
+},
+ExtResource( 431 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 92,
+"y": 76
+},
+ExtResource( 363 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 45,
+"y": 63
+},
+ExtResource( 442 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 105,
+"y": 139
+},
+ExtResource( 213 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 114,
+"y": 122
+},
+ExtResource( 84 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 54,
+"y": 58
+},
+ExtResource( 441 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 117,
+"y": 107
+},
+ExtResource( 12 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 60,
+"y": 60
+},
+ExtResource( 430 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 82,
+"y": 68
+},
+ExtResource( 272 ): {
+"dir_x": 0.902362,
+"dir_y": -0.430979,
+"flipped": false,
+"x": 45,
+"y": 46
+},
+ExtResource( 205 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 26,
+"y": 26
+},
+ExtResource( 470 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 61
+},
+ExtResource( 15 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 58
+},
+ExtResource( 170 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 90,
+"y": 50
+},
+ExtResource( 19 ): {
+"dir_x": 0.94299,
+"dir_y": 0.33282,
+"flipped": false,
+"x": 54,
+"y": 66
+},
+ExtResource( 405 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 46,
+"y": 58
+},
+ExtResource( 404 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 46,
+"y": 59
+},
+ExtResource( 210 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 115,
+"y": 122
+},
+ExtResource( 151 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 142,
+"y": 113
+},
+ExtResource( 115 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 135,
+"y": 124
+},
+ExtResource( 130 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 114,
+"y": 123
+},
+ExtResource( 438 ): {
+"dir_x": -0.382683,
+"dir_y": -0.92388,
+"flipped": false,
+"x": 138,
+"y": 108
+},
+ExtResource( 163 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 126
+},
+ExtResource( 282 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 40,
+"y": 55
+},
+ExtResource( 99 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 127,
+"y": 113
+},
+ExtResource( 309 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 40,
+"y": 55
+},
+ExtResource( 127 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 113,
+"y": 123
+},
+ExtResource( 480 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 92,
+"y": 54
+},
+ExtResource( 220 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 122
+},
+ExtResource( 176 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 182,
+"y": 98
+},
+ExtResource( 244 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 232,
+"y": 252
+},
+ExtResource( 241 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 65
+},
+ExtResource( 439 ): {
+"dir_x": 0.382683,
+"dir_y": -0.92388,
+"flipped": false,
+"x": 130,
+"y": 111
+},
+ExtResource( 229 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 144 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 107,
+"y": 123
+},
+ExtResource( 285 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 90,
+"y": 55
+},
+ExtResource( 326 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 201,
+"y": 52
+},
+ExtResource( 186 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 107,
+"y": 116
+},
+ExtResource( 252 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 297,
+"y": 223
+},
+ExtResource( 233 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 164 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 114,
+"y": 115
+},
+ExtResource( 332 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 72
+},
+ExtResource( 235 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 120
+},
+ExtResource( 54 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 80,
+"y": 64
+},
+ExtResource( 92 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 65
+},
+ExtResource( 226 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 97 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 195,
+"y": 115
+},
+ExtResource( 279 ): {
+"dir_x": -0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 77,
+"y": 73
+},
+ExtResource( 251 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 324,
+"y": 210
+},
+ExtResource( 287 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 41,
+"y": 52
+},
+ExtResource( 139 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 139,
+"y": 121
+},
+ExtResource( 317 ): {
+"dir_x": 0.999959,
+"dir_y": -0.00900864,
+"flipped": false,
+"x": 84,
+"y": 77
+},
+ExtResource( 227 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 234 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 476 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 54,
+"y": 53
+},
+ExtResource( 344 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 46,
+"y": 61
+},
+ExtResource( 275 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 59,
+"y": 43
+},
+ExtResource( 250 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 369,
+"y": 188
+},
+ExtResource( 351 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 75
+},
+ExtResource( 122 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 61
+},
+ExtResource( 445 ): {
+"dir_x": -0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 142,
+"y": 115
+},
+ExtResource( 446 ): {
+"dir_x": -0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 106,
+"y": 142
+},
+ExtResource( 325 ): {
+"dir_x": 0.995448,
+"dir_y": -0.0953088,
+"flipped": false,
+"x": 130,
+"y": 37
+},
+ExtResource( 197 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 41,
+"y": 54
+},
+ExtResource( 318 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 44,
+"y": 38
+},
+ExtResource( 112 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 120,
+"y": 123
+},
+ExtResource( 147 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 108,
+"y": 123
+},
+ExtResource( 211 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 114,
+"y": 122
+},
+ExtResource( 76 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 60
+},
+ExtResource( 443 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 136,
+"y": 107
+},
+ExtResource( 336 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 235,
+"y": 52
+},
+ExtResource( 140 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 126,
+"y": 123
+},
+ExtResource( 340 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 235,
+"y": 52
+},
+ExtResource( 346 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 58
+},
+ExtResource( 479 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 86,
+"y": 56
+},
+ExtResource( 230 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 117
+},
+ExtResource( 263 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 369,
+"y": 188
+},
+ExtResource( 348 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 84,
+"y": 75
+},
+ExtResource( 432 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 102,
+"y": 75
+},
+ExtResource( 175 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 184,
+"y": 98
+},
+ExtResource( 102 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 147,
+"y": 116
+},
+ExtResource( 173 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 97,
+"y": 54
+},
+ExtResource( 308 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 41,
+"y": 56
+},
+ExtResource( 178 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 113,
+"y": 118
+},
+ExtResource( 319 ): {
+"dir_x": 0.999959,
+"dir_y": -0.00900864,
+"flipped": false,
+"x": 84,
+"y": 77
+},
+ExtResource( 114 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 139,
+"y": 123
+},
+ExtResource( 150 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 133,
+"y": 110
+},
+ExtResource( 225 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 118
+},
+ExtResource( 359 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 75
+},
+ExtResource( 254 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 372,
+"y": 187
+},
+ExtResource( 228 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 122
+},
+ExtResource( 310 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 42,
+"y": 53
+},
+ExtResource( 335 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 235,
+"y": 52
+},
+ExtResource( 450 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 144,
+"y": 149
+},
+ExtResource( 324 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 131,
+"y": 44
+},
+ExtResource( 136 ): {
+"dir_x": 0.961892,
+"dir_y": 0.273431,
+"flipped": false,
+"x": 110,
+"y": 109
+},
+ExtResource( 277 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 95,
+"y": 65
+},
+ExtResource( 300 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 63,
+"y": 17
+},
+ExtResource( 187 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 117,
+"y": 120
+},
+ExtResource( 161 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 114,
+"y": 114
+},
+ExtResource( 93 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 51,
+"y": 61
+},
+ExtResource( 172 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 55,
+"y": 44
+},
+ExtResource( 257 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 289,
+"y": 226
+},
+ExtResource( 117 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 121,
+"y": 107
+},
+ExtResource( 40 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 67,
+"y": 74
+},
+ExtResource( 245 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 242,
+"y": 248
+},
+ExtResource( 477 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 57,
+"y": 53
+},
+ExtResource( 313 ): {
+"dir_x": 0.997981,
+"dir_y": 0.0635079,
+"flipped": false,
+"x": 88,
+"y": 77
+},
+ExtResource( 95 ): {
+"dir_x": 0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 119,
+"y": 116
+},
+ExtResource( 286 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 100,
+"y": 56
+},
+ExtResource( 123 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382684,
+"flipped": false,
+"x": 58,
+"y": 61
+},
+ExtResource( 259 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 289,
+"y": 226
+},
+ExtResource( 437 ): {
+"dir_x": -0.382683,
+"dir_y": -0.92388,
+"flipped": false,
+"x": 137,
+"y": 109
+},
+ExtResource( 162 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 126,
+"y": 130
+},
+ExtResource( 11 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 44,
+"y": 56
+},
+ExtResource( 62 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 90,
+"y": 47
+},
+ExtResource( 203 ): {
+"dir_x": -0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 25,
+"y": 51
+},
+ExtResource( 449 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 137,
+"y": 108
+},
+ExtResource( 135 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 109,
+"y": 112
+},
+ExtResource( 100 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 195,
+"y": 115
+},
+ExtResource( 46 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 48,
+"y": 52
+},
+ExtResource( 30 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 47,
+"y": 58
+},
+ExtResource( 48 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 57,
+"y": 60
+},
+ExtResource( 22 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 53,
+"y": 63
+},
+ExtResource( 200 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 67,
+"y": 51
+},
+ExtResource( 232 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 240,
+"y": 116
+},
+ExtResource( 376 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 92,
+"y": 59
+},
+ExtResource( 427 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 45,
+"y": 53
+}
+},
+"RightFoot": {
+ExtResource( 121 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 77
+},
+ExtResource( 274 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 75
+},
+ExtResource( 253 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 188 ): {
+"dir_x": 0.972687,
+"dir_y": 0.232119,
+"flipped": false,
+"x": 146,
+"y": 139
+},
+ExtResource( 169 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 76
+},
+ExtResource( 141 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 138,
+"y": 140
+},
+ExtResource( 243 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 278,
+"y": 268
+},
+ExtResource( 224 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 36 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 76
+},
+ExtResource( 171 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 76
+},
+ExtResource( 206 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 76
+},
+ExtResource( 299 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 174 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 140,
+"y": 137
+},
+ExtResource( 86 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 70
+},
+ExtResource( 240 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 80,
+"y": 76
+},
+ExtResource( 111 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 118,
+"y": 141
+},
+ExtResource( 165 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 188,
+"y": 173
+},
+ExtResource( 10 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 85,
+"y": 64
+},
+ExtResource( 198 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 60,
+"y": 77
+},
+ExtResource( 7 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 77
+},
+ExtResource( 212 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 142
+},
+ExtResource( 149 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 222,
+"y": 123
+},
+ExtResource( 246 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 131 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 138,
+"y": 141
+},
+ExtResource( 78 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 83,
+"y": 76
+},
+ExtResource( 125 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 138,
+"y": 141
+},
+ExtResource( 110 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 141
+},
+ExtResource( 201 ): {
+"dir_x": 0.974191,
+"dir_y": -0.225727,
+"flipped": false,
+"x": 88,
+"y": 70
+},
+ExtResource( 231 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 255 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 185 ): {
+"dir_x": 0.975756,
+"dir_y": 0.218861,
+"flipped": false,
+"x": 146,
+"y": 139
+},
+ExtResource( 306 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 311 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 40,
+"y": 59
+},
+ExtResource( 331 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 77
+},
+ExtResource( 262 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 124 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 77
+},
+ExtResource( 189 ): {
+"dir_x": 0.997143,
+"dir_y": 0.0755411,
+"flipped": false,
+"x": 138,
+"y": 139
+},
+ExtResource( 323 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 76
+},
+ExtResource( 358 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 76
+},
+ExtResource( 357 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 90,
+"y": 77
+},
+ExtResource( 354 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 67
+},
+ExtResource( 118 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 141,
+"y": 141
+},
+ExtResource( 328 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 77
+},
+ExtResource( 478 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 75
+},
+ExtResource( 428 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 77
+},
+ExtResource( 248 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 408 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 338 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 301 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 372 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 82,
+"y": 76
+},
+ExtResource( 320 ): {
+"dir_x": 0.965429,
+"dir_y": 0.260666,
+"flipped": false,
+"x": 62,
+"y": 76
+},
+ExtResource( 409 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 307 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 298 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 352 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 75
+},
+ExtResource( 349 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 75
+},
+ExtResource( 355 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 75
+},
+ExtResource( 116 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 141
+},
+ExtResource( 98 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 140
+},
+ExtResource( 138 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 140
+},
+ExtResource( 448 ): {
+"dir_x": -0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 122,
+"y": 113
+},
+ExtResource( 341 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 347 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 76
+},
+ExtResource( 333 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 77
+},
+ExtResource( 242 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 277,
+"y": 268
+},
+ExtResource( 304 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 39,
+"y": 60
+},
+ExtResource( 345 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 475 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 75
+},
+ExtResource( 297 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 374 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 373 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 81,
+"y": 77
+},
+ExtResource( 288 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 88
+},
+ExtResource( 314 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 67,
+"y": 77
+},
+ExtResource( 103 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 140
+},
+ExtResource( 361 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 74,
+"y": 75
+},
+ExtResource( 330 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 77
+},
+ExtResource( 375 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 76
+},
+ExtResource( 256 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 148 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 146,
+"y": 121
+},
+ExtResource( 334 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 276 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 83,
+"y": 76
+},
+ExtResource( 204 ): {
+"dir_x": 0.974191,
+"dir_y": -0.225727,
+"flipped": false,
+"x": 88,
+"y": 70
+},
+ExtResource( 362 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 76,
+"y": 75
+},
+ExtResource( 101 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 140
+},
+ExtResource( 429 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 77
+},
+ExtResource( 166 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 170,
+"y": 156
+},
+ExtResource( 104 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 122,
+"y": 140
+},
+ExtResource( 108 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 134
+},
+ExtResource( 258 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 407 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 316 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 62,
+"y": 77
+},
+ExtResource( 247 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 202 ): {
+"dir_x": 0.974191,
+"dir_y": -0.225727,
+"flipped": false,
+"x": 88,
+"y": 70
+},
+ExtResource( 447 ): {
+"dir_x": -0.55557,
+"dir_y": 0.83147,
+"flipped": false,
+"x": 135,
+"y": 110
+},
+ExtResource( 305 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 52,
+"y": 68
+},
+ExtResource( 360 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 43,
+"y": 76
+},
+ExtResource( 177 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 149,
+"y": 137
+},
+ExtResource( 315 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 81,
+"y": 66
+},
+ExtResource( 190 ): {
+"dir_x": 0.993331,
+"dir_y": 0.115297,
+"flipped": false,
+"x": 146,
+"y": 140
+},
+ExtResource( 264 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 261 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 339 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 249 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 96 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 140
+},
+ExtResource( 152 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 206,
+"y": 122
+},
+ExtResource( 236 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 42 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 49 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 84,
+"y": 76
+},
+ExtResource( 440 ): {
+"dir_x": 0.946315,
+"dir_y": -0.323246,
+"flipped": false,
+"x": 120,
+"y": 140
+},
+ExtResource( 109 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 143,
+"y": 141
+},
+ExtResource( 337 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 105 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 140
+},
+ExtResource( 126 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 77
+},
+ExtResource( 85 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 76
+},
+ExtResource( 260 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 113 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 141,
+"y": 141
+},
+ExtResource( 196 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 60,
+"y": 77
+},
+ExtResource( 179 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 111,
+"y": 143
+},
+ExtResource( 18 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": true,
+"x": 51,
+"y": 77
+},
+ExtResource( 106 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 140
+},
+ExtResource( 469 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 76
+},
+ExtResource( 278 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 87,
+"y": 76
+},
+ExtResource( 406 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 329 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 21 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 353 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 75
+},
+ExtResource( 444 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 144,
+"y": 124
+},
+ExtResource( 431 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 78
+},
+ExtResource( 363 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 80,
+"y": 77
+},
+ExtResource( 442 ): {
+"dir_x": 0.19509,
+"dir_y": -0.980785,
+"flipped": false,
+"x": 139,
+"y": 121
+},
+ExtResource( 213 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 130,
+"y": 142
+},
+ExtResource( 84 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 76
+},
+ExtResource( 441 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 119,
+"y": 139
+},
+ExtResource( 12 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 52,
+"y": 77
+},
+ExtResource( 430 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 77
+},
+ExtResource( 272 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 79,
+"y": 76
+},
+ExtResource( 205 ): {
+"dir_x": 0.974191,
+"dir_y": -0.225727,
+"flipped": false,
+"x": 88,
+"y": 70
+},
+ExtResource( 470 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 61,
+"y": 77
+},
+ExtResource( 15 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 75
+},
+ExtResource( 170 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 53,
+"y": 77
+},
+ExtResource( 19 ): {
+"dir_x": 0.923879,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 72,
+"y": 74
+},
+ExtResource( 405 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 404 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 210 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 132,
+"y": 142
+},
+ExtResource( 151 ): {
+"dir_x": 0.976295,
+"dir_y": -0.216443,
+"flipped": false,
+"x": 148,
+"y": 134
+},
+ExtResource( 115 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 141
+},
+ExtResource( 130 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 138,
+"y": 141
+},
+ExtResource( 438 ): {
+"dir_x": -0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 114,
+"y": 116
+},
+ExtResource( 163 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 149,
+"y": 137
+},
+ExtResource( 282 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 79,
+"y": 70
+},
+ExtResource( 99 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 139,
+"y": 140
+},
+ExtResource( 309 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 76
+},
+ExtResource( 127 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 138,
+"y": 141
+},
+ExtResource( 480 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 75
+},
+ExtResource( 220 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 176 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 112,
+"y": 142
+},
+ExtResource( 244 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 278,
+"y": 268
+},
+ExtResource( 241 ): {
+"dir_x": 0.591806,
+"dir_y": -0.80608,
+"flipped": false,
+"x": 82,
+"y": 73
+},
+ExtResource( 439 ): {
+"dir_x": -0.92388,
+"dir_y": 0.382684,
+"flipped": false,
+"x": 115,
+"y": 119
+},
+ExtResource( 229 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 144 ): {
+"dir_x": 0.994389,
+"dir_y": 0.105786,
+"flipped": false,
+"x": 139,
+"y": 141
+},
+ExtResource( 285 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 84,
+"y": 76
+},
+ExtResource( 326 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 137,
+"y": 77
+},
+ExtResource( 186 ): {
+"dir_x": 0.965788,
+"dir_y": 0.259332,
+"flipped": false,
+"x": 146,
+"y": 140
+},
+ExtResource( 252 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 233 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 164 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 191,
+"y": 176
+},
+ExtResource( 332 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 77
+},
+ExtResource( 235 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 54 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 40,
+"y": 59
+},
+ExtResource( 92 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 77
+},
+ExtResource( 226 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 97 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 140
+},
+ExtResource( 279 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 87,
+"y": 76
+},
+ExtResource( 251 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 287 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 80,
+"y": 71
+},
+ExtResource( 139 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 139,
+"y": 139
+},
+ExtResource( 317 ): {
+"dir_x": 0.120732,
+"dir_y": 0.992685,
+"flipped": false,
+"x": 62,
+"y": 71
+},
+ExtResource( 227 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 234 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 476 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 75
+},
+ExtResource( 344 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 76
+},
+ExtResource( 275 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 75
+},
+ExtResource( 250 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 279,
+"y": 268
+},
+ExtResource( 351 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 75
+},
+ExtResource( 122 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 77
+},
+ExtResource( 445 ): {
+"dir_x": -0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 119,
+"y": 114
+},
+ExtResource( 446 ): {
+"dir_x": -0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 138,
+"y": 111
+},
+ExtResource( 325 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 137,
+"y": 77
+},
+ExtResource( 197 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 76
+},
+ExtResource( 318 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 79,
+"y": 66
+},
+ExtResource( 112 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 122,
+"y": 140
+},
+ExtResource( 147 ): {
+"dir_x": 0.19509,
+"dir_y": 0.980785,
+"flipped": false,
+"x": 139,
+"y": 122
+},
+ExtResource( 211 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 131,
+"y": 142
+},
+ExtResource( 76 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 76
+},
+ExtResource( 336 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 140 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 139,
+"y": 139
+},
+ExtResource( 340 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 346 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 76
+},
+ExtResource( 479 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 75
+},
+ExtResource( 230 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 263 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 348 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 75
+},
+ExtResource( 432 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 77
+},
+ExtResource( 175 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 111,
+"y": 143
+},
+ExtResource( 102 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 136,
+"y": 140
+},
+ExtResource( 173 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 52,
+"y": 77
+},
+ExtResource( 308 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 82,
+"y": 76
+},
+ExtResource( 178 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 147,
+"y": 137
+},
+ExtResource( 319 ): {
+"dir_x": 0.120732,
+"dir_y": 0.992685,
+"flipped": false,
+"x": 62,
+"y": 73
+},
+ExtResource( 114 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 113,
+"y": 141
+},
+ExtResource( 150 ): {
+"dir_x": 0.0525588,
+"dir_y": 0.998618,
+"flipped": false,
+"x": 164,
+"y": 126
+},
+ExtResource( 225 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 359 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 47,
+"y": 75
+},
+ExtResource( 254 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 228 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 310 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 76
+},
+ExtResource( 335 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 266,
+"y": 75
+},
+ExtResource( 324 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 136,
+"y": 77
+},
+ExtResource( 136 ): {
+"dir_x": 0.97898,
+"dir_y": -0.203954,
+"flipped": false,
+"x": 144,
+"y": 134
+},
+ExtResource( 277 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 86,
+"y": 76
+},
+ExtResource( 300 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 187 ): {
+"dir_x": 0.996481,
+"dir_y": 0.0838162,
+"flipped": false,
+"x": 147,
+"y": 139
+},
+ExtResource( 161 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 148,
+"y": 134
+},
+ExtResource( 93 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 74
+},
+ExtResource( 172 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 65,
+"y": 77
+},
+ExtResource( 257 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 117 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 141
+},
+ExtResource( 40 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 85,
+"y": 75
+},
+ExtResource( 245 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 278,
+"y": 268
+},
+ExtResource( 477 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 75
+},
+ExtResource( 313 ): {
+"dir_x": 0.0422159,
+"dir_y": 0.999108,
+"flipped": false,
+"x": 63,
+"y": 73
+},
+ExtResource( 95 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 141,
+"y": 140
+},
+ExtResource( 286 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 84,
+"y": 76
+},
+ExtResource( 123 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 77
+},
+ExtResource( 259 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 280,
+"y": 268
+},
+ExtResource( 437 ): {
+"dir_x": -0.923879,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 114,
+"y": 114
+},
+ExtResource( 162 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 142,
+"y": 131
+},
+ExtResource( 11 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 62 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 67,
+"y": 76
+},
+ExtResource( 203 ): {
+"dir_x": 0.974191,
+"dir_y": -0.225727,
+"flipped": false,
+"x": 88,
+"y": 70
+},
+ExtResource( 135 ): {
+"dir_x": 0.97898,
+"dir_y": -0.203954,
+"flipped": false,
+"x": 145,
+"y": 133
+},
+ExtResource( 100 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 140
+},
+ExtResource( 46 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 78,
+"y": 77
+},
+ExtResource( 30 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 83,
+"y": 77
+},
+ExtResource( 48 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 76
+},
+ExtResource( 22 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 76
+},
+ExtResource( 200 ): {
+"dir_x": 0.974191,
+"dir_y": -0.225727,
+"flipped": false,
+"x": 88,
+"y": 70
+},
+ExtResource( 232 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 265,
+"y": 140
+},
+ExtResource( 376 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 83,
+"y": 76
+},
+ExtResource( 427 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 77
+}
+},
+"RightHand": {
+ExtResource( 121 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 58,
+"y": 52
+},
+ExtResource( 274 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 85,
+"y": 61
+},
+ExtResource( 253 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 246,
+"y": 244
+},
+ExtResource( 188 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 123,
+"y": 119
+},
+ExtResource( 169 ): {
+"dir_x": 0.988117,
+"dir_y": 0.153707,
+"flipped": false,
+"x": 71,
+"y": 58
+},
+ExtResource( 141 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 136,
+"y": 124
+},
+ExtResource( 243 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 271,
+"y": 243
+},
+ExtResource( 224 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 122
+},
+ExtResource( 36 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 79,
+"y": 53
+},
+ExtResource( 171 ): {
+"dir_x": 0.998502,
+"dir_y": 0.0547124,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 206 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 82,
+"y": 46
+},
+ExtResource( 299 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 174 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 138,
+"y": 118
+},
+ExtResource( 86 ): {
+"dir_x": 0.990445,
+"dir_y": -0.13791,
+"flipped": false,
+"x": 78,
+"y": 65
+},
+ExtResource( 240 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 45
+},
+ExtResource( 111 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 94,
+"y": 80
+},
+ExtResource( 165 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 147,
+"y": 109
+},
+ExtResource( 10 ): {
+"dir_x": 0.999912,
+"dir_y": -0.0132732,
+"flipped": false,
+"x": 78,
+"y": 54
+},
+ExtResource( 198 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 80,
+"y": 42
+},
+ExtResource( 7 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 57,
+"y": 78
+},
+ExtResource( 212 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 124
+},
+ExtResource( 149 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 102,
+"y": 126
+},
+ExtResource( 246 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 250,
+"y": 242
+},
+ExtResource( 131 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 124
+},
+ExtResource( 78 ): {
+"dir_x": 0.998672,
+"dir_y": -0.0515285,
+"flipped": false,
+"x": 73,
+"y": 45
+},
+ExtResource( 125 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 122
+},
+ExtResource( 110 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 188,
+"y": 116
+},
+ExtResource( 201 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 80,
+"y": 49
+},
+ExtResource( 231 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 116
+},
+ExtResource( 255 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 272,
+"y": 241
+},
+ExtResource( 185 ): {
+"dir_x": 0.311039,
+"dir_y": -0.950397,
+"flipped": false,
+"x": 115,
+"y": 120
+},
+ExtResource( 306 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 311 ): {
+"dir_x": 0.267644,
+"dir_y": 0.963518,
+"flipped": false,
+"x": 52,
+"y": 40
+},
+ExtResource( 331 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 72
+},
+ExtResource( 262 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 124 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 58,
+"y": 52
+},
+ExtResource( 189 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 114,
+"y": 110
+},
+ExtResource( 323 ): {
+"dir_x": 0.973616,
+"dir_y": -0.228191,
+"flipped": false,
+"x": 139,
+"y": 48
+},
+ExtResource( 358 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 77
+},
+ExtResource( 357 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 45,
+"y": 71
+},
+ExtResource( 354 ): {
+"dir_x": 0.997366,
+"dir_y": 0.0725357,
+"flipped": false,
+"x": 80,
+"y": 77
+},
+ExtResource( 118 ): {
+"dir_x": 0.923879,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 191,
+"y": 140
+},
+ExtResource( 328 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 99,
+"y": 48
+},
+ExtResource( 478 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 60,
+"y": 45
+},
+ExtResource( 428 ): {
+"dir_x": 0.519947,
+"dir_y": 0.854199,
+"flipped": false,
+"x": 62,
+"y": 45
+},
+ExtResource( 248 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 246,
+"y": 243
+},
+ExtResource( 408 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 338 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 269,
+"y": 61
+},
+ExtResource( 301 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 372 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 52
+},
+ExtResource( 320 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 87,
+"y": 77
+},
+ExtResource( 409 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 307 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 298 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 352 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 77
+},
+ExtResource( 349 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 77
+},
+ExtResource( 355 ): {
+"dir_x": 0.999964,
+"dir_y": -0.00849226,
+"flipped": false,
+"x": 78,
+"y": 76
+},
+ExtResource( 116 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 157,
+"y": 88
+},
+ExtResource( 98 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 118
+},
+ExtResource( 138 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 151,
+"y": 120
+},
+ExtResource( 448 ): {
+"dir_x": -1.0,
+"dir_y": -8.74228e-08,
+"flipped": false,
+"x": 142,
+"y": 140
+},
+ExtResource( 341 ): {
+"dir_x": -0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 271,
+"y": 50
+},
+ExtResource( 347 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 73,
+"y": 77
+},
+ExtResource( 333 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 48,
+"y": 47
+},
+ExtResource( 242 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 271,
+"y": 244
+},
+ExtResource( 304 ): {
+"dir_x": 0.261415,
+"dir_y": 0.965226,
+"flipped": false,
+"x": 50,
+"y": 42
+},
+ExtResource( 345 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 85,
+"y": 67
+},
+ExtResource( 297 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 374 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 56
+},
+ExtResource( 373 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 51,
+"y": 51
+},
+ExtResource( 288 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 66,
+"y": 66
+},
+ExtResource( 314 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 103,
+"y": 77
+},
+ExtResource( 103 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 118
+},
+ExtResource( 361 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 75
+},
+ExtResource( 330 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 45,
+"y": 55
+},
+ExtResource( 375 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 49,
+"y": 50
+},
+ExtResource( 256 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 148 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 121,
+"y": 124
+},
+ExtResource( 334 ): {
+"dir_x": -0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 271,
+"y": 50
+},
+ExtResource( 276 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 56,
+"y": 53
+},
+ExtResource( 204 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 80,
+"y": 49
+},
+ExtResource( 362 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 50,
+"y": 76
+},
+ExtResource( 101 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 114,
+"y": 119
+},
+ExtResource( 429 ): {
+"dir_x": 0.997952,
+"dir_y": 0.0639713,
+"flipped": false,
+"x": 97,
+"y": 76
+},
+ExtResource( 166 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 147,
+"y": 109
+},
+ExtResource( 104 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 117,
+"y": 117
+},
+ExtResource( 108 ): {
+"dir_x": 0.999984,
+"dir_y": -0.00557094,
+"flipped": false,
+"x": 115,
+"y": 84
+},
+ExtResource( 258 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 407 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 316 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 83,
+"y": 77
+},
+ExtResource( 247 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 245,
+"y": 244
+},
+ExtResource( 202 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 80,
+"y": 49
+},
+ExtResource( 447 ): {
+"dir_x": -1.0,
+"dir_y": 8.74228e-08,
+"flipped": false,
+"x": 107,
+"y": 128
+},
+ExtResource( 305 ): {
+"dir_x": 0.900159,
+"dir_y": 0.435561,
+"flipped": false,
+"x": 46,
+"y": 49
+},
+ExtResource( 360 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 69,
+"y": 77
+},
+ExtResource( 177 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 147,
+"y": 113
+},
+ExtResource( 315 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 70,
+"y": 38
+},
+ExtResource( 190 ): {
+"dir_x": 0.242536,
+"dir_y": -0.970143,
+"flipped": false,
+"x": 116,
+"y": 120
+},
+ExtResource( 264 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 261 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 247,
+"y": 243
+},
+ExtResource( 339 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 272,
+"y": 55
+},
+ExtResource( 249 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 246,
+"y": 243
+},
+ExtResource( 96 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 141,
+"y": 126
+},
+ExtResource( 152 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 108,
+"y": 119
+},
+ExtResource( 236 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 117
+},
+ExtResource( 42 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 84,
+"y": 73
+},
+ExtResource( 49 ): {
+"dir_x": 0.999889,
+"dir_y": -0.0149237,
+"flipped": false,
+"x": 87,
+"y": 60
+},
+ExtResource( 440 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 143,
+"y": 118
+},
+ExtResource( 109 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 193,
+"y": 142
+},
+ExtResource( 337 ): {
+"dir_x": -0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 271,
+"y": 50
+},
+ExtResource( 105 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 114,
+"y": 119
+},
+ExtResource( 126 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 58,
+"y": 52
+},
+ExtResource( 85 ): {
+"dir_x": 0.984875,
+"dir_y": -0.173265,
+"flipped": false,
+"x": 83,
+"y": 61
+},
+ExtResource( 260 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 113 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 188,
+"y": 112
+},
+ExtResource( 451 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 115,
+"y": 105
+},
+ExtResource( 196 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 94,
+"y": 27
+},
+ExtResource( 179 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 112,
+"y": 114
+},
+ExtResource( 18 ): {
+"dir_x": 0.985011,
+"dir_y": 0.17249,
+"flipped": false,
+"x": 85,
+"y": 56
+},
+ExtResource( 106 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 114,
+"y": 119
+},
+ExtResource( 469 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 60
+},
+ExtResource( 278 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 57,
+"y": 46
+},
+ExtResource( 406 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 329 ): {
+"dir_x": 0.999937,
+"dir_y": -0.0112352,
+"flipped": false,
+"x": 79,
+"y": 62
+},
+ExtResource( 21 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 63
+},
+ExtResource( 353 ): {
+"dir_x": 0.999614,
+"dir_y": -0.0277671,
+"flipped": false,
+"x": 75,
+"y": 55
+},
+ExtResource( 444 ): {
+"dir_x": 0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 130,
+"y": 111
+},
+ExtResource( 431 ): {
+"dir_x": 0.997952,
+"dir_y": 0.0639713,
+"flipped": false,
+"x": 95,
+"y": 76
+},
+ExtResource( 363 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 72,
+"y": 56
+},
+ExtResource( 442 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 119,
+"y": 114
+},
+ExtResource( 213 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 142,
+"y": 123
+},
+ExtResource( 84 ): {
+"dir_x": 0.997871,
+"dir_y": -0.0652203,
+"flipped": false,
+"x": 78,
+"y": 57
+},
+ExtResource( 441 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 145,
+"y": 116
+},
+ExtResource( 12 ): {
+"dir_x": 0.999734,
+"dir_y": -0.0230708,
+"flipped": false,
+"x": 75,
+"y": 58
+},
+ExtResource( 430 ): {
+"dir_x": 0.883307,
+"dir_y": 0.468794,
+"flipped": false,
+"x": 55,
+"y": 51
+},
+ExtResource( 272 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 82,
+"y": 45
+},
+ExtResource( 205 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 80,
+"y": 49
+},
+ExtResource( 470 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 77,
+"y": 62
+},
+ExtResource( 15 ): {
+"dir_x": 0.965616,
+"dir_y": -0.259973,
+"flipped": false,
+"x": 75,
+"y": 56
+},
+ExtResource( 170 ): {
+"dir_x": 0.990431,
+"dir_y": -0.138011,
+"flipped": false,
+"x": 49,
+"y": 56
+},
+ExtResource( 19 ): {
+"dir_x": 0.995207,
+"dir_y": 0.0977949,
+"flipped": false,
+"x": 77,
+"y": 65
+},
+ExtResource( 405 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 404 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 76,
+"y": 57
+},
+ExtResource( 210 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 124
+},
+ExtResource( 151 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 111,
+"y": 115
+},
+ExtResource( 115 ): {
+"dir_x": -0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 89,
+"y": 88
+},
+ExtResource( 130 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 124
+},
+ExtResource( 438 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 117,
+"y": 124
+},
+ExtResource( 163 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 131,
+"y": 128
+},
+ExtResource( 282 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 77,
+"y": 52
+},
+ExtResource( 99 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 129,
+"y": 123
+},
+ExtResource( 309 ): {
+"dir_x": 0.894427,
+"dir_y": -0.447214,
+"flipped": false,
+"x": 78,
+"y": 55
+},
+ExtResource( 127 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 124
+},
+ExtResource( 480 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 62,
+"y": 47
+},
+ExtResource( 220 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 261,
+"y": 123
+},
+ExtResource( 176 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 113,
+"y": 114
+},
+ExtResource( 244 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 271,
+"y": 243
+},
+ExtResource( 241 ): {
+"dir_x": 0.997357,
+"dir_y": 0.0726552,
+"flipped": false,
+"x": 74,
+"y": 56
+},
+ExtResource( 439 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 120,
+"y": 156
+},
+ExtResource( 229 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 116
+},
+ExtResource( 144 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 137,
+"y": 118
+},
+ExtResource( 285 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 46,
+"y": 53
+},
+ExtResource( 326 ): {
+"dir_x": 0.982155,
+"dir_y": 0.188072,
+"flipped": false,
+"x": 107,
+"y": 49
+},
+ExtResource( 186 ): {
+"dir_x": 0.242536,
+"dir_y": -0.970143,
+"flipped": false,
+"x": 116,
+"y": 120
+},
+ExtResource( 252 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 246,
+"y": 243
+},
+ExtResource( 233 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 116
+},
+ExtResource( 164 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 147,
+"y": 110
+},
+ExtResource( 332 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 68,
+"y": 37
+},
+ExtResource( 235 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 120
+},
+ExtResource( 54 ): {
+"dir_x": 0.392841,
+"dir_y": 0.919606,
+"flipped": false,
+"x": 51,
+"y": 40
+},
+ExtResource( 92 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 66
+},
+ExtResource( 226 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 116
+},
+ExtResource( 97 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 118
+},
+ExtResource( 279 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 58,
+"y": 46
+},
+ExtResource( 251 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 246,
+"y": 243
+},
+ExtResource( 287 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 74,
+"y": 52
+},
+ExtResource( 139 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 143,
+"y": 119
+},
+ExtResource( 317 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 91,
+"y": 76
+},
+ExtResource( 227 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 117
+},
+ExtResource( 234 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 116
+},
+ExtResource( 476 ): {
+"dir_x": 0.987053,
+"dir_y": 0.160396,
+"flipped": false,
+"x": 75,
+"y": 60
+},
+ExtResource( 344 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 61
+},
+ExtResource( 275 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 84,
+"y": 62
+},
+ExtResource( 250 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 246,
+"y": 243
+},
+ExtResource( 351 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 77
+},
+ExtResource( 122 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 58,
+"y": 52
+},
+ExtResource( 445 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 108,
+"y": 144
+},
+ExtResource( 446 ): {
+"dir_x": -0.923879,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 106,
+"y": 124
+},
+ExtResource( 325 ): {
+"dir_x": 0.96025,
+"dir_y": 0.279142,
+"flipped": false,
+"x": 107,
+"y": 48
+},
+ExtResource( 197 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 83,
+"y": 53
+},
+ExtResource( 318 ): {
+"dir_x": 0.92388,
+"dir_y": 0.382683,
+"flipped": false,
+"x": 67,
+"y": 37
+},
+ExtResource( 112 ): {
+"dir_x": -0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 91,
+"y": 86
+},
+ExtResource( 147 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 123,
+"y": 126
+},
+ExtResource( 211 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 140,
+"y": 124
+},
+ExtResource( 76 ): {
+"dir_x": 0.948683,
+"dir_y": 0.316228,
+"flipped": false,
+"x": 78,
+"y": 60
+},
+ExtResource( 443 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 114,
+"y": 150
+},
+ExtResource( 336 ): {
+"dir_x": -0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 271,
+"y": 50
+},
+ExtResource( 140 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 133,
+"y": 122
+},
+ExtResource( 340 ): {
+"dir_x": -0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 271,
+"y": 50
+},
+ExtResource( 346 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 78,
+"y": 64
+},
+ExtResource( 230 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 117
+},
+ExtResource( 263 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 348 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 76,
+"y": 77
+},
+ExtResource( 432 ): {
+"dir_x": 0.622524,
+"dir_y": 0.782601,
+"flipped": false,
+"x": 63,
+"y": 46
+},
+ExtResource( 175 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 112,
+"y": 114
+},
+ExtResource( 102 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 119,
+"y": 117
+},
+ExtResource( 173 ): {
+"dir_x": 0.995767,
+"dir_y": -0.0919169,
+"flipped": false,
+"x": 48,
+"y": 57
+},
+ExtResource( 308 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 79,
+"y": 55
+},
+ExtResource( 178 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 147,
+"y": 112
+},
+ExtResource( 319 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 89,
+"y": 77
+},
+ExtResource( 114 ): {
+"dir_x": 0.382683,
+"dir_y": -0.92388,
+"flipped": false,
+"x": 105,
+"y": 72
+},
+ExtResource( 150 ): {
+"dir_x": 0.83147,
+"dir_y": 0.55557,
+"flipped": false,
+"x": 108,
+"y": 116
+},
+ExtResource( 225 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 117
+},
+ExtResource( 359 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 75,
+"y": 77
+},
+ExtResource( 254 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 228 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 122
+},
+ExtResource( 310 ): {
+"dir_x": 0.964404,
+"dir_y": -0.264433,
+"flipped": false,
+"x": 75,
+"y": 57
+},
+ExtResource( 335 ): {
+"dir_x": -0.55557,
+"dir_y": -0.83147,
+"flipped": false,
+"x": 271,
+"y": 50
+},
+ExtResource( 450 ): {
+"dir_x": -4.37114e-08,
+"dir_y": 1.0,
+"flipped": false,
+"x": 116,
+"y": 104
+},
+ExtResource( 136 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 126,
+"y": 105
+},
+ExtResource( 277 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 55,
+"y": 46
+},
+ExtResource( 300 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 187 ): {
+"dir_x": 0.99946,
+"dir_y": -0.0328461,
+"flipped": false,
+"x": 139,
+"y": 120
+},
+ExtResource( 161 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 147,
+"y": 109
+},
+ExtResource( 93 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 76,
+"y": 60
+},
+ExtResource( 172 ): {
+"dir_x": 0.976744,
+"dir_y": 0.214407,
+"flipped": false,
+"x": 74,
+"y": 58
+},
+ExtResource( 257 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 247,
+"y": 241
+},
+ExtResource( 117 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 192,
+"y": 141
+},
+ExtResource( 40 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 64,
+"y": 74
+},
+ExtResource( 245 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 267,
+"y": 243
+},
+ExtResource( 313 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 92,
+"y": 76
+},
+ExtResource( 95 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 141,
+"y": 124
+},
+ExtResource( 286 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 48,
+"y": 52
+},
+ExtResource( 123 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 72,
+"y": 57
+},
+ExtResource( 259 ): {
+"dir_x": 0.33501,
+"dir_y": -0.942215,
+"flipped": false,
+"x": 247,
+"y": 243
+},
+ExtResource( 437 ): {
+"dir_x": 0.707107,
+"dir_y": 0.707107,
+"flipped": false,
+"x": 114,
+"y": 134
+},
+ExtResource( 162 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 144,
+"y": 123
+},
+ExtResource( 11 ): {
+"dir_x": 0.967884,
+"dir_y": -0.251398,
+"flipped": false,
+"x": 82,
+"y": 56
+},
+ExtResource( 62 ): {
+"dir_x": 0.890312,
+"dir_y": 0.455351,
+"flipped": false,
+"x": 52,
+"y": 56
+},
+ExtResource( 203 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 80,
+"y": 49
+},
+ExtResource( 449 ): {
+"dir_x": -4.37114e-08,
+"dir_y": -1.0,
+"flipped": false,
+"x": 116,
+"y": 152
+},
+ExtResource( 135 ): {
+"dir_x": 0.707107,
+"dir_y": -0.707107,
+"flipped": false,
+"x": 126,
+"y": 104
+},
+ExtResource( 100 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 115,
+"y": 118
+},
+ExtResource( 46 ): {
+"dir_x": 0.83147,
+"dir_y": -0.55557,
+"flipped": false,
+"x": 79,
+"y": 52
+},
+ExtResource( 30 ): {
+"dir_x": 0.980785,
+"dir_y": 0.19509,
+"flipped": false,
+"x": 82,
+"y": 49
+},
+ExtResource( 48 ): {
+"dir_x": 0.948683,
+"dir_y": -0.316228,
+"flipped": false,
+"x": 84,
+"y": 64
+},
+ExtResource( 22 ): {
+"dir_x": 0.99996,
+"dir_y": 0.00892822,
+"flipped": false,
+"x": 77,
+"y": 53
+},
+ExtResource( 200 ): {
+"dir_x": 0.92388,
+"dir_y": -0.382683,
+"flipped": false,
+"x": 80,
+"y": 49
+},
+ExtResource( 232 ): {
+"dir_x": 1.0,
+"dir_y": 0.0,
+"flipped": false,
+"x": 262,
+"y": 116
+},
+ExtResource( 376 ): {
+"dir_x": 0.980785,
+"dir_y": -0.19509,
+"flipped": false,
+"x": 51,
+"y": 51
+},
+ExtResource( 427 ): {
+"dir_x": 0.930408,
+"dir_y": 0.366525,
+"flipped": false,
+"x": 77,
+"y": 55
+}
+}
+}
 }
 gravity = "0.35"
 ground_friction = "1.7"
@@ -1060,7 +9923,8 @@ magnetize_opponent
 magnetize_opponent_blocked
 magnetize_bomb_strength
 loic_dir
-can_gain_ground_pound"
+can_gain_ground_pound
+nade_explosion_in_combo"
 enable_extra_aesthetic_hitstop = true
 num_air_movements = 0
 use_air_option_bar = true
@@ -1267,6 +10131,14 @@ bus = "Fx"
 script = ExtResource( 90 )
 pitch_variation = 0.025
 
+[node name="Honk" type="AudioStreamPlayer2D" parent="Sounds" index="23"]
+stream = ExtResource( 493 )
+volume_db = -6.0
+pitch_scale = 1.11
+bus = "Fx"
+script = ExtResource( 90 )
+pitch_variation = 0.013
+
 [node name="CollisionBox" parent="." index="2"]
 y = -15
 height = 15
@@ -1275,6 +10147,15 @@ height = 15
 y = -17
 width = 15
 height = 17
+
+[node name="Hitbox" parent="StateMachine/ParrySuper" index="0"]
+override_same_sfx = true
+
+[node name="Roll" parent="StateMachine" index="7"]
+script = ExtResource( 466 )
+__meta__ = {
+"_editor_description_": ""
+}
 
 [node name="SawBlade" type="Node2D" parent="StateMachine" index="8"]
 script = ExtResource( 168 )
@@ -1319,6 +10200,7 @@ plus_frames = 3
 priority = 1
 screenshake_amount = 8
 hit_sound = ExtResource( 181 )
+override_same_sfx = true
 knockback = "6"
 start_tick = 8
 active_ticks = 2
@@ -1338,6 +10220,7 @@ beats_grab = false
 plus_frames = 3
 screenshake_amount = 8
 hit_sound = ExtResource( 181 )
+override_same_sfx = true
 knockback = "6"
 start_tick = 8
 active_ticks = 2
@@ -1361,6 +10244,7 @@ group = 1
 screenshake_amount = 6
 whiff_sound = ExtResource( 153 )
 hit_sound = ExtResource( 182 )
+override_same_sfx = true
 knockback = "4.0"
 start_tick = 10
 active_ticks = 6
@@ -1386,6 +10270,7 @@ group = 1
 screenshake_amount = 6
 whiff_sound = ExtResource( 153 )
 hit_sound = ExtResource( 182 )
+override_same_sfx = true
 knockback = "4.0"
 start_tick = 10
 active_ticks = 6
@@ -1426,6 +10311,7 @@ hitlag_ticks = 8
 damage_proration = 2
 whiff_sound = ExtResource( 481 )
 hit_sound = ExtResource( 159 )
+override_same_sfx = true
 knockback = "6.0"
 start_tick = 4
 active_ticks = 2
@@ -1443,6 +10329,7 @@ hitlag_ticks = 8
 damage_proration = 2
 whiff_sound = ExtResource( 481 )
 hit_sound = ExtResource( 159 )
+override_same_sfx = true
 knockback = "6.0"
 start_tick = 4
 active_ticks = 2
@@ -1460,6 +10347,7 @@ hitlag_ticks = 8
 damage_proration = 2
 whiff_sound = ExtResource( 481 )
 hit_sound = ExtResource( 159 )
+override_same_sfx = true
 knockback = "6.0"
 start_tick = 4
 active_ticks = 2
@@ -1507,11 +10395,11 @@ hitstun_ticks = 14
 combo_hitstun_ticks = 12
 hitlag_ticks = 6
 cancellable = false
-beats_grab = false
 plus_frames = 2
 screenshake_amount = 8
 whiff_sound = ExtResource( 238 )
 hit_sound = ExtResource( 159 )
+override_same_sfx = true
 dir_x = "-1.0"
 dir_y = "-0.1"
 knockback = "7.0"
@@ -1525,15 +10413,6 @@ active_ticks = 3
 script = ExtResource( 460 )
 tick = 7
 command = "try_drive_cancel"
-
-[node name="LimbHurtbox" type="Node2D" parent="StateMachine/Slap" index="2"]
-z_index = 999
-script = ExtResource( 473 )
-x = 43
-y = -26
-width = 47
-height = 7
-active_ticks = -1
 
 [node name="EyeBeam" type="Node2D" parent="StateMachine" index="11"]
 script = ExtResource( 94 )
@@ -1570,6 +10449,7 @@ block_cancel_allowed = false
 plus_frames = 1
 whiff_sound = ExtResource( 132 )
 whiff_sound_volume = -18.0
+override_same_sfx = true
 knockback = "7.0"
 start_tick = 6
 active_ticks = 3
@@ -1588,6 +10468,7 @@ block_cancel_allowed = false
 plus_frames = 1
 whiff_sound = ExtResource( 132 )
 whiff_sound_volume = -18.0
+override_same_sfx = true
 knockback = "7.0"
 start_tick = 6
 active_ticks = 3
@@ -1606,6 +10487,7 @@ block_cancel_allowed = false
 plus_frames = 1
 whiff_sound = ExtResource( 132 )
 whiff_sound_volume = -18.0
+override_same_sfx = true
 knockback = "7.0"
 start_tick = 6
 active_ticks = 3
@@ -1627,6 +10509,7 @@ priority = 1
 whiff_sound = ExtResource( 132 )
 hit_sound = ExtResource( 128 )
 whiff_sound_volume = -18.0
+override_same_sfx = true
 knockback = "7.0"
 start_tick = 6
 active_ticks = 3
@@ -1670,6 +10553,7 @@ beats_grab = false
 plus_frames = 1
 whiff_sound = ExtResource( 132 )
 whiff_sound_volume = -18.0
+override_same_sfx = true
 dir_y = "-0.5"
 knockback = "7.5"
 grounded_hit_state = "HurtAerial"
@@ -1691,6 +10575,7 @@ priority = 1
 whiff_sound = ExtResource( 132 )
 hit_sound = ExtResource( 128 )
 whiff_sound_volume = -18.0
+override_same_sfx = true
 dir_y = "-0.5"
 knockback = "7.5"
 grounded_hit_state = "HurtAerial"
@@ -1738,6 +10623,7 @@ beats_grab = false
 plus_frames = 2
 whiff_sound = ExtResource( 153 )
 hit_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_y = "-0.1"
 knockback = "12.0"
 grounded_hit_state = "HurtAerial"
@@ -1761,6 +10647,7 @@ beats_grab = false
 plus_frames = 2
 whiff_sound = ExtResource( 153 )
 hit_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_y = "-0.1"
 knockback = "12.0"
 grounded_hit_state = "HurtAerial"
@@ -1822,6 +10709,7 @@ screenshake_amount = 5
 whiff_sound = ExtResource( 145 )
 hit_sound = ExtResource( 128 )
 bass_on_whiff = true
+override_same_sfx = true
 dir_y = "-0.20"
 knockback = "3.0"
 start_tick = 5
@@ -1843,6 +10731,7 @@ screenshake_amount = 5
 whiff_sound = ExtResource( 145 )
 hit_sound = ExtResource( 128 )
 bass_on_whiff = true
+override_same_sfx = true
 dir_y = "-0.20"
 knockback = "3.0"
 start_tick = 5
@@ -1891,6 +10780,7 @@ beats_grab = false
 plus_frames = 2
 whiff_sound = ExtResource( 153 )
 hit_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_y = "-0.1"
 knockback = "12.0"
 grounded_hit_state = "HurtAerial"
@@ -1948,6 +10838,7 @@ hit_height = 2
 screenshake_amount = 5
 whiff_sound = ExtResource( 91 )
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "4.0"
 knockdown = true
@@ -1975,6 +10866,7 @@ priority = 1
 screenshake_amount = 5
 whiff_sound = ExtResource( 91 )
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_x = "0.20"
 knockback = "3.0"
 grounded_hit_state = "HurtAerial"
@@ -2059,6 +10951,7 @@ hit_height = 2
 screenshake_amount = 5
 whiff_sound = ExtResource( 91 )
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "4.0"
 knockdown = true
@@ -2086,6 +10979,7 @@ priority = 1
 screenshake_amount = 5
 whiff_sound = ExtResource( 91 )
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_x = "0.20"
 knockback = "3.0"
 grounded_hit_state = "HurtAerial"
@@ -2148,6 +11042,7 @@ plus_frames = 2
 hit_height = 0
 priority = 1
 hit_sound = ExtResource( 159 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "12.0"
 grounded_hit_state = "HurtAerial"
@@ -2169,6 +11064,7 @@ beats_grab = false
 plus_frames = 2
 hit_height = 0
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_y = "1.0"
 grounded_hit_state = "HurtAerial"
 knockdown_extends_hitstun = false
@@ -2189,6 +11085,7 @@ beats_grab = false
 plus_frames = 2
 hit_height = 0
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_y = "1.0"
 grounded_hit_state = "HurtAerial"
 knockdown_extends_hitstun = false
@@ -2209,6 +11106,7 @@ beats_grab = false
 plus_frames = 2
 hit_height = 0
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_y = "1.0"
 grounded_hit_state = "HurtAerial"
 knockdown_extends_hitstun = false
@@ -2272,6 +11170,7 @@ y = -45
 width = 32
 height = 22
 beats_grab = false
+override_same_sfx = true
 
 [node name="KillProcessSpin" type="Node2D" parent="StateMachine" index="22"]
 script = ExtResource( 199 )
@@ -2288,6 +11187,10 @@ enter_sfx = ExtResource( 208 )
 enter_sfx_volume = -8.0
 force_same_direction_as_previous_state = true
 throw_positions = {
+ExtResource( 201 ): {
+"x": -15,
+"y": 0
+},
 ExtResource( 204 ): {
 "x": 8,
 "y": -32
@@ -2307,10 +11210,6 @@ ExtResource( 203 ): {
 ExtResource( 200 ): {
 "x": 5,
 "y": -12
-},
-ExtResource( 201 ): {
-"x": -15,
-"y": 0
 }
 }
 update_facing_on_exit = false
@@ -2346,6 +11245,7 @@ cancellable = false
 beats_grab = false
 replace_hit_particle = true
 hit_sound = ExtResource( 209 )
+override_same_sfx = true
 dir_y = "-2.0"
 knockback = "8.0"
 grounded_hit_state = "HurtAerial"
@@ -2400,6 +11300,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2423,6 +11324,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2446,6 +11348,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2469,6 +11372,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2532,6 +11436,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2555,6 +11460,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2578,6 +11484,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2601,6 +11508,7 @@ beats_grab = false
 block_cancel_allowed = false
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "6.0"
 block_pushback_modifier = "-5.0"
@@ -2757,9 +11665,13 @@ sfx_tick = 7
 sfx_volume = -8.0
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 112 ): {
-"x": -40,
-"y": -44
+ExtResource( 111 ): {
+"x": -31,
+"y": -55
+},
+ExtResource( 110 ): {
+"x": 65,
+"y": -12
 },
 ExtResource( 118 ): {
 "x": 67,
@@ -2769,37 +11681,33 @@ ExtResource( 116 ): {
 "x": 33,
 "y": -38
 },
-ExtResource( 113 ): {
-"x": 62,
-"y": -13
+ExtResource( 108 ): {
+"x": -16,
+"y": -46
 },
 ExtResource( 109 ): {
 "x": 70,
 "y": 15
 },
+ExtResource( 113 ): {
+"x": 62,
+"y": -13
+},
 ExtResource( 115 ): {
 "x": -41,
 "y": -46
 },
-ExtResource( 111 ): {
-"x": -31,
-"y": -55
-},
-ExtResource( 110 ): {
-"x": 65,
-"y": -12
-},
-ExtResource( 117 ): {
-"x": 69,
-"y": 14
+ExtResource( 112 ): {
+"x": -40,
+"y": -44
 },
 ExtResource( 114 ): {
 "x": -20,
 "y": -58
 },
-ExtResource( 108 ): {
-"x": -16,
-"y": -46
+ExtResource( 117 ): {
+"x": 69,
+"y": 14
 }
 }
 iasa_at = 56
@@ -2830,6 +11738,7 @@ meter_gain_modifier = "0.5"
 beats_grab = false
 replace_hit_particle = true
 hit_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_x = "0"
 dir_y = "1"
 grounded_hit_state = "HurtAerial"
@@ -2846,6 +11755,7 @@ meter_gain_modifier = "0.5"
 beats_grab = false
 replace_hit_particle = true
 hit_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_x = "0"
 dir_y = "1"
 grounded_hit_state = "HurtAerial"
@@ -2858,9 +11768,21 @@ enter_sfx = ExtResource( 155 )
 enter_sfx_volume = -10.0
 force_same_direction_as_previous_state = true
 throw_positions = {
+ExtResource( 253 ): {
+"x": 116,
+"y": -66
+},
+ExtResource( 262 ): {
+"x": 40,
+"y": -33
+},
 ExtResource( 258 ): {
 "x": 78,
 "y": -50
+},
+ExtResource( 264 ): {
+"x": 124,
+"y": -72
 },
 ExtResource( 260 ): {
 "x": 40,
@@ -2870,21 +11792,9 @@ ExtResource( 263 ): {
 "x": 124,
 "y": -72
 },
-ExtResource( 253 ): {
-"x": 116,
-"y": -66
-},
 ExtResource( 254 ): {
 "x": 124,
 "y": -72
-},
-ExtResource( 264 ): {
-"x": 124,
-"y": -72
-},
-ExtResource( 262 ): {
-"x": 40,
-"y": -33
 }
 }
 interrupt_into_string = "Grounded
@@ -2913,6 +11823,7 @@ beats_grab = false
 screenshake_amount = 9
 screenshake_frames = 8
 hit_sound = ExtResource( 145 )
+override_same_sfx = true
 start_tick = 18
 
 [node name="Hitbox2" type="Node2D" parent="StateMachine/DisembowelGrabFollowup" index="1"]
@@ -2929,6 +11840,7 @@ group = 1
 screenshake_amount = 9
 screenshake_frames = 8
 hit_sound = ExtResource( 145 )
+override_same_sfx = true
 start_tick = 29
 
 [node name="Hitbox3" type="Node2D" parent="StateMachine/DisembowelGrabFollowup" index="2"]
@@ -2945,6 +11857,7 @@ group = 2
 screenshake_amount = 9
 screenshake_frames = 8
 hit_sound = ExtResource( 145 )
+override_same_sfx = true
 start_tick = 40
 
 [node name="CornerCarryGrab" type="Node2D" parent="StateMachine" index="29"]
@@ -3009,6 +11922,8 @@ AerialSpecial
 GroundedSpecial"
 interrupt_into_string = "Grounded
 Aerial"
+hit_cancel_into_string = "Grounded
+Aerial"
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/CornerCarryHitGrab" index="0"]
 z_index = 1000
@@ -3029,6 +11944,7 @@ guard_break = true
 plus_frames = -1
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 start_tick = 5
 active_ticks = 13
 
@@ -3055,6 +11971,8 @@ Aerial
 AerialSpecial
 GroundedSpecial"
 interrupt_into_string = "Grounded
+Aerial"
+hit_cancel_into_string = "Grounded
 Aerial"
 
 [node name="ThrowBox" type="Node2D" parent="StateMachine/CornerCarryGrabAir" index="0"]
@@ -3096,6 +12014,8 @@ AerialSpecial
 GroundedSpecial"
 interrupt_into_string = "Grounded
 Aerial"
+hit_cancel_into_string = "Grounded
+Aerial"
 
 [node name="Hitbox" type="Node2D" parent="StateMachine/CornerCarryHitGrabAir" index="0"]
 z_index = 1000
@@ -3119,6 +12039,7 @@ screenshake_amount = 0
 screenshake_frames = 4
 hit_sound = ExtResource( 281 )
 hit_sound_volume = -8.0
+override_same_sfx = true
 start_tick = 5
 active_ticks = 13
 
@@ -3157,13 +12078,13 @@ sfx_tick = 5
 sfx_volume = -10.0
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 286 ): {
-"x": 34,
-"y": -13
-},
 ExtResource( 287 ): {
 "x": -20,
 "y": -14
+},
+ExtResource( 286 ): {
+"x": 34,
+"y": -13
 }
 }
 interruptible_on_opponent_turn = true
@@ -3198,9 +12119,13 @@ sfx_tick = 7
 sfx_volume = -8.0
 force_same_direction_as_previous_state = true
 throw_positions = {
-ExtResource( 112 ): {
-"x": -40,
-"y": -44
+ExtResource( 111 ): {
+"x": -31,
+"y": -55
+},
+ExtResource( 110 ): {
+"x": 65,
+"y": -12
 },
 ExtResource( 118 ): {
 "x": 67,
@@ -3210,37 +12135,33 @@ ExtResource( 116 ): {
 "x": 33,
 "y": -38
 },
-ExtResource( 113 ): {
-"x": 62,
-"y": -13
+ExtResource( 108 ): {
+"x": -16,
+"y": -46
 },
 ExtResource( 109 ): {
 "x": 70,
 "y": 15
 },
+ExtResource( 113 ): {
+"x": 62,
+"y": -13
+},
 ExtResource( 115 ): {
 "x": -41,
 "y": -46
 },
-ExtResource( 111 ): {
-"x": -31,
-"y": -55
-},
-ExtResource( 110 ): {
-"x": 65,
-"y": -12
-},
-ExtResource( 117 ): {
-"x": 69,
-"y": 14
+ExtResource( 112 ): {
+"x": -40,
+"y": -44
 },
 ExtResource( 114 ): {
 "x": -20,
 "y": -58
 },
-ExtResource( 108 ): {
-"x": -16,
-"y": -46
+ExtResource( 117 ): {
+"x": 69,
+"y": 14
 }
 }
 iasa_at = 49
@@ -3272,6 +12193,7 @@ meter_gain_modifier = "0.5"
 beats_grab = false
 replace_hit_particle = true
 hit_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_x = "0"
 dir_y = "1"
 grounded_hit_state = "HurtAerial"
@@ -3289,6 +12211,7 @@ meter_gain_modifier = "0.5"
 beats_grab = false
 replace_hit_particle = true
 hit_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_x = "0"
 dir_y = "1"
 grounded_hit_state = "HurtAerial"
@@ -3393,6 +12316,7 @@ beats_grab = false
 plus_frames = 3
 whiff_sound = ExtResource( 133 )
 hit_sound = ExtResource( 142 )
+override_same_sfx = true
 dir_x = "2.0"
 dir_y = "1.0"
 knockback = "7.0"
@@ -3429,6 +12353,7 @@ hitlag_ticks = 12
 beats_grab = false
 plus_frames = 3
 hit_sound = ExtResource( 142 )
+override_same_sfx = true
 dir_x = "2.0"
 dir_y = "1.0"
 knockback = "7.0"
@@ -3460,10 +12385,12 @@ y = -8
 height = 12
 damage = 80
 hitstun_ticks = 18
+damage_proration = 1
 beats_grab = false
 block_cancel_allowed = false
 plus_frames = 1
 hit_sound = ExtResource( 75 )
+override_same_sfx = true
 dir_x = "0"
 dir_y = "1"
 knockback = "13.0"
@@ -3506,6 +12433,7 @@ beats_grab = false
 block_cancel_allowed = false
 plus_frames = 1
 hit_height = 2
+override_same_sfx = true
 start_tick = 10
 active_ticks = 2
 
@@ -3540,6 +12468,7 @@ hitstun_ticks = 25
 beats_grab = false
 block_cancel_allowed = false
 plus_frames = 1
+override_same_sfx = true
 start_tick = 10
 active_ticks = 2
 
@@ -3598,6 +12527,7 @@ beats_grab = false
 plus_frames = 3
 hit_sound = ExtResource( 142 )
 whiff_sound_volume = -4.0
+override_same_sfx = true
 block_pushback_modifier = "0.35"
 disable_collision = false
 looping = true
@@ -3623,6 +12553,7 @@ plus_frames = 3
 priority = 1
 hit_sound = ExtResource( 142 )
 whiff_sound_volume = -4.0
+override_same_sfx = true
 block_pushback_modifier = "0.35"
 disable_collision = false
 looping = true
@@ -3679,6 +12610,7 @@ plus_frames = 2
 whiff_sound = ExtResource( 269 )
 hit_sound = ExtResource( 238 )
 hit_sound_volume = -1.0
+override_same_sfx = true
 dir_x = "-1.0"
 dir_y = "-0.35"
 knockback = "12.0"
@@ -3702,6 +12634,7 @@ beats_grab = false
 plus_frames = 2
 hit_sound = ExtResource( 371 )
 hit_sound_volume = -1.0
+override_same_sfx = true
 dir_y = "-0.35"
 knockback = "12.0"
 block_pushback_modifier = "0.0"
@@ -3804,7 +12737,7 @@ enter_force_dir_x = "1.0"
 enter_force_speed = "9.0"
 state_screenshake_tick = 5
 state_screenshake_dir = Vector2( 0, 1 )
-title = "EARTHQUAKE"
+title = "QUAKE"
 type = 1
 button_texture = ExtResource( 322 )
 iasa_at = 23
@@ -3828,7 +12761,6 @@ victim_hitlag = 5
 cancellable = false
 hits_otg = true
 followup_state = "EarthquakeThrow"
-beats_grab = false
 hit_height = 2
 priority = 2
 whiff_particle = ExtResource( 321 )
@@ -3836,6 +12768,7 @@ whiff_sound = ExtResource( 88 )
 hit_sound = ExtResource( 75 )
 whiff_sound_volume = -2.0
 bass_on_whiff = true
+override_same_sfx = true
 dir_y = "0.20"
 knockback = "7.0"
 knockdown = true
@@ -3861,6 +12794,7 @@ whiff_sound = ExtResource( 88 )
 hit_sound = ExtResource( 75 )
 whiff_sound_volume = -2.0
 bass_on_whiff = true
+override_same_sfx = true
 dir_y = "0.20"
 knockback = "7.0"
 grounded_hit_state = "HurtAerial"
@@ -3887,6 +12821,7 @@ whiff_sound = ExtResource( 88 )
 hit_sound = ExtResource( 75 )
 whiff_sound_volume = -2.0
 bass_on_whiff = true
+override_same_sfx = true
 dir_y = "1.0"
 knockback = "7.0"
 grounded_hit_state = "HurtAerial"
@@ -3911,6 +12846,7 @@ hit_height = 2
 hit_sound = ExtResource( 75 )
 whiff_sound_volume = -2.0
 bass_on_whiff = true
+override_same_sfx = true
 dir_x = "-1.0"
 knockback = "7.0"
 grounded_hit_state = "HurtAerial"
@@ -3942,6 +12878,10 @@ sfx_volume = -8.0
 flip_frame = 11
 force_same_direction_as_previous_state = true
 throw_positions = {
+ExtResource( 429 ): {
+"x": 36,
+"y": 13
+},
 ExtResource( 431 ): {
 "x": 33,
 "y": 12
@@ -3953,10 +12893,6 @@ ExtResource( 432 ): {
 ExtResource( 427 ): {
 "x": -19,
 "y": -12
-},
-ExtResource( 429 ): {
-"x": 36,
-"y": 13
 }
 }
 title = "Back Throw"
@@ -3987,12 +12923,6 @@ increment_combo = false
 minimum_grounded_frames = 20
 release_sfx = ExtResource( 145 )
 release_sfx_volume = -7.0
-
-[node name="Roll" parent="StateMachine" index="50"]
-script = ExtResource( 466 )
-__meta__ = {
-"_editor_description_": ""
-}
 
 [node name="Lariat" type="Node2D" parent="StateMachine" index="51"]
 script = ExtResource( 483 )
@@ -4034,6 +12964,7 @@ cancellable = false
 hit_height = 0
 whiff_sound = ExtResource( 238 )
 hit_sound = ExtResource( 159 )
+override_same_sfx = true
 knockback = "6.5"
 grounded_hit_state = "HurtAerial"
 start_tick = 7
@@ -4057,6 +12988,7 @@ damage_proration = 1
 cancellable = false
 whiff_sound = ExtResource( 238 )
 hit_sound = ExtResource( 159 )
+override_same_sfx = true
 knockback = "6.5"
 launch_reversible = true
 grounded_hit_state = "HurtAerial"
@@ -4249,6 +13181,7 @@ hitstun_ticks = 25
 beats_grab = false
 plus_frames = 2
 hit_height = 0
+override_same_sfx = true
 knockback = "9.0"
 launch_reversible = true
 start_tick = 5
@@ -4300,6 +13233,7 @@ beats_grab = false
 plus_frames = 1
 hit_height = 2
 hit_sound = ExtResource( 145 )
+override_same_sfx = true
 dir_x = "1.2"
 dir_y = "0.05"
 knockback = "8.0"
@@ -4351,6 +13285,7 @@ beats_grab = false
 plus_frames = 1
 hit_height = 0
 hit_sound = ExtResource( 371 )
+override_same_sfx = true
 dir_y = "-0.1"
 knockback = "8.0"
 disable_collision = false
@@ -4370,6 +13305,7 @@ beats_grab = false
 plus_frames = 1
 hit_height = 0
 hit_sound = ExtResource( 371 )
+override_same_sfx = true
 dir_y = "-0.1"
 knockback = "8.0"
 disable_collision = false
@@ -4388,6 +13324,7 @@ hitstun_ticks = 14
 beats_grab = false
 plus_frames = 1
 hit_sound = ExtResource( 371 )
+override_same_sfx = true
 knockback = "8.0"
 disable_collision = false
 start_tick = 12
@@ -4462,6 +13399,7 @@ hitstun_ticks = 20
 beats_grab = false
 hit_height = 0
 hit_sound = ExtResource( 371 )
+override_same_sfx = true
 dir_y = "-0.5"
 knockback = "6.0"
 grounded_hit_state = "HurtAerial"
@@ -4482,6 +13420,7 @@ hitstun_ticks = 20
 hits_otg = true
 beats_grab = false
 hit_sound = ExtResource( 371 )
+override_same_sfx = true
 dir_x = "0.10"
 dir_y = "-0.5"
 knockback = "6.0"
@@ -4593,17 +13532,17 @@ ExtResource( 372 ): {
 "x": -24,
 "y": -6
 },
-ExtResource( 375 ): {
-"x": 31,
-"y": -8
+ExtResource( 374 ): {
+"x": 14,
+"y": -7
 },
 ExtResource( 373 ): {
 "x": 34,
 "y": -11
 },
-ExtResource( 374 ): {
-"x": 14,
-"y": -7
+ExtResource( 375 ): {
+"x": 31,
+"y": -8
 }
 }
 iasa_at = 20
@@ -4667,7 +13606,7 @@ ticks_per_frame = 5
 loop_animation = true
 particle_scene = ExtResource( 289 )
 spawn_particle_on_enter = true
-title = "FORWARD"
+title = "FLOOR IT"
 button_texture = ExtResource( 385 )
 flip_with_facing = true
 interruptible_on_opponent_turn = true
@@ -4705,6 +13644,7 @@ hits_vs_aerial = false
 beats_grab = false
 plus_frames = 1
 hit_sound = ExtResource( 312 )
+override_same_sfx = true
 dir_y = "0.25"
 knockback = "5.0"
 grounded_hit_state = "HurtAerial"
@@ -4730,7 +13670,7 @@ ticks_per_frame = 5
 loop_animation = true
 particle_scene = ExtResource( 365 )
 spawn_particle_on_enter = true
-title = "BACKWARD"
+title = "BACK UP"
 button_texture = ExtResource( 386 )
 flip_with_facing = true
 interruptible_on_opponent_turn = true
@@ -4879,6 +13819,8 @@ Aerial"
 interrupt_into_string = "Grounded
 Aerial
 "
+hit_cancel_into_string = "Grounded
+Aerial"
 
 [node name="HurtboxState" type="Node2D" parent="StateMachine/OverflowGrab" index="0"]
 z_index = 999
@@ -4907,6 +13849,7 @@ guard_break = true
 plus_frames = -1
 hit_height = 0
 hit_sound = ExtResource( 281 )
+override_same_sfx = true
 start_tick = 7
 active_ticks = 2
 
@@ -4930,9 +13873,21 @@ enter_force_speed = "10"
 enter_sfx = ExtResource( 459 )
 enter_sfx_volume = -10.0
 throw_positions = {
+ExtResource( 448 ): {
+"x": -16,
+"y": -2
+},
+ExtResource( 447 ): {
+"x": 52,
+"y": 49
+},
 ExtResource( 451 ): {
 "x": -13,
 "y": -24
+},
+ExtResource( 445 ): {
+"x": -17,
+"y": 18
 },
 ExtResource( 443 ): {
 "x": -12,
@@ -4941,18 +13896,6 @@ ExtResource( 443 ): {
 ExtResource( 450 ): {
 "x": 15,
 "y": 21
-},
-ExtResource( 445 ): {
-"x": -17,
-"y": 18
-},
-ExtResource( 447 ): {
-"x": 52,
-"y": 49
-},
-ExtResource( 448 ): {
-"x": -16,
-"y": -2
 },
 ExtResource( 449 ): {
 "x": 7,
@@ -4975,6 +13918,7 @@ damage = 130
 screenshake_amount = 8
 screenshake_frames = 10
 air_ground_bounce = true
+di_modifier = "0.8"
 release_sfx = ExtResource( 454 )
 release_sfx_volume = -6.0
 
@@ -5003,6 +13947,7 @@ projectile_pos_y = -36
 projectile_match_facing = true
 title = "LAUNCH"
 type = 3
+data_ui_scene = ExtResource( 492 )
 button_texture = ExtResource( 489 )
 air_type = 2
 interrupt_from_string = "Grounded
@@ -5014,13 +13959,18 @@ Aerial"
 super_level_ = 1
 super_effect_ = true
 scale_combo_meter_ = true
+arc_projectile_scene = ExtResource( 491 )
 
 [node name="Hitbox" parent="StateMachine/Burst" index="0"]
 beats_grab = false
+override_same_sfx = true
 
 [node name="HostCommand" type="Node" parent="StateMachine/Burst" index="1"]
 script = ExtResource( 460 )
 command = "stop_flying"
+
+[node name="Hitbox" parent="StateMachine/DefensiveBurst" index="0"]
+override_same_sfx = true
 
 [node name="HostCommand" type="Node" parent="StateMachine/DefensiveBurst" index="1"]
 script = ExtResource( 460 )
@@ -5028,18 +13978,19 @@ command = "stop_flying"
 
 [node name="Hitbox" parent="StateMachine/OffensiveBurst" index="0"]
 beats_grab = false
+override_same_sfx = true
 
 [node name="HostCommand" type="Node" parent="StateMachine/OffensiveBurst" index="1"]
 script = ExtResource( 460 )
 command = "stop_flying"
 
-[node name="Fall" parent="StateMachine" index="81"]
+[node name="Fall" parent="StateMachine" index="79"]
 script = ExtResource( 400 )
 
-[node name="SuperFallStartup" parent="StateMachine" index="82"]
+[node name="SuperFallStartup" parent="StateMachine" index="80"]
 selectable = false
 
-[node name="Landing" parent="StateMachine" index="84"]
+[node name="Landing" parent="StateMachine" index="82"]
 script = ExtResource( 82 )
 dynamic_iasa = false
 hit_cancel_into_string = "GroundedSuper"
@@ -5059,6 +14010,7 @@ hits_vs_aerial = false
 beats_grab = false
 hit_height = 2
 whiff_sound = ExtResource( 88 )
+override_same_sfx = true
 dir_x = "0.20"
 knockback = "6.0"
 launch_reversible = true
@@ -5067,16 +14019,16 @@ start_tick = 1
 active_ticks = 2
 misc_data = "LaunchCaltrops"
 
-[node name="DashForward" parent="StateMachine" index="90"]
+[node name="DashForward" parent="StateMachine" index="88"]
 interrupt_from_string = ""
 
-[node name="DashBackward" parent="StateMachine" index="92"]
+[node name="DashBackward" parent="StateMachine" index="90"]
 interrupt_from_string = ""
 
-[node name="ChargeDash" parent="StateMachine" index="96"]
+[node name="ChargeDash" parent="StateMachine" index="94"]
 fallback_state = "ChargedStep"
 
-[node name="SuperJump" parent="StateMachine" index="97"]
+[node name="SuperJump" parent="StateMachine" index="95"]
 script = ExtResource( 435 )
 __meta__ = {
 "_editor_description_": ""
@@ -5085,12 +14037,12 @@ speed = "18"
 super_jump_speed_override = "13"
 fall_anim = true
 
-[node name="DoubleJump" parent="StateMachine" index="98"]
+[node name="DoubleJump" parent="StateMachine" index="96"]
 interrupt_from_string = ""
 speed = "6"
 fall_anim = true
 
-[node name="AirDash" parent="StateMachine" index="99"]
+[node name="AirDash" parent="StateMachine" index="97"]
 interrupt_from_string = ""
 
 [node name="ThrowBox" parent="StateMachine/Grab" index="0"]
@@ -5098,7 +14050,7 @@ width = 11
 beats_grab = false
 hit_height = 0
 
-[node name="AirGrab" parent="StateMachine" index="110"]
+[node name="AirGrab" parent="StateMachine" index="108"]
 script = ExtResource( 474 )
 __meta__ = {
 "_editor_description_": ""
@@ -5132,7 +14084,7 @@ air_ground_bounce = true
 ground_bounce = false
 loop_active_ticks = 0
 
-[node name="ForwardThrow" parent="StateMachine" index="112"]
+[node name="ForwardThrow" parent="StateMachine" index="110"]
 anim_length = 29
 force_dir_x = "1.0"
 force_speed = "8.0"
@@ -5141,25 +14093,25 @@ sfx = ExtResource( 312 )
 sfx_tick = 18
 sfx_volume = -8.0
 throw_positions = {
-ExtResource( 62 ): {
-"x": 26,
-"y": -16
-},
-ExtResource( 308 ): {
-"x": -21,
-"y": -8
+ExtResource( 304 ): {
+"x": 29,
+"y": 11
 },
 ExtResource( 309 ): {
 "x": -21,
 "y": -9
 },
+ExtResource( 308 ): {
+"x": -21,
+"y": -8
+},
 ExtResource( 310 ): {
 "x": -21,
 "y": -15
 },
-ExtResource( 304 ): {
-"x": 29,
-"y": 11
+ExtResource( 62 ): {
+"x": 26,
+"y": -16
 }
 }
 release_frame = 18
@@ -5175,7 +14127,7 @@ ground_bounce = false
 screenshake_amount = 8
 screenshake_frames = 6
 
-[node name="BackThrow" parent="StateMachine" index="113"]
+[node name="BackThrow" parent="StateMachine" index="111"]
 anim_length = 29
 force_dir_x = "1.0"
 force_speed = "8.0"
@@ -5196,7 +14148,7 @@ ground_bounce = false
 screenshake_amount = 8
 screenshake_frames = 6
 
-[node name="AirForwardThrow" parent="StateMachine" index="114"]
+[node name="AirForwardThrow" parent="StateMachine" index="112"]
 script = ExtResource( 484 )
 __meta__ = {
 "_editor_description_": ""
@@ -5221,7 +14173,7 @@ screenshake_amount = 8
 screenshake_frames = 6
 air_ground_bounce = true
 
-[node name="AirBackThrow" parent="StateMachine" index="115"]
+[node name="AirBackThrow" parent="StateMachine" index="113"]
 script = ExtResource( 484 )
 __meta__ = {
 "_editor_description_": ""
@@ -5234,25 +14186,25 @@ sfx = ExtResource( 312 )
 sfx_tick = 18
 sfx_volume = -8.0
 throw_positions = {
-ExtResource( 62 ): {
-"x": 27,
-"y": -19
-},
-ExtResource( 308 ): {
-"x": -22,
-"y": -12
+ExtResource( 304 ): {
+"x": 34,
+"y": 7
 },
 ExtResource( 309 ): {
 "x": -21,
 "y": -11
 },
+ExtResource( 308 ): {
+"x": -22,
+"y": -12
+},
 ExtResource( 310 ): {
 "x": -20,
 "y": -16
 },
-ExtResource( 304 ): {
-"x": 34,
-"y": 7
+ExtResource( 62 ): {
+"x": 27,
+"y": -19
 }
 }
 release_frame = 18
@@ -5268,7 +14220,7 @@ screenshake_amount = 8
 screenshake_frames = 6
 air_ground_bounce = true
 
-[node name="AirDownThrow" parent="StateMachine" index="116"]
+[node name="AirDownThrow" parent="StateMachine" index="114"]
 anim_length = 29
 force_dir_x = "1.0"
 force_speed = "8.0"
@@ -5290,7 +14242,7 @@ air_ground_bounce = true
 script = ExtResource( 460 )
 command = "stop_flying"
 
-[node name="Taunt" parent="StateMachine" index="118"]
+[node name="Taunt" parent="StateMachine" index="116"]
 script = ExtResource( 390 )
 particle_scene = ExtResource( 393 )
 particle_position = Vector2( 0, -16 )

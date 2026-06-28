@@ -115,6 +115,9 @@ export var whiff_sound_volume = -8.0
 export var hit_sound_volume = -5.0
 export var bass_sound_volume = -5.0
 export var bass_on_whiff = false
+export var override_same_sfx = false
+export var override_same_wav = false
+export var sfx_pitch_variation = 0.1
 
 export var _c_Knockback = 0
 export var dir_x: String = "1.0"
@@ -186,25 +189,24 @@ func is_projectile():
 func setup_audio():
 	if !host.is_ghost:
 		if whiff_sound:
-			whiff_sound_player = VariableSound2D.new()
-			call_deferred("add_child", whiff_sound_player)
-			whiff_sound_player.bus = "Fx"
-			whiff_sound_player.stream = whiff_sound
-			whiff_sound_player.volume_db = whiff_sound_volume
+			whiff_sound_player = _make_sfx_player(whiff_sound, whiff_sound_volume)
 
 		if hit_sound:
-			hit_sound_player = VariableSound2D.new()
-			call_deferred("add_child", hit_sound_player)
-			hit_sound_player.bus = "Fx"
-			hit_sound_player.stream = hit_sound
-			hit_sound_player.volume_db = hit_sound_volume
-			
+			hit_sound_player = _make_sfx_player(hit_sound, hit_sound_volume)
+
 		if hit_bass_sound:
-			hit_bass_sound_player = VariableSound2D.new()
-			call_deferred("add_child", hit_bass_sound_player)
-			hit_bass_sound_player.bus = "Fx"
-			hit_bass_sound_player.stream = hit_bass_sound
-			hit_bass_sound_player.volume_db = bass_sound_volume
+			hit_bass_sound_player = _make_sfx_player(hit_bass_sound, bass_sound_volume)
+
+func _make_sfx_player(stream: AudioStream, volume: float) -> VariableSound2D:
+	var player = VariableSound2D.new()
+	call_deferred("add_child", player)
+	player.bus = "Fx"
+	player.stream = stream
+	player.volume_db = volume
+	player.pitch_variation = sfx_pitch_variation
+	player.override_same_sfx = override_same_sfx
+	player.override_same_wav = override_same_wav
+	return player
 
 func play_whiff_sound():
 	if ReplayManager.resimulating or host.is_ghost:
@@ -230,6 +232,8 @@ func activate():
 	tick = 0
 	active = true
 	enabled = true
+	if host and host.hooks:
+		host.hooks.hitbox_activated(self)
 	if host.is_in_group("Fighter"):
 		cancellable = cancellable or (bool(host.get("turbo_mode")) and !throw)
 	if victim_hitlag == -1:
@@ -237,14 +241,17 @@ func activate():
 	if combo_victim_hitlag == -1:
 		combo_victim_hitlag = victim_hitlag
 	if bump_on_whiff and !host.is_ghost:
-		var camera = get_tree().get_nodes_in_group("Camera")[0]
-		camera.bump(camera_bump_dir, screenshake_amount, Utils.frames(victim_hitlag if screenshake_frames < 0 else screenshake_frames))
+		var camera = host.get_camera()
+		if camera:
+			camera.bump(camera_bump_dir, screenshake_amount, Utils.frames(victim_hitlag if screenshake_frames < 0 else screenshake_frames))
 
 func deactivate():
 	played_whiff_sound = false
 	active = false
 	enabled = false
 	hit_objects = []
+	if host and host.hooks:
+		host.hooks.hitbox_deactivated(self)
 
 func to_data():
 	return HitboxData.new(self)
@@ -349,7 +356,7 @@ func already_hit_object(obj):
 
 func hit(obj):
 	if !(obj.name in hit_objects) and (!obj.invulnerable or hitbox_type == HitboxType.ThrowHit) and otg_check(obj):
-		var camera = get_tree().get_nodes_in_group("Camera")[0]
+		var camera = host.get_camera()
 		var dir = get_dir_float(true)
 		if grounded_hit_state is String and grounded_hit_state == "HurtGrounded" and obj.is_grounded():
 				dir.y *= 0
@@ -357,6 +364,9 @@ func hit(obj):
 		if hitbox_type == HitboxType.Detect:
 			host.detect(obj)
 			return
+		# Fires before to_data() snapshots the box, so a mod can mutate this hit.
+		if host and host.hooks:
+			host.hooks.hitbox_pre_hit(self, obj)
 		obj.hit_by(self.to_data())
 		var can_hit = true
 		if obj.is_in_group("Fighter"):
@@ -365,7 +375,7 @@ func hit(obj):
 					host.feinting = false
 					host.current_state().feinting = false
 			if !host.is_ghost:
-				if !bump_on_whiff:
+				if !bump_on_whiff and camera:
 					var length = Utils.frames(victim_hitlag if screenshake_frames < 0 else screenshake_frames) * float(obj.global_hitstop_modifier)
 #					length = length + (length * (Fighter.GLOBAL_HITLAG_MODIIFER if (Global.replay_extra_freeze_frames and !obj.is_ghost) else 0))
 					camera.bump(camera_bump_dir, screenshake_amount, length)
@@ -453,3 +463,29 @@ func tick():
 			deactivate()
 
 	update()
+
+
+func box_draw():
+	if _draw_as_unparriable_projectile():
+		var parent = get_parent()
+		if parent.is_in_group("BaseObj") and parent.disabled:
+			return
+		var color = Color.magenta
+		var rect = get_rect_float()
+		var fill = color
+		var stroke = color
+		fill.a = 0.25
+		stroke.a = 0.5
+		draw_rect(rect, fill, true)
+		draw_rect(rect, stroke, false)
+		return
+	.box_draw()
+
+func _draw_as_unparriable_projectile():
+	if not is_projectile():
+		return false
+	# `always_parriable` overrides everything else (e.g. parry-trainer dummies),
+	# so don't paint those red.
+	if host.get("always_parriable"):
+		return false
+	return not parriable or not host.has_projectile_parry_window

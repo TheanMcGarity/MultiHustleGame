@@ -107,6 +107,15 @@ export var can_be_counterhit = true
 export var tick_priority = 0
 export var velocity_forward_meter_gain_multiplier = "1.0"
 export var whiff_meter_gain_multiplier = "1.0"
+# Cowboy: opt this move into the on-block draw cancel (on_attack_blocked ->
+# Brandish) so its Draw toggle surfaces. Without it, only moves with a try_shoot
+# command show the toggle. Lets the Taunt/Hustle draw-cancel without lighting it
+# up on every raw attack with a hitbox.
+export var draw_cancel_on_block = false
+# Cowboy: lock the on-block draw cancel out of a multi-hit move's early hitboxes.
+# Blocking before this tick won't draw (e.g. 3 Combo Down only becomes draw-on-
+# block-cancellable from its 2nd hit). 0 = available from the first hitbox.
+export var draw_cancel_on_block_min_tick = 0
 
 
 export var _c_Super = 0
@@ -143,9 +152,10 @@ var started_in_air = false
 var entered_in_air = false
 var hit_yet = false
 var hit_anything = false
-var was_blocked = false
+var character_state_was_blocked = false
 var hit_cancelled = false
 var started_during_combo = false
+
 
 var hit_hit_cancellable_projectile = false
 var hit_fighter = false
@@ -305,9 +315,10 @@ func _enter_shared():
 	land_cancelled = false
 	hit_anything = false
 	hit_fighter = false
+
 	hit_hit_cancellable_projectile = false
 	entered_in_air = !host.is_grounded()
-	was_blocked = false
+	character_state_was_blocked = false
 	started_in_air = false
 	host.update_grounded()
 	if change_stance_to:
@@ -324,7 +335,14 @@ func _enter_shared():
 		var dir = host.get_move_dir()
 		if dir == 0 or dir == host.get_opponent_dir():
 			host.add_penalty(-8)
-		host.gain_super_meter(fixed.round(fixed.mul(str(WHIFF_SUPER_GAIN), whiff_meter_gain_multiplier)))
+		# Hurt states (HurtGrounded/HurtAerial) sometimes carry a conditional
+		# self-hitbox — Cowboy uses one to swat his own attack out of the air
+		# during HurtAerial. That hitbox isn't an "attack" the player is
+		# launching, so it shouldn't grant whiff meter (or the wrong-direction
+		# penalty above stays as-is — that's an active attempt at an attack).
+		if !is_hurt_state and !host.gained_whiff_meter:
+			host.gained_whiff_meter = true
+			host.gain_super_meter(fixed.round(fixed.mul(str(WHIFF_SUPER_GAIN), whiff_meter_gain_multiplier)))
 
 func allowed_in_stance():
 	return "All" in allowed_stances or host.stance in allowed_stances
@@ -523,7 +541,7 @@ func can_feint():
 	return (has_hitboxes or force_feintable) and (host.feints > 0 or host.get_total_super_meter() >= host.MAX_SUPER_METER) and can_feint_if_possible
 
 func can_interrupt():
-	return current_tick == iasa_at or current_tick in interrupt_frames or current_tick == anim_length - 1 or ((hit_fighter or hit_hit_cancellable_projectile) and current_tick == iasa_on_hit) or (was_blocked and iasa_on_hit_on_block and current_tick == iasa_on_hit)
+	return current_tick == iasa_at or current_tick in interrupt_frames or current_tick == anim_length - 1 or ((hit_fighter or hit_hit_cancellable_projectile) and current_tick == iasa_on_hit) or (character_state_was_blocked and iasa_on_hit_on_block and current_tick == iasa_on_hit)
 
 func on_got_hit():
 	pass
@@ -571,6 +589,9 @@ func flip_allowed():
 
 func on_interrupt():
 	pass
+	
+func on_got_blocked():
+	.on_got_blocked()
 
 func update_sprite_frame():
 #	if host.blockstun_ticks > 0 and !force:

@@ -36,6 +36,12 @@ func _enter():
 		move_dir = { "x": str(host.get_facing_int()), "y": "0" }
 	var move_vec = fixed.vec_mul(move_dir.x, move_dir.y, "20")
 
+	# Wipe Ninja's pre-slash vel so the slash distance is a function of the
+	# move's own force + frame-5 move_directly only — not whatever running
+	# speed he carried in. Without this, the +20 force stacks on top of
+	# max_ground_speed (= 20) and apply_forces_no_limit lets the result fly
+	# uncapped, so the slash overshoots dramatically out of a run.
+	host.reset_momentum()
 	host.apply_force(move_vec.x,  fixed.div(move_vec.y, "2"))
 	host.quick_slash_move_dir_x = move_dir.x
 	host.quick_slash_move_dir_y = move_dir.y

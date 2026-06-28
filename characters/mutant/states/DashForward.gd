@@ -20,6 +20,10 @@ func play_enter_sfx():
 
 # Called when the node enters the scene tree for the first time.
 func _enter():
+	if host.combo_count > 0:
+		dash_speed = 12
+	else:
+		dash_speed = 10
 	._enter()
 	if _previous_state_name() == "DashForward":
 		hurtbox_state.start_tick = 0

@@ -7,11 +7,19 @@ var init = false
 
 var loaded_formats = []
 var selected_format = ""
+# Snapshotted at the very top of _ready, before any code or signals can mutate
+# the panel's nodes. Picking "default" in the dropdown re-applies these scene
+# values regardless of what's on disk — saving over default.gameformat doesn't
+# permanently rebrand "default" as the user's custom setup.
+var scene_defaults = {}
+
+const TIMER_MODES = ["default", "none", "chess", "increment"]
 
 onready var settings_nodes = {
 	"stage_width": $"%StageWidth",
 	"p2_dummy": $"%P2Dummy",
 	"di_enabled": $"%DIEnabled",
+	"prorated_di": $"%ProratedDI",
 	"turbo_mode": $"%TurboMode",
 	"infinite_resources": $"%InfiniteResources",
 	"one_hit_ko": $"%OneHitKO",
@@ -23,11 +31,16 @@ onready var settings_nodes = {
 	"char_distance": $"%CharDist",
 	"char_height": $"%CharHeight",
 	"gravity_enabled": $"%GravityEnabled",
-	"chess_timer": $"%ChessTimer",
+	"timer_mode": $"%TimerMode",
+	"increment_starting_time": $"%IncrementStarting",
+	"increment_per_turn": $"%IncrementPerTurn",
+	"increment_max_time": $"%IncrementMaxTime",
 	"extremely_turbo_mode": $"%ExtremelyTurboMode",
 	"clashing_enabled": $"%ClashingEnabled",
 	"asymmetrical_clashing": $"%AsymmetricalClashing",
 	"global_damage_modifier": $"%DamageModifier",
+	"parry_combo_scaling": $"%ParryComboScalingMeter",
+	"burst_parry_combo_scaling": $"%BurstParryComboScalingMeter",
 	"prediction_enabled": $"%PredictionEnabled",
 	"has_ceiling": $"%CeilingEnabled",
 	"global_hitstun_modifier": $"%HitstunModifier",
@@ -41,6 +54,12 @@ onready var settings_nodes = {
 	"max_di_scaling": $"%MaxDIScalingMeter",
 	"di_combo_limit": $"%DIComboLimit",
 	"brace_enabled": $"%BraceEnabled",
+	"show_last_di_state": $"%ShowLastDIState",
+	"asymmetrical_health_meter": $"%AsymmetricalHealthMeter",
+	"p1_starting_health": $"%P1Health",
+	"p2_starting_health": $"%P2Health",
+	"p1_starting_meter": $"%P1Meter",
+	"p2_starting_meter": $"%P2Meter",
 	"boost_move_allowed": $"%BoostMoveEnabled",
 	"rescue_move_allowed": $"%RescueMoveEnabled",
 	"heal_move_allowed": $"%HealMoveEnabled",
@@ -58,9 +77,17 @@ var float_to_string = [
 	"starting_meter",
 	"min_di_scaling",
 	"max_di_scaling",
+	"p1_starting_meter",
+	"p2_starting_meter",
+	"parry_combo_scaling",
+	"burst_parry_combo_scaling",
 ]
 
 func _ready():
+	# Snapshot the scene's hardcoded defaults BEFORE any code or signal can
+	# mutate the panel's nodes — this is the source of truth for the "default"
+	# dropdown entry.
+	scene_defaults = get_data()
 	for setting in settings_nodes:
 		var node = settings_nodes[setting]
 		if not (node is Node):
@@ -69,18 +96,52 @@ func _ready():
 			node.connect("value_changed", self, "_setting_value_changed", [setting])
 		if node.has_signal("toggled"):
 			node.connect("toggled", self, "_setting_value_changed", [setting])
+		# OptionButton has neither — its only mutation signal is item_selected.
+		if node is OptionButton:
+			node.connect("item_selected", self, "_setting_value_changed", [setting])
 		pass
 	SteamLobby.connect("received_match_settings", self, "_on_received_match_settings")
 	init = false
 	update_menu()
 	if load_all_formats() == []:
-		save_format(get_data(), "default")
+		save_format(scene_defaults, "default")
 	$"%GameFormats".connect("item_selected", self, "_on_game_formats_item_selected")
 	load_formats_to_menu()
-	
+	# Restore the last format the user picked so the dropdown's visible
+	# selection actually matches the settings sliders. Without this the
+	# OptionButton silently lands on whatever's at index 0 (file-system
+	# order) while the sliders stay at scene defaults — selection text and
+	# real values don't agree until the user manually re-picks.
+	_restore_last_format()
+
+# "default" routes to the scene snapshot regardless of what's in
+# default.gameformat — keeps the entry meaning "the un-edited starter values"
+# even after someone hits Save while default is the active selection.
+func _apply_format(format):
+	if format.get("format_name", "") == "default":
+		load_settings(scene_defaults)
+	else:
+		load_settings(format)
+
+func _restore_last_format():
+	if loaded_formats.empty():
+		return
+	var last_name = Global.get_player_data().get("last_game_format", "")
+	for i in loaded_formats.size():
+		if loaded_formats[i].get("format_name", "") == last_name:
+			$"%GameFormats".selected = i
+			_apply_format(loaded_formats[i])
+			return
+	# No saved pick (or it was deleted) — apply whatever the dropdown is
+	# pointing at so its text and the slider values still agree.
+	var idx = max($"%GameFormats".selected, 0)
+	$"%GameFormats".selected = idx
+	_apply_format(loaded_formats[idx])
+
 func _on_game_formats_item_selected(item):
 	if loaded_formats.size() > item:
-		load_settings(loaded_formats[item])
+		_apply_format(loaded_formats[item])
+		Global.save_player_data({"last_game_format": loaded_formats[item].get("format_name", "")})
 
 func disable():
 	for node in settings_nodes.values():
@@ -114,11 +175,27 @@ func _on_received_match_settings(settings, force=false):
 	load_settings(settings)
 
 func load_settings(settings):
+	# Backwards compat: old game formats / lobby settings carried `chess_timer`
+	# as a bool. Translate to the new timer_mode string before the generic
+	# loop reads it (and skip the bool itself, since chess_timer isn't in
+	# settings_nodes anymore). Old false → "default" (the 30-sec-per-turn
+	# clock that always existed); only true mapped to "chess".
+	if settings.has("chess_timer") and !settings.has("timer_mode"):
+		settings = settings.duplicate()
+		settings["timer_mode"] = "chess" if settings.chess_timer else "default"
+		settings.erase("chess_timer")
 	for setting in settings:
 		if !settings_nodes.has(setting):
 			print("invalid setting: " + str(setting))
 			continue
 		var node = settings_nodes[setting]
+		if node is OptionButton and settings[setting] is String:
+			# OptionButton uses indices internally — map back from canonical
+			# string. Falls back to 0 (Default) for unknown values.
+			if setting == "timer_mode":
+				var idx = TIMER_MODES.find(settings[setting])
+				node.selected = idx if idx >= 0 else 0
+			continue
 		if node.has_method("set_pressed_no_signal") and settings[setting] is bool:
 			node.set_pressed_no_signal(settings[setting])
 		if node.get("value") != null and settings[setting] is int:
@@ -130,16 +207,23 @@ func load_settings(settings):
 	update_menu()
 
 func update_menu():
-	if $"%ChessTimer".pressed:
-#		if $"%TurnLengthLabel".text != "Turn Clock (min)":
-#			$"%TurnLength".value = 30
+	var mode = TIMER_MODES[$"%TimerMode".selected]
+	# Show/hide param rows per mode.
+	# - default: per-turn turn time only (in seconds)
+	# - none: no params
+	# - chess: total clock (in minutes) + min turn length
+	# - increment: starting bank + per-turn add (the increment itself is the
+	#   minimum — no separate min turn length needed)
+	$"%TurnLengthContainer".visible = mode == "chess" or mode == "default"
+	$"%TurnMinLengthContainer".visible = mode == "chess"
+	$"%IncrementStartingContainer".visible = mode == "increment"
+	$"%IncrementPerTurnContainer".visible = mode == "increment"
+	$"%IncrementMaxTimeContainer".visible = mode == "increment"
+	if mode == "chess":
 		$"%TurnLengthLabel".text = "Turn Clock (min)"
-		$"%TurnMinLengthContainer".show()
 	else:
-#		if $"%TurnLengthLabel".text != "Turn Clock (sec)":
-#			$"%TurnLength".value = 30
 		$"%TurnLengthLabel".text = "Turn Clock (sec)"
-		$"%TurnMinLengthContainer".hide()
+	$"%AsymmetricalContainer".visible = $"%AsymmetricalHealthMeter".pressed
 	pass
 
 func update_lobby_data():
@@ -156,11 +240,14 @@ func get_data():
 		var node = settings_nodes[setting]
 		if setting in float_to_string:
 			settings[setting] = str(node.value)
+		elif node is OptionButton:
+			if setting == "timer_mode":
+				settings[setting] = TIMER_MODES[node.selected]
 		elif node.get("value") != null:
 			settings[setting] = int(node.value)
 		elif node.get("pressed") != null:
 			settings[setting] = node.pressed
-	
+
 	var overrides = get_data_overrides()
 	settings.merge(overrides, true)
 	
@@ -190,8 +277,11 @@ func get_data_overrides():
 
 func init(singleplayer=true):
 	show()
-	$"%TurnLengthContainer".visible = !singleplayer
-	$"%ChessTimer".visible = !singleplayer
+	# Singleplayer has no opponent clock — force the picker to None (idx 1)
+	# and hide it so update_menu hides the per-mode param rows for free.
+	if singleplayer:
+		$"%TimerMode".selected = TIMER_MODES.find("none")
+	$"%TimerModeContainer".visible = !singleplayer
 	if !steam:
 		if !singleplayer:
 			if !Network.is_host():
@@ -235,6 +325,16 @@ func save_format(format, format_name):
 	file.store_var(format, true)
 	file.close()
 	load_formats_to_menu()
+	return format_name
+
+func _select_format_by_name(name):
+	if name == "":
+		return
+	for i in loaded_formats.size():
+		if loaded_formats[i].get("format_name", "") == name:
+			$"%GameFormats".selected = i
+			Global.save_player_data({"last_game_format": name})
+			return
 
 func load_all_formats():
 	make_formats_folder()
@@ -256,7 +356,13 @@ func load_all_formats():
 
 func save_current_format():
 	var text = Utils.filter_filename($"%LineEdit".text)
-	save_format(get_data(), text)
+	# load_formats_to_menu (called inside save_format) leaves .selected
+	# pointing at whichever format add_item selected last — in Godot 3.5
+	# that's the final item from the filesystem walk, which is typically the
+	# newest file. Pin selection to the actual name we just saved so the
+	# dropdown text matches the user's intent and persists across relaunches.
+	var saved_name = save_format(get_data(), text)
+	_select_format_by_name(saved_name)
 
 func _on_LineEdit_text_entered(new_text):
 	save_current_format()
@@ -287,6 +393,14 @@ func _on_GravityModifier_value_changed(value):
 	pass # Replace with function body.
 
 
+func _on_ParryComboScalingMeter_value_changed(value):
+	$"%ParryComboScalingValueLabel".text = str(value)
+
+
+func _on_BurstParryComboScalingMeter_value_changed(value):
+	$"%BurstParryComboScalingValueLabel".text = str(value)
+
+
 func _on_StartingMeter_value_changed(value):
 	$"%StartingMeterValueLabel".text = str(value)
 	pass # Replace with function body.
@@ -300,3 +414,19 @@ func _on_MinDIScalingMeter_value_changed(value):
 func _on_MaxDIScalingMeter_value_changed(value):
 	$"%MaxDIScalingMeterValueLabel".text = str(value)
 	pass # Replace with function body.
+
+
+func _on_P1Health_value_changed(value):
+	$"%P1HealthValueLabel".text = str(int(value)) + "%"
+
+
+func _on_P2Health_value_changed(value):
+	$"%P2HealthValueLabel".text = str(int(value)) + "%"
+
+
+func _on_P1Meter_value_changed(value):
+	$"%P1MeterValueLabel".text = str(value)
+
+
+func _on_P2Meter_value_changed(value):
+	$"%P2MeterValueLabel".text = str(value)

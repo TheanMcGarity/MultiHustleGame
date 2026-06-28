@@ -53,7 +53,19 @@ shader_param/outline_color = Color( 0, 0, 0, 1 )
 material = SubResource( 1 )
 script = ExtResource( 10 )
 __meta__ = {
-"_editor_description_": ""
+"_editor_description_": "",
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
 }
 has_projectile_parry_window = false
 deletes_other_projectiles = false
@@ -89,7 +101,7 @@ y = 67
 width = 10
 height = 64
 damage = 100
-chip_damage_modifier = "0.8"
+chip_damage_modifier = "0.4"
 hitstun_ticks = 10
 hitlag_ticks = 2
 victim_hitlag = 10

@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=2]
+[gd_scene load_steps=53 format=2]
 
 [ext_resource path="res://projectile/BaseProjectile.tscn" type="PackedScene" id=1]
 [ext_resource path="res://characters/wizard/projectiles/orb/Orb.gd" type="Script" id=2]
@@ -30,6 +30,23 @@
 [ext_resource path="res://sound/common/explosion4.wav" type="AudioStream" id=28]
 [ext_resource path="res://sound/common/slash4.wav" type="AudioStream" id=29]
 [ext_resource path="res://characters/wizard/projectiles/orb/states/Sword.gd" type="Script" id=30]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_fire1.png" type="Texture" id=31]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_fire4.png" type="Texture" id=32]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_fire2.png" type="Texture" id=33]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_fire7.png" type="Texture" id=34]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_fire3.png" type="Texture" id=35]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_fire6.png" type="Texture" id=36]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_fire5.png" type="Texture" id=37]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire7.png" type="Texture" id=38]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire6.png" type="Texture" id=39]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire3.png" type="Texture" id=40]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire4.png" type="Texture" id=41]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire2.png" type="Texture" id=42]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire8.png" type="Texture" id=43]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire5.png" type="Texture" id=44]
+[ext_resource path="res://characters/wizard/projectiles/orb/sprites/orb_sword_fire1.png" type="Texture" id=45]
+[ext_resource path="res://fx/big_filled_circle.png" type="Texture" id=46]
+[ext_resource path="res://fx/ParticleEffect.gd" type="Script" id=47]
 
 [sub_resource type="ShaderMaterial" id=2]
 resource_local_to_scene = true
@@ -53,9 +70,19 @@ animations = [ {
 "name": "Orb",
 "speed": 5.0
 }, {
+"frames": [ ExtResource( 31 ), ExtResource( 33 ), ExtResource( 35 ), ExtResource( 32 ), ExtResource( 37 ), ExtResource( 36 ), ExtResource( 34 ) ],
+"loop": true,
+"name": "OrbFire",
+"speed": 5.0
+}, {
 "frames": [ ExtResource( 19 ), ExtResource( 19 ), ExtResource( 20 ), ExtResource( 20 ), ExtResource( 20 ), ExtResource( 21 ), ExtResource( 21 ), ExtResource( 21 ), ExtResource( 22 ), ExtResource( 22 ), ExtResource( 23 ), ExtResource( 23 ), ExtResource( 24 ), ExtResource( 24 ), ExtResource( 25 ), ExtResource( 25 ), ExtResource( 25 ), ExtResource( 26 ), ExtResource( 26 ), ExtResource( 26 ), ExtResource( 19 ), ExtResource( 19 ) ],
 "loop": true,
 "name": "Sword",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 45 ), ExtResource( 45 ), ExtResource( 42 ), ExtResource( 42 ), ExtResource( 42 ), ExtResource( 40 ), ExtResource( 40 ), ExtResource( 40 ), ExtResource( 41 ), ExtResource( 41 ), ExtResource( 44 ), ExtResource( 44 ), ExtResource( 39 ), ExtResource( 39 ), ExtResource( 38 ), ExtResource( 38 ), ExtResource( 38 ), ExtResource( 43 ), ExtResource( 43 ), ExtResource( 43 ), ExtResource( 45 ), ExtResource( 45 ) ],
+"loop": true,
+"name": "SwordFire",
 "speed": 5.0
 } ]
 
@@ -74,9 +101,42 @@ shader_param/super_dim = false
 shader_param/use_outline = false
 shader_param/outline_color = Color( 0, 0, 0, 1 )
 
+[sub_resource type="ShaderMaterial" id=6]
+resource_local_to_scene = true
+shader = ExtResource( 17 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = false
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="Gradient" id=5]
+offsets = PoolRealArray( 0, 0.280353, 0.373068, 0.494481, 0.604856, 1 )
+colors = PoolColorArray( 1, 0.486275, 0.121569, 1, 1, 0.486275, 0.121569, 1, 1, 0.2, 0.239216, 1, 1, 0.2, 0.239216, 1, 0.258824, 0.321569, 0.360784, 1, 0, 0, 0, 0 )
+
 [node name="Orb" instance=ExtResource( 1 )]
 material = SubResource( 2 )
 script = ExtResource( 2 )
+__meta__ = {
+"limb_data": {
+"Head": {
+},
+"LeftFoot": {
+},
+"LeftHand": {
+},
+"RightFoot": {
+},
+"RightHand": {
+}
+}
+}
 extra_state_variables = "frozen
 locked
 push_ticks
@@ -85,7 +145,13 @@ push_dir
 strikes_left
 strike_ticks_left
 lock_cooldown
-"
+fire_ticks_left
+fire_obj
+last_push_x
+last_push_y
+fire_direction_x
+fire_direction_y
+fire_direction_reversed"
 damages_own_team = true
 has_projectile_parry_window = false
 can_be_hit_by_melee = true
@@ -99,6 +165,44 @@ animation = "Orb"
 [node name="ParticleEffect" parent="Flip/Particles" index="0" instance=ExtResource( 11 )]
 material = SubResource( 3 )
 z_index = -1
+
+[node name="FireParticle" type="Node2D" parent="Flip/Particles" index="1"]
+unique_name_in_owner = true
+material = SubResource( 6 )
+z_index = 100
+script = ExtResource( 47 )
+free = false
+one_shot = false
+start_enabled = false
+
+[node name="Particle" type="CPUParticles2D" parent="Flip/Particles/FireParticle" index="0"]
+emitting = false
+amount = 64
+lifetime = 0.97
+preprocess = 0.01
+speed_scale = 2.62
+randomness = 1.0
+lifetime_randomness = 1.0
+fract_delta = false
+local_coords = false
+texture = ExtResource( 46 )
+emission_shape = 1
+emission_sphere_radius = 7.94
+direction = Vector2( 0, -1 )
+spread = 6.82
+gravity = Vector2( 0, 0 )
+initial_velocity = 106.53
+initial_velocity_random = 1.0
+linear_accel = 12.12
+damping = 29.29
+scale_amount = 0.26
+scale_amount_random = 0.33
+color_ramp = SubResource( 5 )
+anim_speed = 6.81
+
+[node name="Timer" type="Timer" parent="Flip/Particles/FireParticle" index="1"]
+wait_time = 0.064
+one_shot = true
 
 [node name="Lock" type="AudioStreamPlayer2D" parent="Sounds" index="0"]
 stream = ExtResource( 13 )

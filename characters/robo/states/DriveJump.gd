@@ -9,6 +9,9 @@ const FALL_SPEED = "16"
 const SPIN_RATE = TAU / 8
 
 func _frame_0():
+	start_jump()
+
+func start_jump():
 	var amount = host.fixed_map("0.0", VERTICAL_FORCE, MINIMUM_FORCE, VERTICAL_FORCE, xy_to_dir(data.x, "0", VERTICAL_FORCE).x)
 	host.apply_force_relative(HORIZ_FORCE, amount)
 	host.move_directly(0, -1)

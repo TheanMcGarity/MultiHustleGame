@@ -40,12 +40,19 @@ var p2_turn = false
 onready var camera: GoodCamera = $Camera2D
 onready var objects_node = $Objects
 onready var fx_node = $Fx
+# Modding hook surface. See Hooks.gd — game.gd calls hooks.<event>(...)
+# at every important moment; mods extend the script to react. Single instance
+# per match, so it's left always-on (empty no-op methods when no mod overrides);
+# the per-instance hosts (objects/particles/states) are the ones gated on mods.
+onready var hooks = $Hooks
 
 var mouse_pressed = false
 
 var current_tick = -1
 var max_replay_tick = 0
 var game_started = false
+# Both fighters emit "clashed" in the same tick on a clash; dedupe the hook.
+var last_clash_hook_tick = -1
 var undoing = false
 var singleplayer = false
 var parry_freeze = false
@@ -91,6 +98,7 @@ var match_data = null
 var simulated_once = false
 var started_multiplayer = false
 var prediction_enabled = true
+var show_last_di_state = true
 
 var p1 = null
 var p2 = null
@@ -109,9 +117,31 @@ var global_gravity_modifier = "1.0"
 var camera_snap_position = Vector2()
 
 var objects: Array = []
+# Subset of `objects` excluding disabled entries. Rebuilt by clean_objects()
+# at the start of each tick, also kept in sync as objects spawn (appended) so
+# the in-progress tick can pick up newly-spawned objects. Hot per-tick loops
+# (tick, apply_hitboxes, show_state) iterate this instead of `objects` to skip
+# the per-element disabled flag check on long-match accumulation.
+var active_objects: Array = []
+# Monotonic counter used to name and seed each spawned object. Kept in sync
+# with what objs_map.size() would have been if every spawn (including disabled
+# objects from previous turns) were still present, so ghost prediction names
+# stay deterministic without padding objs_map with null entries.
+var objs_spawned_count = 0
 var objs_map = {
-	
+
 }
+# Disabled projectile husks that have lingered past DISABLED_HUSK_LINGER_TICKS:
+# already erased from objs_map and dropped from `objects` (so sim no longer sees
+# them), kept alive only until their tail sounds finish, then freed. See
+# reclaim_disabled_husks() / free_finished_husks().
+var detached_husks: Array = []
+# How many sim ticks a projectile stays in objs_map after being disabled before
+# its husk is reclaimed. Counted deterministically (once per tick on every peer)
+# so the objs_map erase lands on the same tick everywhere — keeps the rollback
+# netcode's per-tick state identical. Generous on purpose: well past any
+# realistic post-disable objs_map.has() check and past the prediction horizon.
+const DISABLED_HUSK_LINGER_TICKS = 300
 var effects: Array = []
 
 var drag_position = null
@@ -182,7 +212,8 @@ func get_ticks_left():
 	return time - Utils.int_min(current_tick, time)
 
 func _ready():
-	
+	hooks.game = self
+
 	if is_ghost:
 		hide()
 		for object in objects_node.get_children():
@@ -193,6 +224,7 @@ func _ready():
 		ghost_time = Time.get_unix_time_from_system()
 	else:
 		emit_signal("simulation_continue")
+	hooks.ready()
 
 func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vector2.RIGHT):
 	var obj = particle_effect.instance()
@@ -217,6 +249,21 @@ func copy_to(game):
 
 	if not self.game_started:
 		return
+#	var p1_pos = p1.get_pos()
+#	var p2_pos = p2.get_pos()
+#	print(p1_pos)
+#	print(p2_pos)
+#	game.p1.set_pos(p1_pos.x, p1_pos.y)
+#	game.p2.set_pos(p2_pos.x, p2_pos.y)
+	game.current_tick = current_tick
+	p1.chara.copy_to(game.p1.chara)
+	p2.chara.copy_to(game.p2.chara)
+	game.p1.update_data()
+	game.p2.update_data()
+	p1.copy_to(game.p1)
+	p2.copy_to(game.p2)
+	game.p1.hp = p1.hp
+	game.p2.hp = p2.hp
 	game.player_colors = player_colors.duplicate(true)
 	game.current_opponent_indicies = current_opponent_indicies.duplicate(true)
 	for index in players.keys():
@@ -242,10 +289,16 @@ func copy_to(game):
 	for fx in game.effects:
 		if is_instance_valid(fx):
 			fx.free()
-	for object in self.objects:
+	# Sync the spawn counter so future ghost spawns get the same names real
+	# would, even though we skip copying disabled objects.
+	game.objs_spawned_count = objs_spawned_count
+	for object in objects:
 		if is_instance_valid(object):
-			if not object.disabled:
+			if !object.disabled:
 				var new_obj = load(object.filename).instance()
+				# Preassign the name so on_object_spawned doesn't bump the counter
+				# (the counter was already synced above).
+				new_obj.obj_name = object.obj_name
 				game.on_object_spawned(new_obj)
 				# Refuses to override, so done manually here. Thanks to Degritone for part of the code
 				new_obj.init()
@@ -269,12 +322,11 @@ func copy_to(game):
 								for index in old_hitboxes.size():
 									if old_hit == old_hitboxes[index]:
 										new_hitboxes[index] = new_hit
-
-				object.copy_to(new_obj)
-			else :
+			else:
 				game.objs_map[str(game.objs_map.size() + 1)] = null
-	game.camera.limit_left = self.camera.limit_left
-	game.camera.limit_right = self.camera.limit_right
+	game.camera.limit_left = camera.limit_left
+	game.camera.limit_right = camera.limit_right
+
 
 func _on_super_started(ticks, player):
 	set_vanilla_game_started(true)
@@ -298,6 +350,7 @@ func _on_super_started(ticks, player):
 					p1_super = true
 				2:
 					p2_super = true
+	hooks.super_started(ticks, player)
 
 func get_screen_position(player_id):
 	var screen_center = camera.get_camera_screen_center()
@@ -319,16 +372,25 @@ func on_particle_effect_spawned(fx: ParticleEffect):
 	effects.append(fx)
 	fx_node.add_child(fx)
 	fx.connect("tree_exited", self, "_on_fx_exit_tree", [fx])
+	hooks.particle_effect_spawned(fx)
 	
 func on_object_spawned(obj: BaseObj):
 	objects.append(obj)
+	active_objects.append(obj)
+	# Assign the counter-derived name BEFORE add_child fires the obj's _ready
+	# (which falls back to obj_name = name and would lock in a Node-tree name
+	# like "@FlameWave@882"). With this in place, real spawns get clean numeric
+	# names and ghost spawns (where copy_to preassigns obj_name) keep theirs.
+	if !obj.obj_name:
+		objs_spawned_count += 1
+		obj.obj_name = str(objs_spawned_count)
 	objects_node.add_child(obj)
 	obj.has_ceiling = has_ceiling
 	obj.ceiling_height = ceiling_height
-	obj.obj_name = str(objs_map.size() + 1)
+	var name_int = obj.obj_name.to_int()
 	obj.logic_rng = BetterRng.new()
 	obj.logic_rng_static = BetterRng.new()
-	var seed_ = hash(match_data.seed + (objs_map.size() + 1))
+	var seed_ = hash(match_data.seed + name_int)
 	obj.logic_rng.seed = seed_
 	obj.logic_rng_seed = seed_
 	obj.logic_rng_static.seed = match_data.seed
@@ -345,6 +407,7 @@ func on_object_spawned(obj: BaseObj):
 	for particle in obj.particles.get_children():
 		effects.append(particle)
 	connect_signals(obj)
+	hooks.object_spawned(obj)
 
 func _on_fx_exit_tree(fx):
 	effects.erase(fx)
@@ -353,24 +416,33 @@ func _on_obj_exit_tree(obj):
 	objects.erase(obj)
 
 func on_hitbox_refreshed(hitbox_name):
-	set_vanilla_game_started(true)
-
 	for index in players.keys():
 		players[index].parried_hitboxes.erase(hitbox_name)
-	pass
+	
+	hooks.hitbox_refreshed(hitbox_name)
+	set_vanilla_game_started(true)
 
 func on_clash():
 	super_freeze_ticks = 5
 	parry_freeze = true
-	pass
+	# Both fighters fire "clashed" the same tick — dedupe to one hook.
+	if current_tick != last_clash_hook_tick:
+		last_clash_hook_tick = current_tick
+		hooks.clashed(p1, p2) // fix //
 
-func on_parry():
-	super_freeze_ticks = 10 
+func on_parry(parrier):
+	super_freeze_ticks = 10
 	parry_freeze = true
+	hooks.parried(parrier, parrier.get_opponent())
 
-func on_block():
-	super_freeze_ticks = 7 
-	parry_freeze = true
+# Wired to the "blocked_melee_attack" signal (the live block event; the old
+# "blocked" hookup was dead). Hook only — no freeze, to avoid changing feel.
+func on_block(blocker):
+	hooks.blocked(blocker, blocker.get_opponent())
+
+# Sim-side action commit (fighter's action_selected signal). `player` is bound.
+func on_player_acted(action, data, extra, player):
+	hooks.player_acted(player, action, data, extra)
 
 var is_global_hitlag_activated_now = false
 
@@ -381,10 +453,12 @@ func on_global_hitlag(amount):
 	super_freeze_ticks = amount
 	parry_freeze = true
 	hit_freeze = true
+	hooks.global_hitlag(amount)
 
 func forfeit(id):
 	set_vanilla_game_started(true)
 	players[id].forfeit()
+	hooks.forfeit(id)
 
 func start_game(singleplayer:bool, match_data:Dictionary):
 	set_vanilla_game_started(true)
@@ -435,15 +509,22 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player.connect("parried", self, "on_parry")
 		player.connect("clashed", self, "on_clash")
 		player.connect("predicted", self, "on_prediction", [player])
+		player.connect("action_selected", self, "on_player_acted", [player])
 	
 		
 	self.stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)
 	if match_data.has("game_length"):
-		self.time = match_data["game_length"]
+		time = int(match_data["game_length"])
 	if match_data.has("frame_by_frame"):
 		self.frame_by_frame = match_data.frame_by_frame
 	if match_data.has("char_distance"):
-		self.char_distance = match_data["char_distance"]
+		# Godot 3's JSON.parse stores every number as float, so a lobby/replay
+		# round-tripped through JSON makes match_data["char_distance"] a Float
+		# (200.0). BaseObj.set_pos's check_params asserts (x is int and y is int)
+		# — passing a Float here trips the assertion and start_game aborts mid-
+		# setup, leaving p1/p2 at their default 0/0 (the "start distance got set
+		# to 0" report). Cast everything that lands in set_pos to int.
+		char_distance = int(match_data["char_distance"])
 	if match_data.has("clashing_enabled"):
 		self.clashing_enabled = match_data["clashing_enabled"]
 	if match_data.has("asymmetrical_clashing"):
@@ -453,9 +534,11 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 	if match_data.has("has_ceiling"):
 		self.has_ceiling = match_data["has_ceiling"]
 	if match_data.has("ceiling_height"):
-		self.ceiling_height = match_data["ceiling_height"]
+		ceiling_height = int(match_data["ceiling_height"])
 	if match_data.has("prediction_enabled"):
 		self.prediction_enabled = match_data["prediction_enabled"]
+	if match_data.has("show_last_di_state"):
+		show_last_di_state = match_data["show_last_di_state"]
 	for index in players.keys():
 		var player = players[index]
 		player.has_ceiling = has_ceiling
@@ -483,6 +566,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		$Players.add_child(player)
 		player.set_color(MultiHustle_get_color_by_index(index))
 		player.init()
+		player._fire_init_hook()
 	
 	if match_data.has("selected_styles"):
 		for index in players.keys():
@@ -502,6 +586,8 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 			player.connect("super_started", self, "_on_super_started", [player])
 			connect_signals(player)
 	self.objs_map = {}
+	detached_husks = []
+	objs_spawned_count = objs_map.size()
 	for index in players.keys():
 		self.objs_map[str("P", index)] = players[index]
 	for player in players.values():
@@ -532,9 +618,9 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 	if not self.is_ghost:
 		if ReplayManager.playback:
 			get_max_replay_tick()
-		elif not match_data.has("replay"):
+		elif !match_data.has("replay") and !match_data.has("replay_challenge"):
 			ReplayManager.init()
-		else :
+		else:
 			get_max_replay_tick()
 			for id in ReplayManager.frame_ids():
 				if ReplayManager.frames[id].size() > 0:
@@ -585,11 +671,24 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		if SteamLobby.is_fighting():
 			SteamLobby.on_match_started()
 
-	if match_data.has("starting_meter"):
+	if match_data.has("asymmetrical_health_meter") and match_data.asymmetrical_health_meter:
+		if match_data.has("p1_starting_meter"):
+			p1.gain_super_meter(p1.fixed.round(p1.fixed.mul(str(Fighter.MAX_SUPER_METER), match_data.p1_starting_meter)))
+		if match_data.has("p2_starting_meter"):
+			p2.gain_super_meter(p2.fixed.round(p2.fixed.mul(str(Fighter.MAX_SUPER_METER), match_data.p2_starting_meter)))
+		if match_data.has("p1_starting_health"):
+			p1.hp = int(round(p1.MAX_HEALTH * float(match_data.p1_starting_health) / 100.0))
+			p1.trail_hp = p1.hp
+		if match_data.has("p2_starting_health"):
+			p2.hp = int(round(p2.MAX_HEALTH * float(match_data.p2_starting_health) / 100.0))
+			p2.trail_hp = p2.hp
+	elif match_data.has("starting_meter"):
 		var meter_amount = p1.fixed.round(p1.fixed.mul(str(Fighter.MAX_SUPER_METER), match_data.starting_meter))
 		for index in players.keys():
 			var player = players[index]
 			player.gain_super_meter(meter_amount)
+
+	hooks.game_started(match_data)
 
 func on_prediction(ticks=7, player=null):
 	_on_super_started(ticks, player)
@@ -618,17 +717,68 @@ func get_max_replay_tick():
 	return max_replay_tick
 
 func clean_objects():
-	var invalid_objects = []
+	# Drop freed objects from `objects` and rebuild `active_objects` to exclude
+	# anything currently disabled. Single pass so cost stays O(N).
+	var kept = []
+	var active = []
 	for object in objects:
 		if !is_instance_valid(object):
-			invalid_objects.append(object)
-	for object in invalid_objects:
-		objects.erase(object)
+			continue
+		kept.append(object)
+		if !object.disabled:
+			active.append(object)
+	objects = kept
+	active_objects = active
+
+# Deterministic memory reclaim for disabled projectiles. Without this their
+# husks sit in objs_map (and the scene tree) forever — a long-match leak as
+# projectiles pile up. The constraint: ~20 sim sites iterate objs_map or probe
+# membership every tick, and the rollback netcode needs every peer's objs_map
+# identical per tick, so the erase MUST happen on the same tick everywhere.
+#
+# This runs exactly once per sim tick (NOT in clean_objects, which copy_to calls
+# an extra time), counting a fixed linger per husk. When it expires we detach the
+# husk deterministically: erase from objs_map and drop from `objects` so sim
+# stops seeing it. The node stays parented (frozen at its disable position, since
+# disabled objects aren't ticked) so its tail sounds keep playing from where it
+# died; free_finished_husks() reaps it once those finish. Real game only —
+# ghosts never accumulate disabled husks (copy_to skips disabled objects), and
+# detaching in a ghost would dodge copy_to's wholesale free and leak.
+func reclaim_disabled_husks():
+	var kept = []
+	for object in objects:
+		if !is_instance_valid(object):
+			continue
+		if object is BaseProjectile and object.disabled:
+			object.disabled_linger += 1
+			if object.disabled_linger >= DISABLED_HUSK_LINGER_TICKS:
+				objs_map.erase(object.obj_name)
+				detached_husks.append(object)
+				continue  # drop from `objects`; node lives on for its sounds
+		kept.append(object)
+	objects = kept
+
+# Non-sim reaper for detached husks: free each once its sounds finish. Timing is
+# wall-clock (audio), NOT deterministic — but that's fine, the husk is already
+# out of objs_map/objects, so nothing in the simulation can observe when it goes.
+func free_finished_husks():
+	if detached_husks.empty():
+		return
+	var still_lingering = []
+	for husk in detached_husks:
+		if !is_instance_valid(husk):
+			continue
+		if husk.is_playing_sounds():
+			still_lingering.append(husk)
+		else:
+			husk.queue_free()
+	detached_husks = still_lingering
 
 func initialize_objects():
-	for object in objects:
+	for object in active_objects:
 		if !object.initialized:
 			object.init()
+			object._fire_init_hook()
 
 func process_fx():
 	for fx in effects:
@@ -651,6 +801,7 @@ func tick():
 			self.forfeit_player.toggle_quit_graphic(false)
 		self.quitter_focus = false
 	self.frame_passed = true
+	self.hooks.pre_tick()
 	if not singleplayer:
 		if not self.is_ghost:
 			Network.reset_action_inputs()
@@ -658,11 +809,18 @@ func tick():
 	process_opponents()
 
 	clean_objects()
-	for object in self.objects:
+	# Reclaim long-disabled projectile husks so they stop piling up in objs_map
+	# for the whole match. Real game only (ghosts don't accumulate them); the
+	# detach is deterministic (once per tick), the free is audio-gated.
+	if not is_ghost:
+		reclaim_disabled_husks()
+		free_finished_husks()
+	for object in active_objects:
 		if object.disabled:
 			continue
 		if not object.initialized:
 			object.init()
+			object._fire_init_hook()
 
 		object.tick()
 		var pos = object.get_pos()
@@ -726,18 +884,19 @@ func tick():
 		if (opponent.state_interruptable or opponent.dummy_interruptable) and not opponent.busy_interrupt:
 			player.reset_combo()
 
+	hooks.post_tick()
 
-	if self.is_ghost:
-		if not self.ghost_hidden:
-			if not self.visible and self.current_tick >= 0:
+	if is_ghost:
+		if not ghost_hidden:
+			if not visible and current_tick >= 0:
 				show()
 		return
 
-	if not self.game_finished:
+	if not game_finished:
 		if ReplayManager.playback:
 			if not ReplayManager.resimulating:
 				self.is_in_replay = true
-				if self.current_tick > get_max_replay_tick() and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
+				if self.current_tick >= get_max_replay_tick() and not (ReplayManager.frames.has("finished") and ReplayManager.frames.finished):
 					ReplayManager.set_deferred("playback", false)
 					
 					for index in players.keys():
@@ -1211,6 +1370,7 @@ func simulate_until_ready():
 	show_state()
 
 func simulate_one_tick():
+	camera.tick()
 	tick()
 
 	show_state()
@@ -1227,12 +1387,14 @@ func resimulate():
 func undo(cut=true):
 	ReplayManager.undo(cut)
 	game_started = false
+	hooks.undo()
 	start_playback()
 
 func start_playback():
 	ReplayManager.replaying_ingame = true
 #	ReplayManager.resimulating = true
 	emit_signal("playback_requested")
+	hooks.playback_started()
 
 func end_game_ffa(player):
 	print("Ending game with winner: player %d" % player)
@@ -1268,7 +1430,7 @@ func end_game_ffa(player):
 		emit_signal("game_ended")
 
 		emit_signal("game_won", winner)
-
+		hooks.game_ended(winner)
 	
 func end_game_team(team):
 	print("Ending game with winner: team %d" % team)
@@ -1293,17 +1455,24 @@ func end_game_team(team):
 	emit_signal("game_ended")
 
 	emit_signal("team_game_won", winner)
-
-
+	hooks.game_ended(winner)
 
 func negative_on_hit(player):
 	return player.current_state().started_during_combo and !player.opponent.current_state().started_during_combo
 
 func process_tick():
 	set_vanilla_game_started(true)
-
-	if self.super_freeze_ticks > 0:
+	if super_freeze_ticks > 0:
+		# Keep camera ticking through freeze frames so screenshake plays out.
+		# Gated by playback speed so the shake scales with slow-mo too.
+		if playback_speed_allows_tick():
+			camera.tick()
+		if hit_freeze:
+			process_fx()
+			
 		return
+
+	hooks.process_tick()
 
 	self.network_simulate_ready = true
 	for value in self.network_simulate_readies.values():
@@ -1314,16 +1483,23 @@ func process_tick():
 	if can_tick:
 		self.advance_frame_input = false
 	if not Global.frame_advance:
-		if Global.playback_speed_mod > 0:
-			can_tick = self.real_tick % Global.playback_speed_mod == 0
+		if Global.playback_speed_mod == -1:
+			can_tick = real_tick % 3 != 2
+		elif Global.playback_speed_mod > 0:
+			can_tick = real_tick % Global.playback_speed_mod == 0
 	if (Network.multiplayer_active) and not self.ghost_tick and not self.spectating:
 		can_tick = self.network_simulate_ready
 	if ReplayManager.resimulating:
 		ReplayManager.playback = true
 		can_tick = true
 
-	if not ReplayManager.playback:
-		if not is_waiting_on_player():
+	# When the pause button is held (frame_advance) and we're not advancing
+	# this frame, the sim won't run — but screenshake should still play out.
+	if Global.frame_advance and !can_tick:
+		camera.tick()
+
+	if !ReplayManager.playback:
+		if !is_waiting_on_player():
 				if can_tick:
 
 					if not Global.frame_advance:
@@ -1344,7 +1520,10 @@ func process_tick():
 					self.game_paused = false
 		else :
 			ReplayManager.frames.finished = false
-			self.game_paused = true
+			game_paused = true
+			# Keep camera ticking while waiting on player input so screenshake
+			# plays through — only freeze frames should pause the shake.
+			camera.tick()
 			var someones_turn = false
 			var turn_trigger = false
 			for index in players.keys():
@@ -1366,7 +1545,8 @@ func process_tick():
 							self.p1_turn = true
 						2:
 							self.p2_turn = true
-
+					hooks.player_actionable(player)
+					
 				if singleplayer:
 					emit_signal("player_actionable")
 				elif not is_ghost:
@@ -1401,7 +1581,6 @@ func process_tick():
 				call_deferred("simulate_one_tick")
 
 func _process(delta):
-
 	for quitter in quitters:
 		Network.main.ui_layer.silent_end_turn_for(quitter)
 		Network.sync_unlocks[quitter] = true
@@ -1412,40 +1591,42 @@ func _process(delta):
 
 	update()
 	super_dim()
-	if self.camera.global_position.y > self.camera.limit_bottom - .get_viewport_rect().size.y / 2:
-		self.camera.global_position.y = self.camera.limit_bottom - .get_viewport_rect().size.y / 2
-	if self.camera.global_position.x > self.camera.limit_right - .get_viewport_rect().size.x / 2:
-		self.camera.global_position.x = self.camera.limit_right - .get_viewport_rect().size.x / 2
-	if self.camera.global_position.x < self.camera.limit_left + .get_viewport_rect().size.x / 2:
-		self.camera.global_position.x = self.camera.limit_left + .get_viewport_rect().size.x / 2
 
-	if is_instance_valid(ghost_game):
-		ghost_game.camera_zoom = self.camera_zoom
-		ghost_game.update_camera_limits()
+	if playback_speed_allows_tick():
+		if camera.global_position.y > camera.limit_bottom - get_viewport_rect().size.y/2:
+			camera.global_position.y = camera.limit_bottom - get_viewport_rect().size.y/2
+		if camera.global_position.x > camera.limit_right - get_viewport_rect().size.x/2:
+			camera.global_position.x = camera.limit_right - get_viewport_rect().size.x/2
+		if camera.global_position.x < camera.limit_left + get_viewport_rect().size.x/2:
+			camera.global_position.x = camera.limit_left + get_viewport_rect().size.x/2
 
-	if self.game_started and not self.is_ghost:
-		self.camera.zoom = Vector2.ONE
-		var hurtboxCenterYs = []
-		for player in players.values():
-			hurtboxCenterYs.append(player.get_hurtbox_center().y)
-		var lowy = hurtboxCenterYs[0]
-		var highy = hurtboxCenterYs[0]
-		for y in hurtboxCenterYs:
-			if y < lowy:
-				lowy = y
-			if y > highy:
-				highy = y
-		var dist = highy - lowy
-		if dist > 210:
-			var dist_ratio = dist / float(210)
-			self.camera.zoom = Vector2.ONE * dist_ratio
-		self.camera.zoom *= self.camera_zoom
-	if is_instance_valid(ghost_game):
-		ghost_game.camera.zoom = self.camera.zoom
-		ghost_game.camera.position = self.camera.position
-		ghost_game.camera.position = self.camera.position
+		if is_instance_valid(ghost_game):
+			ghost_game.camera_zoom = camera_zoom
+			ghost_game.update_camera_limits()
 
-	self.camera_snap_position = self.camera.position
+		if self.game_started and not self.is_ghost:
+			self.camera.zoom = Vector2.ONE
+			var hurtboxCenterYs = []
+			for player in players.values():
+				hurtboxCenterYs.append(player.get_hurtbox_center().y)
+			var lowy = hurtboxCenterYs[0]
+			var highy = hurtboxCenterYs[0]
+			for y in hurtboxCenterYs:
+				if y < lowy:
+					lowy = y
+				if y > highy:
+					highy = y
+			var dist = highy - lowy
+			if dist > 210:
+				var dist_ratio = dist / float(210)
+				self.camera.zoom = Vector2.ONE * dist_ratio
+			self.camera.zoom *= self.camera_zoom
+		if is_instance_valid(ghost_game):
+			ghost_game.camera.zoom = self.camera.zoom
+			ghost_game.camera.position = self.camera.position
+			ghost_game.camera.position = self.camera.position
+
+		camera_snap_position = camera.position
 
 	if is_ghost and Global.ghost_speed > 2:
 		var current_time = Time.get_unix_time_from_system()
@@ -1457,13 +1638,21 @@ func _process(delta):
 			ghost_time = current_time
 			if ghost_actionable_freeze_ticks > 0:
 				pass
-			else :
+			else:
 				for i in range(floor(ghost_delta / min_delta)):
 					call_deferred("ghost_tick")
 
 	set_vanilla_game_started(false)
 
+func playback_speed_allows_tick() -> bool:
+	if Global.playback_speed_mod == -1:
+		return real_tick % 3 != 2
+	elif Global.playback_speed_mod > 0:
+		return real_tick % Global.playback_speed_mod == 0
+	return true
+
 func _physics_process(_delta):
+	hooks.physics_process(_delta)
 	set_vanilla_game_started(true)
 
 	if self.forfeit:
@@ -1487,22 +1676,22 @@ func _physics_process(_delta):
 			if ReplayManager.playback:
 				for i in range(1):
 					process_tick()
-			else :
+			else:
 				process_tick()
-		else :
+		else:
 			call_deferred("simulate_one_tick")
-			if self.current_tick >= self.game_end_tick + 120:
+			if !buffer_playback and current_tick >= game_end_tick + 120:
 				start_playback()
-	else :
-		if self.ghost_actionable_freeze_ticks > 0:
-			self.ghost_actionable_freeze_ticks -= 1
-			if self.ghost_actionable_freeze_ticks == 0:
+	else:
+		if ghost_actionable_freeze_ticks > 0:
+			ghost_actionable_freeze_ticks -= 1
+			if ghost_actionable_freeze_ticks == 0:
 				emit_signal("make_afterimage")
 		elif Global.ghost_speed <= 2:
 			call_deferred("ghost_tick")
 
 	self.super_active = self.super_freeze_ticks > 0
-	if self.super_freeze_ticks > 0:
+	if self.super_freeze_ticks > 0 and playback_speed_allows_tick():
 		self.super_freeze_ticks -= 1
 		if self.super_freeze_ticks == 0:
 			self.super_active = false
@@ -1522,7 +1711,7 @@ func _physics_process(_delta):
 			Network.sync_tick()
 		self.player_actionable = false
 
-	if not self.is_ghost:
+	if not self.is_ghost and playback_speed_allows_tick():
 		if self.snapping_camera:
 			var target = Vector2(0, 0)
 			if self.camera.focused_object:
@@ -1530,12 +1719,14 @@ func _physics_process(_delta):
 			elif self.forfeit_player:
 				target = self.forfeit_player.global_position
 			else:
+				var count := 0
 				for player in players.values():
 					if player.game_over:
 						continue
 					
 					target += player.global_position
-				target /= len(players)
+					count += 1
+				target /= count
 			if self.camera.global_position.distance_squared_to(target) > 10:
 				self.camera.global_position = lerp(self.camera.global_position, target, 0.28)
 	if is_instance_valid(ghost_game):
@@ -1545,7 +1736,8 @@ func _physics_process(_delta):
 
 	if not self.is_ghost and self.buffer_playback:
 		ReplayManager.resimulating = false
-		self.game_finished = false
+		ReplayManager.play_full = false
+		game_finished = false
 		emit_signal("simulation_continue")
 		start_playback()
 
@@ -1570,18 +1762,13 @@ func ghost_tick():
 		simulate_frames = 1 if self.ghost_tick % 4 == 0 else 0
 	self.ghost_tick += 1
 
-
-
-
-
-
 	p1.grounded_indicator.hide()
 	p2.grounded_indicator.hide()
 	for i in range(simulate_frames):
 		if self.ghost_actionable_freeze_ticks == 0:
 			ghost_simulated_ticks += 1
 			simulate_one_tick()
-		if self.current_tick > GHOST_FRAMES:
+		if ghost_simulated_ticks > GHOST_FRAMES:
 			emit_signal("ghost_finished")
 
 		# REVIEW - This could probably be optimized
@@ -1642,7 +1829,6 @@ func super_dim():
 
 func update_mouse_world_position():
 	Global.mouse_world_position = Global.screen_to_world(get_local_mouse_position())
-	pass
 
 func _unhandled_input(event: InputEvent):
 	if is_afterimage:
@@ -1657,14 +1843,16 @@ func _unhandled_input(event: InputEvent):
 			drag_position = null
 	if event is InputEventMouseMotion:
 		if drag_position and ((is_waiting_on_player() and !ReplayManager.playback) or Global.frame_advance):
-			camera.global_position -= event.relative
+			# event.relative is in screen pixels; camera position is in world
+			# units. scale by zoom so the panned point stays under the cursor
+			# at any zoom level.
+			camera.global_position -= event.relative * camera.zoom
 			snapping_camera = false
 		
-	if !is_ghost and singleplayer:
+	if !is_ghost and (singleplayer or spectating):
 			if event.is_action_pressed("playback"):
-				if !game_finished and !ReplayManager.playback:
-					if is_waiting_on_player() and current_tick > 0:
-						buffer_playback = true
+				if !ReplayManager.resimulating and current_tick > 0:
+					buffer_playback = true
 			if event.is_action_pressed("edit_replay"):
 				if ReplayManager.playback:
 					buffer_edit = true
@@ -1676,7 +1864,8 @@ func _unhandled_input(event: InputEvent):
 					zoom_in()
 				if event.button_index == BUTTON_WHEEL_DOWN:
 					zoom_out()
-	update_mouse_world_position()
+	if !is_ghost:
+		update_mouse_world_position()
 
 func update_camera_limits():
 	if camera_zoom == 1.0 and stage_width > 320:
@@ -1750,10 +1939,13 @@ func show_state():
 	for player in players.values():
 		player.position = player.get_pos_visual()
 		player.update()
-	for object in self.objects:
+	
+	for object in active_objects:
+		if object.disabled:
+			continue
 		object.position = object.get_pos_visual()
 		object.update()
-
+	
 
 
 func _debug_throw(event: String, payload := {}):
@@ -1761,9 +1953,6 @@ func _debug_throw(event: String, payload := {}):
 		return
 	var tag = "[Ghost]" if self.is_ghost else "[Main]"
 	print("%s %s %s" % [tag, event, payload])
-
-
-
 
 func MultiHustle_get_color_by_index(index):
 	# TODO - Add more auto-colors
@@ -1780,8 +1969,6 @@ func MultiHustle_get_color_by_index(index):
 			_: # This SHOULD be deterministic, but I could see something going wrong.
 				player_colors[index] = Color(color_rng.randf(), color_rng.randf(), color_rng.randf())
 	return player_colors[index]
-
-
 
 func process_player_positions():
 	var height = 0

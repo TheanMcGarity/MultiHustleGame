@@ -390,7 +390,14 @@ func _ready():
 func _process(_delta):
 	if Engine.editor_hint: return
 	if not visible: return
-	
+
+	var game = Global.current_game
+	if is_instance_valid(game):
+		if was_game_paused and not game.game_paused:
+			_on_plot_mouse_exited()
+			mouse_clicked = false
+		was_game_paused = game.game_paused
+
 	if mouse_over and mouse_clicked:
 		update_value()
 
@@ -474,10 +481,12 @@ var mouse_over = false
 var mouse_clicked = false
 var buffer_changed = false
 var buffer_update = false
+var was_game_paused = false
 
 const PERCENT_MAX = 100
 
 var value_float = Vector2()
+var last_di_pos = null
 
 const SNAP_AMOUNT = 0.1
 
@@ -490,12 +499,15 @@ func _on_plot_mouse_entered():
 	mouse_over = true
 	x_label.show()
 	y_label.show()
+	Hotkeys.hovered_xy_plot = self
 
 func _on_plot_mouse_exited():
 	mouse_over = false
 	if not mouse_clicked:
 		x_label.hide()
 		y_label.hide()
+	if Hotkeys.hovered_xy_plot == self:
+		Hotkeys.hovered_xy_plot = null
 
 func get_update_speed():
 	return ((1.0 + (1.0 / Global.get_ghost_speed_modifier())) / 2.0) * 0.3
@@ -536,7 +548,7 @@ func midpoint():
 	
 	return Vector2(pos_x, pos_y)
 
-func update_value(p = null, set_buffer_update = true):
+func update_value(p = null, set_buffer_update = true, ignore_snap = false):
 	var limit_center = get_limit_center()
 	var limit_range = get_limit_range()
 
@@ -576,7 +588,22 @@ func update_value(p = null, set_buffer_update = true):
 			point = point.normalized() * length
 			angle = point.angle()
 	
-	if snap:
+	# When the snap-toggle feature flag is off (current shipping default), XY
+	# plots always snap whenever the plot's `snap` property is set. The
+	# hold-key derivation below is preserved verbatim so flipping the flag
+	# back on revives the old UX without needing to re-derive it.
+	var snap_now = true
+	if Global.XY_SNAP_TOGGLE_ENABLED:
+		# Rebindable snap-override key (default SHIFT). In-editor there's no
+		# Hotkeys autoload, so fall back to the raw key there.
+		var shift_pressed
+		if Engine.editor_hint or not InputMap.has_action(Hotkeys.XY_SNAP_OVERRIDE):
+			shift_pressed = Input.is_key_pressed(KEY_SHIFT)
+		else:
+			shift_pressed = Input.is_action_pressed(Hotkeys.XY_SNAP_OVERRIDE)
+		var invert_snap = (not Engine.editor_hint) and Global.xyplot_invert_snap
+		snap_now = shift_pressed if invert_snap else !shift_pressed
+	if snap and snap_now and not ignore_snap:
 		if snap_radius > 0.0:
 			if abs(point.length() / panel_radius - snap_radius) < SNAP_AMOUNT:
 				point = point.normalized() * snap_radius * panel_radius
@@ -688,3 +715,16 @@ func as_percentage_int_vec(vec2: Vector2):
 
 func get_value_float():
 	return value_float
+
+func set_last_di(di):
+	var di_x = int(di.x) if di != null else 0
+	var di_y = int(di.y) if di != null else 0
+	if di_x == 0 and di_y == 0:
+		last_di_pos = null
+	else:
+		var mid = midpoint()
+		last_di_pos = mid + Vector2(
+			(di_x / float(PERCENT_MAX)) * panel_radius,
+			(di_y / float(PERCENT_MAX)) * panel_radius
+		).round()
+	update()

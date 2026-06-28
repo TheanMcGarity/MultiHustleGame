@@ -63,7 +63,7 @@ func _enter():
 
 	var knockback_force = fixed.normalized_vec_times(x, y, hitbox.knockback)
 
-	
+
 	host.set_facing(Utils.int_sign(fixed.round(x)) * -1)
 	var di = host.get_scaled_di(host.current_di)
 	var di_force = fixed.vec_mul(di.x, di.y, fixed.mul(DI_STRENGTH, hitbox.di_modifier))

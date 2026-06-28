@@ -73,7 +73,7 @@ func _exit_shared():
 #######################
 
 func _enter():
-	# Initialize state 
+	# Initialize state
 	pass
 
 func _tick_before():

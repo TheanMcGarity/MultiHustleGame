@@ -47,6 +47,9 @@ shader_param/outline_color = Color( 0, 0, 0, 1 )
 
 [node name="BaseProjectile" instance=ExtResource( 1 )]
 script = ExtResource( 5 )
+max_ground_speed = "14"
+max_air_speed = "14"
+max_fall_speed = "14"
 extra_state_variables = "spawn_acid_bubble_cooldown
 spawn_acid_bubble_startup"
 

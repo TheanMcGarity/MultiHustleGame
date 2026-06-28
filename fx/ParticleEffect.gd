@@ -13,6 +13,11 @@ var emitting = true
 var enabled = true
 var tick = 0
 
+# Modding hooks node (ParticleHooks or a subclass). Grabbed from the
+# scene in _ready; see ParticleHooks.gd. Carried in fx/ParticleEffect.tscn
+# (script overridden in fx/CustomTrailParticle.tscn).
+var hooks = null
+
 var sounds_played = {
 	
 }
@@ -37,8 +42,16 @@ func _ready():
 #			child.set_material(get_material())
 	if !ReplayManager.playback:
 		set_enabled(false)
-		tick_timer.connect("timeout", self, "on_tick_timer_timeout")
+		if not tick_timer.is_connected("timeout", self, "on_tick_timer_timeout"):
+			tick_timer.connect("timeout", self, "on_tick_timer_timeout")
 	call_deferred("update_dir")
+	# Gated on ModLoader.active — with mods off, hooks stays null so the
+	# fire-sites skip (inert scene node just left unused). See ParticleHooks.gd.
+	if ModLoader.active:
+		hooks = get_node_or_null("Hooks")
+		if hooks:
+			hooks.host = self
+			hooks.ready()
 
 func update_dir():
 	var timer = Timer.new()
@@ -65,6 +78,8 @@ func on_tick_timer_timeout():
 		set_enabled(false)
 
 func start_emitting():
+	if hooks:
+		hooks.start_emitting()
 	show()
 	emitting = true
 	set_enabled(true)
@@ -75,7 +90,10 @@ func start_emitting():
 		if child is CPUParticles2D:
 			child.emitting = true
 			child.restart()
+
 func start():
+	if hooks:
+		hooks.start()
 	start_emitting()
 	for child in get_children():
 		if child is AnimatedSprite:
@@ -85,6 +103,8 @@ func start():
 
 func stop_emitting():
 #	emitting = false
+	if hooks:
+		hooks.stop_emitting()
 	for child in get_children():
 		if child is Particles2D:
 			child.emitting = false
@@ -92,11 +112,17 @@ func stop_emitting():
 			child.emitting = false
 
 func tick():
+	if hooks:
+		hooks.tick()
 	set_enabled(true)
 	tick_timer.start()
 	tick += 1
 	for child in get_children():
 		if child is AnimatedSprite:
+			# AnimatedSprite without frames (e.g., custom hitspark whose
+			# config hasn't been applied yet) — skip rather than crash.
+			if child.frames == null:
+				continue
 			if child.frames.get_frame_count(child.animation) > tick:
 				child.frame = tick
 			else:

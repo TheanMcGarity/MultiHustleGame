@@ -3,8 +3,8 @@ extends TextureProgress
 #const BAR_PADDING = 1
 #const READY_COLOR = Color("1d8df5")
 #const NORMAL_COLOR = Color("04579a")
-const texture_1 = preload("res://ui/burst2.png")
-const texture_2 = preload("res://ui/burst3.png")
+var texture_1 = preload("res://ui/burst2.png")
+var texture_2 = preload("res://ui/burst3.png")
 export var reverse = false
 
 onready var ready_label = $ReadyLabel
@@ -12,6 +12,10 @@ onready var ready_label = $ReadyLabel
 var fighter: Fighter
 
 func _ready():
+	
+	if reverse:
+		texture_1 = preload("res://ui/burstp2_2.png")
+		texture_2 = preload("res://ui/burstp2_3.png")
 	texture_progress = texture_2
 
 func _process(delta):

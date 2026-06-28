@@ -3,7 +3,7 @@ extends DefaultFireball
 const ACTIVATE_DISTANCE = "24"
 const MIN_LIFETIME = 16
 const Y_FRIC = "0.05"
-const MOVE_SPEED = "1.5"
+const MOVE_SPEED = "2.5"
 const AVOID_SPEED = "0.50"
 const AVOID_DISTANCE = "24.0"
 
@@ -17,6 +17,12 @@ func _tick():
 	if current_tick > arming_time and !armed:
 		return "Armed"
 	if armed:
+		if host.delay_ticks > 0:
+			host.delay_ticks -= 1
+			if host.delay_ticks == 0:
+				if host.exploded:
+					host.explode()
+					return
 		var pos = host.get_pos()
 		var obj = host.creator.opponent
 		var center = obj.get_hurtbox_center()
@@ -25,11 +31,6 @@ func _tick():
 			if host.delay_ticks <= 0:
 				host.explode()
 			return
-		if host.delay_ticks > 0:
-			host.delay_ticks -= 1
-			if host.delay_ticks == 0:
-				if host.exploded:
-					host.explode()
 
 	for obj_name in host.objs_map:
 		var obj = host.objs_map[obj_name]
@@ -37,12 +38,14 @@ func _tick():
 			continue
 		if obj.is_in_group("SparkBomb"):
 			var obj_pos = host.obj_local_center(obj)
+
 			if fixed.lt(fixed.vec_len(str(obj_pos.x), str(obj_pos.y)), AVOID_DISTANCE):
 				var move_dir = fixed.normalized_vec_times(str(obj_pos.x), str(obj_pos.y), "-" + AVOID_SPEED)
 				host.move_directly(move_dir.x, move_dir.y)
 			pass
 	
 	var dir = host.obj_local_center(host.creator.opponent)
+	dir.y += 10
 	var move_dir = fixed.normalized_vec_times(str(dir.x), str(dir.y), MOVE_SPEED)
 	host.move_directly(move_dir.x, move_dir.y)
 	host.apply_x_fric(Y_FRIC)

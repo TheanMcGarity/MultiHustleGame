@@ -11,5 +11,6 @@ func _on_hit_something(obj, hitbox):
 	host.set_vel(vel.x, HIT_LIFT)
 
 func on_got_blocked():
+	.on_got_blocked()
 	var vel = host.get_vel()
 	host.set_vel(vel.x, HIT_LIFT)

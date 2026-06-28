@@ -40,10 +40,9 @@ script = ExtResource( 5 )
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 18.0
-margin_right = 60.0
 margin_bottom = 84.0
 always_max = true
-default_value = Vector2( 0, -1 )
+default_value = Vector2( 1, 0 )
 
 [node name="Control" type="Control" parent="Direction"]
 

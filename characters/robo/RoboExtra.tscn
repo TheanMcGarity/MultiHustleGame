@@ -17,8 +17,8 @@ alignment = 2
 
 [node name="LOIC" parent="VBoxContainer" index="0" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 232.0
-margin_bottom = 258.0
+margin_top = 219.0
+margin_bottom = 245.0
 force_neutral_when_invisible = false
 NW = false
 N = false
@@ -29,18 +29,25 @@ SE = false
 
 [node name="FlyDir" parent="VBoxContainer" index="1" instance=ExtResource( 3 )]
 unique_name_in_owner = true
-margin_top = 259.0
-margin_bottom = 321.0
+margin_top = 246.0
+margin_bottom = 308.0
 alignment = 1
 
 [node name="FlyEnabled" type="CheckButton" parent="VBoxContainer" index="2"]
 unique_name_in_owner = true
+margin_top = 309.0
+margin_right = 52.0
+margin_bottom = 321.0
+text = "Fly"
+
+[node name="HonkEnabled" type="CheckButton" parent="VBoxContainer" index="3"]
+unique_name_in_owner = true
 margin_top = 322.0
 margin_right = 52.0
 margin_bottom = 334.0
-text = "Fly"
+text = "Honk"
 
-[node name="ArmorEnabled" type="CheckButton" parent="VBoxContainer" index="3"]
+[node name="ArmorEnabled" type="CheckButton" parent="VBoxContainer" index="4"]
 unique_name_in_owner = true
 margin_top = 335.0
 margin_right = 52.0
@@ -48,7 +55,7 @@ margin_bottom = 347.0
 size_flags_vertical = 0
 text = "Armor"
 
-[node name="NadeActive" type="CheckButton" parent="VBoxContainer" index="4"]
+[node name="NadeActive" type="CheckButton" parent="VBoxContainer" index="5"]
 unique_name_in_owner = true
 margin_top = 348.0
 margin_right = 52.0
@@ -56,7 +63,7 @@ margin_bottom = 360.0
 size_flags_vertical = 0
 text = "Bomb"
 
-[node name="PullEnabled" type="CheckButton" parent="VBoxContainer" index="5"]
+[node name="PullEnabled" type="CheckButton" parent="VBoxContainer" index="6"]
 unique_name_in_owner = true
 visible = false
 margin_top = 348.0
@@ -65,7 +72,7 @@ margin_bottom = 360.0
 size_flags_vertical = 0
 text = "Pull"
 
-[node name="DriveCancel" type="CheckButton" parent="VBoxContainer" index="6"]
+[node name="DriveCancel" type="CheckButton" parent="VBoxContainer" index="7"]
 unique_name_in_owner = true
 visible = false
 margin_top = 348.0

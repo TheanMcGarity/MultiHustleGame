@@ -15,7 +15,7 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	var game = Global.current_game
-	visible = game and game.game_paused and !host.disabled and Global.show_projectile_owners and !host.is_ghost
+	visible = game and game.game_paused and !host.disabled and Global.show_projectile_owners and !host.is_ghost and !Global.ui_hidden
 	update()
 
 func _draw():

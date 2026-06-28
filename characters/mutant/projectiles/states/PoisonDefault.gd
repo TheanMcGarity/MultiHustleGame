@@ -11,8 +11,8 @@ func _tick():
 	var opponent = host.get_fighter().opponent
 	var pos = opponent.get_hurtbox_center()
 	host.set_pos(pos.x, pos.y)
-	if current_tick % DAMAGE_EVERY == 0:
-		opponent.take_damage(DAMAGE)
+#	if current_tick % DAMAGE_EVERY == 0:
+#		opponent.take_damage(DAMAGE)
 
 	if host.is_ghost:
 		host.poison_particle_2.hide()

@@ -50,7 +50,7 @@ shader_param/outline_color = Color( 0, 0, 0, 1 )
 [node name="BaseProjectile" instance=ExtResource( 1 )]
 material = SubResource( 2 )
 script = ExtResource( 8 )
-apply_hitlag_when_hit_by_melee = true
+has_projectile_parry_window = false
 disable_obj = ExtResource( 4 )
 disable_particle = ExtResource( 5 )
 no_hitlag = false
@@ -58,7 +58,6 @@ explode_tick = 60
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 1 )
-frame = 1
 playing = true
 
 [node name="ParticleEffect" parent="Flip/Particles" index="0"]
@@ -88,7 +87,25 @@ hit_bass_sound = null
 grounded_hit_state = "HurtGrounded"
 knockdown = false
 
-[node name="Drop" parent="StateMachine" index="2"]
+[node name="LaunchRedirect" parent="StateMachine" index="2"]
+anim_length = 8
+ticks_per_frame = 4
+loop_animation = true
+
+[node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
+__meta__ = {
+"_editor_description_": ""
+}
+damage = 0
+increment_combo = false
+plus_frames = 3
+whiff_sound = null
+hit_sound = null
+hit_bass_sound = null
+grounded_hit_state = "HurtGrounded"
+knockdown = false
+
+[node name="Drop" parent="StateMachine" index="3"]
 anim_length = 8
 ticks_per_frame = 4
 loop_animation = true

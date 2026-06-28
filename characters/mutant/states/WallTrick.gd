@@ -40,7 +40,7 @@ func _frame_0():
 	if host.is_neutral_juke():
 		host.juke_ticks += 2
 	
-func _frame_1():
+func _frame_2():
 	host.start_projectile_invulnerability()
 
 func _frame_8():

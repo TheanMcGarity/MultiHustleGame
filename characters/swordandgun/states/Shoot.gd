@@ -4,6 +4,12 @@ const BULLET_SCENE = preload("res://characters/swordandgun/projectiles/bullet.ts
 const MUZZLE_FLASH_SCENE = preload("res://characters/swordandgun/projectiles/MuzzleFlash.tscn")
 const TEMPORAL_BULLET_SCENE = preload("res://characters/swordandgun/projectiles/frozen_bullet.tscn")
 const FAST_TEMPORAL_BULLET_SCENE = preload("res://characters/swordandgun/projectiles/frozen_bullet_fast.tscn")
+# Reworked Temporal Round (shows a ricochet path then activates swept hitboxes
+# along it). Currently SEVERED — the move uses the old frozen bullet →
+# NewTimeBullet flow. Flip USE_PATH_TEMPORAL back to true to re-enable the
+# path projectile (TemporalPath.gd / TemporalPathDefault.gd kept around for it).
+const TEMPORAL_PATH_SCENE = preload("res://characters/swordandgun/projectiles/TemporalPath.tscn")
+const USE_PATH_TEMPORAL = false
 #const BULLET_LENGTH = "1024"
 const KICKBACK_FORCE = "-1.0"
 const AUTO_AIM_DIST = "0.2"
@@ -70,11 +76,20 @@ func _frame_4():
 #		bullet_location.x = fixed.round(fixed.add(str(bullet_location.x), opp_vel.x))
 #		bullet_location.y = fixed.round(fixed.add(str(bullet_location.y), opp_vel.y))
 		
-		var bullet = host.spawn_object(TEMPORAL_BULLET_SCENE if !fast else FAST_TEMPORAL_BULLET_SCENE, fixed.round(bullet_location.x), fixed.round(bullet_location.y), true, bullet_location, false)
-		
-		bullet.set_facing(Utils.int_sign(host.opponent.get_pos().x - pos.x))
-		var barrel_location = host.get_barrel_location(angle)
-		host.temporal_round = bullet.obj_name
+		if USE_PATH_TEMPORAL:
+			# New behavior: spawn the path projectile. Direction = the shot
+			# (world-space toward the opponent); it computes its own ricochet
+			# path + delay (fast/normal) internally.
+			var bullet = host.spawn_object(TEMPORAL_PATH_SCENE, fixed.round(bullet_location.x), fixed.round(bullet_location.y), true, bullet_location, false)
+			bullet.dir_x = dir.x
+			bullet.dir_y = dir.y
+			bullet.fast = fast
+			host.temporal_round = bullet.obj_name
+		else:
+			var bullet = host.spawn_object(TEMPORAL_BULLET_SCENE if !fast else FAST_TEMPORAL_BULLET_SCENE, fixed.round(bullet_location.x), fixed.round(bullet_location.y), true, bullet_location, false)
+
+			bullet.set_facing(Utils.int_sign(host.opponent.get_pos().x - pos.x))
+			host.temporal_round = bullet.obj_name
 
 func is_accurate(dir, angle):
 #	print(fixed.angle_dist(fixed.vec_to_angle(dir.x, dir.y), angle))

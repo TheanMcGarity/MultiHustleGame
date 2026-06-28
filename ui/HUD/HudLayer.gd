@@ -1,5 +1,9 @@
 extends CanvasLayer
 
+# Same color-replacement shader the character sprite uses, so the HUD
+# portrait can be recolored with a player's style palette.
+const CHAR_SHADER = preload("res://characters/BaseChar.gdshader")
+
 var game: Game
 
 onready var p1_healthbar = $"%P1HealthBar"
@@ -72,6 +76,18 @@ var p2_effects = []
 var p1_prev_super = 0
 var p2_prev_super = 0
 
+# Last hp_pct we wrote to Steam lobby member data for the local fighter,
+# and the os-msec timestamp it was written at. Together they cap writes
+# to "when the integer percent changes AND at least HP_PUBLISH_MIN_INTERVAL_MS
+# has elapsed" so a heavy combo that flips several percents per frame
+# doesn't spam lobby_data_update on every client.
+var _last_published_hp_pct := -1
+var _last_hp_publish_msec := 0
+const HP_PUBLISH_MIN_INTERVAL_MS = 3000
+
+func _ready():
+	hide()
+	$"%WinLabel".hide()
 
 func init(game):
 	show()
@@ -120,7 +136,6 @@ func init(game):
 	p1_air_movement_label.text = p1.air_option_bar_name
 	p2_air_movement_label.text = p2.air_option_bar_name
 	
-	
 
 	if Network.multiplayer_active and !SteamLobby.SPECTATING:
 		$"%P1Username".text = Network.pid_to_username(1)
@@ -130,11 +145,52 @@ func init(game):
 			$"%P1Username".text = game.match_data.user_data.p1
 		if game.match_data.user_data.has("p2"):
 			$"%P2Username".text = game.match_data.user_data.p2
+	# Personalization name-color: in Steam matches, each side's color comes
+	# from that side's published lobby member data so both fighters render
+	# in their own picked color (including for spectators). In legacy MP /
+	# SP / replay there's no broadcast channel, so just color the local
+	# user's side from Global.
+	$"%P1Username".remove_color_override("font_color")
+	$"%P2Username".remove_color_override("font_color")
+	# Saved replays bring their own color snapshot in user_data — that's the
+	# source of truth for replay playback (live lobby data may not exist
+	# anymore). Prefer it over the live lookup, fall back to live for matches
+	# where it wasn't recorded (older replays).
+	var ud = game.match_data.get("user_data", {}) if game.match_data else {}
+	var p1_color = null
+	var p2_color = null
+	if ud.get("p1_color") is String and ud.p1_color != "":
+		p1_color = Color("#" + ud.p1_color)
+	if ud.get("p2_color") is String and ud.p2_color != "":
+		p2_color = Color("#" + ud.p2_color)
+	if p1_color == null or p2_color == null:
+		if Network.steam:
+			var p1_steam = SteamLobby.steam_id_for_match_side(1)
+			var p2_steam = SteamLobby.steam_id_for_match_side(2)
+			if p1_color == null and p1_steam != 0:
+				p1_color = Global.get_remote_name_color(p1_steam)
+			if p2_color == null and p2_steam != 0:
+				p2_color = Global.get_remote_name_color(p2_steam)
+		elif !SteamLobby.SPECTATING and Global.has_name_color():
+			# Network.player_id defaults to 2 and is only set in actual MP
+			# setup paths. Treat non-multiplayer as "you are P1" so vs-CPU
+			# shows the user's color on their character.
+			var my_side = Network.player_id if Network.multiplayer_active else 1
+			if my_side == 1 and p1_color == null:
+				p1_color = Global.get_name_color()
+			elif my_side == 2 and p2_color == null:
+				p2_color = Global.get_name_color()
+	if p1_color != null:
+		$"%P1Username".add_color_override("font_color", p1_color)
+	if p2_color != null:
+		$"%P2Username".add_color_override("font_color", p2_color)
 	
 	$"%P1ShowStyle".set_pressed_no_signal(true)
 	$"%P2ShowStyle".set_pressed_no_signal(true)
-	
-	
+	refresh_portrait_style(1)
+	refresh_portrait_style(2)
+
+
 	game.connect("game_won", self, "on_game_won")
 	
 	
@@ -143,6 +199,49 @@ func init(game):
 	$"%P2Portrait".self_modulate = game.MultiHustle_get_color_by_index(2)
 
 	game.connect("team_game_won", self, "on_team_won")
+
+# Recolor a player's HUD portrait with their style's palette (colors only —
+# no auras / outline effects beyond what the palette defines). Mirrors the
+# CSS CharacterDisplay path: the source replacement colors come from the
+# character itself, the target colors from the applied style. The portrait
+# always runs through the color-replacement shader (no modulate tint) — when
+# the style is off / null / disabled it falls back to the engine's default
+# per-player body color (P1_COLOR / P2_COLOR) at the shader level.
+func refresh_portrait_style(player_id):
+	if not is_instance_valid(game):
+		return
+	var portrait = $"%P1Portrait" if player_id == 1 else $"%P2Portrait"
+	var show_btn = $"%P1ShowStyle" if player_id == 1 else $"%P2ShowStyle"
+	var player = game.get_player(Network.main.ui_layer.GetRealID(player_id))
+	if player == null:
+		return
+	# All coloring happens in the shader now — clear any modulate tint baked
+	# into the scene so it doesn't double up on the shader color.
+	portrait.modulate = Color.white
+	portrait.self_modulate = Color.white
+	var mat = portrait.material
+	if not (mat is ShaderMaterial):
+		mat = ShaderMaterial.new()
+		mat.shader = CHAR_SHADER
+		portrait.material = mat
+	# Source magenta keys to replace come from the character; reset the base
+	# params before applying either the style or the default color.
+	mat.set_shader_param("extra_replace_color_1", player.extra_color_1)
+	mat.set_shader_param("extra_replace_color_2", player.extra_color_2)
+	mat.set_shader_param("use_outline", false)
+	mat.set_shader_param("use_extra_color_1", false)
+	mat.set_shader_param("use_extra_color_2", false)
+	var style = player.applied_style
+	if show_btn.pressed and style != null and Global.enable_custom_colors:
+		mat.set_shader_param("color", Color.white)
+		Custom.apply_style_to_material(style, mat, true)
+	else:
+		# Default per-player body color (same constants the character sprite
+		# uses in reset_color), applied at the shader level instead of via a
+		# modulate tint.
+		
+		 / fix /
+		mat.set_shader_param("color", player.P1_COLOR if player_id == 1 else player.P2_COLOR)
 
 func healthbar_armor_effect(player, healthbar: TextureProgress, no_armor_image, armor_image, projectile_armor_image):
 	if player.has_armor():
@@ -166,6 +265,37 @@ func drain_health_trail(trail, drain_value):
 			trail.value = drain_value
 	else:
 		trail.value = drain_value
+
+# Copy the ghost's "Ready in Xf" / "Interrupt in Xf" / "Hit @ Xf" floating
+# labels into fixed HUD spots, and (independently) hide the same text on the
+# characters themselves via modulate so it doesn't obscure the prediction.
+# Both are user-toggleable; default is HUD on, character labels on.
+func _sync_next_turn_info(p1_ghost, p2_ghost):
+	if Global.show_next_turn_info_hud:
+		_mirror_next_turn_label($"%P1NextTurnReadyLabel", p1_ghost.actionable_label)
+		_mirror_next_turn_label($"%P1NextTurnHitLabel", p1_ghost.hit_frame_label)
+		_mirror_next_turn_label($"%P2NextTurnReadyLabel", p2_ghost.actionable_label)
+		_mirror_next_turn_label($"%P2NextTurnHitLabel", p2_ghost.hit_frame_label)
+	else:
+		$"%P1NextTurnReadyLabel".text = ""
+		$"%P1NextTurnHitLabel".text = ""
+		$"%P2NextTurnReadyLabel".text = ""
+		$"%P2NextTurnHitLabel".text = ""
+	# Hide on characters via modulate (not .visible) so ghost_tick's visibility
+	# gating in game.gd stays untouched — the label still counts as "shown",
+	# just renders at alpha 0.
+	var char_alpha = 1.0 if Global.show_next_turn_info_on_chars else 0.0
+	p1_ghost.actionable_label.modulate.a = char_alpha
+	p1_ghost.hit_frame_label.modulate.a = char_alpha
+	p2_ghost.actionable_label.modulate.a = char_alpha
+	p2_ghost.hit_frame_label.modulate.a = char_alpha
+
+func _mirror_next_turn_label(hud_label, char_label):
+	if not is_instance_valid(char_label) or not char_label.visible:
+		hud_label.text = ""
+		return
+	# Char labels use "Ready\nin Xf" multi-line; flatten for the narrow HUD spot.
+	hud_label.text = char_label.text.replace("\n", " ")
 
 var p1index:int = 1
 var p2index:int = 2
@@ -356,7 +486,6 @@ var ghost_hp_trails = {}
 var hp_trails = {}
 
 func _physics_process(_delta):
-
 	if is_instance_valid(game):
 		$"%Timer".text = str(game.get_ticks_left())
 		# Process all HP trails here first
@@ -415,6 +544,7 @@ func _physics_process(_delta):
 			mh_p2_ghost_health_bar.value = max(p2_ghost.hp, 0)
 			mh_p1_ghost_health_bar_trail.value = ghost_hp_trails[p1index]
 			mh_p2_ghost_health_bar_trail.value = ghost_hp_trails[p2index]
+			_sync_next_turn_info(p1_ghost, p2_ghost)
 		else:
 			for index in game.players.keys():
 				ghost_hp_trails[index] = 0

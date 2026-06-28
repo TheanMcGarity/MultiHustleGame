@@ -9,13 +9,22 @@ var force_y
 
 var refresh_amount = REFRESH_AMOUNT
 
-onready var hitbox = $Hitbox
-
 func init(pos=null):
 	.init(pos)
-	var fighter = get_fighter()
-	if fighter:
-		get_fighter().stackriken_out = true
+	# Only set the owner's stackriken_out flag when we have a real creator
+	# chain. For fresh in-game spawns the Shuriken creator is still in
+	# objs_map so get_fighter() walks up correctly. For ghost copy_to spawns
+	# the Shuriken disabled itself when combining and isn't copied to the
+	# ghost, so creator is null here — the id-based fallback in get_fighter()
+	# would then return the wrong player (id=1 default before state_variables
+	# copy lands), incorrectly flagging the OTHER fighter and blocking them
+	# from creating their own Stackriken in the prediction. The owning
+	# fighter's stackriken_out is already copied via state_variables in the
+	# ghost case, so skipping this is safe.
+	if creator:
+		var fighter = creator.get_fighter()
+		if fighter:
+			fighter.stackriken_out = true
 	refresh_amount = REFRESH_AMOUNT
 
 func disable():

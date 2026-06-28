@@ -1,0 +1,125 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://characters/wizard/projectiles/telekinesis/TelekinesisBoulder.tscn" type="PackedScene" id=1]
+[ext_resource path="res://characters/wizard/projectiles/telekinesis/ice.png" type="Texture" id=2]
+[ext_resource path="res://fx/checkerboard_2.png" type="Texture" id=3]
+[ext_resource path="res://characters/BaseChar.gdshader" type="Shader" id=4]
+[ext_resource path="res://characters/wizard/projectiles/telekinesis/IceCrash.tscn" type="PackedScene" id=5]
+[ext_resource path="res://characters/wizard/projectiles/telekinesis/TelekinesisIce.gd" type="Script" id=6]
+
+[sub_resource type="ShaderMaterial" id=3]
+resource_local_to_scene = true
+shader = ExtResource( 4 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = false
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 2 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[sub_resource type="ShaderMaterial" id=4]
+resource_local_to_scene = true
+shader = ExtResource( 4 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = false
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="Curve" id=2]
+_data = [ Vector2( 0, 0.787577 ), 0.0, 0.415955, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
+
+[node name="BaseProjectile" instance=ExtResource( 1 )]
+material = SubResource( 3 )
+script = ExtResource( 6 )
+gravity = "0.5"
+air_friction = "0.2"
+max_ground_speed = "15"
+max_air_speed = "10"
+max_fall_speed = "15"
+has_projectile_parry_window = false
+roll_immunity_susceptible = true
+projectile_immune = false
+disable_particle = ExtResource( 5 )
+rumble = false
+no_hitlag = false
+
+[node name="Sprite" parent="Flip" index="0"]
+frames = SubResource( 1 )
+
+[node name="ParticleEffect" parent="Flip/Particles" index="0"]
+material = SubResource( 4 )
+
+[node name="CPUParticles2D2" type="CPUParticles2D" parent="Flip/Particles/ParticleEffect" index="2"]
+z_index = 1
+amount = 128
+lifetime = 4.0
+preprocess = 1.0
+randomness = 1.0
+lifetime_randomness = 1.0
+local_coords = false
+texture = ExtResource( 3 )
+emission_shape = 1
+emission_sphere_radius = 10.94
+direction = Vector2( 0, 1 )
+spread = 180.0
+gravity = Vector2( 0, 20 )
+initial_velocity = 7.57
+angular_velocity = 720.0
+angular_velocity_random = 1.0
+scale_amount = 1.46
+scale_amount_random = 1.0
+scale_amount_curve = SubResource( 2 )
+
+[node name="Launch" parent="StateMachine" index="1"]
+disable_when_this_far_from_terrain = 12
+speed = "11"
+floor_slide = true
+
+[node name="Hitbox" parent="StateMachine/Launch" index="0"]
+damage = 45
+hitstun_ticks = 45
+grounded_hit_state = "Frozen"
+aerial_hit_state = "Frozen"
+
+[node name="LaunchRedirect" parent="StateMachine" index="2"]
+disable_when_this_far_from_terrain = 12
+speed = "11"
+floor_slide = true
+
+[node name="Hitbox" parent="StateMachine/LaunchRedirect" index="0"]
+damage = 45
+hitstun_ticks = 45
+grounded_hit_state = "Frozen"
+aerial_hit_state = "Frozen"
+
+[node name="Drop" parent="StateMachine" index="3"]
+disable_when_this_far_from_terrain = 12
+speed = "11"
+
+[node name="Hitbox" parent="StateMachine/Drop" index="0"]
+damage = 45
+hitstun_ticks = 45
+grounded_hit_state = "Frozen"
+aerial_hit_state = "Frozen"
+
+[editable path="Flip/Particles/ParticleEffect"]

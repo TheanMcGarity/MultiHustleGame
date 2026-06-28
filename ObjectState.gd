@@ -78,6 +78,9 @@ export var enter_sfx_volume = -15.0
 export(AudioStream) var sfx = null
 export var sfx_tick = 1
 export var sfx_volume = -15.0
+export var sfx_pitch_variation = 0.1
+export var override_same_sfx = false
+export var override_same_wav = false
 
 export var _c_Projectiles = 0
 export(PackedScene) var projectile_scene
@@ -89,7 +92,6 @@ export var projectile_match_facing = false
 
 export var _c_Other = 0
 export var extra_parry_hitlag = 0
-
 
 export var _c_Flip = 0
 export var flip_frame = -1
@@ -115,6 +117,10 @@ var current_real_tick = -1
 var start_tick = -1
 var last_facing = 1
 var fixed
+
+var was_blocked = false
+var number_of_hits_blocked = 0
+
 var native
 
 var anim_name
@@ -450,6 +456,41 @@ func init():
 	update_property_list()
 	.init()
 
+# Like get_host_command but only counts a command that hasn't fired yet, i.e.
+# scheduled at a tick >= after_tick. Pass after_tick = -1 to treat the state as
+# fresh (every command still upcoming). Covers both HostCommand child nodes and
+# the exported host_commands dict (String or [method, args...] entries).
+func has_upcoming_host_command(command_name, after_tick = -1):
+	for tick in host_command_nodes:
+		if tick < after_tick:
+			continue
+		for command in host_command_nodes[tick]:
+			if command is HostCommand and command.command == command_name:
+				return true
+	for tick in host_commands:
+		if tick < after_tick:
+			continue
+		var command = host_commands[tick]
+		if command is String and command == command_name:
+			return true
+		elif command is Array and !command.empty() and command[0] == command_name:
+			return true
+	return false
+
+# True if a damaging, blockable hitbox is still active or upcoming at after_tick
+# (a move that can still land on block). Detect boxes and grabs are excluded —
+# they don't drive the on-block cancel path. after_tick = -1 treats it as fresh.
+func has_active_or_upcoming_hitbox(after_tick = -1):
+	for hitbox in all_hitbox_nodes:
+		if hitbox.hitbox_type == Hitbox.HitboxType.Detect or hitbox is ThrowBox:
+			continue
+		if hitbox.looping or hitbox.always_on:
+			if after_tick <= anim_length:
+				return true
+		elif after_tick <= hitbox.start_tick + hitbox.active_ticks:
+			return true
+	return false
+
 func get_host_command(command_name):
 	for command in host_command_nodes.values() + host_commands.values():
 		if command is Array:
@@ -474,19 +515,24 @@ func play_enter_sfx():
 	enter_sfx_player.play()
 
 func setup_audio():
+	if host and host.is_ghost:
+		return
 	if enter_sfx:
-		enter_sfx_player = VariableSound2D.new()
-		add_child(enter_sfx_player)
-		enter_sfx_player.bus = "Fx"
-		enter_sfx_player.stream = enter_sfx
-		enter_sfx_player.volume_db = enter_sfx_volume
+		enter_sfx_player = _make_sfx_player(enter_sfx, enter_sfx_volume)
 
 	if sfx:
-		sfx_player = VariableSound2D.new()
-		add_child(sfx_player)
-		sfx_player.bus = "Fx"
-		sfx_player.stream = sfx
-		sfx_player.volume_db = sfx_volume
+		sfx_player = _make_sfx_player(sfx, sfx_volume)
+
+func _make_sfx_player(stream: AudioStream, volume: float) -> VariableSound2D:
+	var player = VariableSound2D.new()
+	player.bus = "Fx"
+	player.stream = stream
+	player.volume_db = volume
+	player.pitch_variation = sfx_pitch_variation
+	player.override_same_sfx = override_same_sfx
+	player.override_same_wav = override_same_wav
+	add_child(player)
+	return player
 
 func setup_hitboxes():
 	all_hitbox_nodes = []
@@ -585,6 +631,9 @@ func _enter_shared():
 		var vel = host.get_vel()
 		host.set_vel(vel.x, "0")
 
+	was_blocked = false
+	number_of_hits_blocked = 0
+	
 	current_tick = -1
 	current_real_tick = -1
 	start_tick = host.current_tick
@@ -600,6 +649,7 @@ func _exit_shared():
 	host.reset_hurtbox()
 	host.end_invulnerability()
 	host.end_projectile_invulnerability()
+	host.end_roll_projectile_invulnerability()
 	host.end_throw_invulnerability()
 
 	host.end_aerial_attack_invulnerability()

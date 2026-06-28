@@ -17,4 +17,7 @@ func _frame_7():
 func _on_hit_something(obj, hitbox):
 	if host.combo_count <= 0:
 		host.combo_proration = 12
+		# Latch it, or the next combo hit's increment_opponent_combo overwrites
+		# this with that hitbox's (much lower) damage_proration.
+		host.combo_proration_set = true
 	._on_hit_something(obj, hitbox)

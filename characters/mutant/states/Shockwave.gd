@@ -1,5 +1,11 @@
 extends BeastState
 
+func _frame_0():
+	anim_length = 18
+	iasa_on_hit = 20
+	iasa_at = anim_length - 1
+	
+
 func process_projectile(obj):
 	host.shockwave_projectile = obj.obj_name
 
@@ -14,3 +20,9 @@ func _frame_12():
 
 func is_usable():
 	return host.shockwave_projectile == null and .is_usable()
+
+func on_got_perfect_parried():
+	anim_length = 24
+	iasa_on_hit = 24
+	iasa_at = anim_length - 1
+	pass

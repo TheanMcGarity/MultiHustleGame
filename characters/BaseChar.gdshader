@@ -30,24 +30,38 @@ void fragment() {
 		COLOR.rgb = color.rgb;
 		COLOR.a = texture(TEXTURE, UV).a;
 	}
-	if (use_outline && COLOR.a == 0.0) {
-		float size_x = 1.0/float(textureSize(TEXTURE, 0).x);
-		float size_y = 1.0/float(textureSize(TEXTURE, 0).y);
-		vec4 sprite_color = texture(TEXTURE, UV);
-		float alpha = -8.0 * sprite_color.a;
-		alpha += texture(TEXTURE, UV + vec2(size_x, 0)).a * float(same_color(texture(TEXTURE, UV + vec2(size_x, 0)).rgb, replacement_color.rgb));
-		alpha += texture(TEXTURE, UV + vec2(-size_x, 0)).a * float(same_color(texture(TEXTURE, UV + vec2(-size_x, 0)).rgb, replacement_color.rgb));
-		alpha += texture(TEXTURE, UV + vec2(0, size_y)).a * float(same_color(texture(TEXTURE, UV + vec2(0, size_y)).rgb, replacement_color.rgb));
-		alpha += texture(TEXTURE, UV + vec2(0, -size_y)).a * float(same_color(texture(TEXTURE, UV + vec2(0, -size_y)).rgb, replacement_color.rgb));
-		//For outlining corners
-		//Change the -4.0 to -8.0 in alpa if adding these lines
-		alpha += texture(TEXTURE, UV + vec2(size_x, size_y)).a * float(same_color(texture(TEXTURE, UV + vec2(size_x, size_y)).rgb, replacement_color.rgb));
-		alpha += texture(TEXTURE, UV + vec2(-size_x, size_y)).a * float(same_color(texture(TEXTURE, UV + vec2(-size_x, size_y)).rgb, replacement_color.rgb));
-		alpha += texture(TEXTURE, UV + vec2(-size_x, -size_y)).a * float(same_color(texture(TEXTURE, UV + vec2(-size_x, -size_y)).rgb, replacement_color.rgb));
-		alpha += texture(TEXTURE, UV + vec2(size_x, -size_y)).a * float(same_color(texture(TEXTURE, UV + vec2(size_x, -size_y)).rgb, replacement_color.rgb));
-		vec4 final_color = mix(sprite_color, outline_color, clamp(alpha, 0.0, 1.0));
-		COLOR = vec4(final_color.rgb, clamp(abs(alpha) + sprite_color.a, 0.0, 1.0));
+	
+	if (use_outline && col.a == 0.0) {
+		float size_x = 1.0 / float(textureSize(TEXTURE, 0).x);
+		float size_y = 1.0 / float(textureSize(TEXTURE, 0).y);
+
+		float alpha = 0.0;
+
+		vec4 right = texture(TEXTURE, UV + vec2(size_x, 0.0));
+		vec4 left = texture(TEXTURE, UV + vec2(-size_x, 0.0));
+		vec4 down = texture(TEXTURE, UV + vec2(0.0, size_y));
+		vec4 up = texture(TEXTURE, UV + vec2(0.0, -size_y));
+
+		vec4 down_right = texture(TEXTURE, UV + vec2(size_x, size_y));
+		vec4 down_left = texture(TEXTURE, UV + vec2(-size_x, size_y));
+		vec4 up_left = texture(TEXTURE, UV + vec2(-size_x, -size_y));
+		vec4 up_right = texture(TEXTURE, UV + vec2(size_x, -size_y));
+
+		alpha += float(right.a > 0.0 && same_color(right.rgb, replacement_color.rgb));
+		alpha += float(left.a > 0.0 && same_color(left.rgb, replacement_color.rgb));
+		alpha += float(down.a > 0.0 && same_color(down.rgb, replacement_color.rgb));
+		alpha += float(up.a > 0.0 && same_color(up.rgb, replacement_color.rgb));
+
+		alpha += float(down_right.a > 0.0 && same_color(down_right.rgb, replacement_color.rgb));
+		alpha += float(down_left.a > 0.0 && same_color(down_left.rgb, replacement_color.rgb));
+		alpha += float(up_left.a > 0.0 && same_color(up_left.rgb, replacement_color.rgb));
+		alpha += float(up_right.a > 0.0 && same_color(up_right.rgb, replacement_color.rgb));
+
+		if (alpha > 0.0) {
+			COLOR = vec4(outline_color.rgb, outline_color.a);
+		}
 	}
+	
 	if (use_extra_color_1 && same_color(col.rgb, extra_replace_color_1.rgb)) {
 		COLOR.rgb = extra_color_1.rgb;
 		COLOR.a = texture(TEXTURE, UV).a;

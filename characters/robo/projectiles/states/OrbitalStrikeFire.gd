@@ -4,21 +4,22 @@ const GROUND_FIRE_DISTANCE = 64
 var last_ground_fire = 0
 const MOVE_SPEED = 3
 const ACTIVE_TIME = 20
-const NEUTRAL_PENALTY = 2
-const WIGGLE_PENALTY = 7
-const WIGGLE_PENALTY_INCREASE = 5
+const NEUTRAL_PENALTY = 1
+const WIGGLE_PENALTY = 3
+const WIGGLE_PENALTY_INCREASE = 3
 const ACCEL = 1
 
 var active_time = ACTIVE_TIME
 var move_velocity = 0
 var last_dir = 0
 var wiggle_penalty = 0
+var frames_this_dir = 0
 
 onready var hitbox = $Hitbox
 onready var active_2 = $"../../Sounds/Active2"
 
 func _enter():
-	active_time = ACTIVE_TIME + Utils.int_max(host.aim_ticks - 14, 0) * 3
+	active_time = ACTIVE_TIME + (Utils.int_max(host.aim_ticks - 14, 0)) * 6 / 7
 	hitbox.active_ticks = active_time
 	active_2.stream.loop = false
 #	print(active_time)
@@ -35,13 +36,17 @@ func _frame_0():
 	last_ground_fire = host.get_pos().x
 	host.line_drawer.z_index = 1000
 	host.active = true
+#	host.immunity_susceptible = false
 
+#func _frame_2():
+#	host.immunity_susceptible = true
+#	pass
 
 func _frame_200():
 	host.disable()
 
 func _tick():
-
+	var active = true
 	if host.creator and host.creator.opponent:
 		var target = host.creator if host.self_ else host.creator.opponent
 		var dir = host.get_object_dir(target)
@@ -59,6 +64,7 @@ func _tick():
 			spawn_enter_particle()
 #		if !active_2.playing:
 	else:
+		active = false
 		host.stop_sound("Active2")
 
 	if current_tick >= active_time:
@@ -73,9 +79,18 @@ func _tick():
 			if current_tick > 3 and host.creator.loic_dir != last_dir and last_dir != 0:
 				active_time -= (WIGGLE_PENALTY + wiggle_penalty)
 				wiggle_penalty += WIGGLE_PENALTY_INCREASE
+				frames_this_dir = 0
 			last_dir = host.creator.loic_dir
 
-		move_velocity = Utils.approach(move_velocity, MOVE_SPEED * host.creator.loic_dir, ACCEL)
+		frames_this_dir += 1
+		
+		var accel_amount = Utils.int_min(16, frames_this_dir / 5)
+		
+		if not active:
+			accel_amount = 0
+		
+		move_velocity = Utils.approach(move_velocity, (accel_amount + MOVE_SPEED) * host.creator.loic_dir, ACCEL)
+		
 		host.move_directly(move_velocity, 0)
 		if host.creator.loic_dir == 0:
 			active_time -= NEUTRAL_PENALTY

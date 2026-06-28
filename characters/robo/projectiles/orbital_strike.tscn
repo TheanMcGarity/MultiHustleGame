@@ -59,8 +59,11 @@ self_
 t
 active"
 has_projectile_parry_window = false
+immunity_susceptible = false
+roll_immunity_susceptible = true
 deletes_other_projectiles = false
 movable = false
+hookable = true
 body_target_texture = ExtResource( 10 )
 
 [node name="Sprite" parent="Flip" index="0"]
@@ -153,6 +156,7 @@ bump_on_whiff = true
 whiff_sound = ExtResource( 18 )
 hit_sound = ExtResource( 16 )
 whiff_sound_volume = -5.0
+override_same_sfx = true
 dir_x = "0.25"
 dir_y = "1.0"
 knockback = "8.0"
