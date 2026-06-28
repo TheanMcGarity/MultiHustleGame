@@ -274,8 +274,8 @@ func _ready():
 #	$"%LightModeButton".connect("toggled", self, "_on_light_mode_toggled")
 	$"%FullscreenButton".set_pressed_no_signal(Global.fullscreen)
 	$"%FullscreenButton".connect("toggled", self, "_on_fullscreen_button_toggled")
-	$"%TournamentModeButton".set_pressed_no_signal(Global.tournament_mode)
-	$"%TournamentModeButton".connect("toggled", self, "_on_tournament_mode_button_toggled")
+	#$"%TournamentModeButton".set_pressed_no_signal(Global.tournament_mode)
+	#$"%TournamentModeButton".connect("toggled", self, "_on_tournament_mode_button_toggled")
 	$"%HitboxesButton".set_pressed_no_signal(Global.show_hitboxes)
 	$"%HitboxesButton".connect("toggled", self, "_on_hitboxes_button_toggled")
 	$"%CapFramerateButton".set_pressed_no_signal(Global.cap_framerate)
@@ -810,7 +810,7 @@ func _on_quit_button_pressed():
 func _on_quit_program_button_pressed():
 	get_tree().quit()
 
-func _on_sync_timer_request(id, time):
+func _on_sync_timer_request_110(id, time):
 	if !chess_timer:
 		return
 	# sync_timer is only fired from end_turn_for — it's always a lock-in
@@ -885,7 +885,7 @@ func restore_chess_timer_state(state):
 		elif timer_mode == "increment":
 			MIN_TURN_TIME = game.match_data.get("increment_per_turn", 0)
 
-func sync_timer(player_id):
+func sync_timer_110(player_id):
 	if Network.multiplayer_active:
 		if player_id == Network.player_id:
 			print("syncing timer")
@@ -895,7 +895,7 @@ func sync_timer(player_id):
 			Network.sync_timer(player_id, timer.time_left)
 
 
-func id_to_action_buttons(player_id):
+func id_to_action_buttons_110(player_id):
 	if player_id == 1:
 		return $"%P1ActionButtons"
 	else:
@@ -963,7 +963,7 @@ func _on_rematch_button_pressed():
 	Network.request_rematch()
 	$"%RematchButton".disabled = true
 
-func _on_game_playback_requested():
+func _on_game_playback_requested_110():
 	if Network.multiplayer_active and !ReplayManager.resimulating:
 		$PostGameButtons.show()
 		# A spectated match still shows the post-game menu so the viewer can
@@ -1027,7 +1027,7 @@ func open_replay_folder():
 	var folder = ProjectSettings.globalize_path("user://replay")
 	OS.shell_open(folder)
 
-func end_turn_for(player_id):
+func end_turn_for_110(player_id):
 	$"%TurnReadySound".play()
 	turns_taken[player_id] = true
 	if player_id == Network.player_id:
@@ -1044,7 +1044,7 @@ func end_turn_for(player_id):
 	if Network.rematch_menu:
 		hide_rematch_menu()
 
-func setup_action_buttons():
+func setup_action_buttons_110():
 	$"%P1ActionButtons".init(game, 1)
 	$"%P2ActionButtons".init(game, 2)
 	
@@ -1061,7 +1061,7 @@ func _on_network_timer_timeout():
 				if game.player_actionable and lock_in_tick != game.current_tick and !actionable:
 					Network.rpc_("check_players_ready")
 
-func on_player_actionable():
+func on_player_actionable_110():
 	if actionable and (Network.multiplayer_active and !Network.undo and !Network.auto):
 		return
 	while is_instance_valid(game) and !game.game_paused:
@@ -1153,7 +1153,7 @@ func on_player_actionable():
 #		else:
 #			turn_timer.start(turn_time)
 
-func _on_turn_timer_timeout(player_id):
+func _on_turn_timer_timeout_110(player_id):
 		# Increment mode: bank ran out. Add a full increment to debt, reset
 		# the bank to increment so the player keeps a non-zero clock, set the
 		# just_ran_out flag so end_turn_for skips pay-debt and the next turn
@@ -1356,10 +1356,12 @@ func _unhandled_input(event):
 #						Global.frame_advance = !Global.frame_advance
 #					if event.scancode == KEY_F:
 #						game.advance_frame_input = true
-			if event.scancode == KEY_F11:
-				Global.set_fullscreen(!Global.fullscreen)
-			if event.scancode == KEY_SPACE:
-				ContinueAll()
+	
+	if event is InputEventKey:
+		if event.scancode == KEY_F11:
+			Global.set_fullscreen(!Global.fullscreen)
+		if event.scancode == KEY_SPACE:
+			ContinueAll()
 	if event is InputEventMouseButton:
 		if event.pressed:
 			$"%ChatWindow".unfocus_line_edit()

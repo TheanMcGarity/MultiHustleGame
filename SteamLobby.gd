@@ -595,13 +595,13 @@ func _read_P2P_Packet():
 			print("ERROR: no packet data!")
 			return
 			
-        	
+			
 		var PACKET_CODE = PACKET.get("data")
 		
-        if ((int(PACKET_CODE[0]) & 0xFF) >= 27):
-        	print("Invalid packet variant!")
-        	return
-        	
+		if ((int(PACKET_CODE[0]) & 0xFF) >= 27):
+			print("Invalid packet variant!")
+			return
+			
 		var readable = bytes2var(PACKET_CODE)
 		
 		if readable == null:
@@ -618,8 +618,8 @@ func _read_P2P_Packet():
 
 		if readable.has("rpc_data"):
 			_receive_rpc(readable)
-		if readable.has("rpc_broadcast"):
-			_receive_broadcast_rpc(readable)
+		#if readable.has("rpc_broadcast"):
+		#	_receive_broadcast_rpc(readable)
 		if readable.has("challenge_from"):
 			_receive_challenge(readable.challenge_from, readable.match_settings)
 		if readable.has("challenge_accepted"):

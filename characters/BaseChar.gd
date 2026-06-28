@@ -526,7 +526,7 @@ class InputState:
 	var name
 	var data
 
-func clash():
+func clash(opp):
 	clashing = true
 	update_grounded()
 	on_state_interruptable(current_state())
@@ -538,7 +538,7 @@ func clash():
 	add_pushback(str(-CLASH_MOVE_BACK))
 	if feints < num_feints:
 		feints += 1
-	emit_signal("clashed")
+	emit_signal("clashed", self, opp)
 	if hooks:
 		hooks.clashed()
 
@@ -2533,7 +2533,7 @@ func clear_buffer():
 func process_continue():
 	return false
 
-func tick_before():
+func tick_before_110():
 	if hooks:
 		hooks.tick_before()
 	if queued_action == "Forfeit":
@@ -3259,6 +3259,9 @@ func tick_before():
 			tick_before()
 		_timescale_sim = false
 	
+	if hooks:
+		hooks.tick_before()
+		
 	emote_live_counter += 1
 	
 	if emote_live_counter > EMOTE_TIME:

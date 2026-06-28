@@ -243,8 +243,8 @@ func _on_match_ready(data):
 		"""
 	if !match_data.has("replay"):
 		ReplayManager.playback = false
-	if match_data.has("replay_challenge") and match_data.has("selected_characters"):
-		yield(_load_replay_chars_and_wait(match_data), "completed")
+	#if match_data.has("replay_challenge") and match_data.has("selected_characters"):
+	#	yield(_load_replay_chars_and_wait(match_data), "completed")
 	SteamLobby.SETTINGS_LOCKED = false
 	setup_game(singleplayer, data)
 	emit_signal("game_started")

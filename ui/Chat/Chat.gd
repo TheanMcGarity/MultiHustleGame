@@ -852,7 +852,7 @@ func process_command_vanilla(message: String):
 	
 	return false
 
-func send_message(message):
+func send_message_110(message):
 	if process_command(message):
 		return
 		

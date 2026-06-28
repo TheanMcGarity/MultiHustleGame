@@ -422,13 +422,13 @@ func on_hitbox_refreshed(hitbox_name):
 	hooks.hitbox_refreshed(hitbox_name)
 	set_vanilla_game_started(true)
 
-func on_clash():
+func on_clash(char1, char2):
 	super_freeze_ticks = 5
 	parry_freeze = true
 	# Both fighters fire "clashed" the same tick — dedupe to one hook.
 	if current_tick != last_clash_hook_tick:
 		last_clash_hook_tick = current_tick
-		hooks.clashed(p1, p2) // fix //
+		hooks.clashed(char1, char2)
 
 func on_parry(parrier):
 	super_freeze_ticks = 10
@@ -2379,8 +2379,8 @@ func apply_hitboxes_internal(playerhitboxpair:Array):
 		px2.state_interruptable = true
 	
 	if clashed:
-		px1.clash()
-		px2.clash()
+		px1.clash(px2)
+		px2.clash(px1)
 		px1.add_penalty( - 25)
 		px2.add_penalty( - 25)
 		_spawn_particle_effect(preload("res://fx/ClashEffect.tscn"), clash_position)

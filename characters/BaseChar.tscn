@@ -1,4 +1,4 @@
-[gd_scene load_steps=206 format=2]
+[gd_scene load_steps=208 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -2017,7 +2017,14 @@ disable_collision = false
 ground_bounce = false
 active_ticks = 0
 
-[node name="TeamBoost" type="Node2D" parent="StateMachine" index="57"]
+[node name="Frozen" type="Node2D" parent="StateMachine" index="57"]
+script = ExtResource( 203 )
+endless = true
+busy_interrupt_type = 1
+interrupt_into_string = "Grounded
+Aerial"
+
+[node name="TeamBoost" type="Node2D" parent="StateMachine" index="58"]
 script = ExtResource( 198 )
 __meta__ = {
 "_editor_description_": ""
@@ -2076,7 +2083,7 @@ disable_collision = false
 ground_bounce = false
 active_ticks = 0
 
-[node name="ForfeitExplosion" type="Node2D" parent="StateMachine" index="58"]
+[node name="ForfeitExplosion" type="Node2D" parent="StateMachine" index="59"]
 script = ExtResource( 153 )
 reset_momentum = true
 endless = true
@@ -2084,13 +2091,6 @@ particle_scene = ExtResource( 154 )
 particle_position = Vector2( 0, -16 )
 spawn_particle_on_enter = true
 enter_sfx = ExtResource( 141 )
-
-[node name="Frozen" type="Node2D" parent="StateMachine" index="57"]
-script = ExtResource( 203 )
-endless = true
-busy_interrupt_type = 1
-interrupt_into_string = "Grounded
-Aerial"
 
 [node name="YouLabel" type="Label" parent="." index="5"]
 visible = false
@@ -2313,7 +2313,7 @@ position = Vector2( 0, -60 )
 texture = SubResource( 3 )
 flip_v = true
 
-[node name="Hooks" parent="." index="15"]
+[node name="Hooks" parent="." index="20"]
 script = ExtResource( 204 )
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

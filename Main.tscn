@@ -1,4 +1,4 @@
-[gd_scene load_steps=95 format=2]
+[gd_scene load_steps=99 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -81,13 +81,11 @@
 [ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
 [ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
 [ext_resource path="res://TitleSecret.gd" type="Script" id=82]
-[ext_resource path="res://ModWarningWindow.tscn" type="PackedScene" id=83]
 [ext_resource path="res://ui/burstp2_4.png" type="Texture" id=84]
-[ext_resource path="res://HotkeysTab.gd" type="Script" id=85]
-[ext_resource path="res://ui/steed.png" type="Texture" id=86]
 [ext_resource path="res://ui/Window/Window.gd" type="Script" id=201]
 [ext_resource path="res://ui/CommunityEvents.gd" type="Script" id=202]
 [ext_resource path="res://MainHooks.gd" type="Script" id=203]
+[ext_resource path="res://HotkeysTab.gd" type="Script" id=204]
 
 [sub_resource type="ShaderMaterial" id=19]
 shader = ExtResource( 50 )
@@ -1319,9 +1317,9 @@ alignment = 2
 
 [node name="P1InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
 unique_name_in_owner = true
-margin_top = 43.0
+margin_top = 47.0
 margin_right = 320.0
-margin_bottom = 63.0
+margin_bottom = 67.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1379,15 +1377,15 @@ mouse_filter = 2
 texture = ExtResource( 35 )
 
 [node name="Control" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
-margin_top = 64.0
+margin_top = 68.0
 margin_right = 320.0
-margin_bottom = 64.0
+margin_bottom = 68.0
 
 [node name="P1ActionButtons" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 65.0
+margin_top = 69.0
 margin_right = 320.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
@@ -1406,9 +1404,9 @@ alignment = 2
 
 [node name="P2InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer"]
 unique_name_in_owner = true
-margin_top = 44.0
+margin_top = 48.0
 margin_right = 320.0
-margin_bottom = 64.0
+margin_bottom = 68.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1468,7 +1466,7 @@ mouse_filter = 2
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 65.0
+margin_top = 69.0
 margin_right = 320.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
@@ -1556,15 +1554,6 @@ margin_bottom = 12.0
 rect_min_size = Vector2( 12, 0 )
 toggle_mode = true
 text = "x0.25"
-
-[node name="5Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/OptionsBar/GhostSpeed"]
-unique_name_in_owner = true
-margin_left = 114.0
-margin_right = 134.0
-margin_bottom = 12.0
-rect_min_size = Vector2( 12, 0 )
-toggle_mode = true
-text = "x0.5"
 
 [node name="2Speed" type="Button" parent="UILayer/GameUI/BottomBar/OptionsBarContainer/BarAlign/OptionsBar/GhostSpeed"]
 unique_name_in_owner = true
@@ -2550,6 +2539,61 @@ custom_constants/separation = 4
 unique_name_in_owner = true
 margin_bottom = 11.0
 
+[node name="WinwsLabel" type="Label" parent="UILayer/MainMenu"]
+unique_name_in_owner = true
+visible = false
+margin_left = 90.0
+margin_top = 129.0
+margin_right = 550.0
+margin_bottom = 154.0
+custom_colors/font_color = Color( 1, 0.2, 0.239216, 1 )
+text = "incompatible network script detected! (winws.exe - zapret?)
+please disable it and restart the game to play in multiplayer lobbies."
+align = 1
+autowrap = true
+
+[node name="AnnouncementScrollContainer" type="ScrollContainer" parent="UILayer/MainMenu"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -114.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = 330.0
+
+[node name="AnnouncementContainer" type="VBoxContainer" parent="UILayer/MainMenu/AnnouncementScrollContainer"]
+unique_name_in_owner = true
+margin_right = 112.0
+margin_bottom = 328.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 202 )
+
+[node name="TopLabel" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_right = 112.0
+margin_bottom = 11.0
+text = "COMMUNITY EVENTS"
+align = 1
+
+[node name="EventTexture" type="TextureRect" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_top = 12.0
+margin_right = 112.0
+margin_bottom = 42.0
+rect_min_size = Vector2( 0, 30 )
+expand = true
+stretch_mode = 1
+
+[node name="EventDescription" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
+margin_top = 42.0
+margin_right = 112.0
+margin_bottom = 74.531
+rect_min_size = Vector2( 0, 32.531 )
+text = "tournament announcement here!!!
+"
+align = 1
+autowrap = true
+clip_text = true
+
 [node name="RoadmapContainer" type="Control" parent="UILayer"]
 unique_name_in_owner = true
 margin_top = 2.0
@@ -2633,62 +2677,6 @@ text = "Known Bugs:
 - Player Extras sometimes just dont work in replays, which will desync them.
 - Resync re-broke itself..."
 autowrap = true
-
-[node name="WinwsLabel" type="Label" parent="UILayer/MainMenu"]
-unique_name_in_owner = true
-visible = false
-margin_left = 90.0
-margin_top = 129.0
-margin_right = 550.0
-margin_bottom = 154.0
-custom_colors/font_color = Color( 1, 0.2, 0.239216, 1 )
-text = "incompatible network script detected! (winws.exe - zapret?)
-please disable it and restart the game to play in multiplayer lobbies."
-align = 1
-autowrap = true
-
-[node name="AnnouncementScrollContainer" type="ScrollContainer" parent="UILayer/MainMenu"]
-anchor_left = 1.0
-anchor_right = 1.0
-margin_left = -114.0
-margin_top = 2.0
-margin_right = -2.0
-margin_bottom = 330.0
-
-[node name="AnnouncementContainer" type="VBoxContainer" parent="UILayer/MainMenu/AnnouncementScrollContainer"]
-unique_name_in_owner = true
-margin_right = 112.0
-margin_bottom = 328.0
-mouse_filter = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-script = ExtResource( 202 )
-
-[node name="TopLabel" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
-margin_right = 112.0
-margin_bottom = 11.0
-text = "COMMUNITY EVENTS"
-align = 1
-
-[node name="EventTexture" type="TextureRect" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
-margin_top = 12.0
-margin_right = 112.0
-margin_bottom = 42.0
-rect_min_size = Vector2( 0, 30 )
-texture = ExtResource( 79 )
-expand = true
-stretch_mode = 1
-
-[node name="EventDescription" type="Label" parent="UILayer/MainMenu/AnnouncementScrollContainer/AnnouncementContainer"]
-margin_top = 42.0
-margin_right = 112.0
-margin_bottom = 74.531
-rect_min_size = Vector2( 0, 32.531 )
-text = "tournament announcement here!!!
-"
-align = 1
-autowrap = true
-clip_text = true
 
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
 unique_name_in_owner = true
@@ -2975,28 +2963,29 @@ text = "enable custom hitsparks"
 
 [node name="ShowCommunityEventsButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
+margin_top = 252.0
 margin_right = 214.0
-margin_bottom = 12.0
+margin_bottom = 264.0
 pressed = true
 text = "show community events"
 
 [node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
-margin_top = 252.0
+margin_top = 265.0
 margin_right = 214.0
-margin_bottom = 256.0
+margin_bottom = 269.0
 
 [node name="MusicButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 257.0
+margin_top = 270.0
 margin_right = 214.0
-margin_bottom = 269.0
+margin_bottom = 282.0
 pressed = true
 text = "enable music"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
-margin_top = 270.0
+margin_top = 283.0
 margin_right = 214.0
-margin_bottom = 282.0
+margin_bottom = 295.0
 
 [node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer"]
 margin_right = 106.0
@@ -3015,9 +3004,9 @@ step = 0.01
 value = 1.0
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
-margin_top = 283.0
+margin_top = 296.0
 margin_right = 214.0
-margin_bottom = 295.0
+margin_bottom = 308.0
 
 [node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer2"]
 margin_right = 106.0
@@ -3036,9 +3025,9 @@ step = 0.01
 value = 1.0
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
-margin_top = 296.0
+margin_top = 309.0
 margin_right = 214.0
-margin_bottom = 308.0
+margin_bottom = 321.0
 
 [node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer3"]
 margin_right = 106.0
@@ -3057,9 +3046,9 @@ step = 0.01
 value = 1.0
 
 [node name="HBoxContainer4" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
-margin_top = 309.0
+margin_top = 322.0
 margin_right = 214.0
-margin_bottom = 321.0
+margin_bottom = 334.0
 
 [node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer/HBoxContainer4"]
 margin_right = 106.0
@@ -3078,32 +3067,32 @@ step = 0.01
 value = 1.0
 
 [node name="HSeparator4" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
-margin_top = 322.0
+margin_top = 335.0
 margin_right = 214.0
-margin_bottom = 326.0
+margin_bottom = 339.0
 
 [node name="EnableReplayBackups" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 327.0
+margin_top = 340.0
 margin_right = 214.0
-margin_bottom = 339.0
+margin_bottom = 352.0
 hint_tooltip = "Save a backup replay every turn (max 10), so you can recover unfinished matches."
 pressed = true
 text = "enable per-turn backups"
 
 [node name="AutoFCButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 340.0
+margin_top = 353.0
 margin_right = 214.0
-margin_bottom = 352.0
+margin_bottom = 365.0
 pressed = true
 text = "enable auto free cancel"
 
 [node name="XYPlotInvertSnapButton" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
-margin_top = 353.0
+margin_top = 366.0
 margin_right = 214.0
-margin_bottom = 365.0
+margin_bottom = 378.0
 hint_tooltip = "XY plots don't snap by default. Hold Shift to snap."
 text = "hold shift to snap xy plots"
 
@@ -3112,7 +3101,7 @@ visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_top = 11.0
-script = ExtResource( 78 )
+script = ExtResource( 204 )
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Hotkeys"]
 anchor_right = 1.0
@@ -3234,6 +3223,53 @@ margin_top = 80.0
 margin_right = 220.0
 margin_bottom = 92.0
 text = "reset color"
+
+[node name="MH" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 11.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH"]
+margin_right = 220.0
+margin_bottom = 218.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer"]
+margin_right = 220.0
+margin_bottom = 218.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EnablePlayerNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_right = 220.0
+margin_bottom = 12.0
+text = "enable player nametags"
+
+[node name="EnableGhostNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 13.0
+margin_right = 220.0
+margin_bottom = 25.0
+text = "enable prediction nametags"
+
+[node name="EnableHealthbarLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_right = 220.0
+margin_bottom = 38.0
+text = "enable healthbar value label"
+
+[node name="EnableCharHealthLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 39.0
+margin_right = 220.0
+margin_bottom = 51.0
+text = "enable on-character health label"
 
 [node name="HSeparator" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer"]
 margin_top = 230.0
@@ -3926,6 +3962,15 @@ visible = false
 unique_name_in_owner = true
 stream = ExtResource( 19 )
 bus = "UI"
+
+[node name="UILayer@GameUI@BottomBar@OptionsBarContainer@OptionsBar@GhostSpeed@5Speed" type="Button" parent="."]
+unique_name_in_owner = true
+margin_left = 114.0
+margin_right = 134.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 12, 0 )
+toggle_mode = true
+text = "x0.5"
 
 [node name="GhostWaitTimer" type="Timer" parent="."]
 unique_name_in_owner = true

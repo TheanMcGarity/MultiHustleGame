@@ -1474,9 +1474,9 @@ func on_team_button_pressed(button):
 	
 	if singleplayer:
 		Network.singleplayer_on_team_change(button.team_id, ("p%d" % current_player), current_player)
-		return
 	
-	player_selected_team = true
+		player_selected_team = true
+		return
 	
 	var steam_id = Steam.getSteamID()
 	var username = Steam.getFriendPersonaName(steam_id)

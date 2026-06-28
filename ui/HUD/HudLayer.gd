@@ -85,10 +85,6 @@ var _last_published_hp_pct := -1
 var _last_hp_publish_msec := 0
 const HP_PUBLISH_MIN_INTERVAL_MS = 3000
 
-func _ready():
-	hide()
-	$"%WinLabel".hide()
-
 func init(game):
 	show()
 	self.game = game
@@ -240,8 +236,7 @@ func refresh_portrait_style(player_id):
 		# uses in reset_color), applied at the shader level instead of via a
 		# modulate tint.
 		
-		 / fix /
-		mat.set_shader_param("color", player.P1_COLOR if player_id == 1 else player.P2_COLOR)
+		mat.set_shader_param("color", Global.current_game.MultiHustle_get_color_by_index(player_id))
 
 func healthbar_armor_effect(player, healthbar: TextureProgress, no_armor_image, armor_image, projectile_armor_image):
 	if player.has_armor():
