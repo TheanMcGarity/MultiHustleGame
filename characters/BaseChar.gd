@@ -2303,8 +2303,12 @@ func set_color(color, extra_color_1=null, extra_color_2=null):
 		self.style_extra_color_2 = extra_color_2
 
 func release_opponent():
-	if opponent.current_state().state_name == "Grabbed":
-		opponent.change_state("Fall")
+	if (not get_game().players_getting_throwed.has(id)):
+		return
+	for target in get_game().players_getting_throwed[id]:
+		var player = get_game().players[target]
+		if player.current_state().state_name == "Grabbed":
+			player.change_state("Fall")
 
 func on_attack_blocked():
 	pass

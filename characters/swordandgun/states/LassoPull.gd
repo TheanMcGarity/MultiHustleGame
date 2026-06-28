@@ -13,11 +13,12 @@ func _frame_12():
 	hitbox.dir_x = fixed.mul(dir.x, str(host.get_facing_int()))
 	hitbox.dir_y = dir.y
 	hitbox.activate()
-	var opp_pos = host.obj_local_center(host.opponent)
+	var opp_pos = host.obj_local_center(host.lasso_targets[host.lasso_targets.size() - 1])
 	hitbox.x = opp_pos.x
 	hitbox.y = opp_pos.y
 	host.release_opponent()
-	hitbox.hit(host.opponent)
+	for target in host.lasso_targets:
+		target.hit(host.opponent)
 	var force = fixed.vec_mul(dir.x, dir.y, PULL_FORCE)
 	var move_amount = fixed.vec_mul(dir.x, dir.y, MOVE_AMOUNT)
 	host.apply_force(force.x, force.y)

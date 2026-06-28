@@ -11,26 +11,27 @@ func _frame_0():
 	grabbed = false
 
 func _frame_1():
-	var opp_pos = host.obj_local_center(host.opponent)
+	var opp_pos = host.obj_local_center(host.lasso_targets[host.lasso_targets.size() - 1])
 	throw_box.activate()
 	throw_box.x = opp_pos.x * host.get_facing_int()
 	throw_box.y = opp_pos.y
 
 func _tick():
 	grabbed = false
-	var opp_pos = host.obj_local_center(host.opponent)
+	var opp_pos = host.obj_local_center(host.lasso_targets[host.lasso_targets.size() - 1])
 	throw_box.x = opp_pos.x * host.get_facing_int()
 	throw_box.y = opp_pos.y
 	if current_tick > 1 and fixed.lt(fixed.vec_len(str(opp_pos.x), str(opp_pos.y)), GRAB_DISTANCE):
 		grabbed = true
 		return "IzunaDrop"
 	else:
-		opp_pos = host.obj_local_pos(host.opponent)
+		opp_pos = host.obj_local_pos(host.lasso_targets[host.lasso_targets.size() - 1])
 		var opp_move_vec = fixed.normalized_vec_times(str(opp_pos.x), str(opp_pos.y), PULL_SPEED)
-		var global_opp_pos = host.opponent.get_pos()
+		var global_opp_pos = host.lasso_targets[host.lasso_targets.size() - 1].get_pos()
 		global_opp_pos.x = fixed.round(fixed.add(opp_move_vec.x, str(global_opp_pos.x)))
 		global_opp_pos.y = fixed.round(fixed.add(opp_move_vec.y, str(global_opp_pos.y)))
-		host.opponent.set_pos(global_opp_pos.x, global_opp_pos.y)
+		for target in host.lasso_targets:
+			target.set_pos(global_opp_pos.x, global_opp_pos.y)
 		if host.objs_map.has(host.lasso_projectile):
 			host.objs_map[host.lasso_projectile].set_pos(global_opp_pos.x, global_opp_pos.y - 16)
 
@@ -39,4 +40,5 @@ func _exit():
 		host.objs_map[host.lasso_projectile].disable()
 		host.lasso_projectile = null
 	if !grabbed:
-		host.opponent.state_machine.queue_state("Wait")
+		for target in host.lasso_targets:
+			target.state_machine.queue_state("Wait")

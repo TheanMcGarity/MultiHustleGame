@@ -71,6 +71,8 @@ var milk_toggle_tick = 0
 
 var shifted_this_turn = false
 
+var lasso_targets := []
+
 func _ready():
 	shooting_arm.set_material(sprite.get_material())
 	material = null

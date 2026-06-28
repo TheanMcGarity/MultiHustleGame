@@ -13,7 +13,7 @@ const DEBUG_THROW_ROUTING := false
 
 export(int) var char_distance = 200
 export(int) var stage_width = 1100
-export(int) var max_char_distance = 600
+export(int) var max_char_distance = 9223372036854775807
 export(int) var time = 3000
 
 signal player_actionable()
@@ -256,14 +256,6 @@ func copy_to(game):
 #	game.p1.set_pos(p1_pos.x, p1_pos.y)
 #	game.p2.set_pos(p2_pos.x, p2_pos.y)
 	game.current_tick = current_tick
-	p1.chara.copy_to(game.p1.chara)
-	p2.chara.copy_to(game.p2.chara)
-	game.p1.update_data()
-	game.p2.update_data()
-	p1.copy_to(game.p1)
-	p2.copy_to(game.p2)
-	game.p1.hp = p1.hp
-	game.p2.hp = p2.hp
 	game.player_colors = player_colors.duplicate(true)
 	game.current_opponent_indicies = current_opponent_indicies.duplicate(true)
 	for index in players.keys():
@@ -326,6 +318,10 @@ func copy_to(game):
 				game.objs_map[str(game.objs_map.size() + 1)] = null
 	game.camera.limit_left = camera.limit_left
 	game.camera.limit_right = camera.limit_right
+	
+	# throws
+	game.throws_consumed = throws_consumed.duplicate()
+	game.players_getting_throwed = players_getting_throwed.duplicate()
 
 
 func _on_super_started(ticks, player):
@@ -940,7 +936,7 @@ func tick():
 		var opp = Network.main.uiselectors.selects[2][0].active_char_index
 		var opp_target = Network.main.uiselectors.selects[2][0].get_char_name(opp)
 
-		Network.main.uiselectors.opp_target_label.text = "OPP TARGET: %s" % opp_target
+#		Network.main.uiselectors.opp_target_label.text = "OPP TARGET: %s" % opp_target
 var priorities = [
 	funcref(self,"state_priority"),
 	funcref(self,"comboing"),
@@ -2188,21 +2184,21 @@ func resolve_collisions_all(step = 0):
 # Currently if someone gets caught in a tech crossfire, they just get teched too
 # Only use players for throwee, otherwise set throws_consumed directly
 func consume_throw_by(thrower, throwee, is_tech):
-	if !throws_consumed.has(thrower):
-		throws_consumed[thrower] = null
+	if !throws_consumed.has(thrower.id):
+		throws_consumed[thrower.id] = null
 	consume_throw_propagate(throwee)
 	if !is_tech:
-		var current = throws_consumed[thrower]
+		var current = throws_consumed[thrower.id]
 		if current == null:
 			current = []
 		if current is Array:
-			if not current.has(throwee):
-				current.append(throwee)
+			if not current.has(throwee.id):
+				current.append(throwee.id)
 				_register_players_getting_throwed(thrower, throwee)
-		throws_consumed[thrower] = current
+		throws_consumed[thrower.id] = current
 	else:
 		thrower.state_machine.queue_state("ThrowTech")
-		throws_consumed[thrower] = true
+		throws_consumed[thrower.id] = true
 		_unregister_players_getting_throwed(thrower)
 func consume_throw_propagate(throwee):
 	if !throws_consumed.has(throwee):
@@ -2228,6 +2224,8 @@ func _register_players_getting_throwed(thrower, throwee):
 	if thrower_id == null or throwee_id == null:
 		return
 	if not players_getting_throwed.has(thrower_id):
+		players_getting_throwed[thrower_id] = []
+	if players_getting_throwed[thrower_id] == null:
 		players_getting_throwed[thrower_id] = []
 	if not players_getting_throwed[thrower_id].has(throwee_id):
 		players_getting_throwed[thrower_id].append(throwee_id)

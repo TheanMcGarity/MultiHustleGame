@@ -43,6 +43,7 @@ script = ExtResource( 2 )
 gravity = "0.48"
 max_fall_speed = "5"
 projectile_immune = true
+hookable = true
 
 [node name="Sprite" parent="Flip" index="0"]
 z_index = 3

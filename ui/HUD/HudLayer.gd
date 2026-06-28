@@ -161,8 +161,8 @@ func init(game):
 		p2_color = Color("#" + ud.p2_color)
 	if p1_color == null or p2_color == null:
 		if Network.steam:
-			var p1_steam = SteamLobby.steam_id_for_match_side(1)
-			var p2_steam = SteamLobby.steam_id_for_match_side(2)
+			var p1_steam = SteamLobby.OPPONENT_IDS[1]
+			var p2_steam = SteamLobby.OPPONENT_IDS[2]
 			if p1_color == null and p1_steam != 0:
 				p1_color = Global.get_remote_name_color(p1_steam)
 			if p2_color == null and p2_steam != 0:
@@ -427,6 +427,12 @@ func initp1(p1index):
 	p1_health_label.text = "%d/%d" % [p1.hp, p1.MAX_HEALTH]
 
 	print("initp1->MAX_HEALTH=%d" % p1.MAX_HEALTH)
+	if (Network.multiplayer_active):
+		var color
+		var steam_id = SteamLobby.OPPONENT_IDS[p2index]
+		color = Global.get_remote_name_color(steam_id)
+		if color != null:
+			$"%P1Username".add_color_override("font_color", color)
 
 
 func initp2(p2index):
@@ -471,6 +477,12 @@ func initp2(p2index):
 	p2_health_label.text = "%d/%d" % [p2.hp, p2.MAX_HEALTH]
 
 	print("initp2->MAX_HEALTH=%d" % p2.MAX_HEALTH)
+	if (Network.multiplayer_active):
+		var color
+		var steam_id = SteamLobby.OPPONENT_IDS[p2index]
+		color = Global.get_remote_name_color(steam_id)
+		if color != null:
+			$"%P2Username".add_color_override("font_color", color)
 
 func reinit(p1index:int, p2index:int):
 	initp1(p1index)

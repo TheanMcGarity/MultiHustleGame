@@ -15,6 +15,8 @@ func _enter():
 #	endless = false
 	lasso_hit_frame = 0
 	fallback_state = "Wait"
+	host.lasso_targets = []
+	host.get_game().players_getting_throwed[host.id] = null
 
 func _frame_7():
 	var obj = host.spawn_object(LASSO_SCENE, 16, -16)
@@ -31,10 +33,12 @@ func on_lasso_hit(_opponent):
 #		return
 	lasso_hit = true
 	lasso_hit_frame = current_tick
-	var opp_pos = host.opponent.get_hurtbox_center()
+	var opp_pos = _opponent.get_hurtbox_center()
 	var obj = host.obj_from_name(host.lasso_projectile)
 	if obj:
 		obj.set_pos(opp_pos.x, opp_pos.y)
+		host.lasso_targets.append(_opponent)
+		host.get_game().consume_throw_by(host, _opponent, false)
 		host.change_state("LassoHit")
 #	endless = true
 
@@ -50,9 +54,10 @@ func _tick():
 
 func _exit():
 	if host.lasso_projectile and !lasso_hit:
-		if host.objs_map[host.lasso_projectile]:
+		if host.objs_map.has(host.lasso_projectile) and host.objs_map[host.lasso_projectile]:
 			host.objs_map[host.lasso_projectile].disable()
 		host.lasso_projectile = null
+		
 		
 func is_usable():
 	var gun = host.obj_from_name(host.gun_projectile)

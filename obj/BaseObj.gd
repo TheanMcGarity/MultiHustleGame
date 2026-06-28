@@ -1348,3 +1348,10 @@ func get_team() -> int:
 	if creator == null:
 		return 0
 	return creator.get_team()
+func get_game():
+	var node = self
+	while node:
+		if "Game" in node.name:
+			return node
+		node = node.get_parent()
+	return Network.game

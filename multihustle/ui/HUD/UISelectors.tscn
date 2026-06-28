@@ -93,12 +93,3 @@ margin_left = 132.0
 margin_right = 168.0
 margin_bottom = 11.0
 text = "TARGET"
-
-[node name="OppTargetLabel" type="Label" parent="Root"]
-visible = false
-modulate = Color( 1, 1, 1, 0.588235 )
-margin_left = 74.0
-margin_top = 14.0
-margin_right = 479.0
-margin_bottom = 25.0
-align = 2

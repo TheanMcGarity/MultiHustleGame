@@ -15,10 +15,10 @@ onready var selects = { # {side, [self, opp]}
 onready var local_char_select = selects[1][0]
 var main
 
-onready var opp_target_label:Label = get_child(1).get_child(4)
+#onready var opp_target_label:Label = get_child(1).get_child(4)
 
 func Init(main):
-	opp_target_label = get_child(1).get_child(4)
+	#opp_target_label = get_child(1).get_child(4)
 	self.main = main
 	var assigned_ids = []
 	for id in selects.keys():
@@ -49,16 +49,16 @@ func Init(main):
 			opp_select.on_parent_changed()
 			assigned_ids.append(new_id)
 		
-	if Network.multiplayer_active:
-		selects[2][1].visible = false
-		opp_target_label.visible = true
+	#if Network.multiplayer_active:
+	#	selects[2][1].visible = false
+		#opp_target_label.visible = true
 
 	# TODO - Make this more expandable
 	Network.log_to_file("Network Player ID: " + str(Network.player_id) + " | Assigned IDs: " + str(assigned_ids))
 	selects[1][0].deactivate_char(assigned_ids[1])
 	selects[2][0].deactivate_char(assigned_ids[0])
 
-	opp_target_label.text = "OPP TARGET: %s" % selects[2][0].get_char_name(Global.current_game.players[selects[2][0].active_char_index].opponent.id)
+	#opp_target_label.text = "OPP TARGET: %s" % selects[2][0].get_char_name(Global.current_game.players[selects[2][0].active_char_index].opponent.id)
 #	opp_target_label.text = "OPP TARGET: %s" % selects[2][0].get_char_name(selects[2][1].active_char_index)
 
 func reinit(main):
@@ -126,7 +126,7 @@ func _process(delta):
 	selects[1][1].visible = main.game.game_paused
 	selects[2][0].visible = main.game.game_paused
 	selects[2][1].visible = Global.current_game.singleplayer and main.game.game_paused
-	opp_target_label.visible = !Global.current_game.singleplayer and main.game.game_paused
+	#opp_target_label.visible = !Global.current_game.singleplayer and main.game.game_paused
 	
 	"""
 	for pair in selects.values():

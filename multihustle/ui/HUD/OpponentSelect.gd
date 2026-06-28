@@ -1,4 +1,4 @@
-extends "res://multihustle/ui/HUD/CharacterSelect.gd"
+extends CharacterSelect
 
 #class_name OpponentCharacterSelect
 

@@ -589,7 +589,10 @@ remotesync func select_opp(my_id, opp_id):
 func select_opponent(self_id, opp_id):
 	#("select_opponent->self_id=%d opp_id=%d" % [self_id, opp_id])
 	if multiplayer_active:
-		rpc_("select_opp", [self_id, opp_id])
+		
+		game.ghost_game.players[self_id].opponent = game.ghost_game.players[opp_id]
+		pass
+		#rpc_("select_opp", [self_id, opp_id])
 	else: # Singleplayer port
 		game.players[self_id].opponent = game.players[opp_id]
 		sp_opp_dict[self_id] = opp_id

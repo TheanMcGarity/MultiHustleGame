@@ -7,7 +7,8 @@ func _ready():
 
 func disable():
 	.disable()
-	creator.lasso_projectile = null
+	if creator != null:
+		creator.lasso_projectile = null
 
 func hit(obj):
 	emit_signal("lasso_hit", obj)

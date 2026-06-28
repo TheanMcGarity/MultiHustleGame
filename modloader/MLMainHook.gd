@@ -210,7 +210,7 @@ func _addMisingList():
 
 var hasIncompat = false
 var donate_menu
-const testedVersion = "1.9.20-steam"
+const testedVersion = "1.10.0-steam"
 
 const incompat_list = [
 	"platform_library",
