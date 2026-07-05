@@ -1,4 +1,4 @@
-[gd_scene load_steps=98 format=2]
+[gd_scene load_steps=100 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -79,8 +79,10 @@
 [ext_resource path="res://multihustle/ui/HUD/UISelectors.tscn" type="PackedScene" id=77]
 [ext_resource path="res://RoadmapListContainer.gd" type="Script" id=78]
 [ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
+[ext_resource path="res://ui/DataFolderButton.gd" type="Script" id=80]
 [ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
 [ext_resource path="res://TitleSecret.gd" type="Script" id=82]
+[ext_resource path="res://ui/ModWarningWindow.gd" type="Script" id=83]
 [ext_resource path="res://ui/burstp2_4.png" type="Texture" id=84]
 [ext_resource path="res://ui/Window/Window.gd" type="Script" id=201]
 [ext_resource path="res://MainHooks.gd" type="Script" id=203]
@@ -1267,7 +1269,7 @@ margin_bottom = -4.0
 mouse_filter = 2
 theme = ExtResource( 4 )
 custom_constants/separation = 0
-alignment = 1
+alignment = 2
 script = ExtResource( 11 )
 
 [node name="BottomSuperBar" type="HBoxContainer" parent="UILayer/GameUI/BottomBar"]
@@ -1305,9 +1307,9 @@ alignment = 2
 
 [node name="P1InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
 unique_name_in_owner = true
-margin_top = 47.0
+margin_top = 30.0
 margin_right = 320.0
-margin_bottom = 67.0
+margin_bottom = 50.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1365,15 +1367,15 @@ mouse_filter = 2
 texture = ExtResource( 35 )
 
 [node name="Control" type="Control" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer"]
-margin_top = 68.0
+margin_top = 51.0
 margin_right = 320.0
-margin_bottom = 68.0
+margin_bottom = 51.0
 
 [node name="P1ActionButtons" parent="UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer" instance=ExtResource( 3 )]
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 69.0
+margin_top = 52.0
 margin_right = 320.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
@@ -1392,9 +1394,9 @@ alignment = 2
 
 [node name="P2InfoContainer" type="VBoxContainer" parent="UILayer/GameUI/BottomBar/ActionButtons/P2ActionButtonsContainer"]
 unique_name_in_owner = true
-margin_top = 48.0
+margin_top = 31.0
 margin_right = 320.0
-margin_bottom = 68.0
+margin_bottom = 51.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
@@ -1454,7 +1456,7 @@ mouse_filter = 2
 unique_name_in_owner = true
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 69.0
+margin_top = 52.0
 margin_right = 320.0
 margin_bottom = 152.0
 rect_min_size = Vector2( 0, 73 )
@@ -1804,7 +1806,6 @@ __meta__ = {
 
 [node name="PredictionSettingsOpenButton" type="Button" parent="UILayer/GameUI"]
 unique_name_in_owner = true
-visible = false
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -2154,9 +2155,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 margin_left = -69.0
-margin_top = -72.0
+margin_top = -67.0
 margin_right = 75.0
-margin_bottom = 167.0
+margin_bottom = 172.0
 grow_horizontal = 2
 custom_constants/separation = 0
 
@@ -2662,9 +2663,8 @@ margin_right = 643.0
 margin_bottom = 345.0
 rect_min_size = Vector2( 160, 345 )
 text = "Known Bugs:
-- Some throw moves that hit multiple players don't do the same damage to everybody
-- Player Extras sometimes just dont work in replays, which will desync them.
-- Resync re-broke itself..."
+- Projectiles get stuck at 0,0 in prediction
+- Player Extras sometimes just dont work in replays, which will desync them."
 autowrap = true
 
 [node name="PostGameButtons" type="VBoxContainer" parent="UILayer"]
@@ -2723,7 +2723,6 @@ text = "Quit"
 
 [node name="OptionsContainer" type="PanelContainer" parent="UILayer"]
 unique_name_in_owner = true
-visible = false
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -2798,7 +2797,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer"]
-margin_right = 220.0
+margin_right = 214.0
 margin_bottom = 378.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -3233,32 +3232,89 @@ margin_bottom = 218.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="EnablePlayerNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
-unique_name_in_owner = true
+[node name="RichTextLabel" type="RichTextLabel" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
 margin_right = 220.0
 margin_bottom = 12.0
-text = "enable player nametags"
+rect_min_size = Vector2( 0, 12 )
+theme = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "[center]Statistics"
+text = "Statistics"
 
-[node name="EnableGhostNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+[node name="EnablePlayerNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
 margin_top = 13.0
 margin_right = 220.0
 margin_bottom = 25.0
-text = "enable prediction nametags"
+text = "enable player nametags"
 
-[node name="EnableHealthbarLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+[node name="EnableGhostNames" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
 margin_top = 26.0
 margin_right = 220.0
 margin_bottom = 38.0
-text = "enable healthbar value label"
+text = "enable prediction nametags"
 
-[node name="EnableCharHealthLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+[node name="EnableHealthbarLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
 unique_name_in_owner = true
 margin_top = 39.0
 margin_right = 220.0
 margin_bottom = 51.0
+text = "enable healthbar value label"
+
+[node name="EnableCharHealthLabel" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 52.0
+margin_right = 220.0
+margin_bottom = 64.0
 text = "enable on-character health label"
+
+[node name="HSeparator" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+margin_top = 65.0
+margin_right = 220.0
+margin_bottom = 69.0
+
+[node name="RichTextLabel3" type="RichTextLabel" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+margin_top = 70.0
+margin_right = 220.0
+margin_bottom = 82.0
+rect_min_size = Vector2( 0, 12 )
+theme = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "[center]Effects"
+text = "Effects"
+
+[node name="EnableDespawnExplosion" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 83.0
+margin_right = 220.0
+margin_bottom = 95.0
+hint_tooltip = "This will make it so players stay on screen forever!"
+pressed = true
+text = "enable despawn explosion"
+
+[node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+margin_top = 96.0
+margin_right = 220.0
+margin_bottom = 100.0
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+margin_top = 101.0
+margin_right = 220.0
+margin_bottom = 113.0
+rect_min_size = Vector2( 0, 12 )
+theme = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "[center]Data"
+text = "Data"
+
+[node name="UserFolderButton" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+modulate = Color( 0.654902, 0.960784, 1, 1 )
+margin_top = 114.0
+margin_right = 220.0
+margin_bottom = 126.0
+text = "Open MH User Data Folder"
+script = ExtResource( 80 )
 
 [node name="HSeparator" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer"]
 margin_top = 230.0
@@ -3495,15 +3551,16 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-margin_left = -204.0
+margin_left = -234.0
 margin_top = 7.0
-margin_right = 204.0
-margin_bottom = 32.0
+margin_right = 234.0
+margin_bottom = 46.0
 grow_horizontal = 2
-text = "Tip: to view or edit broken replays from older versions, right-click Your Only Move Is HUSTLE 
-in your Steam library, select \"properties\", then \"betas\", and select the correct patch."
+text = "Replays from mh versions 0.8.4 and under will no longer appear!
+All MH user data (replays, settings, and logs) will now be in %AppData%/YOMI_MultiHustle which can easily be accessed by going into the settings menu amd clicking \"Open data folder\""
 align = 1
 valign = 1
+autowrap = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/ReplayWindow"]
 margin_left = 1.0
@@ -3823,6 +3880,7 @@ margin_bottom = -9.0
 [node name="ModWarningWindow" parent="UILayer" instance=ExtResource( 76 )]
 unique_name_in_owner = true
 visible = false
+script = ExtResource( 83 )
 
 [node name="ResimRequestScreen" type="ColorRect" parent="UILayer"]
 visible = false
@@ -4025,6 +4083,7 @@ script = ExtResource( 203 )
 [connection signal="text_entered" from="UILayer/GameUI/PausePanel/VBoxContainer/ReplayName" to="." method="_on_ReplayName_text_entered"]
 [connection signal="pressed" from="UILayer/MainMenu/ButtonContainer/WorkshopUploader" to="UILayer" method="_on_WorkshopUploader_pressed"]
 [connection signal="toggled" from="UILayer/RoadmapContainer/RoadmapButton" to="UILayer/RoadmapContainer/VBoxContainer" method="toggle"]
+[connection signal="pressed" from="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/UserFolderButton" to="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/UserFolderButton" method="_on_pressed"]
 [connection signal="pressed" from="UILayer/ResimRequestScreen/RequestUndoPanel/VBoxContainer/HBoxContainer/ResimYes" to="UILayer/ResimRequestScreen" method="_on_ResimYes_pressed"]
 [connection signal="pressed" from="UILayer/ResimRequestScreen/RequestUndoPanel/VBoxContainer/HBoxContainer/ResimNo" to="UILayer/ResimRequestScreen" method="_on_ResimNo_pressed"]
 [connection signal="pressed" from="UILayer/SoftlockResetButton" to="UILayer" method="_on_SoftlockResetButton_pressed"]

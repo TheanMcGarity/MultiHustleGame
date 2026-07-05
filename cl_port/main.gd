@@ -18,7 +18,7 @@ func _delete_char_cache(btt):
 	_Global.css_instance.charPackages = {}
 	for f in ModLoader._get_all_files("user://char_cache", "pck"):
 		dir.remove(f)
-	get_tree().quit()
+#	get_tree().quit()
 
 # these just load the necessary custom characters through characterSelect.gd
 func _on_loaded_replay(match_data):

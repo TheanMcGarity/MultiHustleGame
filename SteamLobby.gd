@@ -105,6 +105,7 @@ func _ready() -> void:
 	Steam.connect("validate_auth_ticket_response", self, "_validate_Auth_Ticket_Response")
 	Network.connect("game_error", self, "_on_game_error")
 	Network.connect("steam_lobby_sync_confirmed", self, "sync_confirm")
+	Network.connect("steam_lobby_replay_sync_confirmed", self, "sync_confirm_replay")
 	spectator_update_timer = Timer.new()
 	spectator_update_timer.connect("timeout", self, "_on_spectator_update_timer_timeout")
 	add_child(spectator_update_timer)
@@ -225,24 +226,10 @@ func challenge_user(user):
 	OPPONENT_ID = user.steam_id
 	PLAYER_SIDE = 1
 
-func replay_challenge_user(user, match_data, side):
-	print("replay-challenging user as side " + str(side))
-	var full_replay = match_data.duplicate(true)
-	full_replay["frames"] = ReplayManager.frames
-	var data = {
-		"replay_challenge_from": SteamHustle.STEAM_ID,
-		"replay_data": full_replay,
-		"replay_challenger_side": side,
-	}
-	Steam.setLobbyMemberData(LOBBY_ID, "status", "busy")
-	_send_P2P_Packet(user.steam_id, data)
-	SETTINGS_LOCKED = true
-	CHALLENGING_STEAM_ID = user.steam_id
-	OPPONENT_ID = user.steam_id
-	PLAYER_SIDE = side
-	REPLAY_FULL_DATA = full_replay
-	REPLAY_CHALLENGER_SIDE = side
-	remote_replay_mods_loaded = false
+func replay_challenge_user(match_data, sides):
+	var data:Dictionary = match_data.duplicate()
+	data["replay_sides"] = sides
+	host_game_vs_all(null, data)
 
 func on_match_started():
 	Steam.setLobbyMemberData(LOBBY_ID, "game_started", "true")
@@ -777,7 +764,10 @@ func _read_P2P_Packet_custom(readable):
 				Network.char_loaded[sender] = true
 				
 	if readable.has("multihustle_start"):
-		send_sync(readable.multihustle_start)
+		if readable.replay:
+			send_sync_replay(readable.multihustle_start)
+		else:
+			send_sync(readable.multihustle_start)
 	#if readable.has("sync_confirm"):
 	#	sync_confirm(readable.steam_id)
 
@@ -1850,7 +1840,7 @@ signal start_game()
 
 var per_user_settings
 
-func host_game_vs_all(per_user_settings = null):
+func host_game_vs_all(per_user_settings = null, replay_data = null):
 	Network.log_to_file("host_game_vs_all called")
 	if SteamHustle.STEAM_ID != LOBBY_OWNER:
 		Network.log_to_file("Only host can setup")
@@ -1879,17 +1869,34 @@ func host_game_vs_all(per_user_settings = null):
 	#PLAYER_SIDE = 1
 	#multihustle_start()
 	# DEBUG Stuff
-	multihustle_start()
+	if (replay_data == null):
+		multihustle_start()
+	else:
+		multihustle_start(true)
 
-func multihustle_start():
+func multihustle_start(replay := false):
 	Network.log_to_file("multihustle_start called")
 	OPPONENT_ID = LOBBY_OWNER
 	var data = {
 		"multihustle_start":OPPONENT_IDS,
-		"per_user_settings":per_user_settings
+		"per_user_settings":per_user_settings,
+		"replay":replay
 	}
 	_send_P2P_Packet(0, data)
-	send_sync(OPPONENT_IDS)
+	if (replay):
+		send_sync_replay(OPPONENT_IDS)
+	else:
+		send_sync(OPPONENT_IDS)
+	
+func multihustle_replay_start():
+	Network.log_to_file("multihustle_start called")
+	OPPONENT_ID = LOBBY_OWNER
+	var data = {
+		"multihustle_replay_start":OPPONENT_IDS,
+	#	"sides":sides
+	}
+	_send_P2P_Packet(0, data)
+	send_sync_replay(OPPONENT_IDS)
 
 func send_sync(OPPONENT_IDS):
 	Network.log_to_file("send_sync called")
@@ -1908,6 +1915,23 @@ func send_sync(OPPONENT_IDS):
 	Network.rpc_("net_sync_confirm", [SteamHustle.STEAM_ID, OPPONENT_IDS])
 	#sync_confirm(SteamHustle.STEAM_ID)
 
+func send_sync_replay(OPPONENT_IDS):
+	Network.log_to_file("send_sync_replay called")
+	Network.log_to_file("opponent ids: " + str(OPPONENT_IDS))
+	OPPONENT_ID = LOBBY_OWNER
+	self.OPPONENT_IDS = OPPONENT_IDS
+	for steam_id in sync_confirms.keys():
+		if !OPPONENT_IDS.values().has(steam_id):
+			sync_confirms.erase(steam_id)
+	for steam_id in OPPONENT_IDS.values():
+		if !sync_confirms.has(steam_id):
+			sync_confirms[steam_id] = false
+		Network.register_player_steam(steam_id)
+	sync_confirms[SteamHustle.STEAM_ID] = true
+	is_syncing = true
+	Network.rpc_("net_replay_sync_confirm", [SteamHustle.STEAM_ID, OPPONENT_IDS])
+	#sync_confirm(SteamHustle.STEAM_ID)
+
 func sync_confirm(steam_id, opps):
 	OPPONENT_IDS = opps
 	Network.log_to_file("sync_confirm called")
@@ -1924,7 +1948,24 @@ func sync_confirm(steam_id, opps):
 		sync_confirms.clear()
 		_setup_game_vs_group(OPPONENT_IDS)
 
-func _setup_game_vs_group(OPPONENT_IDS):
+func sync_confirm_replay(steam_id, opps):
+	OPPONENT_IDS = opps
+	Network.log_to_file("sync_confirm_replay called")
+	sync_confirms[steam_id] = true
+	print(sync_confirms)
+
+	is_syncing = true # i dont even want to explain
+
+	if is_syncing:
+		#for confirmation in sync_confirms.values():
+		#	if !confirmation:
+		#		return
+		is_syncing = false
+		sync_confirms.clear()
+		_setup_game_vs_group(OPPONENT_IDS, true)
+
+# yes ik i did so much just to end up using network.replay thing idk, dont make me rewrite it
+func _setup_game_vs_group(OPPONENT_IDS, replay := false):
 	Network.log_to_file("_setup_game_vs_group called")
 	Network.log_to_file("opponent ids: " + str(OPPONENT_IDS))
 	SETTINGS_LOCKED = true
@@ -1942,7 +1983,9 @@ func _setup_game_vs_group(OPPONENT_IDS):
 			break
 	Network.log_to_file("made it to character select")
 	Network.network_ids = OPPONENT_IDS
-	if SteamHustle.STEAM_ID == LOBBY_OWNER:
+	if (replay):
+		Network.assign_players_for_replay_challenge(Network.pending_replay_match_data)
+	elif SteamHustle.STEAM_ID == LOBBY_OWNER:
 		rpc_("open_chara_select")
 		Network.callv("open_chara_select", [])
 	Steam.setLobbyMemberData(LOBBY_ID, "status", "fighting")

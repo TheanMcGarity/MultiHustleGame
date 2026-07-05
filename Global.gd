@@ -140,6 +140,17 @@ var name_paths = {
 	#"Asillyguy": "res://SillyDillyMod/characters/Asillyguy/Asillyguy.tscn"
 #	"Alien": "res://characters/alien/Alien.tscn",
 }
+var name_paths_backup = {
+	"Ninja": "res://characters/stickman/NinjaGuy.tscn",
+	"Cowboy": "res://characters/swordandgun/SwordGuy.tscn",
+	"Wizard": "res://characters/wizard/Wizard.tscn",
+	"Robot": "res://characters/robo/Robot.tscn",
+	"Mutant": "res://characters/mutant/Mutant.tscn",
+	#"Asillyguy": "res://SillyDillyMod/characters/Asillyguy/Asillyguy.tscn"
+#	"Alien": "res://characters/alien/Alien.tscn",
+}
+
+var _name_paths_init = { }
 
 var songs = {
 	"bg1": preload("res://sound/music/bg1.mp3"),
@@ -251,6 +262,8 @@ func get_playback_speed_factor() -> float:
 	return 1.0
 
 func _ready():
+	_name_paths_init = name_paths
+	
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")
 	yield(get_tree(), "idle_frame")

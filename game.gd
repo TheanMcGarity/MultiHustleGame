@@ -46,6 +46,8 @@ onready var fx_node = $Fx
 # the per-instance hosts (objects/particles/states) are the ones gated on mods.
 onready var hooks = $Hooks
 
+onready var ui_handler = $MHCharacterUI
+
 var mouse_pressed = false
 
 var current_tick = -1
@@ -206,7 +208,11 @@ var team_collisions := false
 
 var reload_ui_allowed := false
 
+var ghost_opponent_map = { }
+
 #var has_ghost_frozen_yet = false
+
+var duel := false
 
 func get_ticks_left():
 	return time - Utils.int_min(current_tick, time)
@@ -292,6 +298,7 @@ func copy_to(game):
 				# (the counter was already synced above).
 				new_obj.obj_name = object.obj_name
 				game.on_object_spawned(new_obj)
+				object.copy_to(new_obj)
 				# Refuses to override, so done manually here. Thanks to Degritone for part of the code
 				new_obj.init()
 				var old_state_machine = object.get("state_machine") # Just making sure the object has a state machine
@@ -318,6 +325,8 @@ func copy_to(game):
 				game.objs_map[str(game.objs_map.size() + 1)] = null
 	game.camera.limit_left = camera.limit_left
 	game.camera.limit_right = camera.limit_right
+	
+	game.ghost_opponent_map = ghost_opponent_map.duplicate(true)
 	
 	# throws
 	game.throws_consumed = throws_consumed.duplicate()
@@ -459,6 +468,7 @@ func forfeit(id):
 func start_game(singleplayer:bool, match_data:Dictionary):
 	set_vanilla_game_started(true)
 
+
 	#print(match_data)
 	
 	if match_data.has("collide_team"):
@@ -472,10 +482,12 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		var replay_teams_living = {1:0,2:0,3:0,4:0,0:0}
 		for team_player in team_dict:
 			replay_teams[team_dict[team_player]][team_player] = null
-			replay_teams_living[team_dict[team_player]] += 1
-			pass
 		Network.teams = replay_teams
-		Network.team_living = replay_teams_living
+		#Network.team_living = replay_teams_living
+	
+	Network.team_living = {}
+	for team in Network.teams:
+		Network.team_living[team] = Network.teams[team].size()
 	# Only for compatibility with old replays
 	if match_data.has("display_names"):
 		player_names_rich = match_data["display_names"]
@@ -507,6 +519,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player.connect("predicted", self, "on_prediction", [player])
 		player.connect("action_selected", self, "on_player_acted", [player])
 	
+	duel = players.size() == 2
 		
 	self.stage_width = Utils.int_clamp(match_data.stage_width, 100, 50000)
 	if match_data.has("game_length"):
@@ -557,8 +570,11 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 			if player.get(value) != null:
 				player.set(value, match_data[value])
 
+	
+
 	for index in players.keys():
 		var player = players[index]
+		ui_handler.get_ui_node_from_player(player)
 		$Players.add_child(player)
 		player.set_color(MultiHustle_get_color_by_index(index))
 		player.init()
@@ -633,11 +649,16 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 
 	#Here is where we have a problem, leaving it be for now
 	for index in players.keys():
+		var opp = index + 1
+		if (index >= players.size() - 1):
+			opp = 1
 		var player = players[index]
-		var evenModulo = index % 2
-		current_opponent_indicies[index] = evenModulo + 1
-		player.opponent = players[evenModulo + 1]
-		if evenModulo == 0:
+		player.opponent = players[opp]
+		current_opponent_indicies[index] = opp
+		ghost_opponent_map[index] = opp
+		
+		var even = index % 2
+		if even == 0:
 			player.set_facing(-1)
 	
 	for index in players.keys():
@@ -646,7 +667,6 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player_datas[index] = player.data
 		match(index):
 			1:
-				player.timescale = 2
 				p1_data = player.data
 			2:
 				p2_data = player.data
@@ -1796,7 +1816,7 @@ func ghost_tick():
 					self.ghost_actionable_freeze_ticks = GHOST_ACTIONABLE_FREEZE_TICKS
 				else :
 					self.ghost_actionable_freeze_ticks = 1
-				if not p1.actionable_label.visible:
+				if not p1.actionable_label.visible and not p1.hidden_sprite:
 					p1.actionable_label.show()
 					p1.actionable_label.text = "Ready\nin %sf" % p1.turn_frames
 					p1.grounded_indicator.visible = p1.is_grounded() and p1.ghost_was_in_air
@@ -1805,7 +1825,7 @@ func ghost_tick():
 				for index2 in players.keys():
 					var p2 = players[index2]
 					if p2.current_state().interruptible_on_opponent_turn or p2.feinting or negative_on_hit(p2):
-						if not p2.actionable_label.visible:
+						if not p2.actionable_label.visible and not p2.hidden_sprite:
 							p2.actionable_label.show()
 							if p2.current_state().anim_length == p2.current_state().current_tick + 1 or p2.current_state().iasa_at == p2.current_state().current_tick:
 								p2.actionable_label.text = "Ready\nin %sf" % p2.turn_frames

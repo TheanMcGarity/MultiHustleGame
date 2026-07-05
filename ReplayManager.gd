@@ -92,27 +92,28 @@ func _strip_spectator_data(data: Dictionary):
 
 func save_replay(match_data: Dictionary, file_name="", autosave=false):
 	
+	var data = match_data.duplicate(true)
 	var team_data = {}
 	
 	for player in Network.game.players:
 		team_data[player] = Network.get_team(player)
 
-	match_data["teams"] = team_data
+	data["teams"] = team_data
 
 	# would rename to rich_display_names but that would break existing teams replays
-	match_data["rich_display_names"] = Network.game.player_names_rich
+	data["rich_display_names"] = Network.game.player_names_rich
+	data["display_names"] = Network.game.player_names
 
 	var char_names:Dictionary;
 	if Network.multiplayer_active:
 		char_names = Network.game.player_names
 	else:
 		char_names = Network.player_character_names
-	match_data["selector_char_names"] = char_names
+	data["selector_char_names"] = char_names
 	if file_name == "":
 		file_name = generate_replay_name()
 	file_name = Utils.filter_filename(file_name)
 
-	var data = match_data.duplicate(true)
 	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
@@ -141,9 +142,26 @@ func save_replay_backup(match_data: Dictionary):
 	var dir = Directory.new()
 	if !dir.dir_exists("user://replay"):
 		dir.make_dir("user://replay")
-	if !dir.dir_exists("user://replay/backup"):
-		dir.make_dir("user://replay/backup")
+	if !dir.dir_exists("user://replay/new_backup"):
+		dir.make_dir("user://replay/new_backup")
 	var data = match_data.duplicate(true)
+	var team_data = {}
+	
+	for player in Network.game.players:
+		team_data[player] = Network.get_team(player)
+
+	data["teams"] = team_data
+
+	# would rename to rich_display_names but that would break existing teams replays
+	data["rich_display_names"] = Network.game.player_names_rich
+	data["display_names"] = Network.game.player_names
+
+	var char_names:Dictionary;
+	if Network.multiplayer_active:
+		char_names = Network.game.player_names
+	else:
+		char_names = Network.player_character_names
+	data["selector_char_names"] = char_names
 	_strip_spectator_data(data)
 	data["frames"] = frames
 	data["version"] = Global.VERSION
@@ -159,7 +177,7 @@ func save_replay_backup(match_data: Dictionary):
 		stem = p1 + "_v_" + p2 + "_" + stem
 	var file_name = BACKUP_PREFIX + stem
 	var file = File.new()
-	file.open("user://replay/backup/" + file_name + ".replay", File.WRITE)
+	file.open("user://replay/new_backup/" + file_name + ".replay", File.WRITE)
 	file.store_var(data, true)
 	file.close()
 	_rotate_backups()
@@ -167,11 +185,11 @@ func save_replay_backup(match_data: Dictionary):
 
 func _rotate_backups():
 	var dir = Directory.new()
-	if !dir.dir_exists("user://replay/backup"):
+	if !dir.dir_exists("user://replay/new_backup"):
 		return
 	var files = []
 	var _directories = []
-	dir.open("user://replay/backup")
+	dir.open("user://replay/new_backup")
 	dir.list_dir_begin(false, true)
 	Global.add_dir_contents(dir, files, _directories, false, ".replay")
 	if files.size() <= MAX_BACKUPS:
@@ -196,8 +214,8 @@ func load_replays(autosave=true, backups=true):
 		dir.make_dir("user://replay")
 	if !dir.dir_exists("user://replay/autosave"):
 		dir.make_dir("user://replay/autosave")
-	if !dir.dir_exists("user://replay/backup"):
-		dir.make_dir("user://replay/backup")
+	if !dir.dir_exists("user://replay/new_backup"):
+		dir.make_dir("user://replay/new_backup")
 	dir.open("user://replay")
 	dir.list_dir_begin(false, true)
 	Global.add_dir_contents(dir, files, _directories, false)
@@ -206,7 +224,7 @@ func load_replays(autosave=true, backups=true):
 		dir.list_dir_begin(false, true)
 		Global.add_dir_contents(dir, files, _directories, false)
 	if backups:
-		dir.open("user://replay/backup")
+		dir.open("user://replay/new_backup")
 		dir.list_dir_begin(false, true)
 		Global.add_dir_contents(dir, files, _directories, false)
 	var replay_paths = {}

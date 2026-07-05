@@ -6,6 +6,8 @@ var detonating = false
 
 func disable():
 	.disable()
+	if (creator == null):
+		return
 	creator.after_image_object = null
 
 func _ready():

@@ -443,9 +443,9 @@ func create_team_button(text:String, name:String, team:int, container:Node):
 	team_button.team_id = team
 	return team_button
 
-signal mh_chat_message_received(id, message, username)
-remotesync func send_mh_chat_message(player_id, message, username):
-	emit_signal("mh_chat_message_received", player_id, message, username)
+signal mh_chat_message_received(id, message, username, is_team)
+remotesync func send_mh_chat_message(player_id, message, username, is_team):
+	emit_signal("mh_chat_message_received", player_id, message, username, is_team)
 	
 
 signal mh_chat_message_received_preformatted(message)
@@ -488,8 +488,13 @@ remotesync func set_display_name(name:String, char_id:int):
 		
 		main.uiselectors.reinit(main)
 		main.hud_layer.reinit(main.hud_layer.p1index, main.hud_layer.p2index)
+		
+		Network.main.ui_layer.p1_action_buttons.re_init(Network.main.ui_layer.GetRealID(1))
+		Network.main.ui_layer.p2_action_buttons.re_init(Network.main.ui_layer.GetRealID(2))
 	else:
 		name_initialized = false
+	
+	
 
 remotesync func set_ghost_display_name(name:String, char_id:int):
 	var label:RichTextLabel = game.ghost_game.players[char_id].display_name
@@ -677,9 +682,12 @@ remotesync func client_disconnected(id):
 		
 
 signal steam_lobby_sync_confirmed(steam_id, opps)
+signal steam_lobby_replay_sync_confirmed(steam_id, opps)
 
 remotesync func net_sync_confirm(steam_id, opps):
 	emit_signal("steam_lobby_sync_confirmed", steam_id, opps)
+remotesync func net_replay_sync_confirm(steam_id, opps):
+	emit_signal("steam_lobby_replay_sync_confirmed", steam_id, opps)
 
 func on_stop_mh():
 	sync_unlocks = {}
@@ -728,3 +736,61 @@ func get_pid_from_nid(network_id):
 		if (network_ids[pid] == network_id):
 			return pid
 	return -1
+
+var pending_replay_match_data = null
+var pending_replay_path = ""
+
+remotesync func _on_replay_picked_for_challenge(match_data, path):
+	pending_replay_match_data = match_data
+	pending_replay_path = path
+	sides_picked_replay = {}
+	_show_side_picker_dialog()
+
+func _show_side_picker_dialog():
+	var ui = main.ui_layer.get_node("%SteamLobby")
+	var p1_name = "P1"
+	var p2_name = "P2"
+	if pending_replay_match_data and pending_replay_match_data.has("selected_characters"):
+		var grid = ui.get_node("%SidePickerChars")
+		grid.init(pending_replay_match_data)
+		for player in grid.players:
+			grid.players[player].connect("pressed", self, "_send_replay_challenge", [player])
+	# Restore-timers offer applies to any mode that runs a per-player clock —
+	# both chess and increment carry chess_timer_state. Old replays still use
+	# the bool field; new ones use timer_mode (already normalized via Utils
+	# before reaching here).
+	var has_timer = false
+	if pending_replay_match_data:
+		var mode = pending_replay_match_data.get("timer_mode", null)
+		if mode == null:
+			has_timer = pending_replay_match_data.get("chess_timer", false)
+		else:
+			has_timer = mode != "none"
+	var has_timer_state = has_timer and pending_replay_match_data.has("chess_timer_state")
+	ui.get_node("%SidePickerRestoreTimers").visible = has_timer_state
+	ui.get_node("%SidePickerRestoreTimers").pressed = has_timer_state
+	ui.get_node("%SidePickerDialogScreen").show()
+
+func _send_replay_challenge(side):
+	
+	var ui = main.ui_layer.get_node("%SteamLobby")
+	var chars = ui.get_node("%SidePickerChars")
+	var waiting = ui.get_node("%SidePickerWaiting")
+	chars.visible = false
+	waiting.visible = true
+	rpc_("pick_replay_side", [side, SteamHustle.STEAM_ID])
+	
+var sides_picked_replay = {}
+remotesync func pick_replay_side(side, player):
+	sides_picked_replay[player] = side
+	
+	if (!(SteamLobby.LOBBY_MEMBERS.size() <= sides_picked_replay.size())):
+		return
+	if (SteamLobby.LOBBY_OWNER != SteamHustle.STEAM_ID):
+		return
+	
+	var ui = main.ui_layer.get_node("%SteamLobby")
+	if Network.pending_replay_match_data:
+		Network.pending_replay_match_data["restore_timers"] = ui.get_node("%SidePickerRestoreTimers").visible and ui.get_node("%SidePickerRestoreTimers").pressed
+		SteamLobby.replay_challenge_user(pending_replay_match_data, sides_picked_replay)
+	ui.get_node("%SidePickerDialogScreen").hide()

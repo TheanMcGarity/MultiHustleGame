@@ -1,0 +1,25 @@
+[gd_resource type="ParticlesMaterial" load_steps=3 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+void fragment() {
+    COLOR = vec4(1.0, 0.0, 0.0, 1.0);
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+resource_local_to_scene = true
+shader = SubResource( 1 )
+
+[resource]
+next_pass = SubResource( 2 )
+lifetime_randomness = 1.0
+emission_shape = 1
+emission_sphere_radius = 3.14
+flag_disable_z = true
+spread = 180.0
+gravity = Vector3( 0, 98, 0 )
+initial_velocity = 25.0
+initial_velocity_random = 0.74
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0

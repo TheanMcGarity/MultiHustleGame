@@ -98,7 +98,7 @@ text = "You"
 unique_name_in_owner = true
 margin_top = 21.0
 margin_right = 320.0
-margin_bottom = 87.0
+margin_bottom = 100.0
 size_flags_horizontal = 15
 size_flags_vertical = 13
 theme = ExtResource( 4 )
@@ -108,7 +108,7 @@ alignment = 2
 self_modulate = Color( 1, 1, 1, 0 )
 margin_left = 273.0
 margin_right = 320.0
-margin_bottom = 66.0
+margin_bottom = 79.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
@@ -117,7 +117,7 @@ unique_name_in_owner = true
 margin_left = 1.0
 margin_top = 1.0
 margin_right = 46.0
-margin_bottom = 65.0
+margin_bottom = 78.0
 rect_min_size = Vector2( 0, 60 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -127,7 +127,7 @@ alignment = 2
 [node name="TurnButtons" type="VBoxContainer" parent="BottomRow/PanelContainer/CategoryContainer"]
 unique_name_in_owner = true
 margin_right = 45.0
-margin_bottom = 64.0
+margin_bottom = 77.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -186,11 +186,21 @@ margin_right = 54.0
 margin_bottom = 9.0
 align = 1
 
-[node name="FeintButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
+[node name="OpponentButton" type="OptionButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
 margin_top = 13.0
 margin_right = 45.0
 margin_bottom = 25.0
+text = "test"
+clip_text = true
+items = [ "test", null, false, 0, null ]
+selected = 0
+
+[node name="FeintButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
+unique_name_in_owner = true
+margin_top = 26.0
+margin_right = 45.0
+margin_bottom = 38.0
 hint_tooltip = "Uses one charge of Free Cancel. Allows you to freely cancel your melee attack on the opponent's turn."
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -202,10 +212,9 @@ expand_icon = true
 
 [node name="ReverseButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
-visible = false
-margin_top = 30.0
+margin_top = 39.0
 margin_right = 45.0
-margin_bottom = 44.0
+margin_bottom = 51.0
 hint_tooltip = "Perform your action backwards."
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -216,15 +225,15 @@ icon_align = 1
 expand_icon = true
 
 [node name="ContinueButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons" instance=ExtResource( 3 )]
-margin_top = 39.0
-margin_right = 45.0
-margin_bottom = 51.0
-
-[node name="UndoButton" type="Button" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
-unique_name_in_owner = true
 margin_top = 52.0
 margin_right = 45.0
 margin_bottom = 64.0
+
+[node name="UndoButton" type="Button" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
+unique_name_in_owner = true
+margin_top = 65.0
+margin_right = 45.0
+margin_bottom = 77.0
 hint_tooltip = "Resimulate the match until the previous turn."
 mouse_default_cursor_shape = 2
 size_flags_horizontal = 3
@@ -234,9 +243,9 @@ text = "Undo"
 [node name="AutoButton" type="CheckButton" parent="BottomRow/PanelContainer/CategoryContainer/TurnButtons"]
 unique_name_in_owner = true
 visible = false
-margin_top = 65.0
+margin_top = 78.0
 margin_right = 45.0
-margin_bottom = 77.0
+margin_bottom = 90.0
 size_flags_vertical = 3
 action_mode = 0
 text = "Auto"

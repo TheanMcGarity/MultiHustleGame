@@ -160,10 +160,10 @@ func _ready():
 
 	#get headers
 	var h = File.new()
-	h.open("res://cl_port/headers/sample.header", File.READ)
+	h.open("res://import_headers/sample.header", File.READ)
 	sample_header = h.get_buffer(h.get_len())
 	h.close()
-	h.open("res://cl_port/headers/oggstr.header", File.READ)
+	h.open("res://import_headers/oggstr.header", File.READ)
 	oggstr_header = h.get_buffer(h.get_len())
 	h.close()
 	loadingLabel = createLabel("Character Loaded", "Loaded", 4, 345)
@@ -1127,59 +1127,90 @@ func save_stex(image, save_path):
 	stexf.close()
 
 # save sample function made specifically for char loader
-func save_sample(wav, dest_file):
-	var s = AudioStreamSample.new()
-	s.format = AudioStreamSample.FORMAT_16_BITS
-	s.mix_rate = wav.sample_rate
-	s.stereo = wav.channels == 2
-	s.data = wav.pcm
-	ResourceSaver.save(dest_file, s)
-	
-func load_wav_data(path):
+func save_sample(og_file, dest_file):
+
+	## READING ##
 	var f = File.new()
-	if f.open(path, File.READ) != OK:
-		return null
+	f.open(og_file, File.READ)
 
-	if f.get_buffer(4).get_string_from_ascii() != "RIFF":
-		return null
-	f.get_32()
-	if f.get_buffer(4).get_string_from_ascii() != "WAVE":
-		return null
+	# read channel number and sample rate
+	f.seek(0x00000016)
+	var channels = f.get_8()
+	f.seek(0x00000018)
+	var sRate = f.get_32()
+	
+	# get to the data header position (some files have text before the data header)
+	var ind = 40
+	f.seek(ind - 4)
+	var data32 = f.get_32()
+	while data32 != 1635017060: # this number is the word "data" spelled in hex
+		ind += 1
+		f.seek(ind - 4)
+		data32 = f.get_32()
 
-	var channels = 1
-	var sample_rate = 44100
-	var bits_per_sample = 16
-	var pcm_data = PoolByteArray()
+	# get data chunk size
+	f.seek(ind)
+	var leng = f.get_32()
+	
+	# read the data
+	f.seek(ind + 4)
+	var fullWav = f.get_buffer(leng)
 
-	while not f.eof_reached():
-		var chunk_id = f.get_buffer(4).get_string_from_ascii()
-		var chunk_size = f.get_32()
-
-		if chunk_id == "fmt ":
-			var audio_format = f.get_16()
-			channels = f.get_16()
-			sample_rate = f.get_32()
-			f.get_32() 
-			f.get_16()
-			bits_per_sample = f.get_16()
-
-			if chunk_size > 16:
-				f.seek(f.get_position() + (chunk_size - 16))
-
-		elif chunk_id == "data":
-			pcm_data = f.get_buffer(chunk_size)
-			break
-		else:
-			f.seek(f.get_position() + chunk_size)
-
+	leng = leng * 2 # this will be needed for later, some wav files only work when having a duplicate ammount of data (maybe it has to do with an odd number?)
+	
 	f.close()
 
-	return {
-		"channels": channels,
-		"sample_rate": sample_rate,
-		"pcm": pcm_data
-	}
+	## WRITING ##
+	f.open(dest_file, File.WRITE)
+
+	# header
+	f.store_buffer(sample_header)
+
+	# MAGIC NUMBER TIME (I honestly have no idea why this needs to exist but without it the thing breaks so)
+	# 02 -> is a mono file with 44100 sample rate
+	# 03 -> is a stereo file with 44100 sample rate / is a mono file with a sample rate that isn't 44100
+	# 04 -> is a stereo file with a sample rate that isn't 44100
+	var numb = channels + 1
+	if (sRate != 44100):
+		numb += 1
 	
+	# store it on file
+	writeHex(f, [0x00, numb, 0x00, 0x00], 8)
+	
+	# something idk
+	writeHex(f, [34084860461568])
+	f.store_8(0)
+	
+	# store the actual data
+	f.store_32(leng)
+	f.store_buffer(fullWav)
+
+	# filling the whole duplicate chunk of data with 0x00
+	var wrote = 0
+	var zeroChunk = 8 # doing loops in chunks of 8 bytes to do less loops
+	for i in floor(leng/2 / zeroChunk): 
+		writeHex(f, [0x00], 8 * zeroChunk)
+		wrote += 8
+	for i in leng/2 - wrote: # fill in the rest of the 0s
+		writeHex(f, [0x00], 8)
+	
+	# standard bottomer(?)
+	writeHex(f, [0x03, 0x00, 0x00, 0x00], 8)
+	writeHex(f, [0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00], 8)
+	
+	# storing some identifiers and their values, idk why they're so specific.
+	if (sRate != 44100):
+		writeHex(f, [0x07, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00], 8)
+		f.store_32(sRate)
+	
+	if (channels == 2):
+		writeHex(f, [0x08, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00], 8)
+		writeHex(f, [0x01, 0x00, 0x00, 0x00], 8)
+	
+	# CLOSE!
+	f.store_string("RSRC")
+	f.close()
+
 # save oggstr function by Supersonic#2382
 func save_oggstr(og_file, dest_file):
 	var f = File.new()
@@ -1199,6 +1230,7 @@ func save_oggstr(og_file, dest_file):
 	f.store_buffer(buf)
 	f.store_string("RSRC")
 	f.close()
+	
 
 # this function finds the portrait image path inside a .tscn file, as well as the extra colors
 func _importHolderPortrait(folder, scenePath, charName):
@@ -1330,7 +1362,8 @@ func _import_end():
 
 func _createImportFiles(folder, _charName, _charPath): # returns an array of missing files
 	var dir = Directory.new()
-
+	print("sample_header="+str(sample_header))
+	print("oggstr_header="+str(oggstr_header))
 	# if mod cache exists, just import it and return
 	var md = ModLoader._readMetadata(folder + "/_metadata")
 	var modName = md.name
@@ -1395,7 +1428,7 @@ func _createImportFiles(folder, _charName, _charPath): # returns an array of mis
 				elif (dest.ends_with(".oggstr")):
 					save_oggstr(assets[i], tmpFile)
 				else:
-					save_sample(load_wav_data(assets[i]), tmpFile)
+					save_sample(assets[i], tmpFile)
 				
 				# add it to the package
 				p.add_file(dest, tmpFile)
@@ -1422,10 +1455,6 @@ func _createImportFiles(folder, _charName, _charPath): # returns an array of mis
 	for f in delList:
 		dir.remove(f)
 	dir.remove("user://mod_temp")
-	
-	#var char_scene = ResourceLoader.load(_charPath, "", true)
-	#if (char_scene == null):
-	#	missingFiles += "Scene failed to load!"
 	
 	missingFiles += _validateScene(_charPath, name_to_folder[curFighter])
 

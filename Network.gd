@@ -596,12 +596,6 @@ func assign_players_for_replay_challenge(replay_data):
 	if !steam:
 		return
 	player_id = SteamLobby.PLAYER_SIDE
-	if SteamLobby.PLAYER_SIDE == 1:
-		network_ids[1] = SteamHustle.STEAM_ID
-		network_ids[2] = SteamLobby.OPPONENT_ID
-	else:
-		network_ids[1] = SteamLobby.OPPONENT_ID
-		network_ids[2] = SteamHustle.STEAM_ID
 	ReplayManager.frames = replay_data.frames
 	if ReplayManager.frames.has("finished"):
 		ReplayManager.frames["finished"] = false

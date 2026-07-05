@@ -1,4 +1,4 @@
-[gd_scene load_steps=208 format=2]
+[gd_scene load_steps=219 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -204,6 +204,9 @@
 [ext_resource path="res://ui/ActionSelector/StateIcons/team_boost.png" type="Texture" id=202]
 [ext_resource path="res://characters/states/Frozen.gd" type="Script" id=203]
 [ext_resource path="res://characters/FighterHooks.gd" type="Script" id=204]
+[ext_resource path="res://characters/BaseChar.gdshader" type="Shader" id=205]
+[ext_resource path="res://fx/DespawnExplosion.tscn" type="PackedScene" id=206]
+[ext_resource path="res://fx/tshake_text_effect.tres" type="RichTextEffect" id=207]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
@@ -416,8 +419,53 @@ animations = [ {
 [sub_resource type="ViewportTexture" id=2]
 viewport_path = NodePath("EmoteView")
 
-[sub_resource type="ViewportTexture" id=3]
+[sub_resource type="ShaderMaterial" id=4]
+resource_local_to_scene = true
+shader = ExtResource( 205 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="ViewportTexture" id=5]
 viewport_path = NodePath("EmoteView")
+
+[sub_resource type="ViewportTexture" id=3]
+viewport_path = NodePath("StyledParticles")
+
+[sub_resource type="CubeMesh" id=6]
+
+[sub_resource type="Skin" id=7]
+
+[sub_resource type="ShaderMaterial" id=8]
+
+[sub_resource type="ViewportTexture" id=9]
+viewport_path = NodePath("SecretEmotes/Cube/CubeB")
+
+[sub_resource type="ShaderMaterial" id=10]
+resource_local_to_scene = true
+shader = ExtResource( 205 )
+shader_param/use_extra_color_1 = false
+shader_param/use_extra_color_2 = false
+shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
+shader_param/extra_replace_color_2 = Color( 1, 0, 1, 1 )
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/extra_color_1 = Color( 1, 1, 1, 1 )
+shader_param/extra_color_2 = Color( 1, 1, 1, 1 )
+shader_param/max_color_distance = 0.01
+shader_param/super_dim = true
+shader_param/use_outline = false
+shader_param/outline_color = Color( 1, 0, 0, 1 )
+
+[sub_resource type="ViewportTexture" id=11]
+viewport_path = NodePath("SecretEmotes/Cube/CubeA")
 
 [node name="BaseChar" groups=["Fighter"] instance=ExtResource( 3 )]
 script = ExtResource( 1 )
@@ -2208,9 +2256,6 @@ theme = ExtResource( 47 )
 bbcode_enabled = true
 fit_content_height = true
 scroll_active = false
-__meta__ = {
-"_edit_lock_": true
-}
 
 [node name="VelocityLabelContainer" type="Node2D" parent="." index="14"]
 visible = false
@@ -2289,6 +2334,7 @@ flip_v = true
 
 [node name="EmoteView" type="Viewport" parent="." index="18"]
 size = Vector2( 282, 282 )
+own_world = true
 transparent_bg = true
 
 [node name="EmoteLabelReal" type="RichTextLabel" parent="EmoteView" index="0"]
@@ -2303,17 +2349,96 @@ theme = ExtResource( 47 )
 bbcode_enabled = true
 fit_content_height = true
 scroll_active = false
+custom_effects = [ ExtResource( 207 ) ]
 __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="EmoteDisplay" type="Sprite" parent="." index="19"]
+[node name="StyledParticles" type="Viewport" parent="." index="19"]
+size = Vector2( 282, 282 )
+own_world = true
+transparent_bg = true
+hdr = false
+usage = 1
+
+[node name="DespawnExplosion" parent="StyledParticles" index="0" instance=ExtResource( 206 )]
 unique_name_in_owner = true
+material = SubResource( 4 )
+position = Vector2( 141, 141 )
+free = false
+start_enabled = false
+
+[node name="EmoteDisplay" type="Sprite" parent="." index="20"]
+unique_name_in_owner = true
+visible = false
 position = Vector2( 0, -60 )
+texture = SubResource( 5 )
+flip_v = true
+
+[node name="StyledParticlesDisplay" type="Sprite" parent="." index="21"]
+unique_name_in_owner = true
+visible = false
 texture = SubResource( 3 )
 flip_v = true
 
-[node name="Hooks" parent="." index="20"]
+[node name="Hooks" parent="." index="22"]
 script = ExtResource( 204 )
+
+[node name="SecretEmotes" type="Node2D" parent="." index="23"]
+
+[node name="Cube" type="Node2D" parent="SecretEmotes" index="0"]
+unique_name_in_owner = true
+visible = false
+position = Vector2( 0, -22 )
+
+[node name="CubeA" type="Viewport" parent="SecretEmotes/Cube" index="0"]
+size = Vector2( 128, 128 )
+own_world = true
+transparent_bg = true
+hdr = false
+
+[node name="MeshInstance" type="MeshInstance" parent="SecretEmotes/Cube/CubeA" index="0"]
+mesh = SubResource( 6 )
+skin = SubResource( 7 )
+material/0 = SubResource( 8 )
+
+[node name="Camera" type="Camera" parent="SecretEmotes/Cube/CubeA" index="1"]
+transform = Transform( 0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 2, 3, 2 )
+current = true
+
+[node name="OmniLight" type="OmniLight" parent="SecretEmotes/Cube/CubeA" index="2"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, 2 )
+light_energy = 99.0
+omni_range = 25.0
+omni_attenuation = 0.203063
+
+[node name="CubeB" type="Viewport" parent="SecretEmotes/Cube" index="1"]
+size = Vector2( 128, 128 )
+transparent_bg = true
+
+[node name="MeshInstance" type="MeshInstance" parent="SecretEmotes/Cube/CubeB" index="0"]
+mesh = SubResource( 6 )
+skin = SubResource( 7 )
+material/0 = SubResource( 8 )
+
+[node name="Camera" type="Camera" parent="SecretEmotes/Cube/CubeB" index="1"]
+transform = Transform( 0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 2, 3, 2 )
+current = true
+
+[node name="OmniLight" type="OmniLight" parent="SecretEmotes/Cube/CubeB" index="2"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.13888, 3.21938, 1.35617 )
+omni_range = 15.0
+omni_attenuation = 0.203063
+
+[node name="CubeBShaded" type="Sprite" parent="SecretEmotes/Cube" index="2"]
+texture = SubResource( 9 )
+flip_v = true
+
+[node name="CubeAStyled" type="Sprite" parent="SecretEmotes/Cube" index="3"]
+unique_name_in_owner = true
+modulate = Color( 1, 1, 1, 0.835294 )
+material = SubResource( 10 )
+texture = SubResource( 11 )
+flip_v = true
 
 [connection signal="mouse_entered" from="VelocityLabelContainer/VelocityLabel" to="VelocityLabelContainer/VelocityLabel" method="_on_VelocityLabel_mouse_entered"]

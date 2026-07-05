@@ -119,8 +119,8 @@ func _on_lobby_match_list_received(lobbies):
 		# list. lobby_max_members can come back as 0 from Steam (transient
 		# lookup miss) — treat that as "not full" so the entry doesn't
 		# vanish on a flaky query.
-		if !$"%FilterFullButton".pressed and lobby_max_members > 0 and lobby_num_members >= lobby_max_members:
-			continue
+		#if !$"%FilterFullButton".pressed and lobby_max_members > 0 and lobby_num_members >= lobby_max_members:
+		#	continue
 
 		var lobby_entry = preload("res://ui/SteamLobby/LobbyEntry.tscn").instance()
 		lobby_list.add_child(lobby_entry)

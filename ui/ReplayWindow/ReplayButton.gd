@@ -29,6 +29,19 @@ func _pretty(full_name):
 		return full_name.split("__")[1]
 	return full_name
 
+func create_player_list(data):
+	var selected = data.selected_characters
+	var sp = data.singleplayer
+	var players = data.selector_char_names
+	var result := ""
+	if (!sp):
+		for chara in selected:
+			result += "P%d: %s as %s\n" % [chara, players[chara].name, _pretty(selected[chara].name)]
+	else:
+		for chara in selected:
+			result += "P%d: %s\n" % [chara, _pretty(selected[chara].name)]
+	return result
+
 func show_data():
 	var match_data = ReplayManager.load_replay(path)
 	if !("version" in match_data):
@@ -38,9 +51,9 @@ func show_data():
 	$"%VersionLabel".text = version
 	if match_data.has("selected_characters"):
 		var sc = match_data.selected_characters
-		var p1_name = _pretty(sc[1].name) if sc.has(1) and sc[1].has("name") else "?"
-		var p2_name = _pretty(sc[2].name) if sc.has(2) and sc[2].has("name") else "?"
-		$"%MatchupLabel".text = p1_name + " vs " + p2_name
+		$"%MatchupLabel".text = "%d Players %s" % [sc.size(), "(SP)" if match_data.singleplayer else ""]
+		$"%MatchupLabel".hint_tooltip = create_player_list(match_data)
+		
 		# Missing-character check uses the raw name — same key game.gd uses
 		# to load the character scene, so this matches whether the replay
 		# would actually fail to open.

@@ -46,7 +46,7 @@ force_mute_on_hide = false
 
 [node name="VBoxContainer" parent="." index="0"]
 margin_right = 131.0
-margin_bottom = 126.0
+margin_bottom = 138.0
 
 [node name="TitleBar" parent="VBoxContainer" index="0"]
 self_modulate = Color( 1, 1, 1, 0 )
@@ -100,18 +100,17 @@ texture_hover = ExtResource( 13 )
 unique_name_in_owner = true
 self_modulate = Color( 1, 1, 1, 0.0705882 )
 margin_right = 130.0
-margin_bottom = 125.0
+margin_bottom = 137.0
 rect_min_size = Vector2( 0, 0 )
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Contents" index="0"]
 margin_left = 1.0
 margin_top = 1.0
 margin_right = 129.0
-margin_bottom = 114.0
+margin_bottom = 126.0
 
 [node name="Tabs" type="Tabs" parent="VBoxContainer/Contents/VBoxContainer" index="0"]
 unique_name_in_owner = true
-visible = false
 margin_right = 128.0
 margin_bottom = 11.0
 custom_constants/hseparation = 5
@@ -122,8 +121,9 @@ scrolling_enabled = false
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/Contents/VBoxContainer" index="1"]
 unique_name_in_owner = true
+margin_top = 12.0
 margin_right = 128.0
-margin_bottom = 100.0
+margin_bottom = 112.0
 rect_min_size = Vector2( 0, 100 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -136,9 +136,9 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Contents/VBoxContainer" index="2"]
-margin_top = 101.0
+margin_top = 113.0
 margin_right = 128.0
-margin_bottom = 113.0
+margin_bottom = 125.0
 
 [node name="LineEdit" type="LineEdit" parent="VBoxContainer/Contents/VBoxContainer/HBoxContainer" index="0"]
 unique_name_in_owner = true

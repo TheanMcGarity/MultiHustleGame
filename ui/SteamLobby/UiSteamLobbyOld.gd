@@ -10,8 +10,6 @@ var users = []
 var matches = {}
 var selected_user = null
 var pending_replay_challenge_member = null
-var pending_replay_match_data = null
-var pending_replay_path = ""
 var incoming_is_replay_challenge = false
 
 var handshake_made = false
@@ -34,8 +32,6 @@ func _ready():
 	$"%ChallengeCancelButton".connect("pressed", self, "_on_challenge_cancelled")
 	$"%ChallengeAcceptButton".connect("pressed", self, "_on_challenge_accept_pressed")
 	$"%ChallengeDeclineButton".connect("pressed", self, "_on_challenge_decline_pressed")
-	$"%SidePickerP1Button".connect("pressed", self, "_on_side_picker_p1_pressed")
-	$"%SidePickerP2Button".connect("pressed", self, "_on_side_picker_p2_pressed")
 	$"%SidePickerCancelButton".connect("pressed", self, "_on_side_picker_cancel_pressed")
 	$"%SpectateCancelButton".connect("pressed", self, "_on_spectate_cancel_pressed")
 #	user_list.connect("item_selected", self, "_on_user_selected")
@@ -150,38 +146,11 @@ func _on_user_replay_challenge_pressed(member):
 	var opponent_name = Steam.getFriendPersonaName(member.steam_id) if member else ""
 	ui_layer.open_replay_picker_for_challenge(opponent_name)
 
-func _on_replay_picked_for_challenge(match_data, path):
-	pending_replay_match_data = match_data
-	pending_replay_path = path
-	_show_side_picker_dialog()
-
-func _show_side_picker_dialog():
-	var p1_name = "P1"
-	var p2_name = "P2"
-	if pending_replay_match_data and pending_replay_match_data.has("selected_characters"):
-		var sc = pending_replay_match_data.selected_characters
-		if sc.has(1) and sc[1].has("name"):
-			p1_name = _display_char_name(sc[1]["name"])
-		if sc.has(2) and sc[2].has("name"):
-			p2_name = _display_char_name(sc[2]["name"])
-	$"%SidePickerLabel".text = "Pick your side\n%s vs %s" % [p1_name, p2_name]
-	$"%SidePickerP1Button".text = "P1 (" + p1_name + ")"
-	$"%SidePickerP2Button".text = "P2 (" + p2_name + ")"
-	# Restore-timers offer applies to any mode that runs a per-player clock —
-	# both chess and increment carry chess_timer_state. Old replays still use
-	# the bool field; new ones use timer_mode (already normalized via Utils
-	# before reaching here).
-	var has_timer = false
-	if pending_replay_match_data:
-		var mode = pending_replay_match_data.get("timer_mode", null)
-		if mode == null:
-			has_timer = pending_replay_match_data.get("chess_timer", false)
-		else:
-			has_timer = mode != "none"
-	var has_timer_state = has_timer and pending_replay_match_data.has("chess_timer_state")
-	$"%SidePickerRestoreTimers".visible = has_timer_state
-	$"%SidePickerRestoreTimers".pressed = has_timer_state
-	$"%SidePickerDialogScreen".show()
+func _on_replay_picked_for_challenge(data, path):
+	var data_full = data.duplicate()
+	data_full["frames"] = ReplayManager.frames
+	Network.rpc_("_on_replay_picked_for_challenge", [data_full, path])
+	
 
 func _display_char_name(full_name):
 	var css = Network.css_instance
@@ -191,27 +160,11 @@ func _display_char_name(full_name):
 		return full_name.split("__")[1]
 	return full_name
 
-func _on_side_picker_p1_pressed():
-	_send_replay_challenge(1)
-
-func _on_side_picker_p2_pressed():
-	_send_replay_challenge(2)
-
-func _on_side_picker_cancel_pressed():
-	_clear_pending_replay_challenge()
-	$"%SidePickerDialogScreen".hide()
-
-func _send_replay_challenge(side):
-	if pending_replay_challenge_member and pending_replay_match_data:
-		pending_replay_match_data["restore_timers"] = $"%SidePickerRestoreTimers".visible and $"%SidePickerRestoreTimers".pressed
-		SteamLobby.replay_challenge_user(pending_replay_challenge_member, pending_replay_match_data, side)
-	_clear_pending_replay_challenge()
-	$"%SidePickerDialogScreen".hide()
 
 func _clear_pending_replay_challenge():
 	pending_replay_challenge_member = null
-	pending_replay_match_data = null
-	pending_replay_path = ""
+	Network.pending_replay_match_data = null
+	Network.pending_replay_path = ""
 
 func show():
 	.show()

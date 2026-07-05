@@ -124,7 +124,7 @@ func _ready():
 	if container and container.get_node_or_null("DeleteCache") == null:
 		var btt = Button.new()
 		btt.name = "DeleteCache"
-		btt.text = "delete character cache"
+		btt.text = "delete char_cache (no restart needed)"
 		container.add_child(btt)
 		container.move_child(btt, mod_toggle.get_index())
 		btt.connect("pressed", self, "_delete_char_cache", [btt])
@@ -152,10 +152,20 @@ func _ready():
 
 func _delete_char_cache(btt):
 	var dir = Directory.new()
+	
 	_Global.css_instance.charPackages = {}
+	_Global.css_instance.importWarnings = {}
+	_Global.css_instance.errorMessage = {}
+	_Global.css_instance.loadedChars = {}
+	if _Global.css_instance.importWarningLabel.text != "":
+		_Global.css_instance.importWarningLabel.modulate = Color("#43cee0")
+		_Global.css_instance.importWarningLabel.text = "char_cache cleared! Select your character now."
+	
+	Global.name_paths = Global.name_paths_backup
+	
 	for f in ModLoader._get_all_files("user://char_cache", "pck"):
 		dir.remove(f)
-	get_tree().quit()
+	dir.remove("user://imagepack.pck")
 
 func _on_show_style_toggled(on, player_id):
 	if is_instance_valid(game):
@@ -797,6 +807,8 @@ func setup_game_deferred(singleplayer, data):
 			ui_layer.start_timers()
 	print("1")
 	uiselectors = MultiHustle_AddData()
+	if game.duel:
+		uiselectors.rect_position = Vector2(10000, 0)
 	print("2")
 	ui_layer.init(self)
 	print("3")
@@ -884,9 +896,9 @@ func _start_ghost_internal(isRefresh = true):
 		player.queued_action = player_ghost_actions.get(index, null)
 		player.queued_data = player_ghost_datas.get(index, null)
 		player.queued_extra = player_ghost_extras.get(index, null)
-		if (is_instance_valid(game.get_player(index).opponent)):
-			if player.queued_extra:
-				player.queued_extra["opponent"] = game.get_player(index).opponent.id
+		#if (is_instance_valid(game.get_player(index).opponent)):
+			#if player.queued_extra:
+			#	player.queued_extra["opponent"] = game.get_player(index).opponent.id
 		player.is_ghost = true
 
 	call_deferred("fix_ghost_objects", ghost_game)

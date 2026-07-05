@@ -6,8 +6,9 @@ const PROMPT_RED := Color("#dd3333")
 
 const TAB_MATCH = 0
 const TAB_LOBBY = 1
-const TAB_PLAYERS = 2
-const TAB_TITLES = ["match", "lobby", "users"]
+const TAB_TEAM = 2
+const TAB_PLAYERS = 3
+const TAB_TITLES = ["match", "lobby", "team", "users"]
 
 export var force_mute_on_hide = false
 
@@ -24,9 +25,14 @@ var pending_style_request := false
 # the larger child) so the small tab gets a phantom scroll range to nowhere.
 var match_scroll: ScrollContainer
 var match_container: VBoxContainer
+
+var team_scroll: ScrollContainer
+var team_container: VBoxContainer
+
 # Players tab — third sibling scroll, holds the per-lobby member rows.
 var players_scroll: ScrollContainer
 var players_container: VBoxContainer
+var unread_team := false
 var unread_match := false
 var unread_lobby := false
 var unread_players := false
@@ -98,6 +104,18 @@ func _setup_tabs():
 	match_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	match_scroll.add_child(match_container)
 	match_scroll.hide()
+	
+	team_scroll = ScrollContainer.new()
+	team_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	team_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	team_scroll.rect_min_size = lobby_scroll.rect_min_size
+	parent.add_child(team_scroll)
+	parent.move_child(team_scroll, lobby_scroll.get_index() + 1)
+	team_container = VBoxContainer.new()
+	team_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	team_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	team_scroll.add_child(team_container)
+	team_scroll.hide()
 	# Players tab — same sibling layout as lobby + match scrolls so the
 	# Tabs strip just toggles visibility between them.
 	players_scroll = ScrollContainer.new()
@@ -113,6 +131,7 @@ func _setup_tabs():
 	players_scroll.hide()
 	$"%Tabs".add_tab(TAB_TITLES[TAB_MATCH])
 	$"%Tabs".add_tab(TAB_TITLES[TAB_LOBBY])
+	$"%Tabs".add_tab(TAB_TITLES[TAB_TEAM])
 	$"%Tabs".add_tab(TAB_TITLES[TAB_PLAYERS])
 	# Inactive tab text needs to read clearly as backgrounded vs the active
 	# one — Tabs ships with a fairly light bg color by default that doesn't
@@ -230,6 +249,8 @@ func _scroll_lobby_to_bottom_deferred():
 func _on_tab_changed(idx):
 	if idx == TAB_MATCH:
 		unread_match = false
+	if idx == TAB_TEAM:
+		unread_team = false
 	elif idx == TAB_PLAYERS:
 		unread_players = false
 	else:
@@ -247,6 +268,7 @@ func _on_tab_changed(idx):
 func _apply_active_tab():
 	var active = _active_category()
 	match_scroll.visible = active == "match"
+	team_scroll.visible = active == "team"
 	players_scroll.visible = active == "players"
 	$"%ScrollContainer".visible = active == "lobby"
 
@@ -274,11 +296,13 @@ func _active_category() -> String:
 			return "lobby"
 		TAB_PLAYERS:
 			return "players"
+		TAB_TEAM:
+			return "team"
 		_:
 			return "lobby"
 
 func _container_for(category):
-	return match_container if category == "match" else $"%MessageContainer"
+	return team_container if category == "team" else match_container if category == "match" else $"%MessageContainer"
 
 # Only auto-scroll a chat scroll container to its bottom when the user is
 # already pinned there (within SCROLL_STICK_PX). State is cached as meta on
@@ -308,6 +332,7 @@ func _on_scroll_value_changed(_v, scroll: ScrollContainer):
 	scroll.set_meta("at_bottom", sb.value + sb.page >= sb.max_value - SCROLL_STICK_PX)
 
 func _refresh_tab_titles():
+	$"%Tabs".set_tab_title(TAB_TEAM, ("*" if unread_team else "") + TAB_TITLES[TAB_TEAM])
 	$"%Tabs".set_tab_title(TAB_MATCH, ("*" if unread_match else "") + TAB_TITLES[TAB_MATCH])
 	$"%Tabs".set_tab_title(TAB_LOBBY, ("*" if unread_lobby else "") + TAB_TITLES[TAB_LOBBY])
 	# Players tab intentionally has no unread marker — the title widens the
@@ -364,11 +389,14 @@ func _on_chat_history_synced():
 func line_edit_focus():
 	$"%LineEdit".grab_focus()
 
+func is_line_edit_focused():
+	return $"%LineEdit".has_focus()
+
 func is_muted():
 	return $"%MuteButton".pressed or (!is_visible_in_tree() and force_mute_on_hide)
 	
 
-func on_chat_message_received(player_id: int, message: String):
+func on_chat_message_received(player_id: int, message: String, team:bool):
 	var color = "ff333d" if player_id == 2 else "1d8df5"
 #	print("here")
 	var text = ProfanityFilter.filter(("<[color=#%s]" % [color]) + Network.pid_to_username(player_id) + "[/color]> " + message)
@@ -382,7 +410,7 @@ func on_chat_message_received(player_id: int, message: String):
 	# all originate during an active match. On Steam that means they belong in
 	# the match tab — defaulting to %MessageContainer dumped them in lobby chat.
 	# Off Steam there's no match tab, so this falls through to lobby as before.
-	var category = "match" if SteamLobby.get_status() in ["fighting", "spectating"] else "lobby"
+	var category = "team" if false else "match" if SteamLobby.get_status() in ["fighting", "spectating"] else "lobby"
 	var container = _container_for(category)
 	var scroll = match_scroll if category == "match" else $"%ScrollContainer"
 	var stick = _at_bottom(scroll)
@@ -852,7 +880,7 @@ func process_command_vanilla(message: String):
 	
 	return false
 
-func send_message_110(message):
+func send_message(message):
 	if process_command(message):
 		return
 		
@@ -868,17 +896,9 @@ func send_message_110(message):
 	if "[img" in message and "ui/unknown2.png" in message:
 		SteamHustle.unlock_achievement("ACH_JUMPSCARE")
 	if not Network.multiplayer_active and not SteamLobby.SPECTATING:
-		on_mh_chat_message_received(1, message, steam_name)
+		on_mh_chat_message_received(1, message, steam_name, false)
 		return
-	Network.rpc_("send_mh_chat_message", [Network.player_id, message, steam_name])
-	if process_command(message):
-		return
-
-	if "[img" in message and "ui/unknown2.png" in message:
-		SteamHustle.unlock_achievement("ACH_JUMPSCARE")
-	if not Network.multiplayer_active and not SteamLobby.SPECTATING:
-		on_mh_chat_message_received(1, message, steam_name)
-		return
+		
 	# Tag the outgoing scope from the tab we're typing in, so the receiver
 	# files by our authoritative choice instead of guessing from our (over-
 	# the-network laggy) lobby status. Match-tab sends carry "match" (plus a
@@ -890,9 +910,11 @@ func send_message_110(message):
 	var cat = _active_category()
 	if cat == "match":
 		scope = "match"
+	elif cat == "team":
+		scope = "team"
 	elif cat == "lobby" and SteamLobby.get_status() in ["fighting", "spectating"]:
 		scope = "lobby"
-	Network.rpc_("send_mh_chat_message", [Network.player_id, message, steam_name])
+	Network.rpc_("send_mh_chat_message", [Network.player_id, message, steam_name, scope == "team"])
 
 func _on_style_save_request_received(target_player_id, requester_id, requester_name, style_name):
 	# Only the targeted *fighter* gets prompted. Spectators may share a
@@ -1007,14 +1029,21 @@ func process_command(message:String):
 	return a
 
 # Same as vanilla but with custom player name colors
-func on_mh_chat_message_received(player_id: int, message: String, username: String):
+func on_mh_chat_message_received(player_id: int, message: String, username: String, is_team:bool):
 	var team = Network.get_team(player_id)
 	var color = Network.get_color(team)
-	if Network.game == null:
-		color = "d931e8"
+
 	print(color)
 
+	if (team):
+		var p_sender = Global.current_game.players[player_id]
+		var p_self = Global.current_game.players[Network.player_id]
+		if (p_self.team != p_sender.team):
+			return
 
+	if !(player_id == Network.player_id):
+		play_chat_sound()
+		
 	var text = ProfanityFilter.filter(("<[color=#%s]" % [color]) + username + "[/color]>: " + message)
 	var node = RichTextLabel.new()
 	node.bbcode_enabled = true
@@ -1022,14 +1051,23 @@ func on_mh_chat_message_received(player_id: int, message: String, username: Stri
 	node.fit_content_height = true
 	#if not (player_id == Network.player_id): doesnt work? its causing errors
 	#	play_cha_sound()
-	$"%MessageContainer".call_deferred("add_child", node)
-	if $"%MessageContainer".get_child_count() + 1 > MAX_LINES:
-		$"%MessageContainer".call_deferred("remove_child", $"%MessageContainer".get_child(0))
-	yield(get_tree(), "idle_frame")
-	yield(get_tree(), "idle_frame")
-	$"%ScrollContainer".scroll_vertical = 10000000000000000
+	var category = "team" if false else "match" if SteamLobby.get_status() in ["fighting", "spectating"] else "lobby"
+	var container = _container_for(category)
+	var scroll = match_scroll if category == "match" else $"%ScrollContainer"
+	var stick = _at_bottom(scroll)
+	container.call_deferred("add_child", node)
+	if container.get_child_count() + 1 > MAX_LINES:
+		container.call_deferred("remove_child", container.get_child(0))
+	if category != _active_category():
+		if category == "match":
+			unread_match = true
+		elif category == "team":
+			unread_team = true
+		else:
+			unread_lobby = true
+		_refresh_tab_titles()
 
-func send_message(message):
+func send_message_110(message):
 	if process_command(message):
 		return
 		
@@ -1045,9 +1083,9 @@ func send_message(message):
 	if "[img" in message and "ui/unknown2.png" in message:
 		SteamHustle.unlock_achievement("ACH_JUMPSCARE")
 	if not Network.multiplayer_active and not SteamLobby.SPECTATING:
-		on_mh_chat_message_received(1, message, steam_name)
+		on_mh_chat_message_received(1, message, steam_name, false)
 		return
-	Network.rpc_("send_mh_chat_message", [Network.player_id, message, steam_name])
+	Network.rpc_("send_mh_chat_message", [Network.player_id, message, steam_name, false])
 
 # For system messages (resync for example)
 func on_mh_chat_message_received_preformatted(message: String):

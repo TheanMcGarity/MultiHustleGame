@@ -1,5 +1,6 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
+[ext_resource path="res://multihustle/ui/ModCustomUIHandler.gd" type="Script" id=1]
 [ext_resource path="res://framework/BetterCamera.gd" type="Script" id=3]
 [ext_resource path="res://game.gd" type="Script" id=4]
 [ext_resource path="res://GameHooks.gd" type="Script" id=5]
@@ -35,3 +36,6 @@ one_shot = true
 
 [node name="Hooks" type="Node" parent="."]
 script = ExtResource( 5 )
+
+[node name="MHCharacterUI" type="Node" parent="."]
+script = ExtResource( 1 )

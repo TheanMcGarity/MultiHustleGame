@@ -120,7 +120,6 @@ onready var global_option_check_buttons = {
 	$"%ShowNextTurnOnCharsButton": "show_next_turn_info_on_chars",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
-
 func _enter_tree():
 	if Global.character_select_node == null:
 		Global.character_select_node = $"%CharacterSelect"
@@ -730,6 +729,8 @@ func _refresh_replay_button_colors():
 			# never shows them so it's a no-op there; "all"/"warn" both get
 			# the visual cue.
 			child.modulate = VERSION_MODE_COLORS["warn"]
+		elif "backup/" in child.path:
+			child.modulate = Color("61c7ff")
 		else:
 			child.modulate = Color(1, 1, 1, 1)
 
@@ -1360,8 +1361,9 @@ func _unhandled_input(event):
 	if event is InputEventKey:
 		if event.scancode == KEY_F11:
 			Global.set_fullscreen(!Global.fullscreen)
-		if event.scancode == KEY_SPACE:
-			ContinueAll()
+		if event.is_action_pressed(Hotkeys.LOCK_IN) and not event.is_echo():
+			if (not $"%ChatWindow".is_line_edit_focused()):
+				ContinueAll()
 	if event is InputEventMouseButton:
 		if event.pressed:
 			$"%ChatWindow".unfocus_line_edit()

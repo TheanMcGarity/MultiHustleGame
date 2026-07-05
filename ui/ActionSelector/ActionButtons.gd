@@ -444,9 +444,8 @@ func get_extra() -> Dictionary:
 		"reverse": $"%ReverseButton".pressed and !$"%ReverseButton".disabled,
 		"feint": $"%FeintButton".pressed and !$"%FeintButton".disabled,
 		"prediction": _get_opposite_buttons().current_prediction,
+		"opponent": Global.current_game.ghost_opponent_map[fighter.id]
 	}
-	if is_instance_valid(fighter.opponent):
-		extra["opponent"] = fighter.opponent.id
 	if fighter_extra:
 		extra.merge(fighter_extra.get_extra())
 	return extra
@@ -665,6 +664,15 @@ func init(ngame, pid):
 	$"%TurnButtons".add_child(continue_button)
 	$"%TurnButtons".move_child(continue_button, 1)
 
+	$"%OpponentButton".clear()
+	
+	if (game.duel):
+		$"%OpponentButton".hide()
+	if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
+		$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
+	
+	$"%OpponentButton".selected = fighter.opponent.id - 1
+	
 	Network.log_to_file("Init finished for action buttons! ID: " + str(pid))
 
 func re_init(pid):
@@ -707,7 +715,21 @@ func re_init(pid):
 	$"%TurnButtons".move_child(continue_button, 1)
 
 	activate()
-
+	$"%OpponentButton".clear()
+	
+	var game:Game = Global.current_game
+	if (game.duel):
+		$"%OpponentButton".hide()
+	for id in game.players:
+#		var player = game.players[id]
+		if (game.player_names.has(id)):
+			$"%OpponentButton".add_item(game.player_names[id], id)
+		
+	if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
+		$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
+	
+	$"%OpponentButton".selected = fighter.opponent.id - 1
+	
 	Network.log_to_file("Re-Init finished for action buttons! ID: " + str(id))
 
 func reset():
@@ -1079,3 +1101,9 @@ func activate(refresh = true):
 			var input = Network.p2_undo_action
 			on_action_submitted(input["action"], input["data"], input["extra"])
 			Network.p2_undo_action = null
+
+func on_opponent_selected(index):
+	var player = index + 1
+	Global.current_game.ghost_opponent_map[fighter.id] = player
+	_send_ui_action(current_action)
+	pass

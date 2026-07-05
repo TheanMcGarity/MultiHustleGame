@@ -123,9 +123,9 @@ func _process(delta):
 	self.visible = true
 	
 	selects[1][0].visible = Global.current_game.singleplayer and main.game.game_paused
-	selects[1][1].visible = main.game.game_paused
+	#selects[1][1].visible = main.game.game_paused
 	selects[2][0].visible = main.game.game_paused
-	selects[2][1].visible = Global.current_game.singleplayer and main.game.game_paused
+	#selects[2][1].visible = main.game.game_paused
 	#opp_target_label.visible = !Global.current_game.singleplayer and main.game.game_paused
 	
 	"""

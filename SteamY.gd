@@ -17,6 +17,12 @@ var STARTED = false
 
 var WORKSHOP_ENABLED = true
 
+var secret_icons := {
+	76561199261224023: "res://icon3_red.png", # Nooooooah820
+	76561198414978375: "res://icon3_orange.png", # PinKTarr
+	76561199646204221: "res://icon3_blue.png" # JLNightWing
+}
+
 func _enter_tree():
 	if "steam" in Global.VERSION and !Global.winws_detected:
 		_initialize_steam()
@@ -38,7 +44,10 @@ func _initialize_steam():
 	IS_OWNED = Steam.isSubscribed()
 	Steam.requestCurrentStats()
 	emit_signal("started")
-	
+	print(STEAM_ID)
+	print(secret_icons)
+	if (secret_icons.has(STEAM_ID)):
+		OS.set_icon(load(secret_icons[STEAM_ID]).get_data())
 	
 func _process(_delta):
 	if STARTED:

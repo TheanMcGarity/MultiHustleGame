@@ -55,6 +55,7 @@ icon_align = 2
 script = ExtResource( 3 )
 
 [node name="TargetSelect" type="OptionButton" parent="Root"]
+visible = false
 anchor_top = 1.15
 anchor_right = 1.0
 anchor_bottom = 2.55
@@ -74,6 +75,7 @@ margin_bottom = 11.0
 text = "TARGET"
 
 [node name="SPOppTargetSelect" type="OptionButton" parent="Root"]
+visible = false
 anchor_left = 0.255081
 anchor_top = 0.803846
 anchor_right = 1.27487

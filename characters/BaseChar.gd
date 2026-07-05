@@ -515,8 +515,14 @@ var lowest_tick = 0
 var wakeup_throw_immunity_ticks = 0
 
 var hidden_sprite := false
+var dead_for_ticks := 0
+const DESPAWN_TICKS := 100
+const DEATH_EM_SHAKE_MAX := 6
+const SHAKE_TICKS = DESPAWN_TICKS / DEATH_EM_SHAKE_MAX
 
 var interruptable_for_ticks := 0
+
+var em_effects := "" setget on_em_effect
 
 onready var fake_emote_label = $"%EmoteLabel"
 onready var real_emote_label = $"%EmoteLabelReal"
@@ -525,6 +531,13 @@ onready var emote_display = $"%EmoteDisplay"
 class InputState:
 	var name
 	var data
+
+func on_em_effect(val):
+	em_effects = val
+	if (val == ""):
+		real_emote_label.bbcode_text = "[center]" + ProfanityFilter.filter(last_emote)
+		return
+	real_emote_label.bbcode_text = val % "[center]" + ProfanityFilter.filter(last_emote)
 
 func clash(opp):
 	clashing = true
@@ -1245,6 +1258,7 @@ func copy_to(f):
 	f.emote_live_counter = emote_live_counter
 	f.game_over = game_over
 	f.hidden_sprite = hidden_sprite
+	f.dead_for_ticks = dead_for_ticks
 
 func gain_burst():
 	if bursts_available < MAX_BURSTS:
@@ -1379,8 +1393,12 @@ func update_data():
 var emote_live_counter := 0
 const EMOTE_TIME := 180
 var last_emote := ""
-
-func emote(message):
+func cube():
+	$"%Cube".show()
+	$"%CubeAStyled".get_material().set_shader_param("color",sprite.get_material().get_shader_param("color"))
+	$"%CubeAStyled".get_material().set_shader_param("outline_color",sprite.get_material().get_shader_param("outline_color"))
+	$"%CubeAStyled".get_material().set_shader_param("use_outline",sprite.get_material().get_shader_param("use_outline"))
+func emote(message:String):
 	last_emote = message
 	emote_live_counter = 0
 	if not is_ghost:
@@ -1389,15 +1407,26 @@ func emote(message):
 		return
 	if is_instance_valid(emote_tween):
 		emote_tween.kill()
+	if ("cubemaxxing" in message.to_lower()):
+		cube()
+		emote_live_counter = 150
+		real_emote_label.clear()
+		real_emote_label.append_bbcode("[center]" + ProfanityFilter.filter("im cubemaxxing bro"))
+		real_emote_label.show()
+		return
 	#emote_tween = create_tween()
 	real_emote_label.clear()
 	real_emote_label.append_bbcode("[center]" + ProfanityFilter.filter(message))
 	real_emote_label.show()
+	
+	if (em_effects != ""):
+		on_em_effect(em_effects)
 	#emote_tween.tween_method(self, "set_emote_visible", 1.0, 0.0, 3.0)
 
 func set_emote_visible(amount: float):
 	if amount <= 0.001:
 		real_emote_label.visible = false
+		$"%Cube".visible = false
 		return
 	real_emote_label.visible = true
 
@@ -2366,6 +2395,9 @@ func consume_feint():
 		ex_effect(0)
 
 func process_extra(extra):
+	if "opponent" in extra:
+		if (get_game() != null):
+			opponent = get_game().players[extra.opponent]
 	if "DI" in extra:
 		if di_enabled:
 			var di = extra["DI"]
@@ -2737,11 +2769,25 @@ func tick():
 		interruptable_for_ticks += 1
 	else:
 		interruptable_for_ticks = 0
-	
-	if forfeit:
+	if (game_over):
+		if (dead_for_ticks == 0):	
+			self.em_effects = "[tshake start="+str(current_tick)+"]%s"#[/tshake]"
+		if !(dead_for_ticks == DESPAWN_TICKS - 1 and not is_grounded()):
+			dead_for_ticks += 1
+	if forfeit or dead_for_ticks >= DESPAWN_TICKS:
 		hidden_sprite = true
+	if dead_for_ticks == DESPAWN_TICKS:
+		explode_effect()
+	#var em_shake = int(dead_for_ticks / SHAKE_TICKS)
+	#em_effects = ""
+	#for i in range(1, em_shake):
+	#	em_effects += "[shake][shake][shake][shake]"
 	
-	flip.visible = not hidden_sprite
+	sprite.visible = not hidden_sprite
+	hp_label.visible = not hidden_sprite
+	emote_display.visible = not hidden_sprite
+	display_name.visible = not hidden_sprite
+	actionable_label.visible = not hidden_sprite and actionable_label.visible
 	
 	if hooks:
 		hooks.pre_tick()
@@ -2941,16 +2987,17 @@ func tick():
 		hooks.post_tick()
 
 	if not Network.game.match_data.has("selector_char_names"):
-		if Network.multiplayer_active:
-			# Basically
-			# !sent_name && id == Network.player_id
-			if not sent_name and id == Network.player_id:
-				Network.rpc_("set_display_name", [Steam.getPersonaName(), Network.player_id])
-				sent_name = true
-		else:
-			if not sent_name:
-				singleplayer_set_display_name()
-		
+		if (get_game() != null):
+			if Network.multiplayer_active:
+				if not get_game().player_names.has(id) and id == Network.player_id and not is_ghost:
+					
+					Network.rpc_("set_display_name", [Steam.getPersonaName(), Network.player_id])
+					sent_name = true
+			else:
+				if not get_game().player_names.has(id) and not is_ghost:
+					singleplayer_set_display_name()
+					sent_name = true
+			
 	if display_name == null:
 		init_display_name()
 
@@ -3123,6 +3170,7 @@ func on_action_selected(action, data, extra):
 	if state:
 		if !state.is_usable():
 			action = "Forfeit"
+	
 	emit_signal("action_selected", action, data, extra)
 	if hooks:
 		hooks.action_selected(action, data, extra)
@@ -3288,7 +3336,6 @@ func tick_before():
 	if ReplayManager.playback:
 		var input = get_playback_input()
 		if input:
-			opponent = Network.game.players[input["opp"]]
 			queued_action = input["action"]
 			queued_data = input["data"]
 			queued_extra = input["extra"]
@@ -3315,7 +3362,6 @@ func tick_before():
 					"action": queued_action, 
 					"data": queued_data, 
 					"extra": queued_extra, 
-					"opp": opponent.id,
 				}
 				print(ReplayManager.frames[id][current_tick])
 	previous_input = last_input.duplicate(true)
@@ -3411,6 +3457,12 @@ func tick_before():
 func singleplayer_set_display_name():
 	Network.game.player_names_rich[id] = "[center][color=#"+Network.get_color(Network.get_team(id))+"]"+("p%d" % id)+"[/color][/center]"
 	Network.game.player_names[id] = ("p%d" % id)
+	
+	if is_ghost:
+		return
+	
+	Network.main.ui_layer.p1_action_buttons.re_init(Network.main.ui_layer.GetRealID(1))
+	Network.main.ui_layer.p2_action_buttons.re_init(Network.main.ui_layer.GetRealID(2))
 
 func set_hp(new):
 	var stack = get_stack()
@@ -3418,3 +3470,11 @@ func set_hp(new):
 		return
 		
 	hp = new
+
+func explode_effect():
+	if forfeit:
+		return
+	$"%StyledParticlesDisplay".show()
+	$"StyledParticlesDisplay".set_material(sprite.get_material())
+	$"%DespawnExplosion".show()
+	$"%DespawnExplosion".start()

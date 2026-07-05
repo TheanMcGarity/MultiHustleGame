@@ -230,6 +230,10 @@ func on_got_push_blocked():
 func get_owner():
 	if creator:
 		return creator.get_owner()
+	else:
+		if creator_name:
+			creator = objs_map[creator_name]
+			return creator.get_owner()
 	return self
 
 func current_state():
@@ -1349,9 +1353,4 @@ func get_team() -> int:
 		return 0
 	return creator.get_team()
 func get_game():
-	var node = self
-	while node:
-		if "Game" in node.name:
-			return node
-		node = node.get_parent()
-	return Network.game
+	return Global.current_game if not is_ghost else Global.current_game.ghost_game
