@@ -64,6 +64,7 @@ var game_tick = 0
 
 var hitlag_ticks = 0# setget set__hitlag_ticks
 
+var possible_global_hitstun := false
 
 func set__hitlag_ticks(new):
 	hitlag_ticks = new
@@ -73,10 +74,32 @@ func set__hitlag_ticks(new):
 		for player in Global.current_game.player:
 			player.hitlag_ticks = new
 
+const ID_SETTERS := [
+	"spawn_object",
+	"copy_to",
+	"get_display_data",
+	"get_character_data",
+	"InitCharacter_Internal",
+	"start_game",
+]
+
 func set__id(new):
-	#if not is_ghost:
-	#	push_warning("Set id for %s to %d from %d" % [name, new, id])
-	id = new
+	var safe = false
+	var stack = get_stack()
+	for allowed in ID_SETTERS:
+		if (Global.is_allowed_caller(allowed, stack)):
+			safe = true
+			break
+	if (not is_instance_valid(get_game())):
+		safe = true
+	if safe: 
+		id = new
+	else:
+		
+		for player in get_game().players.values():
+			player.possible_global_hitstun = true
+		if (not is_ghost):
+			push_error("Do NOT edit the player ID! Stack trace: %s" % [stack])
 
 var combo_count = 0
 
@@ -186,6 +209,8 @@ func global_hitlag(amount, force=false):
 #		return
 #	if !ReplayManager.playback:
 #		return
+	if (Global.is_allowed_caller_src("Intro", get_stack()) and not force):
+		assert(false, "Intro tried to call global_hitlag incorrectly!\nStack: %s" % get_stack())
 	if !force and !Global.replay_extra_freeze_frames:
 		return
 	if amount > 0 and amount < 1:
@@ -1023,6 +1048,8 @@ func tick():
 			tick()
 		_timescale_sim = false
 	
+	global_hitlag_check()
+	
 	if hooks:
 		hooks.pre_tick()
 	
@@ -1352,5 +1379,36 @@ func get_team() -> int:
 	if creator == null:
 		return 0
 	return creator.get_team()
+
+func global_hitlag_check():
+	if not possible_global_hitstun:
+		return
+	if not (state_interruptable):#: and _state_interrupt_backup):
+		for player in get_game().players.values():
+			if (player == self):
+				continue
+			player.state_interruptable = false
+			player.possible_global_hitstun = true
+			player.hitlag_ticks = 1
+	else:
+		for player in get_game().players.values():
+			if (player == self):
+				continue
+			player.state_interruptable = true
+			player.possible_global_hitstun = false
+		possible_global_hitstun = false
+	#if (_state_interrupt_backup != state_interruptable):
+	#	_state_interrupt_backup = state_interruptable
+
 func get_game():
+	var game = _get_game()
+	if (game != null):
+		return game
+	var node = self
+	while node:
+		if "Game" in node.name:
+			return node
+		node = node.get_parent()
+	return Network.game
+func _get_game():
 	return Global.current_game if not is_ghost else Global.current_game.ghost_game

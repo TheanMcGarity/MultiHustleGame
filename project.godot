@@ -566,7 +566,7 @@ window/stretch/aspect="keep"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/char_creator/plugin.cfg", "res://addons/export_categories/plugin.cfg", "res://addons/multirun/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/char_creator/plugin.cfg", "res://addons/export_categories/plugin.cfg", "res://addons/limb_finder/plugin.cfg", "res://addons/multirun/plugin.cfg" )
 
 [global]
 
@@ -652,6 +652,19 @@ toggle_frame_advance={
 open_debug_panel={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":true,"meta":false,"command":true,"pressed":false,"scancode":0,"physical_scancode":68,"unicode":0,"echo":false,"script":null)
+ ]
+}
+open={
+"deadzone": 0.5,
+"events": [  ]
+}
+replay={
+"deadzone": 0.5,
+"events": [  ]
+}
+trailer_create_teleport_effect={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":true,"control":true,"meta":false,"command":true,"pressed":false,"scancode":0,"physical_scancode":84,"unicode":0,"echo":false,"script":null)
  ]
 }
 

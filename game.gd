@@ -299,6 +299,7 @@ func copy_to(game):
 				new_obj.obj_name = object.obj_name
 				game.on_object_spawned(new_obj)
 				object.copy_to(new_obj)
+				object.chara.copy_to(new_obj.chara)
 				# Refuses to override, so done manually here. Thanks to Degritone for part of the code
 				new_obj.init()
 				var old_state_machine = object.get("state_machine") # Just making sure the object has a state machine

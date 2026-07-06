@@ -552,7 +552,7 @@ func clash(opp):
 	if feints < num_feints:
 		feints += 1
 	emit_signal("clashed", self, opp)
-	if hooks:
+	if char_hooks():
 		hooks.clashed()
 
 func get_visual_hp():
@@ -1154,7 +1154,7 @@ func reapply_style():
 
 func start_super(freeze_ticks=0):
 	emit_signal("super_started", freeze_ticks)
-	if hooks:
+	if char_hooks():
 		hooks.super_started(freeze_ticks)
 
 func change_stance_to(stance):
@@ -1205,15 +1205,15 @@ func on_state_changed(states_stack):
 	pass
 
 func on_got_hit():
-	if hooks:
+	if char_hooks():
 		hooks.got_hit()
 
 func on_got_hit_by_fighter():
-	if hooks:
+	if char_hooks():
 		hooks.got_hit_by_fighter()
 
 func on_got_hit_by_projectile():
-	if hooks:
+	if char_hooks():
 		hooks.got_hit_by_projectile()
 
 func gain_burst_meter(amount=null):
@@ -1582,7 +1582,8 @@ const EMOTE_DISPLAY_SIZE = 282
 
 func _process(delta):
 	var zoom = Global.current_game.camera_zoom
-	emote_display.scale = Vector2.ONE * zoom
+	if (emote_display != null):
+		emote_display.scale = Vector2.ONE * zoom
 	
 	#emote_display.rect_position.x = EMOTE_DISPLAY_X * (emote_display.rect_size.x / EMOTE_DISPLAY_SIZE)
 	#emote_display.rect_position.y = EMOTE_DISPLAY_Y * (emote_display.rect_size.y / EMOTE_DISPLAY_SIZE)
@@ -1854,7 +1855,7 @@ func counter_hitbox(hitbox):
 
 
 func hit_by(hitbox, force_hit=false):
-	if hooks:
+	if char_hooks():
 		hooks.hit_by(hitbox)
 	
 	#Network.log("player was hit!")
@@ -2189,7 +2190,7 @@ func block_hitbox(hitbox, force_parry=false, force_block=false, ignore_guard_bre
 			on_parried()
 
 func on_parried():
-	if hooks:
+	if char_hooks():
 		hooks.parried()
 
 func projectile_free_cancel():
@@ -2570,7 +2571,7 @@ func process_continue():
 	return false
 
 func tick_before_110():
-	if hooks:
+	if char_hooks():
 		hooks.tick_before()
 	if queued_action == "Forfeit":
 		if forfeit:
@@ -2764,7 +2765,7 @@ func tick():
 			_timescale_sim = true
 			tick()
 		_timescale_sim = false
-	
+	#global_hitlag_check()
 	if state_interruptable:
 		interruptable_for_ticks += 1
 	else:
@@ -2784,13 +2785,14 @@ func tick():
 	#	em_effects += "[shake][shake][shake][shake]"
 	
 	sprite.visible = not hidden_sprite
-	hp_label.visible = not hidden_sprite
-	emote_display.visible = not hidden_sprite
+	if (emote_display != null):
+		hp_label.visible = not hidden_sprite
+		emote_display.visible = not hidden_sprite
 	display_name.visible = not hidden_sprite
 	actionable_label.visible = not hidden_sprite and actionable_label.visible
 	
-	if hooks:
-		hooks.pre_tick()
+	if char_hooks():
+		hooks.tick_before()
 	if is_ghost and !is_grounded():
 		ghost_was_in_air = true
 	if hitlag_ticks > 0:
@@ -2837,6 +2839,8 @@ func tick():
 		var minus_offset = 0 if id == 1 else 1
 		state_tick()
 	
+		global_hitlag_check()
+		
 		if in_blockstring:
 			if !current_state().get("IS_NEW_PARRY"):
 				in_blockstring = false
@@ -2983,7 +2987,7 @@ func tick():
 	if (not Global.show_ghost_name and is_ghost):
 		hide_display_name()
 		
-	if hooks:
+	if char_hooks():
 		hooks.post_tick()
 
 	if not Network.game.match_data.has("selector_char_names"):
@@ -3172,7 +3176,7 @@ func on_action_selected(action, data, extra):
 			action = "Forfeit"
 	
 	emit_signal("action_selected", action, data, extra)
-	if hooks:
+	if char_hooks():
 		hooks.action_selected(action, data, extra)
 
 
@@ -3311,8 +3315,8 @@ func tick_before():
 			tick_before()
 		_timescale_sim = false
 	
-	if hooks:
-		hooks.tick_before()
+	if char_hooks():
+		hooks.pre_tick()
 		
 	emote_live_counter += 1
 	
@@ -3478,3 +3482,6 @@ func explode_effect():
 	$"StyledParticlesDisplay".set_material(sprite.get_material())
 	$"%DespawnExplosion".show()
 	$"%DespawnExplosion".start()
+const FIGHTER_HOOKS = preload("res://characters/FighterHooks.gd")
+func char_hooks() -> bool:
+	return hooks and hooks is FIGHTER_HOOKS 

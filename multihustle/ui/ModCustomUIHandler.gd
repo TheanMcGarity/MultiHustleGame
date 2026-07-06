@@ -16,7 +16,7 @@ func _get_nodes_with(nodes, property:String):
 	var result = []
 	for node in nodes:
 		if (node.get(property) != null):
-			return node
+			result.append(node)
 	return result
 
 func _get_player_from_node(node):

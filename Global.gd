@@ -2,8 +2,8 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.10.0-steam-mh_0.8.5-b5"
-var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.5-b5"
+var VERSION = "1.10.0-steam-mh_0.8.5-b7"
+var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.5-b7"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -634,4 +634,14 @@ func is_allowed_caller(wanted, stack) -> bool:
 	var name = caller.function
 	var result = name == wanted
 	push_warning("result=%s,name=%s,wanted=%s,size=%d" % [result, name, wanted, stack.size()])
+	return result 
+
+func is_allowed_caller_src(wanted_src, stack) -> bool:
+	if (stack.size() <= 1):
+		push_warning("result=%s,name=%s,wanted=%s,size=%d" % [true, "", wanted_src, stack.size()])
+		return true
+	var caller = stack[1]
+	var src = caller.source
+	var result = wanted_src.to_lower() in src.to_lower()
+	push_warning("result=%s,src=%s,wanted_src=%s,size=%d" % [result, src, wanted_src, stack.size()])
 	return result 

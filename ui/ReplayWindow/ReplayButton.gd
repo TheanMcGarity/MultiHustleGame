@@ -30,13 +30,21 @@ func _pretty(full_name):
 	return full_name
 
 func create_player_list(data):
+	if (not data.has("display_names")):
+		return "[Error #001]"
 	var selected = data.selected_characters
 	var sp = data.singleplayer
 	var players = data.selector_char_names
+	var players_mp = data.display_names
 	var result := ""
 	if (!sp):
 		for chara in selected:
-			result += "P%d: %s as %s\n" % [chara, players[chara].name, _pretty(selected[chara].name)]
+			var player_name
+			if (players_mp.has(chara)):
+				player_name = players_mp[chara]
+			else:
+				player_name = "[Unknown Name]"
+			result += "P%d: %s as %s\n" % [chara, player_name, _pretty(selected[chara].name)]
 	else:
 		for chara in selected:
 			result += "P%d: %s\n" % [chara, _pretty(selected[chara].name)]
