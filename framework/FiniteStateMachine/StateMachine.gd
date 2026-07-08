@@ -125,7 +125,7 @@ func queue_state(new_state, data=null, old_state=state, dont_log=false):
 		queued_states.push_back(new_state)
 		queued_data.append(data)
 		
-		return # not needing to debug this atm
+		#return # not needing to debug this atm
 		if host.is_ghost:
 			return
 			
@@ -192,7 +192,7 @@ func _change_state(state_name: String, data=null, enter=true, exit=true) -> void
 	if !states_map.has(state_name):
 		return
 	var next_state = states_map[state_name]
-	queued_states = []
+#	queued_states = []
 	queued_data = []
 
 	if state:

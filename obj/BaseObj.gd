@@ -74,32 +74,25 @@ func set__hitlag_ticks(new):
 		for player in Global.current_game.player:
 			player.hitlag_ticks = new
 
-const ID_SETTERS := [
-	"spawn_object",
-	"copy_to",
-	"get_display_data",
-	"get_character_data",
-	"InitCharacter_Internal",
-	"start_game",
-]
+var internal_id_safe_set := true
 
 func set__id(new):
-	var safe = false
-	var stack = get_stack()
-	for allowed in ID_SETTERS:
-		if (Global.is_allowed_caller(allowed, stack)):
-			safe = true
-			break
-	if (not is_instance_valid(get_game())):
-		safe = true
-	if safe: 
+	#var safe = false
+	#var stack = get_stack()
+	#for allowed in ID_SETTERS:
+	#	#if (Global.is_allowed_caller(allowed, stack)):
+	#		safe = true
+	#		break
+	#if (not is_instance_valid(get_game())):
+	#	safe = true
+	if internal_id_safe_set: 
 		id = new
 	else:
 		
 		for player in get_game().players.values():
 			player.possible_global_hitstun = true
-		if (not is_ghost):
-			push_error("Do NOT edit the player ID! Stack trace: %s" % [stack])
+		#if (not is_ghost):
+		#	push_error("Do NOT edit the player ID! Stack trace: %s" % [stack])
 
 var combo_count = 0
 
@@ -127,6 +120,7 @@ var aerial_attack_immune = false
 
 var use_platforms = false
 var last_object_hit = ""
+var last_state_objects_hit = []
 
 var default_hurtbox = {
 	"x": 0,
@@ -209,8 +203,8 @@ func global_hitlag(amount, force=false):
 #		return
 #	if !ReplayManager.playback:
 #		return
-	if (Global.is_allowed_caller_src("Intro", get_stack()) and not force):
-		assert(false, "Intro tried to call global_hitlag incorrectly!\nStack: %s" % get_stack())
+	#if (Global.is_allowed_caller_src("Intro", get_stack()) and not force):
+	#	assert(false, "Intro tried to call global_hitlag incorrectly!\nStack: %s" % get_stack())
 	if !force and !Global.replay_extra_freeze_frames:
 		return
 	if amount > 0 and amount < 1:
@@ -270,6 +264,7 @@ func is_otg():
 	return current_state().state_name == "Knockdown" or current_state().state_name == "HardKnockdown"
 
 func init(pos=null):
+	internal_id_safe_set = false
 	if initialized:
 		return
 	chara.id = id
@@ -334,6 +329,7 @@ func set_rumble(amount):
 	pass
 
 func change_state(state_name, state_data=null, enter=true, exit=true):
+	last_state_objects_hit = []
 	if hooks:
 		hooks.change_state(state_name, state_data)
 	state_machine._change_state(state_name, state_data, enter, exit)
@@ -353,12 +349,21 @@ func _on_hit_something(obj, hitbox):
 		if hit_fighter_last():
 			return
 	last_object_hit = obj.obj_name
+	last_state_objects_hit.append(obj.obj_name)
 	last_hit_frame = current_tick
 	if hooks:
 		hooks.hit_something(obj, hitbox)
 
 func hit_fighter_last():
 	return last_object_hit == get_opponent().obj_name or last_object_hit == get_fighter().obj_name
+
+func hit_fighters_last_state():
+	var results = { }
+	for obj in last_state_objects_hit:
+		var node = objs_map[obj]
+		if (node.is_in_group("Fighter")):
+			results[node.id] = node
+	return results
 
 func can_be_thrown():
 	return !throw_invulnerable
@@ -385,8 +390,10 @@ func copy_to(o: BaseObj):
 	o.init()
 	o._fire_init_hook()
 	o.update_data()
+	
+	o.internal_id_safe_set = true
 	_copy_state_variables_to(o)
-
+	o.internal_id_safe_set = false
 #	o.chara.set_facing(get_facing_int())
 
 	o.change_state(current_state.state_name, current_state.data)
@@ -588,7 +595,11 @@ func spawn_object(projectile: PackedScene, pos_x: int, pos_y: int, relative=true
 	else:
 		obj.set_pos(pos_x, pos_y)
 	obj.set_facing(get_facing_int())
+	
+	obj.internal_id_safe_set = true
 	obj.id = id
+	obj.internal_id_safe_set = false
+	
 	emit_signal("object_spawned", obj)
 	if hooks:
 		hooks.spawn_object(obj)
@@ -1382,10 +1393,13 @@ func get_team() -> int:
 
 func global_hitlag_check():
 	if not possible_global_hitstun:
+		#print("test1b")
 		return
+	#print("test1a")
 	if not (state_interruptable):#: and _state_interrupt_backup):
 		for player in get_game().players.values():
 			if (player == self):
+				#print("test2")
 				continue
 			player.state_interruptable = false
 			player.possible_global_hitstun = true

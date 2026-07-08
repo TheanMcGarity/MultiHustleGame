@@ -227,9 +227,10 @@ func challenge_user(user):
 	PLAYER_SIDE = 1
 
 func replay_challenge_user(match_data, sides):
-	var data:Dictionary = match_data.duplicate()
-	data["replay_sides"] = sides
-	host_game_vs_all(null, data)
+	#var data:Dictionary = match_data.duplicate()
+	#data["replay_sides"] = sides
+	Network.pending_replay_match_data["replay_sides"] = sides
+	host_game_vs_all(null, Network.pending_replay_match_data)
 
 func on_match_started():
 	Steam.setLobbyMemberData(LOBBY_ID, "game_started", "true")
@@ -1973,14 +1974,20 @@ func _setup_game_vs_group(OPPONENT_IDS, replay := false):
 	Network.char_loaded.clear()
 	for steam_id in OPPONENT_IDS.values():
 		Network.char_loaded[steam_id] = false
-	for index in OPPONENT_IDS.keys():
-		var steam_id = OPPONENT_IDS[index]
-		if steam_id == SteamHustle.STEAM_ID:
-			print("setting player side to %d" % index)
-			PLAYER_SIDE = index
-			Network.player_id = index
-			Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "player_id", str(index))
-			break
+	if (not replay):
+		for index in OPPONENT_IDS.keys():
+			var steam_id = OPPONENT_IDS[index]
+			if steam_id == SteamHustle.STEAM_ID:
+				print("setting player side to %d" % index)
+				PLAYER_SIDE = index
+				Network.player_id = index
+				Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "player_id", str(index))
+				break
+	else:
+		var side = Network.pending_replay_match_data["replay_sides"][SteamHustle.STEAM_ID]
+		PLAYER_SIDE = side
+		Network.player_id = side
+	
 	Network.log_to_file("made it to character select")
 	Network.network_ids = OPPONENT_IDS
 	if (replay):

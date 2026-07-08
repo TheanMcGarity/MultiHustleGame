@@ -669,7 +669,7 @@ remotesync func client_disconnected(id):
 		game.quitters.append(id)
 		quitter_count += 1
 		ui.end_turn_for_real(id)
-		player.on_action_selected("Forfeit", null, null)
+		player.on_("Forfeit", null, null)
 
 		resync_counter += 1
 		if resync_counter >= game.players.size() - quitter_count and player_id == resync_request_player_id:
@@ -789,8 +789,18 @@ remotesync func pick_replay_side(side, player):
 	if (SteamLobby.LOBBY_OWNER != SteamHustle.STEAM_ID):
 		return
 	
+	rpc_("preload_replay_chars", [Network.pending_replay_match_data.selected_characters, Network.pending_replay_match_data, sides_picked_replay])
+
+remotesync func preload_replay_chars(chars, replay, sides):
+	
+	var char_names = []
+	for index in chars.keys():
+		char_names.append(chars[index]["name"])
+	
+	_Global.css_instance.net_loadReplayChars(char_names)
+	
 	var ui = main.ui_layer.get_node("%SteamLobby")
 	if Network.pending_replay_match_data:
 		Network.pending_replay_match_data["restore_timers"] = ui.get_node("%SidePickerRestoreTimers").visible and ui.get_node("%SidePickerRestoreTimers").pressed
-		SteamLobby.replay_challenge_user(pending_replay_match_data, sides_picked_replay)
+		SteamLobby.replay_challenge_user(pending_replay_match_data, sides)
 	ui.get_node("%SidePickerDialogScreen").hide()

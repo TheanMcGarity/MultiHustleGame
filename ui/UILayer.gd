@@ -118,6 +118,7 @@ onready var global_option_check_buttons = {
 	$"%HealthCountButton": "show_health_count",
 	$"%NextTurnHudButton": "show_next_turn_info_hud",
 	$"%ShowNextTurnOnCharsButton": "show_next_turn_info_on_chars",
+	$"%UseReplaySong": "replay_song_mode",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 func _enter_tree():

@@ -514,6 +514,8 @@ var hitstun_decay_combo_count = 0
 var lowest_tick = 0
 var wakeup_throw_immunity_ticks = 0
 
+var attacker
+
 var hidden_sprite := false
 var dead_for_ticks := 0
 const DESPAWN_TICKS := 100
@@ -560,6 +562,7 @@ func get_visual_hp():
 	return MAX_HEALTH * pow(ratio, VISUAL_GUTS_RATIO)
 
 func init(pos=null):
+	internal_id_safe_set = false
 	if (get("crossintro")):
 		self.crossintro = null
 	if (get("char_name")):
@@ -1889,6 +1892,9 @@ func hit_by(hitbox, force_hit=false):
 	
 	if !allowed_hit:
 		return
+	attacker = null
+	if (from_name):
+		attacker = from_name
 	
 	if parried:
 		return 
@@ -1904,10 +1910,10 @@ func hit_by(hitbox, force_hit=false):
 		hit_out_of_brace = true
 
 	if hitbox.throw and not is_otg():
-		var state = obj_from_name(hitbox.host).current_state()
+		#var state = obj_from_name(hitbox.host).current_state()
 		print("Got thrown by hitbox! Self=%d" % id)
-		if state is ThrowState:
-			state._add_grabbed_target(self)
+		#if state is ThrowState:
+		#	state._add_grabbed_target(self)
 		return thrown_by(hitbox)
 	if force_hit or (not can_parry_hitbox(hitbox)):
 		ghost_got_hit = true
@@ -3469,10 +3475,10 @@ func singleplayer_set_display_name():
 	Network.main.ui_layer.p2_action_buttons.re_init(Network.main.ui_layer.GetRealID(2))
 
 func set_hp(new):
-	var stack = get_stack()
-	if !Global.is_allowed_caller("copy_to", stack):
-		return
-		
+	#var stack = get_stack()
+	#if !Global.is_allowed_caller("copy_to", stack):
+	#	return
+	
 	hp = new
 
 func explode_effect():

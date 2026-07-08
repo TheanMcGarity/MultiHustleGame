@@ -2,8 +2,8 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.10.0-steam-mh_0.8.5-b7"
-var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.5-b7"
+var VERSION = "1.10.0-steam-mh_0.8.6b1"
+var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.6b1"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -130,6 +130,8 @@ var show_player_name := true
 var show_ghost_name := true
 var show_health_numbers := false
 var player_hp_label := true
+var replay_song_mode := false
+const REPLAY_SONG_PATH = "user://music/replay.mp3"
 
 var name_paths = {
 	"Ninja": "res://characters/stickman/NinjaGuy.tscn",
@@ -304,6 +306,8 @@ func set_music_enabled(on):
 		#audio_player.disconnect("finished", self)
 
 func play_random_song():
+	if (not music_enabled):
+		return
 	play_song(rng.choose(songs.keys()))
 
 func has_supporter_pack():
@@ -337,9 +341,37 @@ func set_hitboxes(on):
 	show_hitboxes = on
 	save_options()
 
-func play_song(song_name):
-	audio_player.stream = songs[song_name]
-	audio_player.play()
+func play_song(song_name, start := 0.0):
+	var song
+	
+	if ("user://" in song_name):
+		if (".mp3" in song_name):
+			song = _load_mp3(song_name)
+			
+		else:
+			return
+	else:
+		song = songs[song_name]
+		
+	if (song == null):
+		return
+		
+	audio_player.stream = song
+	audio_player.play(start)
+
+func stop_song():
+	audio_player.stop()
+
+func _load_mp3(path):
+	var f = File.new()
+	if (not f.file_exists(path)):
+		return
+	f.open(path, File.READ)
+	var buffer = f.get_buffer(f.get_len())
+	f.close()
+	var result = AudioStreamMP3.new()
+	result.data = buffer
+	return result
 
 func add_dir_contents(dir: Directory, files: Array, directories: Array, recursive: bool=true, extension: String ="", full_path=true):
 	var file_name = dir.get_next()

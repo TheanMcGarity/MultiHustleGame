@@ -58,6 +58,9 @@ var release_sfx_player = null
 
 var targets setget , get_targets
 
+func _enter_shared():
+	._enter_shared()
+	
 func _enter():
 	released = false
 
@@ -80,12 +83,8 @@ func update_throw_position():
 		var pos = host.throw_positions[frame]
 		host.throw_pos_x = pos.x
 		host.throw_pos_y = pos.y
-func get_targets():
-	if (!host.get_game().players_getting_throwed.has(host.id)):
-		return []
-	return host.get_game().players_getting_throwed[host.id]
-func get_player(id):
-	return host.get_game().players[id]
+
+
 func _frame_0_shared():
 	._frame_0_shared()
 	for target in self.targets:
@@ -98,6 +97,9 @@ func _frame_0_shared():
 	var throw_pos = host.get_global_throw_pos()
 	for target in self.targets:
 		get_player(target).set_pos(throw_pos.x, throw_pos.y)
+func _frame_1_shared():
+	for target in self.targets:
+		get_player(target).change_state("Grabbed")
 
 func _tick_shared():
 	if current_tick == 0:
@@ -150,3 +152,24 @@ func _release():
 		release_sfx_player.play()
 	if play_release_sfx_bass:
 		host.play_sound("HitBass")
+
+func get_targets():
+	var result = []
+	result.append_array(get_opponents())
+	#if (!host.get_game().players_getting_throwed.has(host.id)):
+	#	return result
+	#result.append_array(host.get_game().players_getting_throwed[host.id])
+	return result 
+
+func get_player(id):
+	return host.get_game().players[id]
+
+# Gets all players that have been attacked by the host
+# using the `attacker` variable.
+func get_opponents():
+	var result = []
+	for id in host.get_game().players:
+		var player = get_player(id)
+		if (player.attacker == host and player != host):
+			result.append(player.id)
+	return result

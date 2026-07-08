@@ -1,4 +1,4 @@
-[gd_scene load_steps=219 format=2]
+[gd_scene load_steps=218 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -415,9 +415,6 @@ animations = [ {
 "name": "WallSlam",
 "speed": 5.0
 } ]
-
-[sub_resource type="ViewportTexture" id=2]
-viewport_path = NodePath("EmoteView")
 
 [sub_resource type="ShaderMaterial" id=4]
 resource_local_to_scene = true
@@ -2232,16 +2229,7 @@ custom_constants/line_spacing = -2
 text = "hit @ xf "
 align = 1
 
-[node name="TextureRect2" type="TextureRect" parent="." index="12"]
-visible = false
-margin_left = -141.0
-margin_top = -60.0
-margin_right = -101.0
-margin_bottom = -20.0
-texture = SubResource( 2 )
-flip_v = true
-
-[node name="EmoteLabel" type="RichTextLabel" parent="." index="13"]
+[node name="EmoteLabel" type="RichTextLabel" parent="." index="12"]
 unique_name_in_owner = true
 visible = false
 margin_left = -141.0
@@ -2257,7 +2245,7 @@ bbcode_enabled = true
 fit_content_height = true
 scroll_active = false
 
-[node name="VelocityLabelContainer" type="Node2D" parent="." index="14"]
+[node name="VelocityLabelContainer" type="Node2D" parent="." index="13"]
 visible = false
 z_index = 1024
 
@@ -2270,7 +2258,7 @@ theme = ExtResource( 47 )
 scroll_active = false
 script = ExtResource( 187 )
 
-[node name="GroundedIndicator" type="Sprite" parent="." index="15"]
+[node name="GroundedIndicator" type="Sprite" parent="." index="14"]
 visible = false
 position = Vector2( 0, 8 )
 z_index = 1000
@@ -2288,7 +2276,7 @@ theme = ExtResource( 47 )
 text = "Grounded"
 align = 1
 
-[node name="HPLabel" type="RichTextLabel" parent="." index="16"]
+[node name="HPLabel" type="RichTextLabel" parent="." index="15"]
 unique_name_in_owner = true
 visible = false
 modulate = Color( 1, 1, 1, 0.784314 )
@@ -2313,26 +2301,7 @@ __meta__ = {
 }
 text_format = "[center][color=#%s]%d[/color] / %d[/center]"
 
-[node name="EmoteDisplayOld" type="TextureRect" parent="." index="17"]
-unique_name_in_owner = true
-visible = false
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -141.0
-margin_top = -201.0
-margin_right = 141.0
-margin_bottom = 81.0
-grow_horizontal = 2
-grow_vertical = 2
-rect_pivot_offset = Vector2( 141, 141 )
-mouse_filter = 2
-texture = SubResource( 2 )
-stretch_mode = 6
-flip_v = true
-
-[node name="EmoteView" type="Viewport" parent="." index="18"]
+[node name="EmoteView" type="Viewport" parent="." index="16"]
 size = Vector2( 282, 282 )
 own_world = true
 transparent_bg = true
@@ -2354,7 +2323,7 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="StyledParticles" type="Viewport" parent="." index="19"]
+[node name="StyledParticles" type="Viewport" parent="." index="17"]
 size = Vector2( 282, 282 )
 own_world = true
 transparent_bg = true
@@ -2368,23 +2337,23 @@ position = Vector2( 141, 141 )
 free = false
 start_enabled = false
 
-[node name="EmoteDisplay" type="Sprite" parent="." index="20"]
+[node name="EmoteDisplay" type="Sprite" parent="." index="18"]
 unique_name_in_owner = true
 visible = false
 position = Vector2( 0, -60 )
 texture = SubResource( 5 )
 flip_v = true
 
-[node name="StyledParticlesDisplay" type="Sprite" parent="." index="21"]
+[node name="StyledParticlesDisplay" type="Sprite" parent="." index="19"]
 unique_name_in_owner = true
 visible = false
 texture = SubResource( 3 )
 flip_v = true
 
-[node name="Hooks" parent="." index="22"]
+[node name="Hooks" parent="." index="20"]
 script = ExtResource( 204 )
 
-[node name="SecretEmotes" type="Node2D" parent="." index="23"]
+[node name="SecretEmotes" type="Node2D" parent="." index="21"]
 
 [node name="Cube" type="Node2D" parent="SecretEmotes" index="0"]
 unique_name_in_owner = true

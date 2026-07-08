@@ -664,14 +664,20 @@ func init(ngame, pid):
 	$"%TurnButtons".add_child(continue_button)
 	$"%TurnButtons".move_child(continue_button, 1)
 
-	$"%OpponentButton".clear()
-	
-	if (game.duel):
-		$"%OpponentButton".hide()
-	if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
-		$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
-	
-	$"%OpponentButton".selected = fighter.opponent.id - 1
+	var game:Game = Global.current_game
+	if (is_instance_valid(game)):
+		if (game.duel):
+			$"%OpponentButton".hide()
+		for id in game.players:
+	#		var player = game.players[id]
+			if (game.player_names.has(id)):
+				$"%OpponentButton".add_item(game.player_names[id], id)
+			else:
+				$"%OpponentButton".add_item("P%d" % id, id)
+				
+			
+		if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
+			$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
 	
 	Network.log_to_file("Init finished for action buttons! ID: " + str(pid))
 
@@ -971,6 +977,7 @@ func activate(refresh = true):
 	if visible and refresh:
 		Network.log_to_file("Returning at point A")
 		return
+
 
 	active = true
 	var stored_action = null

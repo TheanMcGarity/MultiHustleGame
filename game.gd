@@ -293,7 +293,9 @@ func copy_to(game):
 	for object in objects:
 		if is_instance_valid(object):
 			if !object.disabled:
+				
 				var new_obj = load(object.filename).instance()
+				
 				# Preassign the name so on_object_spawned doesn't bump the counter
 				# (the counter was already synced above).
 				new_obj.obj_name = object.obj_name
@@ -469,7 +471,6 @@ func forfeit(id):
 func start_game(singleplayer:bool, match_data:Dictionary):
 	set_vanilla_game_started(true)
 
-
 	#print(match_data)
 	
 	if match_data.has("collide_team"):
@@ -491,7 +492,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		Network.team_living[team] = Network.teams[team].size()
 	# Only for compatibility with old replays
 	if match_data.has("display_names"):
-		player_names_rich = match_data["display_names"]
+		player_names = match_data["display_names"]
 	if match_data.has("rich_display_names"):
 		player_names_rich = match_data["rich_display_names"]
 
@@ -560,7 +561,11 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		player.logic_rng_seed = rng_seed
 		player.logic_rng_static.seed = rng_seed
 		player.logic_rng_static_seed = rng_seed
+		
+		player.internal_id_safe_set = true
 		player.id = index
+		player.internal_id_safe_set = false
+		
 		player.is_ghost = self.is_ghost
 		player.set_gravity_modifier(self.global_gravity_modifier)
 #		print("Player %s assigned with id %d with index %d, ghost=%s" % [player.name, player.id, index, player.is_ghost])
@@ -938,6 +943,8 @@ func tick():
 			else :
 				if self.current_tick > (ReplayManager.resim_tick if ReplayManager.resim_tick >= 0 else get_max_replay_tick() - 2):
 					if not Network.multiplayer_active:
+						Global.stop_song()
+						Global.play_random_song()
 						ReplayManager.playback = false
 					ReplayManager.resimulating = false
 					self.camera.reset_shake()
@@ -1380,7 +1387,9 @@ func is_waiting_on_player():
 					return true
 	return false
 
-
+func current_seconds():
+	return current_tick / 60.0
+	
 func simulate_until_ready():
 	while !is_waiting_on_player():
 		tick()
@@ -1409,6 +1418,8 @@ func undo(cut=true):
 
 func start_playback():
 	ReplayManager.replaying_ingame = true
+	if (Global.replay_song_mode):
+		Global.play_song(Global.REPLAY_SONG_PATH)
 #	ReplayManager.resimulating = true
 	emit_signal("playback_requested")
 	hooks.playback_started()
@@ -1534,6 +1545,8 @@ func process_tick():
 					if self.game_paused:
 						if Network.multiplayer_active:
 							Network.can_open_action_buttons = false
+						elif (Global.replay_song_mode):
+							Global.play_song(Global.REPLAY_SONG_PATH, current_seconds())
 					self.game_paused = false
 		else :
 			ReplayManager.frames.finished = false
@@ -1569,7 +1582,8 @@ func process_tick():
 				elif not is_ghost:
 					someones_turn = true
 				player_actionable = true
-
+				
+				
 			if someones_turn:
 				ReplayManager.replaying_ingame = false
 				if Network.multiplayer_active:
@@ -1591,6 +1605,8 @@ func process_tick():
 			self.game_paused = false
 		else:
 			if self.buffer_edit:
+				Global.stop_song()
+				Global.play_random_song()
 				ReplayManager.playback = false
 				ReplayManager.cut_replay(self.current_tick)
 				self.buffer_edit = false

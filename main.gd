@@ -553,6 +553,10 @@ func _on_player_actionable():
 	start_ghost()
 	_maybe_save_backup()
 	_reset_save_replay_button()
+	
+	if (Global.replay_song_mode):
+		Global.stop_song()
+		Global.play_random_song()
 
 func _on_multiplayer_turn_started():
 	_maybe_save_backup()
