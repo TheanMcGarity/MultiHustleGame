@@ -1,1 +1,2 @@
-requires godotsteam 3.5.1
+# MultiHustle - Your Only Move Is HUSTLE: Multiplayer+ Mod
+lotsa stuff, todo create readme
