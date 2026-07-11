@@ -28,7 +28,7 @@ func _tick():
 			opp_hook_name = opp_hook
 	for obj_name in host.objs_map:
 		var obj = host.objs_map[obj_name]
-		if obj != null:
+		if obj != null and is_instance_valid(obj):
 			if !obj.disabled and obj != host and obj != host.creator:
 				# Projectiles can opt out of hook attachment (e.g. Mutant's
 				# GasBomb, which is supposed to keep drifting).

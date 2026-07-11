@@ -603,7 +603,36 @@ func init(pos=null):
 	if display_name == null:
 		init_display_name()
 
+func thread_safe_init(pos=null):
+	internal_id_safe_set = false
+	if (get("crossintro")):
+		self.crossintro = null
+	if (get("char_name")):
+		self.char_name = null
+	if (get("charname")):
+		self.charname = null
+	.thread_safe_init(pos)
+	game_over = false
+	if !is_ghost:
+		Network.player_objects[id] = self
+	feints = num_feints
+	if one_hit_ko:
+		MAX_HEALTH = 1
+	hp = MAX_HEALTH
+	if fixed.lt(max_di_scaling, min_di_scaling):
+		max_di_scaling = min_di_scaling
+	if burst_enabled:
+		for i in range(START_BURSTS):
+			gain_burst()
+	if infinite_resources:
+		supers_available = MAX_SUPERS
+		super_meter = MAX_SUPER_METER
+	last_pos = get_pos()
+	refresh_air_movements()
 
+	team = Network.get_team(id)
+	Network.game.players[id].team = team
+	Network.teams[team][id] = Network.game.players[id]
 
 func _aura_attach_limb(settings) -> String:
 	if settings is Dictionary:
@@ -1343,7 +1372,6 @@ func gain_super_meter(amount,stale_amount = "1.0"):
 	gain_super_meter_raw(amount)
 
 func gain_super_meter_raw(amount):
-
 	super_meter += amount
 	var played_sound = false
 	while super_meter >= MAX_SUPER_METER:
@@ -2337,10 +2365,16 @@ func set_color(color, extra_color_1=null, extra_color_2=null):
 	if use_extra_color_2 and extra_color_2 != null:
 		sprite.get_material().set_shader_param("extra_color_1", extra_color_1)
 		self.style_extra_color_2 = extra_color_2
+func set_outline(color):
+	if color != null:
+		sprite.get_material().set_shader_param("use_outline", true)
+		sprite.get_material().set_shader_param("outline_color", color)
 
 func release_opponent():
 	if (not get_game().players_getting_throwed.has(id)):
 		return
+		if (get_game().players_getting_throwed[id] == null):
+			return
 	for target in get_game().players_getting_throwed[id]:
 		var player = get_game().players[target]
 		if player.current_state().state_name == "Grabbed":
@@ -3101,6 +3135,20 @@ func is_in_hurt_state(count_all=true):
 		return state.busy_interrupt_type == CharacterState.BusyInterrupt.Hurt or state.is_hurt_state
 	else:
 		return state.is_hurt_state
+
+func set_ghost_outline():
+	if (Global.replay_song_mode):
+		var BEAT_WAIT_TIME = .33
+		var BEAT_ENERGY = 3
+		var on_small_beat_color = Color.pink
+		var on_big_beat_color = Color.purple
+		var on_beat_color = lerp(on_small_beat_color, on_big_beat_color, clamp(Global.bpm_ghost_audio_player.last_beat_detected_energy * 100 / BEAT_ENERGY, 0, 1))
+		var after_beat_color = Color.cyan
+		var beat_waiting = clamp(Global.get_ghost_beat_seconds() / BEAT_WAIT_TIME, 0, 1)
+		#if (id == 1):
+		#	print("%d/%f" % [beat_waiting, Global.get_ghost_beat_seconds()])
+		var beat_color = lerp(on_beat_color, after_beat_color, beat_waiting)
+		set_outline(beat_color)
 
 func set_ghost_colors():
 	if not ghost_ready_set and (state_interruptable or dummy_interruptable or ghost_ready_tick!=null):

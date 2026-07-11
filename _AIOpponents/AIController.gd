@@ -116,10 +116,12 @@ func debug_print(message):
 
 		
 func _start_decision_thread():
+	if (id == 0):
+		return
 	print("_start_decision_thread")
 	if multihustle:
-		print("MH AI: Starting ID=%d, Ending ID=%d" % [id + 1, id + mh_ai_count + 1])
-		for player in range(id + 1, id + mh_ai_count + 1):
+		print("MH AI: Starting ID=%d, Ending ID=%d" % [id, id + mh_ai_count - 1])
+		for player in range(id, id + mh_ai_count):
 			print("AI: MH Decision for id %d" % player)
 			_start_decision_thread_internal(player)
 			#target_player.on_action_selected(queued_action,queued_data,queued_extra)
@@ -588,10 +590,15 @@ func get_option_data(option: String, extra: Dictionary, data_ui_scene, fighter) 
 	return temp_data
 
 func setup_ghost_game():
+	if (not is_instance_valid(ghost_game)):
+		_setup_ghost_game()
+	game.copy_to(ghost_game)
+
+func _setup_ghost_game():
 	
 	#setup prediction engine
-	if ghost_game and is_instance_valid(ghost_game):
-		ghost_game.free()
+	#if ghost_game and is_instance_valid(ghost_game):
+	#	ghost_game.free()
 
 	var gg_scene = load("res://Game.tscn")
 	ghost_game = gg_scene.instance()
@@ -608,7 +615,6 @@ func setup_ghost_game():
 
 	ghost_game.ghost_speed = 100
 	ghost_game.ghost_freeze = false
-	game.copy_to(ghost_game)
 
 
 

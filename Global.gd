@@ -20,6 +20,8 @@ const MOD_DISABLE_VERSIONS = ["1.10.0"]
 # _window) and is read by MLMainHook to disable the toggle button.
 var mods_disabled_by_version_transition = false
 
+var bpm_ghost_audio_player
+
 var audio_player
 var tournament_mode = false
 var music_enabled = true
@@ -130,8 +132,12 @@ var show_player_name := true
 var show_ghost_name := true
 var show_health_numbers := false
 var player_hp_label := true
-var replay_song_mode := false
+var replay_song_mode_confirming setget set_replay_song_mode,get_replay_song_mode
+var replay_song_mode := -1
+var replay_songs := {}
+var next_replay_song_id := 0
 const REPLAY_SONG_PATH = "user://music/replay.mp3"
+const ADV_REPLAY_SONG_PATH = "user://music/replay_adv_%d.mp3"
 
 var name_paths = {
 	"Ninja": "res://characters/stickman/NinjaGuy.tscn",
@@ -167,6 +173,13 @@ var songs = {
 var character_select_node = null
 
 var characters_cache = {}
+
+func set_replay_song_mode(val):
+	if (val == 1):
+		get_tree().get_root().get_node("Main/%ReplaySongConfirmDialogue").show_popup(val)
+	replay_song_mode = val
+func get_replay_song_mode():
+	return replay_song_mode
 
 func get_cached_character(name):
 	return characters_cache[name]
@@ -218,8 +231,11 @@ func _enter_tree():
 #	get_tree().set_auto_accept_quit(false)
 	steam_demo_version = "steam" in VERSION and "beta" in VERSION
 	audio_player = AudioStreamPlayer.new()
+	bpm_ghost_audio_player = BPMCalculatorAudioStream.new()
 	call_deferred("add_child", audio_player)
+	call_deferred("add_child", bpm_ghost_audio_player)
 	audio_player.bus = "Music"
+	bpm_ghost_audio_player.bus = "GhostBPM"
 	
 	var data = get_player_data()
 	for key in data.options:
@@ -306,7 +322,7 @@ func set_music_enabled(on):
 		#audio_player.disconnect("finished", self)
 
 func play_random_song():
-	if (not music_enabled):
+	if (not music_enabled or replay_song_mode):
 		return
 	play_song(rng.choose(songs.keys()))
 
@@ -341,6 +357,14 @@ func set_hitboxes(on):
 	show_hitboxes = on
 	save_options()
 
+# Plays current song in ghost mode
+func play_ghost_song(speed := 1.0, start := 0.0):
+	bpm_ghost_audio_player.pitch_scale = speed
+	bpm_ghost_audio_player.play(start)
+func stop_ghost_song():
+	bpm_ghost_audio_player.stop()
+func get_ghost_beat_seconds(): 
+	return (Time.get_ticks_msec() / 1000.0) - bpm_ghost_audio_player._last_beat_detected_time
 func play_song(song_name, start := 0.0):
 	var song
 	
@@ -357,6 +381,7 @@ func play_song(song_name, start := 0.0):
 		return
 		
 	audio_player.stream = song
+	bpm_ghost_audio_player.stream = song
 	audio_player.play(start)
 
 func stop_song():
@@ -482,6 +507,9 @@ func save_options():
 			"show_player_name": show_player_name,
 			"show_ghost_name": show_ghost_name,
 			"show_health_numbers": show_health_numbers,
+			"replay_song_mode": replay_song_mode,
+			"replay_songs": replay_songs,
+			"next_replay_song_id": next_replay_song_id,
 			"player_hp_label": player_hp_label,
 #			"forfeit_buttons_enabled": forfeit_buttons_enabled,
 			"master_value" : master_value,
@@ -542,6 +570,9 @@ func get_default_player_data():
 			"show_player_name": true,
 			"show_ghost_name": true,
 			"show_health_numbers": false,
+			"replay_song_mode": -1,
+			"replay_songs": {},
+			"next_replay_song_id": 0,
 			"player_hp_label": true,
 #			"forfeit_buttons_enabled": false,
 			"master_value" : 1.0,

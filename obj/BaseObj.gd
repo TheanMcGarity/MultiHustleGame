@@ -66,6 +66,10 @@ var hitlag_ticks = 0# setget set__hitlag_ticks
 
 var possible_global_hitstun := false
 
+# song pitch changes (scrapped)
+var sounds_base_pitches := {}
+const PITCH_MOD_PERCENT := 1
+
 func set__hitlag_ticks(new):
 	hitlag_ticks = new
 	if (Global.current_game.is_global_hitlag_activated_now):
@@ -185,6 +189,7 @@ func _ready():
 
 	for sound in $Sounds.get_children():
 		sounds[sound.name] = sound
+		sounds_base_pitches[sound.name] = sound.pitch_scale
 		sound.bus = "Fx"
 	# Modding hook surface. The Hooks child is a scene ExtResource (obj/
 	# BaseObj.tscn, script overridden per type in BaseChar/BaseProjectile.tscn),
@@ -299,6 +304,27 @@ func init(pos=null):
 	# firing here would be before the subclass finished initializing. It's fired
 	# by _fire_init_hook() at the engine call sites, once init() has fully
 	# returned. See _fire_init_hook.
+func thread_safe_init(pos=null):
+	internal_id_safe_set = false
+	if initialized:
+		return
+	chara.id = id
+	if (not is_ghost):
+		print("Obj init for %d" % id)
+	chara.set_gravity(gravity)
+	chara.set_ground_friction(ground_friction)
+	chara.set_air_friction(air_friction)
+	chara.set_max_ground_speed(max_ground_speed)
+	chara.set_max_air_speed(max_air_speed)
+	chara.set_max_fall_speed(max_fall_speed)
+	default_hurtbox.x = hurtbox.x
+	default_hurtbox.y = hurtbox.y
+	default_hurtbox.width = hurtbox.width
+	default_hurtbox.height = hurtbox.height
+	state_machine.thread_safe_init("", spawn_data)
+	setup_hitbox_names()
+	update_data()
+	initialized = true
 
 # Fires the modding init hook exactly once, after init() has FULLY returned
 # (including subclass init like Fighter's hp setup). Called by the engine right
@@ -1052,6 +1078,10 @@ func distance_to(object: BaseObj):
 	var p2 = object.get_pos()
 	return fixed.vec_dist(str(p1.x), str(p1.y), str(p2.x), str(p2.y))
 
+#func tick_music_sync():
+#	for sound in sounds:
+#		
+
 func tick():
 	if (!_timescale_sim):
 		for i in range(timescale - 1):
@@ -1079,6 +1109,27 @@ func tick():
 	update_data()
 	if hooks:
 		hooks.post_tick()
+
+func thread_safe_tick():
+	if (!_timescale_sim):
+		for i in range(timescale - 1):
+			_timescale_sim = true
+			thread_safe_tick()
+		_timescale_sim = false
+	
+	global_hitlag_check()
+	
+	if current_tick <= 0:
+		update_data()
+
+	if hitlag_ticks > 0:
+		hitlag_ticks -= 1
+	else:
+		normal_tick()
+
+	can_update_sprite = true
+	update_collision_boxes()
+	update_data()
 
 func on_hit_ceiling():
 	if hooks:

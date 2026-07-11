@@ -29,6 +29,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://framework/Array2d.gd"
 }, {
+"base": "AudioStreamPlayer",
+"class": "BPMCalculatorAudioStream",
+"language": "GDScript",
+"path": "res://fx/BPMAudioStream.gd"
+}, {
 "base": "Node2D",
 "class": "BaseObj",
 "language": "GDScript",
@@ -439,6 +444,7 @@ _global_script_class_icons={
 "ActionButtons": "",
 "ActionUIData": "",
 "Array2D": "",
+"BPMCalculatorAudioStream": "",
 "BaseObj": "",
 "BaseProjectile": "",
 "BeastState": "",

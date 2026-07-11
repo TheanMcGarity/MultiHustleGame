@@ -1,4 +1,4 @@
-[gd_scene load_steps=100 format=2]
+[gd_scene load_steps=101 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -84,6 +84,7 @@
 [ext_resource path="res://TitleSecret.gd" type="Script" id=82]
 [ext_resource path="res://ui/ModWarningWindow.gd" type="Script" id=83]
 [ext_resource path="res://ui/burstp2_4.png" type="Texture" id=84]
+[ext_resource path="res://ui/ReplaySong/ReplaySongConfirmDialogue.gd" type="Script" id=85]
 [ext_resource path="res://ui/Window/Window.gd" type="Script" id=201]
 [ext_resource path="res://MainHooks.gd" type="Script" id=203]
 [ext_resource path="res://HotkeysTab.gd" type="Script" id=204]
@@ -2335,6 +2336,7 @@ flat = true
 
 [node name="SupportMHButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
+visible = false
 margin_top = 160.0
 margin_right = 144.0
 margin_bottom = 180.0
@@ -2351,9 +2353,9 @@ transition_time = 0.7
 
 [node name="QuitProgramButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 180.0
+margin_top = 160.0
 margin_right = 144.0
-margin_bottom = 200.0
+margin_bottom = 180.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( -87, -115 )
 mouse_default_cursor_shape = 2
@@ -2784,7 +2786,6 @@ size_flags_vertical = 3
 tab_align = 0
 
 [node name="Options" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_top = 11.0
@@ -2798,7 +2799,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer"]
-margin_right = 220.0
+margin_right = 214.0
 margin_bottom = 378.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -3214,6 +3215,7 @@ margin_bottom = 92.0
 text = "reset color"
 
 [node name="MH" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_top = 11.0
@@ -3294,23 +3296,97 @@ hint_tooltip = "This will make it so players stay on screen forever!"
 pressed = true
 text = "enable despawn explosion"
 
-[node name="UseReplaySong" type="CheckButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
-unique_name_in_owner = true
+[node name="Control" type="Control" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
 margin_top = 83.0
 margin_right = 220.0
 margin_bottom = 95.0
-hint_tooltip = "This will make it so players stay on screen forever!"
+rect_min_size = Vector2( 20, 12 )
+
+[node name="UseReplaySong" type="OptionButton" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/Control"]
+unique_name_in_owner = true
+modulate = Color( 0.890196, 0.890196, 0.890196, 1 )
+margin_left = 153.0
+margin_right = 218.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 65, 0 )
+text = "Off"
+align = 2
+items = [ "Off", null, false, 0, null, "Simple", null, false, 1, null, "Advanced", null, false, 2, null ]
+selected = 0
+
+[node name="Label" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/Control"]
+margin_left = 2.0
+margin_right = 122.0
+margin_bottom = 11.0
 text = "use user music in replay"
 
-[node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+[node name="ReplayMusicSettings" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
 margin_top = 96.0
 margin_right = 220.0
-margin_bottom = 100.0
+margin_bottom = 126.0
+
+[node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/ReplayMusicSettings"]
+margin_right = 220.0
+margin_bottom = 4.0
+
+[node name="RichTextLabel3" type="RichTextLabel" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/ReplayMusicSettings"]
+margin_top = 5.0
+margin_right = 220.0
+margin_bottom = 17.0
+rect_min_size = Vector2( 0, 12 )
+theme = ExtResource( 4 )
+bbcode_enabled = true
+bbcode_text = "[center]Advanced Replay Music"
+text = "Advanced Replay Music"
+
+[node name="AddSongButton" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/ReplayMusicSettings"]
+unique_name_in_owner = true
+modulate = Color( 0.847059, 0.847059, 0.847059, 1 )
+margin_top = 18.0
+margin_right = 220.0
+margin_bottom = 30.0
+text = "Add Song"
+script = ExtResource( 80 )
+
+[node name="AdvReplaySongTemplate" type="HBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/ReplayMusicSettings"]
+unique_name_in_owner = true
+visible = false
+margin_top = 31.0
+margin_right = 220.0
+margin_bottom = 43.0
+rect_min_size = Vector2( 0, 12 )
+theme = ExtResource( 4 )
+
+[node name="RemoveSongButton" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/ReplayMusicSettings/AdvReplaySongTemplate"]
+modulate = Color( 1, 0.713726, 0.713726, 1 )
+margin_right = 12.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 12, 12 )
+text = "x"
+script = ExtResource( 80 )
+
+[node name="Name" type="Label" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer/ReplayMusicSettings/AdvReplaySongTemplate"]
+margin_left = 13.0
+margin_right = 217.0
+margin_bottom = 11.0
+text = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+[node name="ReplaySongList" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 127.0
+margin_right = 220.0
+margin_bottom = 127.0
+
+[node name="HSeparator2" type="HSeparator" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
+margin_top = 128.0
+margin_right = 220.0
+margin_bottom = 132.0
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
-margin_top = 101.0
+margin_top = 133.0
 margin_right = 220.0
-margin_bottom = 113.0
+margin_bottom = 145.0
 rect_min_size = Vector2( 0, 12 )
 theme = ExtResource( 4 )
 bbcode_enabled = true
@@ -3319,9 +3395,9 @@ text = "Data"
 
 [node name="UserFolderButton" type="Button" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/MH/ScrollContainer/VBoxContainer"]
 modulate = Color( 0.654902, 0.960784, 1, 1 )
-margin_top = 114.0
+margin_top = 146.0
 margin_right = 220.0
-margin_bottom = 126.0
+margin_bottom = 158.0
 text = "Open MH User Data Folder"
 script = ExtResource( 80 )
 
@@ -4007,9 +4083,6 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="MHSupportWindow" parent="UILayer" instance=ExtResource( 76 )]
-visible = false
-
 [node name="MHCharSelectors" parent="UILayer" instance=ExtResource( 77 )]
 unique_name_in_owner = true
 visible = false
@@ -4018,6 +4091,37 @@ visible = false
 unique_name_in_owner = true
 stream = ExtResource( 19 )
 bus = "UI"
+
+[node name="ReplaySongConfirmDialogue" type="ConfirmationDialog" parent="UILayer"]
+unique_name_in_owner = true
+modulate = Color( 0.737255, 0.737255, 0.737255, 1 )
+margin_left = 216.0
+margin_top = 136.0
+margin_right = 416.0
+margin_bottom = 228.0
+theme = ExtResource( 4 )
+popup_exclusive = true
+dialog_text = "You need a mp3 file for this! Please select one."
+dialog_autowrap = true
+script = ExtResource( 85 )
+
+[node name="ReplaySongFileDialogue" type="FileDialog" parent="UILayer"]
+unique_name_in_owner = true
+modulate = Color( 0.737255, 0.737255, 0.737255, 1 )
+margin_left = 66.0
+margin_top = 42.0
+margin_right = 588.0
+margin_bottom = 336.0
+theme = ExtResource( 4 )
+window_title = "Open a File"
+resizable = true
+dialog_text = "Select an MP3 file for this session's replay song"
+dialog_hide_on_ok = true
+dialog_autowrap = true
+mode = 0
+access = 2
+filters = PoolStringArray( "*.mp3" )
+show_hidden_files = true
 
 [node name="UILayer@GameUI@BottomBar@OptionsBarContainer@OptionsBar@GhostSpeed@5Speed" type="Button" parent="."]
 unique_name_in_owner = true

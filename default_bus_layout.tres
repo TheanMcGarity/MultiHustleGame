@@ -1,4 +1,4 @@
-[gd_resource type="AudioBusLayout" load_steps=3 format=2]
+[gd_resource type="AudioBusLayout" load_steps=7 format=2]
 
 [sub_resource type="AudioEffectLimiter" id=2]
 resource_name = "Limiter"
@@ -6,6 +6,19 @@ resource_name = "Limiter"
 [sub_resource type="AudioEffectStereoEnhance" id=1]
 resource_name = "StereoEnhance"
 pan_pullout = 0.5
+
+[sub_resource type="AudioEffectSpectrumAnalyzer" id=6]
+resource_name = "SpectrumAnalyzer"
+
+[sub_resource type="AudioEffectPitchShift" id=7]
+resource_name = "PitchShift"
+
+[sub_resource type="AudioEffectSpectrumAnalyzer" id=4]
+resource_name = "SpectrumAnalyzer"
+
+[sub_resource type="AudioEffectAmplify" id=5]
+resource_name = "Amplify"
+volume_db = -80.0
 
 [resource]
 bus/0/effect/0/effect = SubResource( 2 )
@@ -30,3 +43,17 @@ bus/3/mute = false
 bus/3/bypass_fx = false
 bus/3/volume_db = -5.93075
 bus/3/send = "Master"
+bus/3/effect/0/effect = SubResource( 6 )
+bus/3/effect/0/enabled = true
+bus/4/name = "GhostBPM"
+bus/4/solo = false
+bus/4/mute = false
+bus/4/bypass_fx = false
+bus/4/volume_db = 1.85375
+bus/4/send = "Music"
+bus/4/effect/0/effect = SubResource( 7 )
+bus/4/effect/0/enabled = true
+bus/4/effect/1/effect = SubResource( 4 )
+bus/4/effect/1/enabled = true
+bus/4/effect/2/effect = SubResource( 5 )
+bus/4/effect/2/enabled = true

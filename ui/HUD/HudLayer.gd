@@ -537,6 +537,7 @@ func _physics_process(_delta):
 			# Process all ghost HP trails here first
 			for index in game.players.keys():
 				var plr = game.ghost_game.players[index]
+				
 				if plr.trail_hp < ghost_hp_trails[index]:
 					ghost_hp_trails[index] -= TRAIL_DRAIN_RATE
 					if ghost_hp_trails[index] < plr.trail_hp:

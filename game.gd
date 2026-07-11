@@ -210,6 +210,9 @@ var reload_ui_allowed := false
 
 var ghost_opponent_map = { }
 
+var all_moves_flippable := false
+var fto := false
+
 #var has_ghost_frozen_yet = false
 
 var duel := false
@@ -334,6 +337,11 @@ func copy_to(game):
 	# throws
 	game.throws_consumed = throws_consumed.duplicate()
 	game.players_getting_throwed = players_getting_throwed.duplicate()
+	
+	# play song
+	
+	if (Global.replay_song_mode):
+		Global.play_ghost_song(Global.get_ghost_speed_modifier(), game.current_seconds())
 
 
 func _on_super_started(ticks, player):
@@ -501,10 +509,16 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		
 	if match_data.has("ui_reload"):
 		 reload_ui_allowed = match_data["ui_reload"]
+		
 
 	self.match_data = match_data
 	color_rng.seed = match_data.seed
 
+	if match_data.has("always_flip"):
+		 all_moves_flippable = match_data["always_flip"]
+	if match_data.has("fto"):
+		 fto = match_data["fto"]
+		
 	if match_data.has("spectating"):
 		self.spectating = match_data.spectating
 		if self.is_ghost:
@@ -580,7 +594,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 
 	for index in players.keys():
 		var player = players[index]
-		ui_handler.get_ui_node_from_player(player)
+		#ui_handler.get_ui_node_from_player(player)
 		$Players.add_child(player)
 		player.set_color(MultiHustle_get_color_by_index(index))
 		player.init()
@@ -710,6 +724,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 			var player = players[index]
 			player.gain_super_meter(meter_amount)
 
+	
 	hooks.game_started(match_data)
 
 func on_prediction(ticks=7, player=null):
@@ -808,6 +823,10 @@ func process_fx():
 			fx.tick()
 
 func tick():
+	if (current_tick == 0):
+		if (ReplayManager.playback and not is_ghost and singleplayer and Global.replay_song_mode):
+			Global.play_song(Global.REPLAY_SONG_PATH)
+	
 	set_vanilla_game_started(true)
 
 	if self.is_ghost and not self.prediction_enabled:
@@ -1418,8 +1437,6 @@ func undo(cut=true):
 
 func start_playback():
 	ReplayManager.replaying_ingame = true
-	if (Global.replay_song_mode):
-		Global.play_song(Global.REPLAY_SONG_PATH)
 #	ReplayManager.resimulating = true
 	emit_signal("playback_requested")
 	hooks.playback_started()
@@ -1614,6 +1631,11 @@ func process_tick():
 				call_deferred("simulate_one_tick")
 
 func _process(delta):
+	
+	if (is_ghost):
+		for id in players:
+			players[id].set_ghost_outline()
+	
 	for quitter in quitters:
 		Network.main.ui_layer.silent_end_turn_for(quitter)
 		Network.sync_unlocks[quitter] = true
@@ -1684,6 +1706,7 @@ func playback_speed_allows_tick() -> bool:
 		return real_tick % Global.playback_speed_mod == 0
 	return true
 
+
 func _physics_process(_delta):
 	hooks.physics_process(_delta)
 	set_vanilla_game_started(true)
@@ -1716,6 +1739,7 @@ func _physics_process(_delta):
 			if !buffer_playback and current_tick >= game_end_tick + 120:
 				start_playback()
 	else:
+		
 		if ghost_actionable_freeze_ticks > 0:
 			ghost_actionable_freeze_ticks -= 1
 			if ghost_actionable_freeze_ticks == 0:
@@ -1789,7 +1813,6 @@ func ghost_tick():
 	set_vanilla_game_started(true)
 
 
-
 	var simulate_frames = 1
 	if self.ghost_speed == 1:
 		simulate_frames = 1 if self.ghost_tick % 4 == 0 else 0
@@ -1803,6 +1826,7 @@ func ghost_tick():
 			simulate_one_tick()
 		if ghost_simulated_ticks > GHOST_FRAMES:
 			emit_signal("ghost_finished")
+			Global.stop_ghost_song()
 
 		# REVIEW - This could probably be optimized
 		for index in players.keys():
@@ -2800,3 +2824,88 @@ func calc_player_order():
 	for k in keys:
 		order.append(buckets[k])
 	return order
+
+# scrapped
+func thread_safe_tick():
+	set_vanilla_game_started(true)
+
+	process_opponents()
+
+	clean_objects()
+	for object in active_objects:
+		if object.disabled:
+			continue
+		if not object.initialized:
+			object.thread_safe_init()
+
+		object.thread_safe_tick()
+		var pos = object.get_pos()
+		if pos.x < - self.stage_width:
+			object.set_pos( - self.stage_width, pos.y)
+		elif pos.x > self.stage_width:
+			object.set_pos(self.stage_width, pos.y)
+		if self.has_ceiling and pos.y <= - self.ceiling_height:
+			object.set_y( - self.ceiling_height)
+			object.on_hit_ceiling()
+
+	for fx in self.effects:
+		if is_instance_valid(fx):
+			fx.tick()
+	self.current_tick += 1
+
+	for player_key in range(1, players.size() + 1):
+		var player:Fighter = players[player_key]
+
+		player.current_tick = self.current_tick
+		
+		player.lowest_tick = - 1
+
+	var playerPorts = resolve_port_priority()
+
+	for player in playerPorts:
+		player.tick_before()
+
+	for player in playerPorts:
+		player.update_advantage()
+	
+	for player in playerPorts:
+		player.thread_safe_tick()
+
+	resolve_same_x_coordinate()
+	initialize_objects()
+	for index in players.keys():
+		var data = players[index].data
+		player_datas[index] = data
+		match(index):
+			1:
+				p1_data = data
+			2:
+				p2_data = data
+	resolve_collisions_all()
+	apply_hitboxes(playerPorts)
+	for index in players.keys():
+		var data = players[index].data
+		player_datas[index] = data
+		match(index):
+			1:
+				p1_data = data
+			2:
+				p2_data = data
+
+	for player in players.values():
+		var opponent = player.opponent
+		if (opponent.state_interruptable or opponent.dummy_interruptable) and not opponent.busy_interrupt:
+			player.reset_combo()
+
+	if is_ghost:
+		if not ghost_hidden:
+			if not visible and current_tick >= 0:
+				show()
+		return
+
+	var game_end_data = should_game_end()
+	if game_end_data.end:
+		if game_end_data.team_win:
+			end_game_team(game_end_data.winning_team)
+		else:
+			end_game_ffa(game_end_data.winning_player)

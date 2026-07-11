@@ -45,7 +45,7 @@ func set_player_id(player_id):
 func is_reversible():
 	if state == null:
 		return reversible
-	return state.flip_allowed() and state.reversible
+	return state.flip_allowed() and (state.reversible or Global.current_game.all_moves_flippable)
 
 func set_pressed(on):
 	$"%Button".pressed = on

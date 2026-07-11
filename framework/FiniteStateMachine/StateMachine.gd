@@ -112,6 +112,47 @@ func init(st: String = "", data=null) -> bool:
 		_change_state(states_array[0].get_name(), data)
 	initialized = true
 	return true
+func thread_safe_init(st: String = "", data=null) -> bool:
+	if initialized:
+		return true
+	if starting_state:
+		st = starting_state
+	var can_initialize = false
+	
+	
+	var states_array = call_deferred("get_children")
+	if states_array == []:
+		call_deferred("queue_free")
+		return false
+	for new_state in states_array:
+		if new_state is StateInterface:
+			states_map[new_state.get_name()] = new_state
+			can_initialize = true
+			new_state.call_deferred("connect", "queue_change", self, "queue_state")
+			new_state.call_deferred("connect", "queue_change_with_data", self, "queue_state")
+			new_state.host = host
+			new_state.init()
+		else:
+			print("Invalid state %s for node %s" % [new_state.get_name(), host.get_name()])
+			new_state.queue_free()
+			states_array.erase(new_state)
+	if !can_initialize:
+		call_deferred("queue_free")
+		return false
+		
+	animated_sprite = weakref(call_deferred("get_node_or_null", animated_sprite_path))
+	animation_player = weakref(call_deferred("get_node_or_null", animation_player_path))
+	
+	var a = self.animation_player.get_ref()
+	if a != null:
+		a.call_deferred("connect", "animation_finished", self, "auto_transition")
+
+	if st != "":
+		call_deferred("_change_state", states_map[st].get_name(), data)
+	else:
+		call_deferred("_change_state", states_map[0].get_name(), data)
+	initialized = true
+	return true
 
 func auto_transition(_anim_name):
 	var next = state._animation_finished()
@@ -192,7 +233,7 @@ func _change_state(state_name: String, data=null, enter=true, exit=true) -> void
 	if !states_map.has(state_name):
 		return
 	var next_state = states_map[state_name]
-#	queued_states = []
+	queued_states = []
 	queued_data = []
 
 	if state:

@@ -310,6 +310,12 @@ func send_ui_action(action=null):
 	buffered_ui_actions.append(action)
 
 func _send_ui_action(action=null):
+	if (Global.current_game.duel):
+			Global.current_game.ghost_opponent_map[1] = 2
+			Global.current_game.ghost_opponent_map[2] = 1
+			if (not Global.current_game.fto):
+				Global.current_game.ghost_opponent_map[fighter.id] = fighter.id
+		
 	current_extra = get_extra()
 	if !is_instance_valid(game):
 		return
@@ -668,17 +674,32 @@ func init(ngame, pid):
 	if (is_instance_valid(game)):
 		if (game.duel):
 			$"%OpponentButton".hide()
-		for id in game.players:
-	#		var player = game.players[id]
-			if (game.player_names.has(id)):
-				$"%OpponentButton".add_item(game.player_names[id], id)
-			else:
-				$"%OpponentButton".add_item("P%d" % id, id)
+			pass
+			#if (player_id == 1):
+			#	$"%OpponentButton".add_item("FTO", 2)
+			#	$"%OpponentButton".add_item("NoFTO", 1)
+			#else:
+			#	$"%OpponentButton".add_item("FTO", 1)
+			#	$"%OpponentButton".add_item("NoFTO", 2)
+			#$"%OpponentButton".hint_tooltip = "F(ace) T(owards) O(pponent)"
+			#if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
+			#	$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
+			#pass
+		else:
+			$"%OpponentButton".hint_tooltip = ""
+			for id in game.players:
+		#		var player = game.players[id]
+				if (game.player_names.has(id)):
+					$"%OpponentButton".add_item(game.player_names[id], id)
+				else:
+					$"%OpponentButton".add_item("P%d" % id, id)
+					
 				
-			
-		if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
-			$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
+			if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
+				$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
 	
+	$"%OpponentButton".selected = fighter.opponent.id - 1
+	on_opponent_selected(0)
 	Network.log_to_file("Init finished for action buttons! ID: " + str(pid))
 
 func re_init(pid):
@@ -723,18 +744,36 @@ func re_init(pid):
 	activate()
 	$"%OpponentButton".clear()
 	
+
 	var game:Game = Global.current_game
-	if (game.duel):
-		$"%OpponentButton".hide()
-	for id in game.players:
-#		var player = game.players[id]
-		if (game.player_names.has(id)):
-			$"%OpponentButton".add_item(game.player_names[id], id)
-		
-	if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
-		$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
-	
+	if (is_instance_valid(game)):
+		if (game.duel):
+			$"%OpponentButton".hide()
+			pass
+			#if (player_id == 1):
+			#	$"%OpponentButton".add_item("FTO", 2)
+			#	$"%OpponentButton".add_item("NoFTO", 1)
+			#else:
+			#	$"%OpponentButton".add_item("FTO", 1)
+			#	$"%OpponentButton".add_item("NoFTO", 2)
+			#$"%OpponentButton".hint_tooltip = "F(ace) T(owards) O(pponent)"
+			#if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
+			#	$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
+			#pass
+		else:
+			$"%OpponentButton".hint_tooltip = ""
+			for id in game.players:
+		#		var player = game.players[id]
+				if (game.player_names.has(id)):
+					$"%OpponentButton".add_item(game.player_names[id], id)
+				else:
+					$"%OpponentButton".add_item("P%d" % id, id)
+					
+				
+			if not $"%OpponentButton".is_connected("item_selected", self, "on_opponent_selected"):
+				$"%OpponentButton".connect("item_selected", self, "on_opponent_selected")
 	$"%OpponentButton".selected = fighter.opponent.id - 1
+	on_opponent_selected(0)
 	
 	Network.log_to_file("Re-Init finished for action buttons! ID: " + str(id))
 
@@ -1110,7 +1149,7 @@ func activate(refresh = true):
 			Network.p2_undo_action = null
 
 func on_opponent_selected(index):
-	var player = index + 1
+	var player = $"%OpponentButton".get_selected_id()
 	Global.current_game.ghost_opponent_map[fighter.id] = player
 	_send_ui_action(current_action)
 	pass

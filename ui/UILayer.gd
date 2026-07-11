@@ -68,7 +68,7 @@ var MIN_TURN_TIME = 5.0
 
 onready var lobby = $Lobby
 onready var direct_connect_lobby = $DirectConnectLobby
-onready var mh_support_window = $MHSupportWindow
+#onready var mh_support_window = $MHSupportWindow
 onready var p1_turn_timer = $"%P1TurnTimer"
 onready var p2_turn_timer = $"%P2TurnTimer"
 onready var block_advantage_label = $"%BlockAdvantageLabel"
@@ -118,7 +118,7 @@ onready var global_option_check_buttons = {
 	$"%HealthCountButton": "show_health_count",
 	$"%NextTurnHudButton": "show_next_turn_info_hud",
 	$"%ShowNextTurnOnCharsButton": "show_next_turn_info_on_chars",
-	$"%UseReplaySong": "replay_song_mode",
+	$"%UseReplaySong": "replay_song_mode_confirming",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 func _enter_tree():
@@ -157,7 +157,7 @@ func _ready():
 	$"%DirectConnectButton".connect("pressed", self, "_on_direct_connect_button_pressed")
 	$"%RematchButton".connect("pressed", self, "_on_rematch_button_pressed")
 	$"%QuitButton".connect("pressed", self, "_on_quit_button_pressed")
-	$"%SupportMHButton".connect("pressed", self, "_on_support_mh_button_pressed")
+	#$"%SupportMHButton".connect("pressed", self, "_on_support_mh_button_pressed")
 	$"%QuitToMainMenuButton".connect("pressed", self, "_on_quit_button_pressed")
 	$"%ForfeitButton".connect("pressed", self, "_on_forfeit_button_pressed")
 	$"%QuitProgramButton".connect("pressed", self, "_on_quit_program_button_pressed")
@@ -308,8 +308,12 @@ func _ready():
 	$NetworkSyncTimer.connect("timeout", self, "_on_network_timer_timeout")
 	quit_on_rematch = false
 	for node in global_option_check_buttons:
-		node.set_pressed_no_signal(Global.get(global_option_check_buttons[node]))
-		node.connect("toggled", self, "_on_global_option_toggled", [global_option_check_buttons[node]])
+		if (node is OptionButton):
+			node.connect("item_selected", self, "_on_global_option_toggled", [global_option_check_buttons[node]])
+			node.select(node.get_item_id(Global.get(global_option_check_buttons[node])))
+		else:
+			node.set_pressed_no_signal(Global.get(global_option_check_buttons[node]))
+			node.connect("toggled", self, "_on_global_option_toggled", [global_option_check_buttons[node]])
 	
 	$"%HelpScreen".hide()
 	if SteamLobby.LOBBY_ID != 0:
@@ -324,6 +328,17 @@ func _ready():
 	p2_turn_timer.disconnect("timeout", self, "_on_turn_timer_timeout")
 	Network.disconnect("player_turns_synced", self, "on_player_actionable")
 	
+	$"%AddSongButton".connect("pressed", self, "add_song")
+	
+	for song in Global.replay_songs:
+		var song_listing = $"%AdvReplaySongTemplate".duplicate()
+		$"%ReplaySongList".add_child(song_listing)
+		var song_name = song.split('/')[-1]
+		if (len(song_name) >= 35):
+			song_name = song_name.split(".")[0].substr(0, 34) + "[...].mp3"
+		song_listing.get_node("Name").text = song_name
+			
+		song_listing.show()
 
 func should_open_mod_warning_window():
 	# Only show the warning when ModLoader._init force-disabled mods this
@@ -995,8 +1010,8 @@ func _on_direct_connect_button_pressed():
 	direct_connect_lobby.show()
 	hide_main_menu()
 	
-func _on_support_mh_button_pressed():
-	mh_support_window.show()
+#func _on_support_mh_button_pressed():
+#	mh_support_window.show()
 	#hide_main_menu()
 
 func _on_multiplayer_pressed():
@@ -2063,3 +2078,6 @@ func _fix_window_position():
 	yield(get_tree(), "idle_frame")
 	
 	Global.set_fullscreen(original_value)
+	
+func add_song():
+	get_tree().get_root().get_node("Main/%ReplaySongConfirmDialogue").show_popup(2)
