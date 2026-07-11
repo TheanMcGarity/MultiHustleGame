@@ -22,7 +22,7 @@ var last_beat_detected_seconds := 0.0
 
 func _ready():
 	var index = AudioServer.get_bus_index("GhostBPM")
-	spectrum = AudioServer.get_bus_effect_instance(index, 0)
+	spectrum = AudioServer.get_bus_effect_instance(index, 1)
 	for i in BAND_EDGES.size() - 1:
 		_prev_band_energy.append(0.0)
 

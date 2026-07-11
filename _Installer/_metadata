@@ -1,0 +1,15 @@
+{
+  "author": "PinkTarr",
+  "client_side": false,
+  "description": "Allows for more than 2 players",
+  "friendly_name": "MultiHustle Installer",
+  "id": "12345",
+  "link": "",
+  "name": "MultiHustleInstaller",
+  "overwrites": false,
+  "priority": 0,
+  "requires": [
+
+  ],
+  "version": "1.0.0"
+}
