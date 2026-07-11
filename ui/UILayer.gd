@@ -121,6 +121,9 @@ onready var global_option_check_buttons = {
 	$"%UseReplaySong": "replay_song_mode_confirming",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
+
+onready var adv_replay_settings = $"%ReplayMusicSettings"
+
 func _enter_tree():
 	if Global.character_select_node == null:
 		Global.character_select_node = $"%CharacterSelect"
@@ -1404,6 +1407,7 @@ func hide_rematch_menu():
 		disconnected_label.hide()
 
 func _process(delta):
+	adv_replay_settings.visible = Global.replay_song_mode == 2
 	# Freeze the turn clocks while a replay is catching up (replay challenge /
 	# backup resume). During playback the recorded inputs drive the match and the
 	# players aren't on the clock yet — letting the real-time Timer nodes tick
