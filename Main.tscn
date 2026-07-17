@@ -2786,7 +2786,6 @@ size_flags_vertical = 3
 tab_align = 0
 
 [node name="Options" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_top = 11.0
@@ -2800,7 +2799,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer/Options/ScrollContainer"]
-margin_right = 220.0
+margin_right = 214.0
 margin_bottom = 378.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -3216,6 +3215,7 @@ margin_bottom = 92.0
 text = "reset color"
 
 [node name="MH" type="VBoxContainer" parent="UILayer/OptionsContainer/VBoxContainer/Contents/VBoxContainer/TabContainer"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_top = 11.0

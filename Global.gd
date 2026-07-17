@@ -3,6 +3,7 @@ extends Node
 signal nag_window()
 
 var VERSION = "1.10.0-steam-mh_0.8.6b1"
+var MH_VERSION_DATA = [0, 8, 6, 1]
 var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.6b1"
 const RESOLUTION = Vector2(640, 360)
 

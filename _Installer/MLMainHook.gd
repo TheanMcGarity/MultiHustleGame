@@ -4,7 +4,7 @@ var download_request:HTTPRequest
 const PCK_URL := "https://github.com/TheanMcGarity/MultiHustleGame/raw/refs/heads/v8/release_build/YourOnlyMoveIsHUSTLE.pck"
 const VERSION_URL := "https://raw.githubusercontent.com/TheanMcGarity/MultiHustleGame/refs/heads/v8/release_build/version.txt"
 
-var download_popup:AcceptDialog
+var popup_node:AcceptDialog
 
 func _ready():
 	add_bat_file()
@@ -21,16 +21,22 @@ func on_downloaded_ver(result, code, header, body):
 	var ver = body.get_string_from_utf8()
 	print("Detected latest multihustle release build's version as %s" % ver)
 	if (ver != Global.VERSION):
-		download_popup = load("res://_Installer/Popup.tscn").instance()
-		get_tree().get_root().get_node("Main/%UILayer").add_child(download_popup)
-		download_popup.connect("confirmed", self, "download_mh")
-		download_popup.popup()
+		popup_node = load("res://_Installer/Popup.tscn").instance()
+		get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
+		popup_node.connect("confirmed", self, "download_mh")
+		popup_node.popup()
 		print("Asking for user to download %s" % ver)
 	else:
 		print("%s is installed! (%s)" % [ver, Global.VERSION])
 		download_request.queue_free()
 
 func on_downloaded_mh(result, code, header, body):
+	if (code != 200):
+		popup_node = load("res://_Installer/Error.tscn").instance()
+		get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
+		popup_node.text = popup_node.text % code
+		popup_node.popup()
+		return
 	var user_dir = ProjectSettings.globalize_path("user://")
 	var bat_dir = ProjectSettings.globalize_path("user://MH.bat")
 	var game_dir = OS.get_executable_path().get_base_dir()
@@ -54,3 +60,8 @@ func download_mh():
 func add_bat_file():
 	var dir := Directory.new()
 	dir.copy("res://_Installer/intall.bat", "user://MH.bat")
+
+func compare_mh_version(new):
+	var current = Global.get("MH_VERSION_DATA")
+	if (current == null):
+		return Global.VERSION == new
