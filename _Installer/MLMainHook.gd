@@ -1,25 +1,54 @@
 extends "res://modloader/MLMainHook.gd"
 
 var download_request:HTTPRequest
-const PCK_URL := "https://github.com/TheanMcGarity/MultiHustleGame/raw/refs/heads/v8/release_build/YourOnlyMoveIsHUSTLE.pck"
-const VERSION_URL := "https://raw.githubusercontent.com/TheanMcGarity/MultiHustleGame/refs/heads/v8/release_build/version.txt"
+const PCK_URL := "https://github.com/TheanMcGarity/MultiHustleGame/raw/refs/heads/v8/installer_builds/%s_build/YourOnlyMoveIsHUSTLE.pck"
+const VERSION_URL := "https://raw.githubusercontent.com/TheanMcGarity/MultiHustleGame/refs/heads/v8/installer_builds/%s_build/version.txt"
 
 var popup_node:AcceptDialog
-
+var manual_branch := "release"
+func get_branch():
+	if (Global.get("update_branch") != null):
+		return Global.get_upd_branch()
+	return manual_branch
+func get_ver_url():
+	return VERSION_URL % get_branch()
+func get_pck_url():
+	return PCK_URL % get_branch()
 func _ready():
 	add_bat_file()
+	
+	if (not "mh" in Global.VERSION):
+		on_vanilla_detected()
+		return
 	
 	download_request = HTTPRequest.new()
 	add_child(download_request)
 
 	download_request.connect("request_completed", self, "on_downloaded_ver")
 
-	download_request.request(VERSION_URL)
+	download_request.request(get_ver_url())
 	pass
 
+func on_vanilla_detected():
+	popup_node = load("res://_Installer/VersionRequest.tscn").instance()
+	get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
+	popup_node.connect("confirmed", self, "on_select_branch")
+	popup_node.popup()
+
+func on_select_branch():
+	var selector = popup_node.get_node("UpdateBranch")
+	manual_branch = selector.get_item_text(selector.selected)
+	
+	download_request = HTTPRequest.new()
+	add_child(download_request)
+
+	download_request.connect("request_completed", self, "on_downloaded_ver")
+
+	download_request.request(get_ver_url())
+	
 func on_downloaded_ver(result, code, header, body):
 	var ver = body.get_string_from_utf8()
-	print("Detected latest multihustle release build's version as %s" % ver)
+	print("Detected latest multihustle %s build's version as %s" % [get_branch(), ver])
 	if (ver != Global.VERSION):
 		popup_node = load("res://_Installer/Popup.tscn").instance()
 		get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
@@ -55,13 +84,13 @@ func download_mh():
 	
 	download_request.set_download_file("user://MH.pck")
 	
-	download_request.request(PCK_URL)
+	download_request.request(get_pck_url())
 
 func add_bat_file():
 	var dir := Directory.new()
 	dir.copy("res://_Installer/intall.bat", "user://MH.bat")
 
-func compare_mh_version(new):
-	var current = Global.get("MH_VERSION_DATA")
-	if (current == null):
-		return Global.VERSION == new
+#func compare_mh_version(new):
+#	var current = Global.get("MH_VERSION_DATA")
+#	if (current == null):
+#		return Global.VERSION == new

@@ -3,17 +3,18 @@
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 
 [node name="Popup" type="AcceptDialog"]
+visible = true
 margin_left = 214.0
 margin_top = 115.0
 margin_right = 444.0
 margin_bottom = 258.0
 rect_min_size = Vector2( 100, 100 )
 theme = ExtResource( 1 )
-window_title = "Update"
+window_title = "Update (%s)"
 dialog_text = "MultiHustle needs an update!
 
 Press \"Ok\" to install and restart! 
 
 (Reminder that you need to verify
 Game files in steam and remove this 
-installer to uninstall.)"
+installer mod to uninstall.)"

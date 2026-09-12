@@ -119,6 +119,7 @@ onready var global_option_check_buttons = {
 	$"%NextTurnHudButton": "show_next_turn_info_hud",
 	$"%ShowNextTurnOnCharsButton": "show_next_turn_info_on_chars",
 	$"%UseReplaySong": "replay_song_mode_confirming",
+	$"%UpdateBranch": "update_branch",
 #	$"%SingleplayerForfeitButton": "forfeit_buttons_enabled",
 }
 

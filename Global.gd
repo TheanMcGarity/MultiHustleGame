@@ -23,6 +23,23 @@ var mods_disabled_by_version_transition = false
 
 var bpm_ghost_audio_player
 
+var update_branch := 0 setget set_upd_branch,get_upd_branch
+
+func set_upd_branch(val):
+	update_branch = val
+func get_upd_branch():
+	match update_branch:
+		0:
+			return "release"
+		1:
+			return "beta"
+		2:
+			return "prev"
+		3:
+			return "alpha"
+		_:
+			return "release"
+
 var audio_player
 var tournament_mode = false
 var music_enabled = true

@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://theme.tres" type="Theme" id=1]
+
+[node name="ErrorPopup" type="AcceptDialog"]
+visible = true
+margin_left = 237.0
+margin_top = 141.0
+margin_right = 400.0
+margin_bottom = 241.0
+rect_min_size = Vector2( 100, 100 )
+theme = ExtResource( 1 )
+window_title = "Branch?"
+dialog_text = "Detected Vanilla YOMI
+
+Please select a branch to
+download from:"
+
+[node name="UpdateBranch" type="OptionButton" parent="."]
+unique_name_in_owner = true
+margin_left = 85.0
+margin_top = 50.0
+margin_right = 150.0
+margin_bottom = 62.0
+rect_min_size = Vector2( 65, 0 )
+text = "release"
+align = 2
+items = [ "release", null, false, 0, null, "beta", null, false, 1, null, "prev", null, false, 2, null, "alpha", null, false, 3, null ]
+selected = 0
