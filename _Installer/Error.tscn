@@ -3,7 +3,6 @@
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 
 [node name="ErrorPopup" type="AcceptDialog"]
-visible = true
 margin_left = 237.0
 margin_top = 141.0
 margin_right = 400.0

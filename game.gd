@@ -824,7 +824,7 @@ func process_fx():
 
 func tick():
 	if (current_tick == 0):
-		if (ReplayManager.playback and not is_ghost and singleplayer and Global.replay_song_mode):
+		if (ReplayManager.playback and not is_ghost and singleplayer and Global.replay_song_mode == 0):
 			Global.play_song(Global.REPLAY_SONG_PATH)
 	
 	set_vanilla_game_started(true)
@@ -1562,7 +1562,7 @@ func process_tick():
 					if self.game_paused:
 						if Network.multiplayer_active:
 							Network.can_open_action_buttons = false
-						elif (Global.replay_song_mode):
+						elif (Global.replay_song_mode == 0):
 							Global.play_song(Global.REPLAY_SONG_PATH, current_seconds())
 					self.game_paused = false
 		else :

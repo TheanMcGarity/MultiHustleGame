@@ -2,9 +2,9 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.10.0-steam-mh_0.8.6b1"
+var VERSION = "1.10.0-steam-mh_0.8.6a1"
 var MH_VERSION_DATA = [0, 8, 6, 1]
-var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.6b1"
+var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.6a1"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -23,11 +23,9 @@ var mods_disabled_by_version_transition = false
 
 var bpm_ghost_audio_player
 
-var update_branch := 0 setget set_upd_branch,get_upd_branch
+var update_branch := 0
 
-func set_upd_branch(val):
-	update_branch = val
-func get_upd_branch():
+func get_upd_branch_str():
 	match update_branch:
 		0:
 			return "release"
@@ -340,7 +338,7 @@ func set_music_enabled(on):
 		#audio_player.disconnect("finished", self)
 
 func play_random_song():
-	if (not music_enabled or replay_song_mode):
+	if (not music_enabled or replay_song_mode != -1):
 		return
 	play_song(rng.choose(songs.keys()))
 

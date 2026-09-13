@@ -3,10 +3,12 @@ extends "res://modloader/MLMainHook.gd"
 var download_request:HTTPRequest
 const PCK_URL := "https://github.com/TheanMcGarity/MultiHustleGame/raw/refs/heads/v8/installer_builds/%s_build/YourOnlyMoveIsHUSTLE.pck"
 const VERSION_URL := "https://raw.githubusercontent.com/TheanMcGarity/MultiHustleGame/refs/heads/v8/installer_builds/%s_build/version.txt"
-
+const PREF_PATH := "%s/mh_install_pref.txt"
 var popup_node:AcceptDialog
 var manual_branch := "release"
 func get_branch():
+	if (Global.get("get_upd_branch_str") != null):
+		return Global.get_upd_branch_str()
 	if (Global.get("update_branch") != null):
 		return Global.get_upd_branch()
 	return manual_branch
@@ -20,7 +22,10 @@ func _ready():
 	if (not "mh" in Global.VERSION):
 		on_vanilla_detected()
 		return
-	
+	elif (Global.get("update_branch") != null):
+		load_pref()
+		Global.update_branch = get_upd_branch_int(manual_branch)
+		Global.save_options()
 	download_request = HTTPRequest.new()
 	add_child(download_request)
 
@@ -73,10 +78,12 @@ func on_downloaded_mh(result, code, header, body):
 	var game_exe_dir = "%s/YourOnlyMoveIsHUSTLE.exe" % game_dir
 	var inner_cmd = "\"" + bat_dir + "\" \"" + game_pck_dir + "\" \"" + user_dir + "\" \"" + game_dir + "\""
 	var arguments:PoolStringArray = ["/c", inner_cmd]
+
+	save_pref()
 	
 	var exit_code = OS.execute("cmd.exe", arguments, false, [], false,  true)
-	get_tree().quit()
 	download_request.queue_free()
+	get_tree().quit()
 
 func download_mh():
 	download_request.disconnect("request_completed", self, "on_downloaded_ver")
@@ -94,3 +101,33 @@ func add_bat_file():
 #	var current = Global.get("MH_VERSION_DATA")
 #	if (current == null):
 #		return Global.VERSION == new
+
+func save_pref():
+	var data_path = PREF_PATH % get_vanilla_yomi_data()
+	var f = File.new()
+	f.open(data_path, File.WRITE)
+	f.store_string(manual_branch)
+	f.close()
+	pass
+func load_pref():
+	var data_path = PREF_PATH % get_vanilla_yomi_data()
+	var f = File.new()
+	f.open(data_path, File.WRITE)
+	manual_branch = f.get_buffer(f.get_len()).get_string_from_utf8()
+	f.close()
+	pass
+func get_vanilla_yomi_data():
+	return ProjectSettings.globalize_path("user://")+"../YourOnlyMoveIsHUSTLE"
+
+func get_upd_branch_int(branch):
+	match branch:
+		"release":
+			return 0
+		"beta":
+			return 1
+		"prev":
+			return 2
+		"alpha":
+			return 3
+		_:
+			return 0
