@@ -129,7 +129,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://characters/BaseChar.gd"
 }, {
-"base": "Reference",
+"base": "",
 "class": "FixedMath",
 "language": "NativeScript",
 "path": "res://bin/FixedMath.gdns"
@@ -577,6 +577,8 @@ enabled=PoolStringArray( "res://addons/char_creator/plugin.cfg", "res://addons/c
 [global]
 
 autoload=false
+rcedit=false
+call=false
 
 [gui]
 
@@ -657,6 +659,19 @@ toggle_frame_advance={
 open_debug_panel={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":true,"meta":false,"command":true,"pressed":false,"scancode":0,"physical_scancode":68,"unicode":0,"echo":false,"script":null)
+ ]
+}
+open={
+"deadzone": 0.5,
+"events": [  ]
+}
+replay={
+"deadzone": 0.5,
+"events": [  ]
+}
+trailer_create_teleport_effect={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":true,"control":true,"meta":false,"command":true,"pressed":false,"scancode":0,"physical_scancode":84,"unicode":0,"echo":false,"script":null)
  ]
 }
 
