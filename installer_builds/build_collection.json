@@ -3,17 +3,19 @@
   "installer_messages": {
     "m.old_steam_ver": "The \"%s\" build you are trying to install (ver %s-mh_%s) is based off of an older yomi build than the one you are currently using. Are you sure you want to proceed?",
     "err.download_failed.generic": "The installer failed to download that version of multihustle, but GitHub didn't return an actual error?",
-    "m.unstable_warning.lvl_0": "INVALID ERROR -- FIX PARSER",
-    "m.unstable_warning.lvl_1": "This branch of multihustle can be considered unstable at times! Use at your own risk.",
-    "m.unstable_warning.lvl_2": "This branch of multihustle is unstable at times! Use at your own risk.",
-    "m.unstable_warning.lvl_3": "This branch of multihustle is EXTREMELY UNSTABLE. Use at your own risk."
+    "w.unstable.lvl_0": "INVALID ERROR -- FIX PARSER",
+    "w.unstable.lvl_1": "This branch of multihustle can be considered unstable at times! Use at your own risk.",
+    "w.unstable.lvl_2": "This branch of multihustle is unstable at times! Use at your own risk.",
+    "w.unstable.lvl_3": "This branch of multihustle is EXTREMELY UNSTABLE. Use at your own risk.",
+    "w.older_version": "This branch of multihustle is outdated and may contain bugs that already have been patched!",
+    "w.newer_version": "This branch of multihustle is newer than the recommended version!"
   },
   "branches": [
     {
       "name": "release",
       "mh_ver": "0.8.5b8",
       "yomi_ver": "1.10.0-steam",
-      "newer_than_release": false,
+      "stable_version_relative": 0,
       "unstable_level": 0,
       "active": true
     },
@@ -21,7 +23,7 @@
       "name": "tournament_fork",
       "mh_ver": "0.8.5b8",
       "yomi_ver": "1.10.0-steam",
-      "newer_than_release": false,
+      "stable_version_relative": 0,
       "unstable_level": 0,
       "active": false
     },
@@ -29,7 +31,7 @@
       "name": "beta",
       "mh_ver": "0.8.5b8",
       "yomi_ver": "1.10.0-steam",
-      "newer_than_release": false,
+      "stable_version_relative": 0,
       "unstable_level": 1,
       "active": true
     },
@@ -37,7 +39,7 @@
       "name": "alpha",
       "mh_ver": "0.8.6a1",
       "yomi_ver": "1.10.0-steam",
-      "newer_than_release": true,
+      "stable_version_relative": 1,
       "unstable_level": 2,
       "active": true
     },
@@ -45,7 +47,7 @@
       "name": "prev_beta",
       "mh_ver": "0.8.5b7",
       "yomi_ver": "1.10.0-steam",
-      "newer_than_release": false,
+      "stable_version_relative": -1,
       "unstable_level": 1,
       "active": true
     },
@@ -53,7 +55,7 @@
       "name": "prev",
       "mh_ver": "0.8.4",
       "yomi_ver": "1.9.20-steam",
-      "newer_than_release": false,
+      "stable_version_relative": -1,
       "unstable_level": 0,
       "active": true
     },
@@ -61,7 +63,7 @@
       "name": "scrapped_v9",
       "mh_ver": "0.9.0#134",
       "yomi_ver": "1.9.20-steam",
-      "newer_than_release": false,
+      "stable_version_relative": 1,
       "unstable_level": 3,
       "active": false
     }
