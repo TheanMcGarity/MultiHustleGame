@@ -1,7 +1,7 @@
 {
   "branch_folders": "%s_build",
   "installer_messages": {
-    "m.old_steam_ver": "The \"%s\" build you are trying to install (ver %s-mh_%s) is based off of an older yomi build than the one you are currently using. Are you sure you want to proceed?",
+    "w.old_steam_ver": "The \"%s\" build you are trying to install (ver %s-mh_%s) is based off of an older yomi build than the one you are currently using. Are you sure you want to proceed? Mods WILL break.",
     "err.download_failed.generic": "The installer failed to download that version of multihustle, but GitHub didn't return an actual error?",
     "w.unstable.lvl_0": "INVALID ERROR -- FIX PARSER",
     "w.unstable.lvl_1": "This branch of multihustle can be considered unstable at times! Use at your own risk.",
