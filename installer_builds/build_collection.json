@@ -59,7 +59,7 @@
     },
     {
       "name": "scrapped_v9",
-      "mh_ver": "0.9.0",
+      "mh_ver": "0.9.0#134",
       "yomi_ver": "1.9.20-steam",
       "newer_than_release": false,
       "unstable_level": 3,
