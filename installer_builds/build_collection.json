@@ -8,7 +8,8 @@
     "w.unstable.lvl_2": "This branch of multihustle is unstable at times! Use at your own risk.",
     "w.unstable.lvl_3": "This branch of multihustle is EXTREMELY UNSTABLE. Use at your own risk.",
     "w.older_version": "This branch of multihustle is outdated and may contain bugs that already have been patched!",
-    "w.newer_version": "This branch of multihustle is newer than the recommended version!"
+    "w.newer_version": "This branch of multihustle is newer than the recommended version!",
+    "err.os":"The operating system on this computer is NOT compatiable with the multihustle installer! Please switch to Windows if possible."
   },
   "branches": {
     "0": {
