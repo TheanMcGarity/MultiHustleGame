@@ -10,8 +10,8 @@
     "w.older_version": "This branch of multihustle is outdated and may contain bugs that already have been patched!",
     "w.newer_version": "This branch of multihustle is newer than the recommended version!"
   },
-  "branches": [
-    {
+  "branches": {
+    "0": {
       "name": "release",
       "mh_ver": "0.8.5b8",
       "yomi_ver": "1.10.0-steam",
@@ -19,7 +19,7 @@
       "unstable_level": 0,
       "active": true
     },
-    {
+    "100":{
       "name": "tournament_fork",
       "mh_ver": "0.8.5b8",
       "yomi_ver": "1.10.0-steam",
@@ -27,7 +27,7 @@
       "unstable_level": 0,
       "active": false
     },
-    {
+    "1": {
       "name": "beta",
       "mh_ver": "0.8.5b8",
       "yomi_ver": "1.10.0-steam",
@@ -35,7 +35,7 @@
       "unstable_level": 1,
       "active": true
     },
-    {
+    "2": {
       "name": "alpha",
       "mh_ver": "0.8.6a1",
       "yomi_ver": "1.10.0-steam",
@@ -43,7 +43,7 @@
       "unstable_level": 2,
       "active": true
     },
-    {
+    "4": {
       "name": "prev_beta",
       "mh_ver": "0.8.5b7",
       "yomi_ver": "1.10.0-steam",
@@ -51,7 +51,7 @@
       "unstable_level": 1,
       "active": true
     },
-    {
+    "3": {
       "name": "prev",
       "mh_ver": "0.8.4",
       "yomi_ver": "1.9.20-steam",
@@ -59,7 +59,7 @@
       "unstable_level": 0,
       "active": true
     },
-    {
+    "101": {
       "name": "scrapped_v9",
       "mh_ver": "0.9.0#134",
       "yomi_ver": "1.9.20-steam",
@@ -67,5 +67,5 @@
       "unstable_level": 3,
       "active": false
     }
-  ]  
+  }
 }
