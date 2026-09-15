@@ -111,10 +111,10 @@ func on_downloaded_ver(result, code, header, body):
 
 func on_downloaded_mh(result, code, header, body):
 	if (code != 200):
-		popup_node = load("res://_Installer/Error.tscn").instance()
-		get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
-		popup_node.text = popup_node.text % code
-		popup_node.popup()
+		if (data.installer_messages.has("err.download_failed.code%d" % code)):
+			inform_error(data.installer_messages["err.download_failed.code%d"%code])
+		else:
+			inform_error(data.installer_messages["err.download_failed.generic"] % code)
 		return
 	var user_dir = ProjectSettings.globalize_path("user://")
 	var bat_dir = ProjectSettings.globalize_path("user://MH.bat")
