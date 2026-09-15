@@ -2,8 +2,8 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.10.0-steam-mh_0.8.6a1"
-var MH_VERSION_DATA = [0, 8, 6, 1]
+var VERSION = "1.10.0-steam-mh_0.8.6a2"
+var MH_VERSION_DATA = [0, 8, 6, 2]
 var TOURNAMENT_VERSION = "1.10.0-steam-mh_tournaments_0.8.6a1"
 const RESOLUTION = Vector2(640, 360)
 
@@ -26,17 +26,9 @@ var bpm_ghost_audio_player
 var update_branch := 0
 
 func get_upd_branch_str():
-	match update_branch:
-		0:
-			return "release"
-		1:
-			return "beta"
-		2:
-			return "prev"
-		3:
-			return "alpha"
-		_:
-			return "release"
+	if (InstallerCore.wait):
+		yield(InstallerCore, "end_wait")
+	return InstallerCore.branches[update_branch]
 
 var audio_player
 var tournament_mode = false

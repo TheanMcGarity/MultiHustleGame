@@ -1,4 +1,5 @@
 extends Node
 
 func _init(modLoader = ModLoader):
-	modLoader.installScriptExtension("res://_Installer/MLMainHook.gd")
+	print("instaler for multihusle")
+	modLoader.add_child(load("res://_Installer/InstallerModCore.tscn").instance())

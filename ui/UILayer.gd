@@ -150,6 +150,8 @@ func _ready():
 		# up the user's prior preference.
 		$"%XYPlotInvertSnapButton".hide()
 	
+	InstallerCore.update_branches($"%UpdateBranch")
+	
 	$"%FullScreenRescueButton".connect("pressed", self, "_fix_window_position")
 	$"%MHDiscordLink".connect("pressed", self, "_invite_to_mh_discord")
 	$"%PinkTarrLinkButton".connect("pressed", self, "_invite_to_mh_discord")
