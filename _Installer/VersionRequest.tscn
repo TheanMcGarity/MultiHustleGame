@@ -2,8 +2,7 @@
 
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 
-[node name="ErrorPopup" type="AcceptDialog"]
-visible = true
+[node name="RequestPopup" type="AcceptDialog"]
 margin_left = 237.0
 margin_top = 141.0
 margin_right = 400.0
@@ -18,10 +17,10 @@ download from:"
 
 [node name="UpdateBranch" type="OptionButton" parent="."]
 unique_name_in_owner = true
-margin_left = 85.0
-margin_top = 50.0
-margin_right = 150.0
-margin_bottom = 62.0
+margin_left = 8.0
+margin_top = 61.0
+margin_right = 155.0
+margin_bottom = 73.0
 rect_min_size = Vector2( 65, 0 )
 text = "release"
 align = 2

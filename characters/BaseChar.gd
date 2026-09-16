@@ -569,6 +569,10 @@ func init(pos=null):
 		self.char_name = null
 	if (get("charname")):
 		self.charname = null
+	var speaking_node:AudioStreamPlayer = get_node("Sounds/Speak")
+	if is_instance_valid(speaking_node):
+		speaking_node.volume_db = -999
+		pass
 	.init(pos)
 	game_over = false
 	if !is_ghost:

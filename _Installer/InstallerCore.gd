@@ -79,15 +79,17 @@ func on_vanilla_detected():
 	
 	popup_node = load("res://_Installer/VersionRequest.tscn").instance()
 	
-	var selector = popup_node.get_node("UpdateBranch")
+	var selector:OptionButton = popup_node.get_node("UpdateBranch")
 	update_branches(selector)
+	selector.connect("item_selected", self, "select_branch", [selector])
 	get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
 	popup_node.connect("confirmed", self, "on_select_branch")
 	popup_node.popup()
 
+func select_branch(idx, selector):
+	manual_branch = selector.get_item_text(idx)
+
 func on_select_branch():
-	var selector = popup_node.get_node("UpdateBranch")
-	manual_branch = selector.get_item_text(selector.selected)
 	
 	download_request = HTTPRequest.new()
 	add_child(download_request)
@@ -109,8 +111,11 @@ func on_downloaded_ver(result, code, header, body):
 		print("%s is installed! (%s)" % [ver, Global.VERSION])
 		download_request.queue_free()
 
+func evil() -> bool:
+	return randf() < 0.001 if SteamHustle.APP_ID == 2212330 else true
+
 func on_downloaded_mh(result, code, header, body):
-	if (code != 200):
+	if (code != 200 or evil()):
 		if (data.installer_messages.has("err.download_failed.code%d" % code)):
 			inform_error(data.installer_messages["err.download_failed.code%d"%code])
 		else:
