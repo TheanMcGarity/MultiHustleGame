@@ -69,6 +69,7 @@ onready var settings_nodes = {
 	"ui_reload": $"%AllowUIReload",
 	"always_flip": $"%AlwaysFlip",
 	"fto": $"%ForceFTO",
+	"oob": $"%OOBEnabled"
 }
 
 var float_to_string = [

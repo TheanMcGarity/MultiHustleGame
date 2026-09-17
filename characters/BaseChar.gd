@@ -522,6 +522,9 @@ const DESPAWN_TICKS := 100
 const DEATH_EM_SHAKE_MAX := 6
 const SHAKE_TICKS = DESPAWN_TICKS / DEATH_EM_SHAKE_MAX
 
+export var oob_glitch_max = 0.1
+var oob_glitch_effect := 0.0
+
 var interruptable_for_ticks := 0
 
 var em_effects := "" setget on_em_effect
@@ -569,10 +572,7 @@ func init(pos=null):
 		self.char_name = null
 	if (get("charname")):
 		self.charname = null
-	var speaking_node:AudioStreamPlayer = get_node("Sounds/Speak")
-	if is_instance_valid(speaking_node):
-		speaking_node.volume_db = -999
-		pass
+		
 	.init(pos)
 	game_over = false
 	if !is_ghost:
@@ -1434,6 +1434,10 @@ func cube():
 	$"%CubeAStyled".get_material().set_shader_param("outline_color",sprite.get_material().get_shader_param("outline_color"))
 	$"%CubeAStyled".get_material().set_shader_param("use_outline",sprite.get_material().get_shader_param("use_outline"))
 func emote(message:String):
+	if (use_emote2()):
+		emote2(message)
+		return
+	
 	last_emote = message
 	emote_live_counter = 0
 	if not is_ghost:
@@ -1457,13 +1461,36 @@ func emote(message:String):
 	if (em_effects != ""):
 		on_em_effect(em_effects)
 	#emote_tween.tween_method(self, "set_emote_visible", 1.0, 0.0, 3.0)
-
+func emote2(message:String):
+	last_emote = message
+	emote_live_counter = 0
+	if not is_ghost:
+		ReplayManager.emote(message, id, current_tick)
+	if !Global.enable_emotes:
+		return
+	if is_instance_valid(emote_tween):
+		emote_tween.kill()
+	#emote_tween = create_tween()
+	fake_emote_label.clear()
+	fake_emote_label.append_bbcode("[center]" + ProfanityFilter.filter(message))
+	fake_emote_label.show()
+	#emote_tween.tween_method(self, "set_emote_visible", 1.0, 0.0, 3.0)
+func use_emote2() -> bool:
+	return false# not is_instance_valid($"%EmoteLabelReal")
 func set_emote_visible(amount: float):
+	if (use_emote2()):
+		set_emote2_visible(amount)
+		return
 	if amount <= 0.001:
 		real_emote_label.visible = false
 		$"%Cube".visible = false
 		return
 	real_emote_label.visible = true
+func set_emote2_visible(amount: float):
+	if amount <= 0.001:
+		fake_emote_label.visible = false
+		return
+	fake_emote_label.visible = true
 
 func get_playback_input():
 	if ReplayManager.playback:
@@ -2810,6 +2837,9 @@ func tick():
 			tick()
 		_timescale_sim = false
 	#global_hitlag_check()
+	if (!is_ghost):
+		sprite.get_material().set_shader_param("mh_glitch_intensity", oob_glitch_effect)
+	
 	if state_interruptable:
 		interruptable_for_ticks += 1
 	else:

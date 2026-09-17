@@ -1,0 +1,30 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+
+[sub_resource type="Shader" id=28]
+code = "shader_type canvas_item;
+uniform float mh_glitch_intensity : hint_range(0.0, 0.5) = 0.05;
+uniform float mh_glitch_speed : hint_range(0.0, 20.0) = 10.0;
+uniform float mh_glitch_height = 1.0;
+
+float fake_rand(vec2 co) {
+	return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+
+void fragment() {
+	float texture_height = 1.0 / TEXTURE_PIXEL_SIZE.y;
+	float slice_count = texture_height / mh_glitch_height;
+	float band = floor(UV.y * slice_count);
+	float time_step = floor(TIME * mh_glitch_speed);
+	float rand_shift = fake_rand(vec2(band, time_step));
+	float offset = (rand_shift - 0.5) * mh_glitch_intensity;
+
+	vec2 distorted_uv = vec2(UV.x + offset, UV.y);
+	COLOR = texture(TEXTURE, distorted_uv);
+}"
+
+[resource]
+shader = SubResource( 28 )
+shader_param/mh_glitch_intensity = 0.033
+shader_param/mh_glitch_speed = 7.0
+shader_param/mh_glitch_height = 2.0

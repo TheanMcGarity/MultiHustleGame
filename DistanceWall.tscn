@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://DistanceWall.gd" type="Script" id=1]
+[ext_resource path="res://obj/BaseObj.tscn" type="PackedScene" id=2]
+
+[node name="DistanceWall" instance=ExtResource( 2 )]
+script = ExtResource( 1 )
+warning_distance = 80
+glitch_max_distance = 75
+damage_distance = 90

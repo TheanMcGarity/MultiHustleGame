@@ -14,7 +14,7 @@ func _ready():
 			ModLoader.charLoaderModDetected = false
 			_add_char_loader_warning()
 			
-	MH_addWarningMessage()
+	add_mh_warning()
 	
 		
 	Network.connect("mh_resim_accepted", self, "on_resync")
@@ -216,7 +216,8 @@ const incompat_list = [
 	"platform_library",
 	"MultiHustle",
 	"IntermezzoPlayblack",
-	"qol"
+	"qol",
+	"dynamic_platforms"
 ]
 
 const incompat_reasons = {
@@ -225,21 +226,22 @@ const incompat_reasons = {
 	"AdvancedStyleMenu": "Breaks throw mechanics. (including Robot)\nCrashes game when selecting ninja.\nSorry to everyone who needs this mod! Cannot be avoided at this moment.",
 	"MultiHustle": "You have the original pre-rewrite MH Installed! This will break stuff.",
 	"IntermezzoPlayblack": "This mod freezes the match after a few turns.",
+	"dynamic_platforms": "This causes many issues, and I (the dev) don't want to list all of them. [Reported by @supimx]",
 	}
 
-func MH_addWarningMessage():
+func add_mh_warning():
 	var list = addContainer("MHModIncompatibleContainer", "MultiHustle Incompatibilities")
 	var close = generateButton("Close")
-	close.connect("pressed", self, "MH_modmissing_closebutton_pressed")
+	close.connect("pressed", self, "on_mh_incompats_closed")
 	list.get_node("VBoxContainer").get_node("TitleBar").get_node("Title").add_child(close)
-	MH_checkVersionCompatibility(list.list_container)
-	MH_addIncompatList(list.list_container)
+	check_mh_version_unused(list.list_container)
+	check_mods_with_mh(list.list_container)
 	if hasIncompat:
 		$"%MainMenu".get_node("MHModIncompatibleContainer").show()
 	else:
 		$"%MainMenu".get_node("MHModIncompatibleContainer").queue_free()
 
-func MH_checkVersionCompatibility(list_container):
+func check_mh_version_unused(list_container):
 	var top_label = Label.new()
 	top_label.text = "MultiHustle is currently built for game version:\n%s\n(This is only a warning)\n\n" % testedVersion
 	list_container.add_child(top_label)
@@ -248,7 +250,7 @@ func MH_checkVersionCompatibility(list_container):
 	else:
 		hasIncompat = true
 
-func MH_addIncompatList(list_container):
+func check_mods_with_mh(list_container):
 	var modIncompat = false
 	var top_label = Label.new()
 	top_label.text = "MultiHustle is currently incompatible with:\n"
@@ -266,7 +268,7 @@ func MH_addIncompatList(list_container):
 	if !modIncompat:
 		top_label.queue_free()
 
-func MH_modmissing_closebutton_pressed():
+func on_mh_incompats_closed():
 	$"%MainMenu".get_node("MHModIncompatibleContainer").queue_free()
 
 func on_resync(player):

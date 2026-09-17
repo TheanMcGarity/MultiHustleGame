@@ -419,6 +419,9 @@ animations = [ {
 [sub_resource type="ShaderMaterial" id=4]
 resource_local_to_scene = true
 shader = ExtResource( 205 )
+shader_param/mh_glitch_intensity = 0.0
+shader_param/mh_glitch_speed = 10.0
+shader_param/mh_glitch_height = 1.0
 shader_param/use_extra_color_1 = false
 shader_param/use_extra_color_2 = false
 shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
@@ -449,6 +452,9 @@ viewport_path = NodePath("SecretEmotes/Cube/CubeB")
 [sub_resource type="ShaderMaterial" id=10]
 resource_local_to_scene = true
 shader = ExtResource( 205 )
+shader_param/mh_glitch_intensity = 0.0
+shader_param/mh_glitch_speed = 10.0
+shader_param/mh_glitch_height = 1.0
 shader_param/use_extra_color_1 = false
 shader_param/use_extra_color_2 = false
 shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
@@ -491,6 +497,7 @@ use_extra_color_1 = false
 extra_color_1 = Color( 1, 0, 1, 1 )
 use_extra_color_2 = false
 extra_color_2 = Color( 1, 0, 1, 1 )
+oob_glitch_max = 0.1
 
 [node name="Sprite" parent="Flip" index="0"]
 material = ExtResource( 134 )

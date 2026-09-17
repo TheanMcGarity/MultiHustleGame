@@ -11,6 +11,11 @@ const CLASH_DAMAGE_DIFF = 25
 const CAMERA_PADDING = 20
 const DEBUG_THROW_ROUTING := false
 
+# Camera
+const MAX_ZOOM = 3.0
+const MIN_ZOOM = 0.2
+export(int) var zoom_cut_percent = 0.65625
+
 export(int) var char_distance = 200
 export(int) var stage_width = 1100
 export(int) var max_char_distance = 9223372036854775807
@@ -216,6 +221,9 @@ var fto := false
 #var has_ghost_frozen_yet = false
 
 var duel := false
+
+var distance_walls := {}
+var oob_enabled := true
 
 func get_ticks_left():
 	return time - Utils.int_min(current_tick, time)
@@ -481,6 +489,9 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 
 	#print(match_data)
 	
+	if (match_data.has("oob")):
+		oob_enabled = match_data.oob
+	
 	if match_data.has("collide_team"):
 		team_collisions = match_data["collide_team"]
 	if match_data.has("collide_dead"):
@@ -590,14 +601,16 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 			if player.get(value) != null:
 				player.set(value, match_data[value])
 
-	
-
 	for index in players.keys():
 		var player = players[index]
 		#ui_handler.get_ui_node_from_player(player)
 		$Players.add_child(player)
 		player.set_color(MultiHustle_get_color_by_index(index))
 		player.init()
+		#var speaking_node:AudioStreamPlayer = player.get_node("Sounds/Speak")
+		#if is_instance_valid(speaking_node):
+		#	speaking_node.volume_db = -999
+		#	pass
 		player._fire_init_hook()
 	
 	if match_data.has("selected_styles"):
@@ -723,7 +736,22 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		for index in players.keys():
 			var player = players[index]
 			player.gain_super_meter(meter_amount)
-
+	
+	if (!is_ghost and oob_enabled):
+		var wall = preload("res://DistanceWall.tscn")
+		var wall_l = wall.instance()
+		var wall_r = wall.instance()
+		
+		wall_l.set_facing(-1)
+		wall_r.set_facing(1)
+		
+		distance_walls = {
+			-1: wall_l,
+			1: wall_r
+		}
+	
+		objects_node.add_child(wall_l)
+		objects_node.add_child(wall_r)
 	
 	hooks.game_started(match_data)
 
@@ -856,6 +884,10 @@ func tick():
 	if not is_ghost:
 		reclaim_disabled_husks()
 		free_finished_husks()
+		
+	if oob_enabled:
+		handle_distance_wall()
+		
 	for object in active_objects:
 		if object.disabled:
 			continue
@@ -897,6 +929,14 @@ func tick():
 	
 	for player in playerPorts:
 		player.tick()
+
+	for wall in distance_walls.values():
+		if wall.disabled:
+			continue
+		if not wall.initialized:
+			wall.init()
+
+		wall.tick_after()
 
 	resolve_same_x_coordinate()
 	initialize_objects()
@@ -1630,6 +1670,24 @@ func process_tick():
 			if can_tick:
 				call_deferred("simulate_one_tick")
 
+func handle_distance_wall():
+	var hurtboxCenters = []
+	for player in players.values():
+		hurtboxCenters.append(player.get_hurtbox_center().x)
+	var lowx = hurtboxCenters[0]
+	var highx = hurtboxCenters[0]
+	for x in hurtboxCenters:
+		if x < lowx:
+			lowx = x
+		if x > highx:
+			highx = x
+	var center = (highx + lowx) / 2
+	var half_dist = ((sqrt(pow(hurtboxCenters.size(),3)) * 33.0) - 10) / 2
+	half_dist = min(half_dist, 250) + 300
+	
+	distance_walls[-1].set_pos(str(half_dist + center),"0")
+	distance_walls[1].set_pos(str(-half_dist + center),"0")
+
 func _process(delta):
 	
 	if (is_ghost):
@@ -1661,17 +1719,31 @@ func _process(delta):
 
 		if self.game_started and not self.is_ghost:
 			self.camera.zoom = Vector2.ONE
-			var hurtboxCenterYs = []
+			var hurtboxCenters = []
 			for player in players.values():
-				hurtboxCenterYs.append(player.get_hurtbox_center().y)
-			var lowy = hurtboxCenterYs[0]
-			var highy = hurtboxCenterYs[0]
-			for y in hurtboxCenterYs:
+				hurtboxCenters.append(player.get_hurtbox_center())
+			var lowx = hurtboxCenters[0].x
+			var highx = hurtboxCenters[0].x
+			var lowy = hurtboxCenters[0].y
+			var highy = hurtboxCenters[0].y
+			for c in hurtboxCenters:
+				var x = c.x
+				var y = c.y
+				if x < lowx:
+					lowx = x
+				if x > highx:
+					highx = x
 				if y < lowy:
 					lowy = y
 				if y > highy:
 					highy = y
-			var dist = highy - lowy
+			var resX = Global.RESOLUTION.x / zoom_cut_percent
+			var ratio = resX / Global.RESOLUTION.y
+			var distX = max(1,highx - lowx)
+			var distY = max(1,highy - lowy)
+			var zoomX = (distX / ratio)
+			var zoomY = distY
+			var dist = max(zoomX,zoomY)
 			if dist > 210:
 				var dist_ratio = dist / float(210)
 				self.camera.zoom = Vector2.ONE * dist_ratio
@@ -1907,10 +1979,10 @@ func _unhandled_input(event: InputEvent):
 			snapping_camera = false
 		
 	if !is_ghost and (singleplayer or spectating):
-			if event.is_action_pressed("playback"):
+			if event.is_action_pressed(Hotkeys.WATCH_REPLAY):
 				if !ReplayManager.resimulating and current_tick > 0:
 					buffer_playback = true
-			if event.is_action_pressed("edit_replay"):
+			if event.is_action_pressed(Hotkeys.EDIT_REPLAY):
 				if ReplayManager.playback:
 					buffer_edit = true
 					ReplayManager.play_full = false
@@ -1938,16 +2010,16 @@ func update_camera_limits():
 func zoom_in():
 	emit_signal("zoom_changed")
 	camera_zoom -= 0.1
-	if camera_zoom < 0.2:
-		camera_zoom = 0.2
+	if camera_zoom < MIN_ZOOM:
+		camera_zoom = MIN_ZOOM
 	update_camera_limits()
 
 
 func zoom_out():
 	emit_signal("zoom_changed")
 	camera_zoom += 0.1
-	if camera_zoom > 3.0:
-		camera_zoom = 3.0
+	if camera_zoom > MAX_ZOOM:
+		camera_zoom = MAX_ZOOM
 	update_camera_limits()
 
 func reset_zoom():
@@ -1996,6 +2068,10 @@ func show_state():
 	for player in players.values():
 		player.position = player.get_pos_visual()
 		player.update()
+	
+	for wall in distance_walls.values():
+		wall.position = wall.get_pos_visual()
+		wall.update()
 	
 	for object in active_objects:
 		if object.disabled:

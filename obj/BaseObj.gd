@@ -304,6 +304,8 @@ func init(pos=null):
 	# firing here would be before the subclass finished initializing. It's fired
 	# by _fire_init_hook() at the engine call sites, once init() has fully
 	# returned. See _fire_init_hook.
+
+# this was scrapped, i didnt know about the new ai opponent mods
 func thread_safe_init(pos=null):
 	internal_id_safe_set = false
 	if initialized:
