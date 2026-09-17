@@ -260,6 +260,8 @@ var brace_effect_applied_yet = false
 
 var dummy_interruptable = false
 
+var oob_death = false
+var oob_death_ended = false
 var game_over = false
 var forfeit = false
 var will_forfeit = false
@@ -523,6 +525,7 @@ const DEATH_EM_SHAKE_MAX := 6
 const SHAKE_TICKS = DESPAWN_TICKS / DEATH_EM_SHAKE_MAX
 
 export var oob_glitch_max = 0.1
+var _oob_glitch_max_original
 var oob_glitch_effect := 0.0
 
 var interruptable_for_ticks := 0
@@ -574,6 +577,8 @@ func init(pos=null):
 		self.charname = null
 		
 	.init(pos)
+	emote_display.material = emote_display.material.duplicate()
+	oob_death = false
 	game_over = false
 	if !is_ghost:
 		Network.player_objects[id] = self
@@ -2845,14 +2850,35 @@ func tick():
 	else:
 		interruptable_for_ticks = 0
 	if (game_over):
-		if (dead_for_ticks == 0):	
-			self.em_effects = "[tshake start="+str(current_tick)+"]%s"#[/tshake]"
-		if !(dead_for_ticks == DESPAWN_TICKS - 1 and not is_grounded()):
+		if oob_death:
+			if (dead_for_ticks == 0):
+				emote("Not the glitch! Someone, help me!\nPleas-")
+				sprite.material.set_shader_param("mh_glitch2_start", current_tick + 10)
+				sprite.material.set_shader_param("mh_glitch2_end", current_tick + DESPAWN_TICKS + 20)
+				emote_display.material.set_shader_param("mh_glitch2_start", current_tick + 15)
+				emote_display.material.set_shader_param("mh_glitch2_end", current_tick + DESPAWN_TICKS + 35)
+				_oob_glitch_max_original = oob_glitch_max
+			#if !(dead_for_ticks == DESPAWN_TICKS - 1):
 			dead_for_ticks += 1
-	if forfeit or dead_for_ticks >= DESPAWN_TICKS:
+			pass
+		else:
+			if (dead_for_ticks == 0):	
+				self.em_effects = "[tshake start="+str(current_tick)+"]%s"#[/tshake]"
+			if !(dead_for_ticks == DESPAWN_TICKS - 1 and not is_grounded()):
+				dead_for_ticks += 1
+	if forfeit or (dead_for_ticks >= DESPAWN_TICKS and not oob_death):
 		hidden_sprite = true
-	if dead_for_ticks == DESPAWN_TICKS:
+	elif dead_for_ticks == DESPAWN_TICKS and not oob_death:
 		explode_effect()
+	elif oob_death and dead_for_ticks >= DESPAWN_TICKS + 36:
+		hidden_sprite = true
+		oob_death_ended = true
+	elif oob_death and not dead_for_ticks < 10:
+		oob_glitch_max = _oob_glitch_max_original + (float(dead_for_ticks-10) / DESPAWN_TICKS) * _oob_glitch_max_original * 1.5
+		emote_display.material.set_shader_param("mh_glitch_intensity", (float(dead_for_ticks-17) / DESPAWN_TICKS) * 0.2)
+		sprite.material.set_shader_param("mh_glitch2_curr", dead_for_ticks)
+		emote_display.material.set_shader_param("mh_glitch2_curr", dead_for_ticks)
+		pass
 	#var em_shake = int(dead_for_ticks / SHAKE_TICKS)
 	#em_effects = ""
 	#for i in range(1, em_shake):

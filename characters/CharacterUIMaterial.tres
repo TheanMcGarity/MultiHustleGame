@@ -6,10 +6,20 @@ uniform float mh_glitch_intensity : hint_range(0.0, 0.5) = 0.05;
 uniform float mh_glitch_speed : hint_range(0.0, 20.0) = 10.0;
 uniform float mh_glitch_height = 1.0;
 
+uniform int mh_glitch2_start = 1;
+uniform int mh_glitch2_end = 90;
+uniform int mh_glitch2_curr = 0;
+
 float fake_rand(vec2 co) {
 	return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+bool should_delete_glitch2(vec2 pos) {
+	float rand = fake_rand(pos);
+	float chance = float(mh_glitch2_curr) / float(mh_glitch2_end - mh_glitch2_start);
+	
+	return rand < chance;
+}
 
 void fragment() {
 	float texture_height = 1.0 / TEXTURE_PIXEL_SIZE.y;
@@ -20,11 +30,18 @@ void fragment() {
 	float offset = (rand_shift - 0.5) * mh_glitch_intensity;
 
 	vec2 distorted_uv = vec2(UV.x + offset, UV.y);
+	if (should_delete_glitch2(vec2((UV.x * 2.873142) + (UV.y * 7.436219), TIME))){
+		distorted_uv.x = 99999.9;
+		distorted_uv.y = 99999.9;
+	}
 	COLOR = texture(TEXTURE, distorted_uv);
 }"
 
 [resource]
 shader = SubResource( 28 )
-shader_param/mh_glitch_intensity = 0.033
-shader_param/mh_glitch_speed = 7.0
+shader_param/mh_glitch_intensity = 0.004
+shader_param/mh_glitch_speed = 8.0
 shader_param/mh_glitch_height = 2.0
+shader_param/mh_glitch2_start = 1
+shader_param/mh_glitch2_end = 90
+shader_param/mh_glitch2_curr = 0

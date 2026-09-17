@@ -885,7 +885,7 @@ func tick():
 		reclaim_disabled_husks()
 		free_finished_husks()
 		
-	if oob_enabled:
+	if oob_enabled and not is_ghost:
 		handle_distance_wall()
 		
 	for object in active_objects:
@@ -1685,7 +1685,7 @@ func handle_distance_wall():
 	var half_dist = ((sqrt(pow(hurtboxCenters.size(),3)) * 33.0) - 10) / 2
 	half_dist = min(half_dist, 250) + 300
 	
-	if (oob_enabled):
+	if (oob_enabled and !is_ghost):
 		distance_walls[-1].set_pos(str(half_dist + center),"0")
 		distance_walls[1].set_pos(str(-half_dist + center),"0")
 

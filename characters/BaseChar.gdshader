@@ -3,6 +3,9 @@ shader_type canvas_item;
 uniform float mh_glitch_intensity : hint_range(0.0, 0.5) = 0.0;
 uniform float mh_glitch_speed : hint_range(0.0, 20.0) = 10.0;
 uniform float mh_glitch_height = 1.0;
+uniform int mh_glitch2_start = 1;
+uniform int mh_glitch2_end = 90;
+uniform int mh_glitch2_curr = 0;
 
 const vec4 replacement_color = vec4(1.0, 1.0, 1.0, 1.0);
 const float super_dim_amount = 0.35;
@@ -26,11 +29,15 @@ uniform vec4 outline_color : hint_color = vec4(0.0, 0.0, 0.0, 1.0);
 float fake_rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
-
 bool same_color(vec3 color1, vec3 color2) {
     return distance(color1, color2) < max_color_distance;
 }
-
+bool should_delete_glitch2(vec2 pos) {
+	float rand = fake_rand(pos);
+	float chance = float(mh_glitch2_curr) / float(mh_glitch2_end - mh_glitch2_start);
+	
+	return rand < chance;
+}
 void fragment() {
     float texture_height = 1.0 / TEXTURE_PIXEL_SIZE.y;
     float slice_count = texture_height / mh_glitch_height;
@@ -40,8 +47,13 @@ void fragment() {
     float offset = (rand_shift - 0.5) * mh_glitch_intensity;
     
     vec2 distorted_uv = vec2(UV.x + offset, UV.y);
-
+	if (should_delete_glitch2(vec2((UV.x * 2.873142) + (UV.y * 7.436219), TIME))){
+		distorted_uv.x += 99999.9;
+		distorted_uv.y += 99999.9;
+	}
+	
     vec4 col = texture(TEXTURE, distorted_uv);
+	
     COLOR = col;
     
     if (same_color(col.rgb, replacement_color.rgb)) {

@@ -5,6 +5,7 @@ class_name DistWallObj
 var players = []
 
 var player_particles = {}
+var dont_adjust_warning = {}
 
 export(int) var warning_distance = 80
 export(int) var glitch_max_distance = 75
@@ -13,10 +14,19 @@ export(int) var damage_distance = 90
 const PARTICLE_SCENE = preload("res://fx/DistanceWallHoverParticle.tscn")
 
 func update_ui(player, glitch_percent):
+	if (glitch_percent < 0):
+		var p1 = get_tree().get_root().get_node("/root/Main/HudLayer/HudLayer/VBoxContainer/TopBar/P1Info_IMG")
+		p1.per_player_dead_glitch_val[player.id] = int(player.oob_death_ended) * p1.dead_glitch_default
+		var p2 = get_tree().get_root().get_node("/root/Main/HudLayer/HudLayer/VBoxContainer/TopBar/P2Info_IMG")
+		p2.per_player_dead_glitch_val[player.id] = int(player.oob_death_ended) * p2.dead_glitch_default
+		return
+	
 	var p1 = get_tree().get_root().get_node("/root/Main/HudLayer/HudLayer/VBoxContainer/TopBar/P1Info_IMG")
 	p1.per_player_glitch_val[player.id] = p1.glitch_max * glitch_percent
+	p1.per_player_dead_glitch_val[player.id] = int(player.oob_death_ended) * p1.dead_glitch_default
 	var p2 = get_tree().get_root().get_node("/root/Main/HudLayer/HudLayer/VBoxContainer/TopBar/P2Info_IMG")
 	p2.per_player_glitch_val[player.id] = p2.glitch_max * glitch_percent
+	p2.per_player_dead_glitch_val[player.id] = int(player.oob_death_ended) * p2.dead_glitch_default
 
 func init(pos = null):
 	.init(pos)
@@ -39,7 +49,7 @@ func init(pos = null):
 func tick_after():
 	.tick_after()
 	for player in players:
-		tick_per(player)
+		warn_player(player)
 		var effect_result = modify_player_effects(player)
 		update_ui(player, effect_result.glitch)
 		damage(player)
@@ -57,8 +67,14 @@ func calc_alpha(wall_x, player_x, dir):
 	
 	return int(percent * 255)
 
-func tick_per(player):
+func warn_player(player):
+	if player in dont_adjust_warning:
+		return
 	var particle:Node2D = player_particles[player.id]
+	if player.game_over:
+		dont_adjust_warning[player.id] = player
+		var tween = create_tween()
+		tween.tween_property(particle, "modulate:a8", 0, 1)
 	var facing = get_facing_int() * -1
 	var pos = player.get_pos()
 	var wall_x = get_pos().x
@@ -84,17 +100,22 @@ func modify_player_effects(player):
 	#	return
 	var dist_to_wall = ((wall_x - glitch_max_distance) - player_x) if dir == 1 else (player_x - (wall_x + glitch_max_distance))
 	
-	if dist_to_wall < 0:
+	if dist_to_wall > -10 and dist_to_wall < 0:
 		player.oob_glitch_effect = 0.0
 		return {
 			"glitch": 0
 		}
-	
+	elif dist_to_wall < 0:
+		return { 
+			"glitch": -1
+		}
 	var percent = (float(dist_to_wall) / float(glitch_max_distance))
 	
 	percent = clamp(percent, 0.0, 1.0)
 	var glitch_max = player.oob_glitch_max
 	player.oob_glitch_effect = glitch_max * percent
+	if not player.oob_death:
+		player.emote_display.material.set_shader_param("mh_glitch_intensity", 0.004 if percent > 0.5 else 0)
 	return {
 		"glitch": percent
 	}
@@ -109,5 +130,6 @@ func damage(player:Fighter):
 	
 	if ((player_x > wall_x - damage_distance and dir == 1) or (dir == -1 and player_x < wall_x + damage_distance)):
 		return
-
 	player.take_damage(1)
+	if player.hp < 2:
+		player.oob_death = true

@@ -1,4 +1,4 @@
-[gd_scene load_steps=218 format=2]
+[gd_scene load_steps=220 format=2]
 
 [ext_resource path="res://characters/BaseChar.gd" type="Script" id=1]
 [ext_resource path="res://characters/stickman/sprites/idle.png" type="Texture" id=2]
@@ -422,6 +422,9 @@ shader = ExtResource( 205 )
 shader_param/mh_glitch_intensity = 0.0
 shader_param/mh_glitch_speed = 10.0
 shader_param/mh_glitch_height = 1.0
+shader_param/mh_glitch2_start = 1
+shader_param/mh_glitch2_end = 90
+shader_param/mh_glitch2_curr = 0
 shader_param/use_extra_color_1 = false
 shader_param/use_extra_color_2 = false
 shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
@@ -433,6 +436,52 @@ shader_param/max_color_distance = 0.01
 shader_param/super_dim = true
 shader_param/use_outline = false
 shader_param/outline_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="Shader" id=28]
+code = "shader_type canvas_item;
+uniform float mh_glitch_intensity : hint_range(0.0, 0.5) = 0.05;
+uniform float mh_glitch_speed : hint_range(0.0, 20.0) = 10.0;
+uniform float mh_glitch_height = 1.0;
+
+uniform int mh_glitch2_start = 1;
+uniform int mh_glitch2_end = 90;
+uniform int mh_glitch2_curr = 0;
+
+float fake_rand(vec2 co) {
+	return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+bool should_delete_glitch2(vec2 pos) {
+	float rand = fake_rand(pos);
+	float chance = float(mh_glitch2_curr) / float(mh_glitch2_end - mh_glitch2_start);
+	
+	return rand < chance;
+}
+
+void fragment() {
+	float texture_height = 1.0 / TEXTURE_PIXEL_SIZE.y;
+	float slice_count = texture_height / mh_glitch_height;
+	float band = floor(UV.y * slice_count);
+	float time_step = floor(TIME * mh_glitch_speed);
+	float rand_shift = fake_rand(vec2(band, time_step));
+	float offset = (rand_shift - 0.5) * mh_glitch_intensity;
+
+	vec2 distorted_uv = vec2(UV.x + offset, UV.y);
+	if (should_delete_glitch2(vec2((UV.x * 2.873142) + (UV.y * 7.436219), TIME))){
+		distorted_uv.x = 99999.9;
+		distorted_uv.y = 99999.9;
+	}
+	COLOR = texture(TEXTURE, distorted_uv);
+}"
+
+[sub_resource type="ShaderMaterial" id=29]
+shader = SubResource( 28 )
+shader_param/mh_glitch_intensity = 0.004
+shader_param/mh_glitch_speed = 8.0
+shader_param/mh_glitch_height = 2.0
+shader_param/mh_glitch2_start = 1
+shader_param/mh_glitch2_end = 90
+shader_param/mh_glitch2_curr = 0
 
 [sub_resource type="ViewportTexture" id=5]
 viewport_path = NodePath("EmoteView")
@@ -455,6 +504,9 @@ shader = ExtResource( 205 )
 shader_param/mh_glitch_intensity = 0.0
 shader_param/mh_glitch_speed = 10.0
 shader_param/mh_glitch_height = 1.0
+shader_param/mh_glitch2_start = 1
+shader_param/mh_glitch2_end = 90
+shader_param/mh_glitch2_curr = 0
 shader_param/use_extra_color_1 = false
 shader_param/use_extra_color_2 = false
 shader_param/extra_replace_color_1 = Color( 1, 0, 1, 1 )
@@ -2315,6 +2367,7 @@ transparent_bg = true
 
 [node name="EmoteLabelReal" type="RichTextLabel" parent="EmoteView" index="0"]
 unique_name_in_owner = true
+visible = false
 margin_top = 141.0
 margin_right = 282.0
 margin_bottom = 153.0
@@ -2346,7 +2399,7 @@ start_enabled = false
 
 [node name="EmoteDisplay" type="Sprite" parent="." index="18"]
 unique_name_in_owner = true
-visible = false
+material = SubResource( 29 )
 position = Vector2( 0, -60 )
 texture = SubResource( 5 )
 flip_v = true

@@ -75,7 +75,7 @@ func _on_beat_detected(energy):
 	var now = Time.get_ticks_msec() / 1000.0
 	if now - _last_beat_detected_time < MIN_BEAT_INTERVAL:
 		return
-	print("Onset detected at: %f with %f energy" % [get_playback_position(), energy])
+	#print("Onset detected at: %f with %f energy" % [get_playback_position(), energy])
 	last_beat_detected_seconds = now - _last_beat_detected_time
 	_last_beat_detected_time = now
 	last_beat_detected_energy = energy
