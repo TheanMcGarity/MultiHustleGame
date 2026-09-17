@@ -1685,8 +1685,9 @@ func handle_distance_wall():
 	var half_dist = ((sqrt(pow(hurtboxCenters.size(),3)) * 33.0) - 10) / 2
 	half_dist = min(half_dist, 250) + 300
 	
-	distance_walls[-1].set_pos(str(half_dist + center),"0")
-	distance_walls[1].set_pos(str(-half_dist + center),"0")
+	if (oob_enabled):
+		distance_walls[-1].set_pos(str(half_dist + center),"0")
+		distance_walls[1].set_pos(str(-half_dist + center),"0")
 
 func _process(delta):
 	
