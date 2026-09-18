@@ -1,0 +1,68 @@
+{
+  "*": {
+    "vars": {"super_meter": 0.03, "burst_meter": 0.02}
+  },
+
+  "solohunter": {
+    "vars": {
+      "ManaAmount":    {"weight": 0.15, "cap": 350, "curve": "diminish", "threshold": 300, "threshold_bonus": 25},
+      "FatigueAmount": {"weight": -1.5, "cap": 150, "curve": "accelerate"},
+      "bleed_ticks":   {"weight": -3.0, "cap": 40}
+    },
+    "preferred_move_var": "QuestMove",
+    "preferred_move_bonus": 40.0
+  },
+
+  "miko":      {"vars": {"storedmeter": 0.03, "SPlv": {"weight": 28.0, "cap": 3, "threshold": 3, "threshold_bonus": 45}, "MPlv": {"weight": 28.0, "cap": 3, "threshold": 3, "threshold_bonus": 45}}},
+  "elder":     {"vars": {"storedmeter": 0.03}},
+  "tyrant":    {"vars": {"storedmeter": 0.03}},
+  "vixen":     {"vars": {"overheal": 0.5}},
+  "fallen":    {"vars": {"mana": 12.0}},
+  "slimpurt":  {"vars": {"companion_left": 0.2}},
+  "gallade":   {"vars": {"swords_dance_stacks": 20.0, "ice_ticks": -1.5}},
+  "ronin":     {"vars": {"charge_Value": 0.5}},
+  "lunatic":   {"vars": {"blood": 1.0, "sepsis": -2.0}},
+  "archer":    {"vars": {"move_cooldown": -0.5}},
+  "omega":     {"vars": {"storedmeter": 0.03, "chargelv": 10.0, "overheal": 0.5}},
+  "nakmuay":   {"vars": {"H_Armor": 8.0}},
+  "librarian": {"vars": {"bookleft": 15.0, "storedmeter": 0.03}},
+  "shinji":    {"vars": {"SpeedStack": 5.0, "slow_ticks": -1.0}},
+  "wraith":    {"vars": {"style": {"weight": 0.12, "cap": 750, "curve": "diminish", "threshold": 150, "threshold_bonus": 35}, "DTMeter": {"weight": 0.18, "cap": 1000, "curve": "diminish"}, "stales": -30.0}},
+  "assassin":  {"vars": {"Crit": 0.8, "Critcal": -0.5, "bleedmark": 3.0, "bleeddmg": 0.5, "overheal": 0.5}},
+  "pilot":     {"vars": {"hover_fuel": 0.3, "cloak_Value": 0.3}},
+  "ascender":  {"vars": {"raiment": 1.0}},
+  "yharim":    {"vars": {"charge": 0.5}},
+  "undyne":    {"vars": {"determination": {"weight": 0.2, "cap": 1000, "threshold": 1000, "threshold_bonus": 50}, "fish_stacks": {"weight": 3.0, "cap": 10}}},
+  "michael":   {"vars": {"impulseLeft": 1.0, "spaceLeft": 40.0, "timeLeft": 40.0}},
+  "archangel": {"vars": {"juke_pips": 8.0}},
+  "xiao":      {"vars": {"DoT": -2.0}},
+  "nova":      {"vars": {"stardust": 1.0, "storedmeter": 0.03}},
+  "dj":        {"vars": {"combo_meter": {"weight": 2.0, "else_weight": 1.0, "when": {"combo_count": ">0"}, "cap": 25, "curve": "diminish", "threshold": 15, "threshold_bonus": 20}, "combo_multiplier": {"weight": 15.0, "cap": 3}, "consecutive_misses": {"weight": -2.0, "cap": 5}}},
+  "swindler":  {"vars": {"Savings": 0.05, "Debt": -0.1, "HPDebt": -0.5}},
+  "kaoru":     {"vars": {"vortex_cooldown": -0.2, "flamewave_cooldown": -0.2, "wheel_cooldown": -0.2, "rain_cooldown": -0.2, "blaze_cooldown": -0.2}},
+  "spectrum":  {"vars": {"bleed": -2.0, "charge": 0.5}},
+  "knight":    {"vars": {"currentfountain": 0.5}},
+  "kinginbinds": {"vars": {"SinkingCount": 2.0, "SinkingPotency": 2.0, "StaggerTurns": -10.0}},
+
+  "recordfuture":    {"vars": {"chaosMeter": 0.5, "chargeLevel": 10.0}},
+  "immortalflames":  {"vars": {"flames_offense": 5.0, "flames_defense": 5.0, "flames_speed": 5.0, "flames_magic": 5.0}},
+  "recordvainglory": {"vars": {"vaingloryScore": 0.5, "chaosMeter": 0.5, "nullBomb": 15.0}},
+  "spacejester":     {"vars": {"space_charge": 1.0, "space_power": 1.0, "debuff_dizzy": -2.0}},
+  "dollprincess":    {"vars": {"mirror_resource": 1.0, "dash_resource": 1.0, "pin_resource": 1.0}},
+  "bluereviver":     {"vars": {"blue_summon_hp": 0.3, "frost_stack": 5.0}},
+  "sinreviver":      {"vars": {"sinful_charge": 1.0, "sin_heaven_sword_stack": 8.0, "debuff_level": -5.0}},
+  "meteorhero":      {"vars": {"amount_of_block": 2.0}},
+
+  "mutant":        {"vars": {"juke_pips": 12.0, "install_ticks": 0.3, "bc_charge": 8.0, "air_vaults": 6.0}},
+  "yupia":         {"vars": {"Bleeding": -2.0, "Fatal_Wound": -25.0}},
+  "bonehead":      {"vars": {"parry_cd": -1.0, "bones_out": 2.0, "wall_out": 2.0}},
+  "carmen":        {"vars": {"risk_level": 6.0, "focus": 8.0, "notes": 8.0, "bless_count": 8.0, "apostle_count": 10.0, "sins": 4.0, "scorch": -2.0, "twilight": 6.0}},
+  "colossus":      {"vars": {"fortitude": 8.0, "lordflame": 6.0, "flamestain": -3.0, "hits_with_armor": 4.0}},
+  "deo":           {"vars": {"time": 0.3, "overtime": -1.0}},
+  "reincarnation": {"vars": {"dodges": 15.0, "armor_hits": 8.0, "domainHealth": 4.0, "domain_cooldown": -0.4}},
+  "tarot":         {"vars": {"time_ticks": 0.3, "rage": 5.0, "rocks": 3.0, "death_counter": -20.0}},
+  "chef":          {"vars": {"overheal": 1.5, "storedmeter": 0.05, "Cooking": 4.0, "Curselv": -3.0}},
+  "valued":        {"vars": {"RedLv": 6.0, "BlueLv": 6.0, "PurpleLv": 8.0, "InfinityLV": 10.0, "blueticks": -1.0}},
+  "heion":         {"vars": {"Cursed_Mark": -4.0}},
+  "vorhee":        {"vars": {"intensity": 5.0}}
+}

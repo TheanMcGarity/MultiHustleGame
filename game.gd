@@ -242,6 +242,13 @@ func _ready():
 	else:
 		emit_signal("simulation_continue")
 	hooks.ready()
+	
+func init_ai(pid):
+	var brain = Node2D.new()
+	brain.name = "CombatAI%d" % pid
+	brain.set_script(load("res://ai/CombatAI.gd"))
+	brain.forced_player = pid
+	add_child(brain)
 
 func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vector2.RIGHT):
 	var obj = particle_effect.instance()
@@ -606,6 +613,7 @@ func start_game(singleplayer:bool, match_data:Dictionary):
 		#ui_handler.get_ui_node_from_player(player)
 		$Players.add_child(player)
 		player.set_color(MultiHustle_get_color_by_index(index))
+		init_ai(index)
 		player.init()
 		#var speaking_node:AudioStreamPlayer = player.get_node("Sounds/Speak")
 		#if is_instance_valid(speaking_node):

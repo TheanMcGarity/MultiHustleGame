@@ -1,0 +1,15 @@
+{
+  "author": "SirWise (original); Strategist fork",
+  "client_side": true,
+  "description": "A configurable Combat AI fork with independent skill and behavior, fight direction, comprehensive adjustable-input simulation, safe DI prediction, move exclusions, smarter resource/cancel/burst/throw discipline, CPU pacing, broad modded-character support, JSON battle dialogue, and learned-data controls.",
+  "friendly_name": "Combat AI Strategist",
+  "id": "77001-strategist-fork",
+  "link": "",
+  "name": "Combat AI Strategist - CPU Opponent",
+  "overwrites": false,
+  "priority": -10000,
+  "requires": [
+    "soupModOptions"
+  ],
+  "version": "1.7.5"
+}

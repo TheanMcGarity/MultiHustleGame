@@ -2316,6 +2316,18 @@ custom_colors/font_color_pressed = Color( 0.262745, 0.74902, 1, 1 )
 text = "Multiplayer"
 flat = true
 
+[node name="StoryButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
+unique_name_in_owner = true
+margin_top = 60.0
+margin_right = 144.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 0, 20 )
+mouse_default_cursor_shape = 2
+custom_colors/font_color_hover = Color( 0.305882, 1, 0.537255, 1 )
+custom_colors/font_color_pressed = Color( 0.192157, 0.803922, 0.14902, 1 )
+text = "Story Mode"
+flat = true
+
 [node name="MultiplayerButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
 visible = false
@@ -2344,9 +2356,9 @@ flat = true
 
 [node name="CustomizeButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 60.0
+margin_top = 80.0
 margin_right = 144.0
-margin_bottom = 80.0
+margin_bottom = 100.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
@@ -2356,9 +2368,9 @@ flat = true
 
 [node name="ReplayButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 80.0
+margin_top = 100.0
 margin_right = 144.0
-margin_bottom = 100.0
+margin_bottom = 120.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
@@ -2368,9 +2380,9 @@ flat = true
 
 [node name="OptionsButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 100.0
+margin_top = 120.0
 margin_right = 144.0
-margin_bottom = 120.0
+margin_bottom = 140.0
 rect_min_size = Vector2( 0, 20 )
 mouse_default_cursor_shape = 2
 custom_colors/font_color_hover = Color( 0.305882, 0.529412, 1, 1 )
@@ -2380,9 +2392,9 @@ flat = true
 
 [node name="CreditsButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 120.0
+margin_top = 140.0
 margin_right = 144.0
-margin_bottom = 140.0
+margin_bottom = 160.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( 42, -27 )
 mouse_default_cursor_shape = 2
@@ -2407,9 +2419,9 @@ flat = true
 
 [node name="MHDiscordLink" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 140.0
+margin_top = 160.0
 margin_right = 144.0
-margin_bottom = 160.0
+margin_bottom = 180.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( 42, -27 )
 mouse_default_cursor_shape = 2
@@ -2437,9 +2449,9 @@ transition_time = 0.7
 
 [node name="QuitProgramButton" type="Button" parent="UILayer/MainMenu/ButtonContainer"]
 unique_name_in_owner = true
-margin_top = 160.0
+margin_top = 180.0
 margin_right = 144.0
-margin_bottom = 180.0
+margin_bottom = 200.0
 rect_min_size = Vector2( 0, 20 )
 rect_pivot_offset = Vector2( -87, -115 )
 mouse_default_cursor_shape = 2

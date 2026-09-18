@@ -536,6 +536,9 @@ onready var fake_emote_label = $"%EmoteLabel"
 onready var real_emote_label = $"%EmoteLabelReal"
 onready var emote_display = $"%EmoteDisplay"
 
+var ai := false
+var ai_brain
+
 class InputState:
 	var name
 	var data

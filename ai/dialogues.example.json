@@ -1,0 +1,26 @@
+{
+	"schema": 1,
+	"instructions": {
+		"profile": "Select Custom - Use Dialogue File for the matching player.",
+		"format": "Add, remove, or edit quoted lines inside each situation array.",
+		"reload": "Use Reload Custom Dialogues in Mod Options or start a new match."
+	},
+	"player1": {
+		"opening": ["Let's begin."],
+		"attack": ["Your move."],
+		"combo": ["Keep up."],
+		"defense": ["Not this time."],
+		"winning": ["The advantage is mine."],
+		"losing": ["This is not over."],
+		"finisher": ["Checkmate."]
+	},
+	"player2": {
+		"opening": ["Ready when you are."],
+		"attack": ["Try this."],
+		"combo": ["No escape."],
+		"defense": ["I saw that coming."],
+		"winning": ["I have the momentum."],
+		"losing": ["I can still turn this around."],
+		"finisher": ["This ends now."]
+	}
+}
