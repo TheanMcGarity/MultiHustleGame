@@ -58,7 +58,6 @@ func _input(event):
 				_on_submit_pressed()
 
 func _ready():
-
 	$"%SelectButton".connect("pressed", self, "_on_submit_pressed")
 	_rebuild_select_button_shortcut()
 	# Track rebinds so the tooltip's key prefix updates live when the user
@@ -93,6 +92,7 @@ func _ready():
 	else:
 		$"%LastMoveTexture".rect_position.x -= 40
 #		$"%DIPlotContainer".alignment = BoxContainer.ALIGN_BEGIN
+	
 	opponent_action_buttons.connect("action_clicked", self, "on_opponent_action_clicked")
 
 func on_opponent_action_clicked(_action, _data, _extra):
@@ -103,6 +103,8 @@ func on_opponent_action_clicked(_action, _data, _extra):
 	pass
 
 func _get_opposite_buttons():
+	if id > 2:
+		return opponent_action_buttons
 	return opposite_buttons
 
 func timeout():
@@ -547,8 +549,13 @@ func update_buttons(refresh = true):
 	update_cancel_category_air_type(cancel_into, force_grounded, force_aerial)
 
 	var initiative = fighter.check_initiative()
-
+	
+	if(id < 3):
+		print("buttons.size()=%d, initiative=%s" % [buttons.size(), initiative])
 	for button in buttons:
+		
+		if(id < 3):
+			print("buttons.action_name=\"%s\"" % [button.action_name])
 		var found = false
 		if fighter.extremely_turbo_mode and !fighter.busy_interrupt:
 			found = true
@@ -559,22 +566,34 @@ func update_buttons(refresh = true):
 		else:
 			for category in cancel_into:
 				if !fighter.action_cancels.has(category):
+					if(id < 3):
+						print("failed check 1")
 					continue
 				
 				for cancel_state in fighter.action_cancels[category]:
-					if !(cancel_state.state_name == button.action_name and \
+					#id check is temp
+					if id < 3 and !(cancel_state.state_name == button.action_name and \
 					cancel_state.is_usable_with_grounded_check(force_aerial, force_grounded) and (cancel_state.allowed_in_stance())):
+						#if(id < 3 and not cancel_state.state_name == button.action_name):
+						#	print("failed check 2 (spec. info: state_name=\"%s\")" % cancel_state.state_name)
 						continue
-
 					
 					if cancel_state.state_name == state.state_name:
 						if fighter.state_hit_cancellable and !state.self_hit_cancellable and !turbo_mode:
+							if(id < 3):
+								print("failed check 3")
 							continue
 						elif !fighter.state_hit_cancellable and !state.self_interruptable and !turbo_mode:
+							if(id < 3):
+								print("failed check 4")
 							continue
 					if fighter.state_hit_cancellable and cancel_state.state_name in state.hit_cancel_exceptions:
+						if(id < 3):
+							print("failed check 5")
 						continue
 					elif fighter.state_interruptable and cancel_state.state_name in state.interrupt_exceptions:
+						if(id < 3):
+							print("failed check 6")
 						continue
 					var excepted = false
 					if fighter.state_hit_cancellable:
@@ -591,7 +610,8 @@ func update_buttons(refresh = true):
 					
 					$"%ReverseButton".set_disabled(false)
 	#							$"%SelectButton".disabled = false
-					
+					if(id < 3):
+						print("passed all checks")
 					any_available_actions = true
 					button.set_disabled(false)
 					button.show()

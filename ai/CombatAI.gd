@@ -12,6 +12,8 @@
 
 extends Node2D
 
+class_name MHCombatAI
+
 const MENU_ID = "_CombatAIStrategist"
 const PERFORMANCE_FAST = 0
 const PERFORMANCE_BALANCED = 1
@@ -266,6 +268,7 @@ const VISIBILITY_P1_READS = 1
 const VISIBILITY_P2_READS = 2
 const VISIBILITY_BOTH = 3
 const DIRECTOR_NATURAL = 0
+# mh modified - DIRECTOR_P# refers to 1=player 2=ai
 const DIRECTOR_P1 = 1
 const DIRECTOR_P2 = 2
 const PACING_NATURAL = 0
@@ -304,10 +307,7 @@ var fighter = null
 # Options
 var ai_player = 0
 var difficulty = 0
-var p1_difficulty = 0
-var p2_difficulty = 0
-var p1_behavior = BEHAVIOR_CLASSIC
-var p2_behavior = BEHAVIOR_CLASSIC
+var behavior = BEHAVIOR_CLASSIC
 var behavior_profile = BEHAVIOR_CLASSIC
 var search_mode = SEARCH_ADAPTIVE
 var awareness = AWARENESS_STANDARD
@@ -321,21 +321,13 @@ var move_visibility = VISIBILITY_FAIR
 var exhaustive_limit = 0
 var tactical_depth = 0
 var simulation_cache_enabled = true
-var p1_ignored_moves = ""
-var p2_ignored_moves = ""
+var ignored_moves = ""
 var ignored_move_cache = {}
 var di_policy = DI_POLICY_STRATEGIST
 var resource_strategy = RESOURCE_ADAPTIVE
-var ai_speech = false
-var speech_frequency = 1
-var p1_speech_enabled = true
-var p2_speech_enabled = true
-var p1_speech_profile = 0
-var p2_speech_profile = 0
-var custom_speech = {1: {}, 2: {}}
 var show_error_popups = true
 var auto_lock_in = true
-var debug_logging = false
+var debug_logging = OS.is_debug_build()
 # Which side this brain instance is FOR (game.gd spawns one per side); the
 # AI Controls setting decides whether this instance lives. In AI-vs-AI
 # both live and each locks independently as soon as it has decided.
@@ -351,7 +343,7 @@ var resim_held = false
 var performance_profile = PERFORMANCE_BALANCED
 var performance_mode = false
 # CPU pacing, independent from Thinking Load/search quality.
-var patience_mode = PATIENCE_PATIENT
+var patience_mode = PATIENCE_NOT
 
 # Deferred-thinking mode: wait for the player's lock before spending any
 # cycles - for machines where background thinking lags the player's own
@@ -468,6 +460,19 @@ var burst_book = {}
 
 var rng = RandomNumberGenerator.new()
 
+func dupe_action_buttons(pid):
+	if (pid == 1 or pid == 2 or Network.main.ui_layer.action_buttons.has(pid)):
+		return
+	var p2_buttons =  main_node.find_node("P%dActionButtons" % 2)
+	var new:ActionButtons = p2_buttons.duplicate()
+	new.name = "P%dActionButtons" % pid
+	Network.main.ui_layer.action_buttons[pid] = new
+	new.opponent_action_buttons_path = "/root/Main/UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer/P1ActionButtons"
+	get_tree().get_root().get_node("/root/Main/UILayer/GameUI").add_child(new)
+	new.rect_position = Vector2(9999,9999)
+	new.player_id = pid
+	new.game = game
+	pass
 
 func _ready():
 	game = get_parent()
@@ -477,11 +482,17 @@ func _ready():
 	if Network.multiplayer_active:
 		queue_free()
 		return
+		
 	rng.randomize()
 	main_node = find_parent("Main")
-
+	var config_collection = game.match_data.ai_config[ai_player]
+	for config in config_collection:
+		set(config, config_collection[config])
+	for pid in game.players:
+		dupe_action_buttons(pid)
 	var options = main_node.get_node_or_null("ModOptions")
-	if options != null:
+	# temp fix
+	if false:#options != null:
 		# Master switch: turn the whole mod off without uninstalling.
 		var en = options.get_setting(MENU_ID, "enabled")
 		if en != null and not en:
@@ -496,18 +507,6 @@ func _ready():
 		v = options.get_setting(MENU_ID, "difficulty")
 		if v != null:
 			difficulty = int(v)
-		v = options.get_setting(MENU_ID, "p1_difficulty")
-		if v != null:
-			p1_difficulty = int(v)
-		v = options.get_setting(MENU_ID, "p2_difficulty")
-		if v != null:
-			p2_difficulty = int(v)
-		v = options.get_setting(MENU_ID, "p1_behavior")
-		if v != null:
-			p1_behavior = int(v)
-		v = options.get_setting(MENU_ID, "p2_behavior")
-		if v != null:
-			p2_behavior = int(v)
 		v = options.get_setting(MENU_ID, "search_mode")
 		if v != null:
 			search_mode = int(v)
@@ -550,36 +549,12 @@ func _ready():
 		v = options.get_setting(MENU_ID, "simulation_cache")
 		if v != null:
 			simulation_cache_enabled = bool(v)
-		v = options.get_setting(MENU_ID, "p1_ignored_moves")
-		if v != null:
-			p1_ignored_moves = str(v)
-		v = options.get_setting(MENU_ID, "p2_ignored_moves")
-		if v != null:
-			p2_ignored_moves = str(v)
 		v = options.get_setting(MENU_ID, "di_policy")
 		if v != null:
 			di_policy = int(v)
 		v = options.get_setting(MENU_ID, "resource_strategy")
 		if v != null:
 			resource_strategy = int(v)
-		v = options.get_setting(MENU_ID, "ai_speech")
-		if v != null:
-			ai_speech = bool(v)
-		v = options.get_setting(MENU_ID, "speech_frequency")
-		if v != null:
-			speech_frequency = int(v)
-		v = options.get_setting(MENU_ID, "p1_speech_enabled")
-		if v != null:
-			p1_speech_enabled = bool(v)
-		v = options.get_setting(MENU_ID, "p2_speech_enabled")
-		if v != null:
-			p2_speech_enabled = bool(v)
-		v = options.get_setting(MENU_ID, "p1_speech_profile")
-		if v != null:
-			p1_speech_profile = int(v)
-		v = options.get_setting(MENU_ID, "p2_speech_profile")
-		if v != null:
-			p2_speech_profile = int(v)
 		v = options.get_setting(MENU_ID, "show_error_popups")
 		if v != null:
 			show_error_popups = bool(v)
@@ -609,17 +584,13 @@ func _ready():
 	patience_mode = int(clamp(patience_mode, PATIENCE_GOD_LEVEL, PATIENCE_FERAL))
 	di_policy = int(clamp(di_policy, DI_POLICY_STRATEGIST, DI_POLICY_UNPREDICTABLE))
 	resource_strategy = int(clamp(resource_strategy, RESOURCE_ADAPTIVE, RESOURCE_SAVE))
-	speech_frequency = int(clamp(speech_frequency, 0, 2))
-	p1_speech_profile = int(clamp(p1_speech_profile, 0, 3))
-	p2_speech_profile = int(clamp(p2_speech_profile, 0, 3))
-	ReloadCustomDialogues()
 	_refresh_think_budget()
 	if ai_player == 0:
 		queue_free()
 		return
-	if ai_player == 3:
-		both_ai = true
-		ai_player = forced_player
+	#if ai_player == 3:
+	#	both_ai = true
+	#	ai_player = forced_player
 	elif forced_player != 0 and ai_player != forced_player:
 		# This side belongs to a human.
 		queue_free()
@@ -629,10 +600,10 @@ func _ready():
 	_refresh_think_budget()
 	# A side-specific value of zero means "Use Shared Skill". Nonzero menu
 	# indices map back to the original 0..4 difficulty scale.
-	var side_skill = p1_difficulty if ai_player == 1 else p2_difficulty
+	var side_skill = difficulty
 	if side_skill > 0:
 		difficulty = int(clamp(side_skill - 1, 0, DIFFICULTY_TEMPS.size() - 1))
-	behavior_profile = p1_behavior if ai_player == 1 else p2_behavior
+	behavior_profile = behavior
 	behavior_profile = int(clamp(behavior_profile, BEHAVIOR_CLASSIC, BEHAVIOR_DEFENSIVE))
 	if both_ai and random_skill_aivai:
 		# Each side rolls independently after side settings resolve.
@@ -772,55 +743,6 @@ func clear_study_and_match_memory():
 
 
 func ReloadCustomDialogues():
-	custom_speech = {1: {}, 2: {}}
-	var DialogueDirectory = Directory.new()
-	if !DialogueDirectory.dir_exists("user://CombatAIStrategist"):
-		var DirectoryError = DialogueDirectory.make_dir_recursive("user://CombatAIStrategist")
-		if DirectoryError != OK:
-			push_error("CombatAI Strategist: could not create the custom dialogue folder (error %d)" % DirectoryError)
-			return false
-	var DialogueFile = File.new()
-	if !DialogueFile.file_exists(DIALOGUE_PATH):
-		var ExampleFile = File.new()
-		if ExampleFile.open("res://_CombatAIStrategist/dialogues.example.json", File.READ) != OK:
-			push_error("CombatAI Strategist: could not load the custom dialogue template")
-			return false
-		var ExampleText = ExampleFile.get_as_text()
-		ExampleFile.close()
-		if DialogueFile.open(DIALOGUE_PATH, File.WRITE) != OK:
-			push_error("CombatAI Strategist: could not create custom_dialogues.json")
-			return false
-		DialogueFile.store_string(ExampleText)
-		DialogueFile.close()
-	var OpenError = DialogueFile.open(DIALOGUE_PATH, File.READ)
-	if OpenError != OK:
-		push_error("CombatAI Strategist: could not open custom dialogues (error %d)" % OpenError)
-		return false
-	var ParsedDialogues = JSON.parse(DialogueFile.get_as_text())
-	DialogueFile.close()
-	if ParsedDialogues.error != OK or !(ParsedDialogues.result is Dictionary):
-		if main_node != null and !main_node.has_meta("cas_dialogue_error"):
-			main_node.set_meta("cas_dialogue_error", true)
-			_report_fault("E106", "Custom dialogue JSON is invalid at line %d. The file was preserved." % ParsedDialogues.error_line)
-		return false
-	for Side in [1, 2]:
-		var SideData = ParsedDialogues.result.get("player%d" % Side, {})
-		if !(SideData is Dictionary):
-			continue
-		for Situation in ["opening", "attack", "combo", "defense", "winning", "losing", "finisher"]:
-			var StoredLines = SideData.get(Situation, [])
-			var CleanLines = []
-			if StoredLines is Array:
-				for StoredLine in StoredLines:
-					var CleanLine = str(StoredLine).strip_edges()
-					if CleanLine != "":
-						CleanLines.append(CleanLine)
-			elif StoredLines is String:
-				for StoredLine in StoredLines.split("|", false):
-					var CleanLine = str(StoredLine).strip_edges()
-					if CleanLine != "":
-						CleanLines.append(CleanLine)
-			custom_speech[Side][Situation] = CleanLines
 	return true
 
 func _turn_started_player(player):
@@ -985,7 +907,7 @@ func _on_turn_started():
 # The player locked the turn in. If we already decided, apply our move over
 # whatever the UI had selected for us. If we're still thinking, hold the turn
 # open (the game waits while state_interruptable is true) and _finish submits.
-func _on_foe_action(action, data, extra):
+func _on_foe_action(action, data, extra, foe):
 	var ObservedPreviousAction = str(last_action_by.get(int(fighter.opponent.id), "")) if is_instance_valid(fighter) and fighter.opponent != null else ""
 	if action is String and action != "":
 		revealed_foe_action = action
@@ -1152,7 +1074,7 @@ func _think():
 	action_names_cache.clear()
 	action_buttons_cache.clear()
 	slice_started = OS.get_ticks_msec()
-	session_deadline = OS.get_ticks_msec() + _think_deadline_ms()
+	session_deadline = 0x7fffffffffffffff#OS.get_ticks_msec() + _think_deadline_ms()
 	# Safe placeholder in case anything slips through mid-thought.
 	decided_action = null
 	decided_data = null
@@ -1162,6 +1084,9 @@ func _think():
 	fighter.queued_action = null
 	fighter.queued_data = null
 	fighter.queued_extra = null
+	
+	_action_buttons(ai_player).activate()
+	
 	_resim_begin()
 	if background_thinking:
 		_show_status()
@@ -1489,26 +1414,11 @@ func _abort(my_session):
 
 
 func _maybe_speak():
-	if !ai_speech or !is_instance_valid(fighter) or !fighter.has_method("emote") or !_speech_enabled_for_side(ai_player):
-		return
-	var situation = _speech_situation()
-	if !speech_started:
-		speech_started = true
-		situation = "opening"
-	else:
-		speech_turns += 1
-	var interval = [12, 7, 4][speech_frequency]
-	if situation != "opening" and situation != "finisher" and speech_turns < interval:
-		return
-	speech_turns = 0
-	var lines = _speech_lines(ai_player, situation)
-	if lines.empty():
-		return
-	fighter.emote(lines[rng.randi() % lines.size()])
+	pass
 
 
 func _speech_enabled_for_side(side):
-	return p1_speech_enabled if int(side) == 1 else p2_speech_enabled
+	return false
 
 
 func _speech_situation():
@@ -1530,11 +1440,7 @@ func _speech_situation():
 
 
 func _speech_lines(side, situation):
-	var profile = p1_speech_profile if int(side) == 1 else p2_speech_profile
-	if profile >= 0 and profile < SPEECH_PRESETS.size():
-		return SPEECH_PRESETS[profile].get(situation, [])
-	var CustomLines = custom_speech.get(int(side), {}).get(situation, [])
-	return CustomLines if CustomLines is Array else []
+	return []
 
 
 # Returns [{action, data, score, key}, ...] for every option `player_id` has,
@@ -1622,10 +1528,16 @@ func _score_options(player_id, versus_action, versus_data, extra, my_session, be
 		# Session deadline: keep what's scored, skip the rest. Partial
 		# knowledge submitted on time beats a stalled table.
 		if background_thinking and OS.get_ticks_msec() > session_deadline and (performance_mode or (search_mode == SEARCH_ADAPTIVE and awareness < AWARENESS_STRATEGIC and tactical_depth < 2)):
+			if debug_logging:
+				print("CombatAI Strategist sim P%s took too long" % [str(player_id)])
 			break
 		if !_button_reachable(button) or _is_rejected_action(player_id, button.action_name, button):
+			if debug_logging:
+				print("CombatAI Strategist sim P%s rejected action %s (%d)" % [str(player_id),button.action_name, ai_player])
 			continue
 		if beam != null and !beam.has(button.action_name):
+			if debug_logging:
+				print("CombatAI Strategist sim P%s beam doesnt contain action %s (%d)" % [str(player_id),button.action_name, ai_player])
 			continue
 		# Resource-gated moves (MP, charges, cooldowns on modded characters):
 		# submitting an unusable action makes the game Forfeit, so never
@@ -2028,7 +1940,7 @@ func _categorize_entry(entry, actor, versus_action):
 	var action = str(entry.action)
 	var lower = action.to_lower()
 	var state = actor.state_machine.get_state(action)
-	if action.find("Burst") != -1 or (state != null and bool(state.get("can_parry"))):
+	if action.find("Burst") != -1 or (state != null and state.get("can_parry") != null and bool(state.get("can_parry"))):
 		return "Defense"
 	for word in ["block", "parry", "guard", "dodge", "roll", "escape", "counter"]:
 		if lower.find(word) != -1:
@@ -2312,6 +2224,7 @@ func _max_variants():
 
 
 func _think_deadline_ms():
+	return 0x7fffffffffffffff
 	var deadline = THINK_DEADLINE_MS
 	if performance_mode:
 		deadline = FAST_THINK_DEADLINE_MS
@@ -2378,8 +2291,8 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 			return cached_result.score
 	# Frame budget: hand control back to the engine between simulations.
 	if background_thinking and OS.get_ticks_msec() - slice_started > think_budget_ms:
-		if status_label and status_label.visible:
-			status_label.text = "Combat AI is thinking... (%d simulations, %d cached)" % [sims_done, sim_cache_hits]
+		#if status_label and status_label.visible:
+		#	status_label.text = "Combat AI is thinking... (%d simulations, %d cached)" % [sims_done, sim_cache_hits]
 		var alive = _breathe(my_session)
 		if alive is GDScriptFunctionState:
 			alive = yield(alive, "completed")
@@ -2743,7 +2656,7 @@ func _is_user_ignored_move(player_id, labels):
 		return false
 	var id = int(player_id)
 	if !ignored_move_cache.has(id):
-		var raw = p1_ignored_moves if id == 1 else p2_ignored_moves
+		var raw = ignored_moves
 		raw = raw.replace(";", ",").replace("\n", ",")
 		var blocked = {}
 		for item in raw.split(","):
@@ -2789,7 +2702,7 @@ func _action_names(player_id):
 func _action_buttons(player_id):
 	var id = int(player_id)
 	if !action_buttons_cache.has(id):
-		action_buttons_cache[id] = main_node.find_node("P%dActionButtons" % id)
+		action_buttons_cache[id] = Network.main.ui_layer.action_buttons[id]
 	return action_buttons_cache[id]
 
 
@@ -2798,7 +2711,7 @@ func _load_hints():
 		return
 	hints_data = {}
 	var file = File.new()
-	var open_error = file.open("res://_CombatAIStrategist/hints.json", File.READ)
+	var open_error = file.open("res://ai/hints.json", File.READ)
 	if open_error != OK:
 		_report_fault("E106", "Character hint packs could not be opened (error %d). Generic scoring will continue." % open_error)
 		return
@@ -2813,7 +2726,7 @@ func _load_hints():
 # Resolve the hint pack for a player's character: generic "*" hints merged
 # with any pack whose key appears in the selected character's name.
 func _hints_for(player_id):
-	player_id = int(player_id)
+	player_id = ai_player#int(player_id)
 	if hints_cache.has(player_id):
 		return hints_cache[player_id]
 	_load_hints()
@@ -3132,7 +3045,7 @@ func _book_char_key(player_id):
 	if main_node == null or !is_instance_valid(main_node):
 		return ""
 	var selected = main_node.match_data.get("selected_characters", {})
-	player_id = int(player_id)
+	player_id = ai_player#int(player_id)
 	if !selected.has(player_id):
 		return ""
 	var cname = str(selected[player_id].get("name", ""))
@@ -4133,7 +4046,8 @@ func _button_reachable(button):
 		ancestor = ancestor.get_parent()
 	var r = button.get_global_rect()
 	var vp = button.get_viewport_rect().size
-	return r.position.x + r.size.x > 0 and r.position.y + r.size.y > 0 and r.position.x < vp.x and r.position.y < vp.y
+	return true
+	#return r.position.x + r.size.x > 0 and r.position.y + r.size.y > 0 and r.position.x < vp.x and r.position.y < vp.y
 
 
 # The real data panel's size - the area a player can actually see and
@@ -4636,6 +4550,7 @@ func _prepare_sim():
 			return false
 		sim_game.is_ghost = true
 		sim_game.visible = false
+		sim_game.multiHustle_CharManager = Network.main.multiHustle_CharManager
 		sim_viewport.add_child(sim_game)
 		sim_game.set_physics_process(false)
 		sim_game.set_process(false)
@@ -4717,7 +4632,8 @@ func _reset_sim():
 			fx.free()
 	sim_game.effects.clear()
 	for key in sim_game.objs_map.keys():
-		if key != "P1" and key != "P2":
+		if not(len(key) > 1 and key[0] == 'P' and str(key[1]).is_valid_integer()):
+		#if key != "P1" and key != "P2":
 			sim_game.objs_map.erase(key)
 	var idx = 0
 	for player in [sim_game.p1, sim_game.p2]:
@@ -4754,20 +4670,11 @@ func _reset_sim():
 
 
 func _show_status():
+	var display_name = Network.pid_to_username(ai_player)
 	if status_label == null:
-		var layer = CanvasLayer.new()
-		layer.layer = 100
-		add_child(layer)
-		status_label = Label.new()
-		status_label.anchor_left = 0
-		status_label.anchor_right = 1
-		# Below the arena's midline: the top of the screen is covered by
-		# HP/meter bars, which hid this label entirely.
-		status_label.anchor_top = 0.62
-		status_label.anchor_bottom = 0.62
-		status_label.margin_top = 0
-		status_label.margin_bottom = 24
-		status_label.align = Label.ALIGN_CENTER
-		layer.add_child(status_label)
-	status_label.text = "Combat AI is thinking..."
+		var base = get_tree().get_root().get_node("/root/Main/UILayer/AILabelsContainer/AILabelBase")
+		status_label = base.duplicate()
+		base.get_parent().add_child(status_label)
+		pass
+	status_label.bbcode_text = "[center]%s is thinking..." % display_name
 	status_label.visible = true

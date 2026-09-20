@@ -29,10 +29,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://framework/Array2d.gd"
 }, {
+"base": "PackedArrayPropertyEditor",
+"class": "ArrayPropertyEditor",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/array_property_editor.gd"
+}, {
 "base": "AudioStreamPlayer",
 "class": "BPMCalculatorAudioStream",
 "language": "GDScript",
 "path": "res://fx/BPMAudioStream.gd"
+}, {
+"base": "VBoxContainer",
+"class": "BaseCollectionPropertyEditor",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/base_property_editor.gd"
 }, {
 "base": "Node2D",
 "class": "BaseObj",
@@ -79,6 +89,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ui/CustomizationScreen/CollapsibleSection.gd"
 }, {
+"base": "Button",
+"class": "CollectionHeaderButton",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/collection_header_button.gd"
+}, {
 "base": "Node2D",
 "class": "CollisionBox",
 "language": "GDScript",
@@ -94,6 +109,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://characters/swordandgun/SwordGuy.gd"
 }, {
+"base": "EditorResourcePicker",
+"class": "CustomResourcePicker",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/custom_resource_picker.gd"
+}, {
 "base": "ParticleEffect",
 "class": "CustomTrailParticle",
 "language": "GDScript",
@@ -103,6 +123,21 @@ _global_script_classes=[ {
 "class": "DefaultFireball",
 "language": "GDScript",
 "path": "res://characters/stickman/projectiles/fireball_states/Default.gd"
+}, {
+"base": "PackedArrayPropertyEditor",
+"class": "DictPropertyEditor",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/dict_property_editor.gd"
+}, {
+"base": "EditorInspectorPlugin",
+"class": "DictionaryInspectorPlugin",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/inspector_plugin.gd"
+}, {
+"base": "EditorProperty",
+"class": "DictionaryInspectorProperty",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/inspector_property.gd"
 }, {
 "base": "ObjectState",
 "class": "DirProjectileDefault",
@@ -118,6 +153,11 @@ _global_script_classes=[ {
 "class": "EC_CreateCategory",
 "language": "GDScript",
 "path": "res://addons/export_categories/ec_create_category.gd"
+}, {
+"base": "Button",
+"class": "EditorArrayIndex",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/array_index.gd"
 }, {
 "base": "",
 "class": "FGCharacter",
@@ -239,10 +279,40 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://multihustle/ui/ModCustomUIHandler.gd"
 }, {
+"base": "Node2D",
+"class": "MHCombatAI",
+"language": "GDScript",
+"path": "res://ai/CombatAI.gd"
+}, {
+"base": "Resource",
+"class": "MHDialogueChar",
+"language": "GDScript",
+"path": "res://story/script/DialogueChar.gd"
+}, {
+"base": "Resource",
+"class": "MHDialogueInstance",
+"language": "GDScript",
+"path": "res://story/script/DialogueInstance.gd"
+}, {
 "base": "Node",
 "class": "MHInstaller",
 "language": "GDScript",
 "path": "res://_Installer/InstallerCore.gd"
+}, {
+"base": "Resource",
+"class": "MHStoryDialogue",
+"language": "GDScript",
+"path": "res://story/script/StoryDialogue.gd"
+}, {
+"base": "Resource",
+"class": "MHStoryFighter",
+"language": "GDScript",
+"path": "res://story/script/StoryChar.gd"
+}, {
+"base": "Resource",
+"class": "MHStoryInstance",
+"language": "GDScript",
+"path": "res://story/script/StoryInstance.gd"
 }, {
 "base": "Reference",
 "class": "MultiplayerClient",
@@ -269,10 +339,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://characters/stickman/projectiles/StickmanFireball.gd"
 }, {
+"base": "BaseCollectionPropertyEditor",
+"class": "ObjectPropertyEditor",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/object_property_editor.gd"
+}, {
 "base": "StateInterface",
 "class": "ObjectState",
 "language": "GDScript",
 "path": "res://ObjectState.gd"
+}, {
+"base": "BaseCollectionPropertyEditor",
+"class": "PackedArrayPropertyEditor",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/packed_array_property_editor.gd"
 }, {
 "base": "CharacterState",
 "class": "ParryState",
@@ -394,6 +474,16 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://characters/swordandgun/projectiles/TemporalPath.gd"
 }, {
+"base": "GridContainer",
+"class": "TensorPropertyEditor",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/tensor_property_editor.gd"
+}, {
+"base": "Button",
+"class": "ThemeIconButton",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/editor_icon_button.gd"
+}, {
 "base": "Hitbox",
 "class": "ThrowBox",
 "language": "GDScript",
@@ -403,6 +493,11 @@ _global_script_classes=[ {
 "class": "ThrowState",
 "language": "GDScript",
 "path": "res://characters/states/ThrowState.gd"
+}, {
+"base": "OptionButton",
+"class": "TypeOptionButton",
+"language": "GDScript",
+"path": "res://addons/dictionary_inspector/elements/type_option_button.gd"
 }, {
 "base": "Node",
 "class": "UGCItem",
@@ -454,7 +549,9 @@ _global_script_class_icons={
 "ActionButtons": "",
 "ActionUIData": "",
 "Array2D": "",
+"ArrayPropertyEditor": "",
 "BPMCalculatorAudioStream": "",
+"BaseCollectionPropertyEditor": "",
 "BaseObj": "",
 "BaseProjectile": "",
 "BeastState": "",
@@ -464,14 +561,20 @@ _global_script_class_icons={
 "CharacterSelect": "",
 "CharacterState": "",
 "CollapsibleSection": "",
+"CollectionHeaderButton": "",
 "CollisionBox": "",
 "CounterAttack": "",
 "Cowboy": "",
+"CustomResourcePicker": "",
 "CustomTrailParticle": "",
 "DefaultFireball": "",
+"DictPropertyEditor": "",
+"DictionaryInspectorPlugin": "",
+"DictionaryInspectorProperty": "",
 "DirProjectileDefault": "",
 "DistWallObj": "",
 "EC_CreateCategory": "",
+"EditorArrayIndex": "",
 "FGCharacter": "",
 "FGObject": "",
 "Fighter": "",
@@ -496,13 +599,21 @@ _global_script_class_icons={
 "KofiButton": "res://ui/MHDonate/KofiLogo.png",
 "LimbHurtbox": "",
 "MHCharacterUI": "",
+"MHCombatAI": "",
+"MHDialogueChar": "",
+"MHDialogueInstance": "",
 "MHInstaller": "",
+"MHStoryDialogue": "",
+"MHStoryFighter": "",
+"MHStoryInstance": "",
 "MultiplayerClient": "",
 "Mutant": "",
 "NativeMethods": "",
 "NewBullet": "",
 "NinjaShuriken": "",
+"ObjectPropertyEditor": "",
 "ObjectState": "",
+"PackedArrayPropertyEditor": "",
 "ParryState": "",
 "ParticleEffect": "",
 "PlayerExtra": "",
@@ -527,8 +638,11 @@ _global_script_class_icons={
 "SweptHitbox": "",
 "TelekinesisProjectile": "",
 "TemporalPath": "",
+"TensorPropertyEditor": "",
+"ThemeIconButton": "",
 "ThrowBox": "res://addons/collision_box/throw_box.png",
 "ThrowState": "",
+"TypeOptionButton": "",
 "UGCItem": "",
 "UsableRequirement": "",
 "Utils": "",
@@ -553,6 +667,7 @@ config/icon="res://icon2.png"
 
 [autoload]
 
+JSONManager="*res://story/script/JSONManager.gd"
 Global="*res://Global.gd"
 SteamHustle="*res://SteamY.gd"
 ReplayManager="*res://ReplayManager.gd"
@@ -585,7 +700,7 @@ window/stretch/aspect="keep"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/char_creator/plugin.cfg", "res://addons/collision_box/plugin.cfg", "res://addons/export_categories/plugin.cfg", "res://addons/multirun/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/char_creator/plugin.cfg", "res://addons/collision_box/plugin.cfg", "res://addons/dictionary_inspector/plugin.cfg", "res://addons/export_categories/plugin.cfg", "res://addons/multirun/plugin.cfg" )
 
 [global]
 

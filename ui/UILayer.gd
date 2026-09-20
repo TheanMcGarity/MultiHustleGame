@@ -95,6 +95,11 @@ var p2_time_run_out = false
 var p1_info_scene
 var p2_info_scene
 
+onready var action_buttons := {
+	1: $"%P1ActionButtons",
+	2: $"%P2ActionButtons",
+}
+
 onready var global_option_check_buttons = {
 	$"%EnableStyleColorsButton": "enable_custom_colors",
 	$"%EnableAurasButton": "enable_custom_particles",
@@ -156,6 +161,7 @@ func _ready():
 	$"%MHDiscordLink".connect("pressed", self, "_invite_to_mh_discord")
 	$"%PinkTarrLinkButton".connect("pressed", self, "_invite_to_mh_discord")
 	$"%SingleplayerButton".connect("pressed", self, "_on_singleplayer_pressed")
+	$"%StoryButton".connect("pressed", self, "debug_story_test")
 	$"%MultiplayerButton".connect("pressed", self, "_on_multiplayer_pressed")
 	$"%SteamMultiplayerButton".connect("pressed", self, "_on_steam_multiplayer_pressed")
 	$"%TournamentsMenuButton".connect("pressed", self, "_on_tournament_multiplayer_pressed")
@@ -1169,6 +1175,11 @@ func on_player_actionable_110():
 #	$"%P2SuperContainer".rect_min_size.y = 40
 	$"%P1ActionButtons".activate()
 	$"%P2ActionButtons".activate()
+	for ab in action_buttons:
+		if "1" in action_buttons[ab].name or "2" in action_buttons[ab].name:
+			continue
+		action_buttons[ab].activate()
+	
 	if is_instance_valid(game):
 		game.is_in_replay = false
 	$"%AdvantageLabel".text = ""
@@ -1926,6 +1937,10 @@ func _on_player_turn_ready(player_id):
 func setup_action_buttons():
 	$"%P1ActionButtons".init(game, GetRealID(1))
 	$"%P2ActionButtons".init(game, GetRealID(2))
+	for ab in action_buttons:
+		if "1" in action_buttons[ab].name or "2" in action_buttons[ab].name:
+			continue
+		action_buttons[ab].init(game, ab)	
 
 func silent_end_turn_for(player_id):
 	turn_timers[player_id].paused = true
@@ -1963,6 +1978,8 @@ func _on_turn_timer_timeout(player_id):
 	timer.paused = true
 
 func GetRealID(player_id):
+	if player_id != 1 and player_id != 2:
+		return player_id
 	if player_id == null:
 		return 1
 	var id =  multiHustle_UISelectors.selects[player_id][0].active_char_index
@@ -2044,6 +2061,10 @@ func on_player_actionable():
 		$"%P2TurnTimerBar".show()
 	$"%P1ActionButtons".re_init(GetRealID(1))
 	$"%P2ActionButtons".re_init(GetRealID(2))
+	for ab in action_buttons:
+		if "1" in action_buttons[ab].name or "2" in action_buttons[ab].name:
+			continue
+		action_buttons[ab].re_init(ab)
 	if is_instance_valid(game):
 		game.is_in_replay = false
 	$"%AdvantageLabel".text = ""
@@ -2088,3 +2109,16 @@ func _fix_window_position():
 	
 func add_song():
 	get_tree().get_root().get_node("Main/%ReplaySongConfirmDialogue").show_popup(2)
+
+func debug_story_test():
+	var css = $"%CharacterSelect"
+	if (css == null):
+		assert(false, "css=null")
+		return
+	var settings = css.game_settings_panel_container
+	var data = settings.scene_defaults.duplicate()
+	data["story_tres_path"] = "res://story/resource/test.tres"
+	data["singleplayer"] = true
+	data["seed"] = 1 # static, no rng
+	Network.main._on_match_ready(data)
+	pass

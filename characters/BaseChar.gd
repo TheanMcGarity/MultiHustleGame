@@ -2412,8 +2412,8 @@ func set_outline(color):
 func release_opponent():
 	if (not get_game().players_getting_throwed.has(id)):
 		return
-		if (get_game().players_getting_throwed[id] == null):
-			return
+	if (get_game().players_getting_throwed[id] == null):
+		return
 	for target in get_game().players_getting_throwed[id]:
 		var player = get_game().players[target]
 		if player.current_state().state_name == "Grabbed":

@@ -233,7 +233,7 @@ func ensure_script_override(object):
 	#for property in properties.keys():
 	#	object.set(property, properties[property])
 
-func pid_to_usernamepid_to_username(player_id):
+func pid_to_username(player_id):
 	if !is_instance_valid(game):
 		return ""
 	if SteamLobby.SPECTATING or !network_ids.has(player_id):

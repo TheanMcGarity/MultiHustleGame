@@ -5,6 +5,8 @@ const MOVE_AMOUNT = "-5"
 onready var hitbox = $Hitbox
 
 func _frame_12():
+	if host.lasso_targets.size() <=0:
+		return
 	if host.objs_map.has(host.lasso_projectile):
 		host.objs_map[host.lasso_projectile].disable()
 		host.lasso_projectile = null

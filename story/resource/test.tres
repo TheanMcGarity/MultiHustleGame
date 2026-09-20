@@ -1,0 +1,127 @@
+[gd_resource type="Resource" load_steps=14 format=2]
+
+[ext_resource path="res://story/script/StoryDialogue.gd" type="Script" id=1]
+[ext_resource path="res://story/script/StoryChar.gd" type="Script" id=2]
+[ext_resource path="res://story/script/StoryInstance.gd" type="Script" id=3]
+[ext_resource path="res://story/script/DialogueInstance.gd" type="Script" id=4]
+[ext_resource path="res://story/script/DialogueChar.gd" type="Script" id=5]
+
+[sub_resource type="Resource" id=1]
+script = ExtResource( 2 )
+name = "Player"
+character_type = "Cowboy"
+max_hp = 1500
+team = 1
+difficulty = 0
+behavior = 0
+search_mode = 0
+awareness = 0
+move_selection = 0
+learning_enabled = true
+LearningAlgorithm = 0
+preferred_winner = 0
+director_strength = 0
+battle_pacing = 0
+move_visibility = 0
+exhaustive_limit = 0
+tactical_depth = 0
+simulation_cache_enabled = true
+ignored_moves = ""
+ignored_move_cache = {
+}
+di_policy = 0
+resource_strategy = 0
+
+[sub_resource type="Resource" id=2]
+script = ExtResource( 2 )
+name = "Evil Mcshmevil"
+character_type = "Wizard"
+max_hp = 1
+team = 2
+difficulty = 2
+behavior = 2
+search_mode = 1
+awareness = 0
+move_selection = 3
+learning_enabled = true
+LearningAlgorithm = 0
+preferred_winner = 1
+director_strength = 2
+battle_pacing = 0
+move_visibility = 0
+exhaustive_limit = 0
+tactical_depth = 1
+simulation_cache_enabled = true
+ignored_moves = ""
+ignored_move_cache = {
+}
+di_policy = 0
+resource_strategy = 0
+
+[sub_resource type="Resource" id=3]
+script = ExtResource( 2 )
+name = "Evil Mcshmevil's clone"
+character_type = "Wizard"
+max_hp = 1
+team = 2
+difficulty = 2
+behavior = 2
+search_mode = 1
+awareness = 0
+move_selection = 3
+learning_enabled = true
+LearningAlgorithm = 0
+preferred_winner = 1
+director_strength = 2
+battle_pacing = 0
+move_visibility = 0
+exhaustive_limit = 0
+tactical_depth = 1
+simulation_cache_enabled = true
+ignored_moves = ""
+ignored_move_cache = {
+}
+di_policy = 0
+resource_strategy = 0
+
+[sub_resource type="Resource" id=4]
+script = ExtResource( 4 )
+text = "i listen to think of it by ksi"
+color = Color( 1, 0.498039, 0.498039, 1 )
+length_ticks = 60
+
+[sub_resource type="Resource" id=5]
+script = ExtResource( 5 )
+id = 2
+dialogue = {
+"evil_intro": SubResource( 4 )
+}
+
+[sub_resource type="Resource" id=6]
+script = ExtResource( 4 )
+text = "gross"
+color = Color( 1, 1, 1, 1 )
+length_ticks = 60
+
+[sub_resource type="Resource" id=7]
+script = ExtResource( 5 )
+id = 1
+dialogue = {
+"player_intro": SubResource( 6 )
+}
+
+[sub_resource type="Resource" id=8]
+script = ExtResource( 1 )
+characters = {
+"evil_mcshmevil": SubResource( 5 ),
+"player": SubResource( 7 )
+}
+
+[resource]
+script = ExtResource( 3 )
+dialogue_collection = SubResource( 8 )
+characters = {
+"1": SubResource( 1 ),
+"2": SubResource( 2 ),
+"3": SubResource( 3 )
+}

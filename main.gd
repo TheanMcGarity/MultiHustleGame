@@ -38,10 +38,14 @@ var started_ghost_this_frame = false
 
 var _Global = Network
 
+var story_tres:MHStoryInstance
+
 func _enter_tree():
 	pass
 
 func _ready():
+	if not OS.is_debug_build():
+		$"%StoryButton".visible = false
 	if Steam.getAppID() != 2212330:
 		$"%SingleplayerButton".visible = false
 		$"%SteamMultiplayerButton".visible = false
@@ -755,7 +759,40 @@ func setup_game_deferred(singleplayer, data):
 	Network.log("Setup_game_deferred called")
 	Network.log("Starting game with data: " + str(data))
 	game = preload("res://Game.tscn").instance()
-	
+	if data.has("story_tres_path"):
+		data["ai_config"] = { }
+		story_tres = load(data.story_tres_path)
+		data.selected_characters = { }
+		Network.player_character_names = {}
+		for index in story_tres.characters:
+			var chara:MHStoryFighter = story_tres.characters[index]
+			var selection_data = { 
+				"name": MHStoryFighter.NINJA
+			}
+			var ai_data = {
+				"behavior": chara.behavior,
+				"search_mode": chara.search_mode,
+				"awareness": chara.awareness,
+				"move_selection": chara.move_selection,
+				"learning_enabled": chara.learning_enabled,
+				"LearningAlgorithm": chara.LearningAlgorithm,
+				"preferred_winner": chara.preferred_winner,
+				"director_strength": chara.director_strength,
+				"battle_pacing": chara.battle_pacing,
+				"move_visibility": chara.move_visibility,
+				"exhaustive_limit": chara.exhaustive_limit,
+				"tactical_depth": chara.tactical_depth,
+				"simulation_cache_enabled": chara.simulation_cache_enabled,
+				"ignored_moves": chara.ignored_moves,
+				"ignored_move_cache": chara.ignored_move_cache,
+				"di_policy": chara.di_policy,
+				"resource_strategy": chara.resource_strategy
+			}
+			selection_data.name = chara.character_type
+			data.selected_characters[int(index)] = selection_data
+			Network.player_character_names[int(index)] = chara.name
+			data.ai_config[int(index)] = ai_data
+			
 	#game.set_script(load("res://game.gd"))
 
 	game_layer.add_child(game)
@@ -788,7 +825,7 @@ func setup_game_deferred(singleplayer, data):
 				#user_data["p"+str(index)] = Network.pid_to_username(index)
 				#if user_data["p"+str(index)] == "":
 				#	user_data["p"+str(index)] = "p"+str(index)
-		else :
+		else:
 			for index in data.selected_characters.keys():
 				# Removed the normal username use because... why?
 				var name = data.selected_characters[index]["name"]
@@ -799,7 +836,6 @@ func setup_game_deferred(singleplayer, data):
 					name.erase(0, customPos+2)
 				name = "P"+str(index)+": "+name
 				user_data["p"+str(index)] = name
-
 	if game.start_game(singleplayer, data) is bool:
 		Network.log("Something went wrong starting the game")
 		return

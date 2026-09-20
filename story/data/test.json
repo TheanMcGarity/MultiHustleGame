@@ -1,0 +1,187 @@
+{
+   "__is_resource__": true,
+   "script_path": "res://story/script/StoryInstance.gd",
+   "data": {
+      "dialogue_collection": {
+         "__is_resource__": true,
+         "script_path": "res://story/script/StoryDialogue.gd",
+         "data": {
+            "__is_resource__": true,
+            "script_path": "res://story/script/StoryDialogue.gd",
+            "data": {
+               "characters": {
+                  "evil_mcshmevil": {
+                     "__is_resource__": true,
+                     "script_path": "res://story/script/DialogueChar.gd",
+                     "data": {
+                        "__is_resource__": true,
+                        "script_path": "res://story/script/DialogueChar.gd",
+                        "data": {
+                           "id": 2,
+                           "dialogue": {
+                              "evil_intro": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "text": "i listen to think of it by ksi",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 127,
+                                          "b": 127,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 60
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  },
+                  "player": {
+                     "__is_resource__": true,
+                     "script_path": "res://story/script/DialogueChar.gd",
+                     "data": {
+                        "__is_resource__": true,
+                        "script_path": "res://story/script/DialogueChar.gd",
+                        "data": {
+                           "id": 1,
+                           "dialogue": {
+                              "player_intro": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "text": "gross",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 255,
+                                          "b": 255,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 60
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "characters": {
+         "1": {
+            "__is_resource__": true,
+            "script_path": "res://story/script/StoryChar.gd",
+            "data": {
+               "__is_resource__": true,
+               "script_path": "res://story/script/StoryChar.gd",
+               "data": {
+                  "name": "Player",
+                  "character_type": "Cowboy",
+                  "max_hp": 1500,
+                  "team": 1,
+                  "difficulty": 0,
+                  "behavior": 0,
+                  "search_mode": 0,
+                  "awareness": 0,
+                  "move_selection": 0,
+                  "learning_enabled": true,
+                  "LearningAlgorithm": 0,
+                  "preferred_winner": 0,
+                  "director_strength": 0,
+                  "battle_pacing": 0,
+                  "move_visibility": 0,
+                  "exhaustive_limit": 0,
+                  "tactical_depth": 0,
+                  "simulation_cache_enabled": true,
+                  "ignored_moves": "",
+                  "ignored_move_cache": {
+
+                  },
+                  "di_policy": 0,
+                  "resource_strategy": 0
+               }
+            }
+         },
+         "2": {
+            "__is_resource__": true,
+            "script_path": "res://story/script/StoryChar.gd",
+            "data": {
+               "__is_resource__": true,
+               "script_path": "res://story/script/StoryChar.gd",
+               "data": {
+                  "name": "Evil Mcshmevil",
+                  "character_type": "Wizard",
+                  "max_hp": 1,
+                  "team": 2,
+                  "difficulty": 2,
+                  "behavior": 2,
+                  "search_mode": 1,
+                  "awareness": 0,
+                  "move_selection": 3,
+                  "learning_enabled": true,
+                  "LearningAlgorithm": 0,
+                  "preferred_winner": 1,
+                  "director_strength": 2,
+                  "battle_pacing": 0,
+                  "move_visibility": 0,
+                  "exhaustive_limit": 0,
+                  "tactical_depth": 1,
+                  "simulation_cache_enabled": true,
+                  "ignored_moves": "",
+                  "ignored_move_cache": {
+
+                  },
+                  "di_policy": 0,
+                  "resource_strategy": 0
+               }
+            }
+         },
+         "3": {
+            "__is_resource__": true,
+            "script_path": "res://story/script/StoryChar.gd",
+            "data": {
+               "__is_resource__": true,
+               "script_path": "res://story/script/StoryChar.gd",
+               "data": {
+                  "name": "Evil Mcshmevil's clone",
+                  "character_type": "Wizard",
+                  "max_hp": 1,
+                  "team": 2,
+                  "difficulty": 2,
+                  "behavior": 2,
+                  "search_mode": 1,
+                  "awareness": 0,
+                  "move_selection": 3,
+                  "learning_enabled": true,
+                  "LearningAlgorithm": 0,
+                  "preferred_winner": 1,
+                  "director_strength": 2,
+                  "battle_pacing": 0,
+                  "move_visibility": 0,
+                  "exhaustive_limit": 0,
+                  "tactical_depth": 1,
+                  "simulation_cache_enabled": true,
+                  "ignored_moves": "",
+                  "ignored_move_cache": {
+
+                  },
+                  "di_policy": 0,
+                  "resource_strategy": 0
+               }
+            }
+         }
+
+      }
+   }
+}

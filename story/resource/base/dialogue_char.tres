@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://story/script/DialogueChar.gd" type="Script" id=1]
+
+[resource]
+resource_name = "test2"
+script = ExtResource( 1 )
+id = 0
+dialogue = {
+}

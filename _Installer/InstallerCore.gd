@@ -48,6 +48,8 @@ func init_data():
 	pass
 
 func _ready():
+	if (OS.is_debug_build()):
+		return
 	if wait:
 		yield(self, "end_wait")
 		

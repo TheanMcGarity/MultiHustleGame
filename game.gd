@@ -244,10 +244,15 @@ func _ready():
 	hooks.ready()
 	
 func init_ai(pid):
+	if Network.main.story_tres == null:
+		return
+	if pid == 1:
+		return
 	var brain = Node2D.new()
 	brain.name = "CombatAI%d" % pid
 	brain.set_script(load("res://ai/CombatAI.gd"))
 	brain.forced_player = pid
+	brain.ai_player = pid
 	add_child(brain)
 
 func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vector2.RIGHT):
@@ -1694,8 +1699,8 @@ func handle_distance_wall():
 	half_dist = min(half_dist, 250) + 300
 	
 	if (oob_enabled and !is_ghost):
-		distance_walls[-1].set_pos(str(half_dist + center),"0")
-		distance_walls[1].set_pos(str(-half_dist + center),"0")
+		distance_walls[-1].set_pos(str(half_dist + center * 0.6),"0")
+		distance_walls[1].set_pos(str(-half_dist + center * 0.6),"0")
 
 func _process(delta):
 	

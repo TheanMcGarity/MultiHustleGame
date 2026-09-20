@@ -64,7 +64,9 @@ func get_char_name(index:int):
 			name = Network.game.player_names[index]
 	else:
 		var chara = Network.player_character_names[index]
-		name = "p%d - %s" % [index, chara]#, Network.player_character_uses[chara]]
+		name = "p%d - %s" % [index, chara]
+		# restored og version of partially commented code for later use:
+		# name = "p%d - %s (%d)" % [index, chara, Network.player_character_uses[chara]]
 	return name
 
 func deactivate_char(index:int):
