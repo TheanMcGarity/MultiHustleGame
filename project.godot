@@ -54,6 +54,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://projectile/BaseProjectile.gd"
 }, {
+"base": "Resource",
+"class": "BaseStoryTrigger",
+"language": "GDScript",
+"path": "res://story/script/StoryTriggerBase.gd"
+}, {
 "base": "CharacterState",
 "class": "BeastState",
 "language": "GDScript",
@@ -118,6 +123,11 @@ _global_script_classes=[ {
 "class": "CustomTrailParticle",
 "language": "GDScript",
 "path": "res://fx/CustomTrailParticle.gd"
+}, {
+"base": "BaseStoryTrigger",
+"class": "DeathStoryTrigger",
+"language": "GDScript",
+"path": "res://story/script/trigger/StoryTriggerDead.gd"
 }, {
 "base": "ObjectState",
 "class": "DefaultFireball",
@@ -223,6 +233,11 @@ _global_script_classes=[ {
 "class": "GroundedParryState",
 "language": "GDScript",
 "path": "res://characters/states/NewParry.gd"
+}, {
+"base": "BaseStoryTrigger",
+"class": "HPStoryTrigger",
+"language": "GDScript",
+"path": "res://story/script/trigger/StoryTriggerHP.gd"
 }, {
 "base": "",
 "class": "HelloWorld",
@@ -554,6 +569,7 @@ _global_script_class_icons={
 "BaseCollectionPropertyEditor": "",
 "BaseObj": "",
 "BaseProjectile": "",
+"BaseStoryTrigger": "",
 "BeastState": "",
 "BetterRng": "",
 "ButtonCategoryContainer": "",
@@ -567,6 +583,7 @@ _global_script_class_icons={
 "Cowboy": "",
 "CustomResourcePicker": "",
 "CustomTrailParticle": "",
+"DeathStoryTrigger": "",
 "DefaultFireball": "",
 "DictPropertyEditor": "",
 "DictionaryInspectorPlugin": "",
@@ -588,6 +605,7 @@ _global_script_class_icons={
 "GoodCamera": "",
 "GrapplingHook": "",
 "GroundedParryState": "",
+"HPStoryTrigger": "",
 "HelloWorld": "",
 "Hitbox": "res://addons/collision_box/hitbox.png",
 "HitboxData": "",

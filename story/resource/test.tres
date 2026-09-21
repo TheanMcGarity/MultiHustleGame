@@ -1,10 +1,11 @@
-[gd_resource type="Resource" load_steps=16 format=2]
+[gd_resource type="Resource" load_steps=20 format=2]
 
 [ext_resource path="res://story/script/StoryChar.gd" type="Script" id=1]
 [ext_resource path="res://story/script/StoryInstance.gd" type="Script" id=2]
 [ext_resource path="res://story/script/StoryDialogue.gd" type="Script" id=3]
 [ext_resource path="res://story/script/DialogueChar.gd" type="Script" id=4]
 [ext_resource path="res://story/script/DialogueInstance.gd" type="Script" id=5]
+[ext_resource path="res://story/resource/base/hp_trigger.tres" type="Resource" id=6]
 
 [sub_resource type="Resource" id=1]
 script = ExtResource( 1 )
@@ -92,6 +93,45 @@ intro_str = ""
 
 [sub_resource type="Resource" id=4]
 script = ExtResource( 5 )
+next = "evil_mcshmevil.clone_died_2"
+text = "vro"
+color = Color( 1, 0.498039, 0.498039, 1 )
+length_ticks = 110
+state_name = "Wait"
+state_extra = {
+}
+state_data = {
+}
+triggers = [ ExtResource( 6 ) ]
+
+[sub_resource type="Resource" id=5]
+script = ExtResource( 5 )
+next = "evil_mcshmevil.clone_died_3"
+text = "youre supposed to die"
+color = Color( 1, 0.498039, 0.498039, 1 )
+length_ticks = 130
+state_name = "Wait"
+state_extra = {
+}
+state_data = {
+}
+triggers = [ ExtResource( 6 ) ]
+
+[sub_resource type="Resource" id=6]
+script = ExtResource( 5 )
+next = ""
+text = "not my clone ... ... ... ... [color=#ff0000]kys[/color]"
+color = Color( 1, 0.498039, 0.498039, 1 )
+length_ticks = 80
+state_name = "Wait"
+state_extra = {
+}
+state_data = {
+}
+triggers = [ ExtResource( 6 ) ]
+
+[sub_resource type="Resource" id=7]
+script = ExtResource( 5 )
 next = "player.player_intro_1"
 text = "i listen to think of it by ksi"
 color = Color( 1, 0.498039, 0.498039, 1 )
@@ -101,15 +141,19 @@ state_extra = {
 }
 state_data = {
 }
+triggers = [ ExtResource( 6 ) ]
 
-[sub_resource type="Resource" id=5]
+[sub_resource type="Resource" id=8]
 script = ExtResource( 4 )
 id = 2
 dialogue = {
-"evil_intro_1": SubResource( 4 )
+"clone_died_1": SubResource( 4 ),
+"clone_died_2": SubResource( 5 ),
+"clone_died_3": SubResource( 6 ),
+"evil_intro_1": SubResource( 7 )
 }
 
-[sub_resource type="Resource" id=6]
+[sub_resource type="Resource" id=9]
 script = ExtResource( 5 )
 next = "player.player_intro_2"
 text = "why"
@@ -120,8 +164,9 @@ state_extra = {
 }
 state_data = {
 }
+triggers = [ ExtResource( 6 ) ]
 
-[sub_resource type="Resource" id=7]
+[sub_resource type="Resource" id=10]
 script = ExtResource( 5 )
 next = "player.return_state"
 text = "thats just weird gng"
@@ -139,8 +184,9 @@ state_data = {
 "count": 0.0
 }
 }
+triggers = [ ExtResource( 6 ) ]
 
-[sub_resource type="Resource" id=8]
+[sub_resource type="Resource" id=11]
 script = ExtResource( 5 )
 next = ""
 text = ""
@@ -151,26 +197,27 @@ state_extra = {
 }
 state_data = {
 }
+triggers = [ ExtResource( 6 ) ]
 
-[sub_resource type="Resource" id=9]
+[sub_resource type="Resource" id=12]
 script = ExtResource( 4 )
 id = 1
 dialogue = {
-"player_intro_1": SubResource( 6 ),
-"player_intro_2": SubResource( 7 ),
-"return_state": SubResource( 8 )
+"player_intro_1": SubResource( 9 ),
+"player_intro_2": SubResource( 10 ),
+"return_state": SubResource( 11 )
 }
 
-[sub_resource type="Resource" id=10]
+[sub_resource type="Resource" id=13]
 script = ExtResource( 3 )
 characters = {
-"evil_mcshmevil": SubResource( 5 ),
-"player": SubResource( 9 )
+"evil_mcshmevil": SubResource( 8 ),
+"player": SubResource( 12 )
 }
 
 [resource]
 script = ExtResource( 2 )
-dialogue_collection = SubResource( 10 )
+dialogue_collection = SubResource( 13 )
 characters = {
 "1": SubResource( 1 ),
 "2": SubResource( 2 ),

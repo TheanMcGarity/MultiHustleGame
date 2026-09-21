@@ -155,7 +155,9 @@ const AGGRESSION_BONUS = 25.0
 # going - dropping a live combo to play safe is how Masters feel easy.
 const COMBO_DROP_PENALTY = 150.0
 
-const WHIFF_PENALTY = 60.0
+const WHIFF_PENALTY = 170.0
+const WHIFF_PENALTY_OPP = 65.0
+const WHIFF_PENALTY_OPP_SCALE = 5.0
 # A grab that whiffs against the foe's predicted plan in neutral is a
 # wasted turn: grabs are for starting combos and beating defense, not
 # fishing. (A grab that is genuinely the only damage-free option still
@@ -166,7 +168,7 @@ const GRAB_WHIFF_PENALTY = 40.0
 # throw starter a whiff and subtracts the penalty above.
 const THROW_CAPTURE_BONUS = 55.0
 
-const THROW_TECH_BONUS = 10.0
+const THROW_TECH_BONUS = 70.0
 # High-skill symmetric AI can deterministically agree on one safe answer
 # forever (Lightning Slice dittos exposed it). Only after several AI-vs-AI
 # turns with no damage, meaningful movement, meter, combo, or object progress
@@ -1367,7 +1369,7 @@ func _finish(my_session):
 		return
 	if decided_action != null:
 		_maybe_speak()
-	var MustSubmit = !game.player_turns[1]# = held_turn
+	var MustSubmit = held_turn
 	held_turn = false
 	if MustSubmit and is_instance_valid(fighter):
 		# The game is holding the turn open waiting on us: submit right now.
@@ -1413,8 +1415,10 @@ func _auto_submit(my_session):
 		action = "Continue"
 	# Release immediately before the real lock signal. The second brain starts
 	# synchronously from that signal and acquires the guard for its own search.
+		
 	ReplayManager.resimulating = false
-	fighter.on_action_selected(action, decided_data, decided_extra)
+	if game.player_turns[1]:
+		fighter.on_action_selected(action, decided_data, decided_extra)
 	game.ai_locked_in[ai_index] = true
 
 
@@ -1464,6 +1468,10 @@ func _score_options(player_id, versus_action, versus_data, extra, my_session, be
 	if buttons == null:
 		_report_fault("E102", "The Player %d action-button container could not be found. Check character and UI-mod compatibility." % int(player_id))
 		return results
+	var buttons2 = _action_buttons(1)
+	if buttons2 == null:
+		_report_fault("E102", "The Player %d action-button container could not be found. Check character and UI-mod compatibility." % int(1))
+		return results
 	if debug_logging:
 		print("CombatAI sim P%s Continue vs %s" % [str(player_id), str(versus_action)])
 	results.append(_scored_entry("Continue", null, extra, player_id, versus_action, versus_data, my_session, versus_extra))
@@ -1506,7 +1514,50 @@ func _score_options(player_id, versus_action, versus_data, extra, my_session, be
 	var ExplorationButtons = []
 	var PunishedButtons = []
 	var OrderedButtons = []
+	
+	var ProvenButtons2 = []
+	var ExplorationButtons2 = []
+	var PunishedButtons2 = []
+	var OrderedButtons2 = []
+	
+	var pos1 = game.players[1].get_pos()
+	var pos2 = game.players[ai_player].get_pos()
+	for PoolButton in buttons2.buttons:
+		if (PoolButton.state == null):
+			continue
+		if !_button_reachable(PoolButton) or _is_rejected_action(player_id, PoolButton.action_name, PoolButton):
+			continue
+		if PoolButton.state != null and PoolButton.state.has_method("is_usable") and !PoolButton.state.is_usable():
+			continue
+		var cat = PoolButton.state.type
+		if cat == CharacterState.ActionType.Movement:
+			continue
+		if ("Roll" in PoolButton.state.name):
+			continue
+		if ("Wait" in PoolButton.state.name):
+			continue
+		if ("Fall" in PoolButton.state.name):
+			continue
+		if ("Tuant" in PoolButton.state.name):
+			continue
+		if ("Team" in PoolButton.state.name):
+			continue
+		if (float(PoolButton.state.force_speed) < (((abs(sqrt(pow(pos1.x, 2) + pow(pos1.y, 2)) - sqrt(pow(pos2.x, 2) + pow(pos2.y, 2)))) / 3)) and float(PoolButton.state.force_speed) > 10):
+			continue
+		ExplorationButtons2.append(PoolButton)
+			
 	for PoolButton in buttons.buttons:
+		if (PoolButton.state == null):
+			continue
+		if !_button_reachable(PoolButton) or _is_rejected_action(player_id, PoolButton.action_name, PoolButton):
+			continue
+		if ("Tuant" in PoolButton.state.name):
+			continue
+		if ("Team" in PoolButton.state.name):
+			continue
+		if ("Roll" in PoolButton.state.name):
+			continue
+			
 		var PoolUses = 0.0
 		var PoolReward = 0.0
 		if learning_enabled and LearningBook.has(LearningCharacter) and LearningBook[LearningCharacter] is Dictionary:
@@ -1522,6 +1573,20 @@ func _score_options(player_id, versus_action, versus_data, extra, my_session, be
 			ProvenButtons.append(PoolButton)
 		else:
 			PunishedButtons.append(PoolButton)
+	var ProvenIndex2 = 0
+	var ExplorationIndex2 = 0
+	while ProvenIndex2 < ProvenButtons2.size() or ExplorationIndex2 < ExplorationButtons2.size():
+		for ProvenStep in range(3):
+			if ProvenIndex2 >= ProvenButtons2.size():
+				break
+			OrderedButtons2.append(ProvenButtons[ProvenIndex2])
+			ProvenIndex2 += 1
+		if ExplorationIndex2 < ExplorationButtons2.size():
+			OrderedButtons2.append(ExplorationButtons2[ExplorationIndex2])
+			ExplorationIndex2 += 1
+	for PunishedButton2 in PunishedButtons2:
+		OrderedButtons2.append(PunishedButton2)
+	
 	var ProvenIndex = 0
 	var ExplorationIndex = 0
 	while ProvenIndex < ProvenButtons.size() or ExplorationIndex < ExplorationButtons.size():
@@ -1535,42 +1600,55 @@ func _score_options(player_id, versus_action, versus_data, extra, my_session, be
 			ExplorationIndex += 1
 	for PunishedButton in PunishedButtons:
 		OrderedButtons.append(PunishedButton)
-	for button in OrderedButtons:
-		# Session deadline: keep what's scored, skip the rest. Partial
-		# knowledge submitted on time beats a stalled table.
-		if background_thinking and OS.get_ticks_msec() > session_deadline and (performance_mode or (search_mode == SEARCH_ADAPTIVE and awareness < AWARENESS_STRATEGIC and tactical_depth < 2)):
-			if debug_logging:
-				print("CombatAI Strategist sim P%s took too long" % [str(player_id)])
-			break
-		if !_button_reachable(button) or _is_rejected_action(player_id, button.action_name, button):
-			if debug_logging:
-				print("CombatAI Strategist sim P%s rejected action %s (%d)" % [str(player_id),button.action_name, ai_player])
-			continue
-		if beam != null and !beam.has(button.action_name):
-			if debug_logging:
-				print("CombatAI Strategist sim P%s beam doesnt contain action %s (%d)" % [str(player_id),button.action_name, ai_player])
-			continue
-		# Resource-gated moves (MP, charges, cooldowns on modded characters):
-		# submitting an unusable action makes the game Forfeit, so never
-		# consider one.
-		if button.state != null and button.state.has_method("is_usable") and !button.state.is_usable():
-			continue
-		var variants = _data_variants(player_id, button, actor, parry_read)
-		for vi in range(variants.size()):
-			for xi in range(action_extras.size()):
+	var count = 0
+	var count_full = OrderedButtons.size() * OrderedButtons2.size()
+	var display_name = Network.pid_to_username(ai_player)
+	for button2 in OrderedButtons2:
+		for button in OrderedButtons:
+			count += 1
+			status_label.bbcode_text = "[center]%s is thinking... (%d/%d)" % [display_name, count, count_full]
+			# Session deadline: keep what's scored, skip the rest. Partial
+			# knowledge submitted on time beats a stalled table.
+			if background_thinking and OS.get_ticks_msec() > session_deadline and (performance_mode or (search_mode == SEARCH_ADAPTIVE and awareness < AWARENESS_STRATEGIC and tactical_depth < 2)):
 				if debug_logging:
-					print("CombatAI Strategist sim P%s %s|%s|%s vs %s" % [str(player_id), button.action_name, str(vi), str(xi), str(versus_action)])
-				var entry = _scored_entry(button.action_name, variants[vi], action_extras[xi], player_id, versus_action, versus_data, my_session, versus_extra)
-				if entry is GDScriptFunctionState:
-					entry = yield(entry, "completed")
-				if entry == null:
-					return null
-				entry.key = button.action_name + "|" + str(vi) + "|" + str(xi)
-				entry.hit = last_sim_hit
-				entry.extended = last_sim_extended
-				entry.advantage = last_sim_advantage
-				entry.terms = last_sim_terms
-				results.append(entry)
+					print("CombatAI Strategist sim P%s took too long" % [str(player_id)])
+				break
+			if !_button_reachable(button) or _is_rejected_action(player_id, button.action_name, button):
+				if debug_logging:
+					print("CombatAI Strategist sim P%s rejected action %s (%d)" % [str(player_id),button.action_name, ai_player])
+				continue
+			if beam != null and !beam.has(button.action_name):
+				if debug_logging:
+					print("CombatAI Strategist sim P%s beam doesnt contain action %s (%d)" % [str(player_id),button.action_name, ai_player])
+				continue
+			# Resource-gated moves (MP, charges, cooldowns on modded characters):
+			# submitting an unusable action makes the game Forfeit, so never
+			# consider one.
+			if button.state != null and button.state.has_method("is_usable") and !button.state.is_usable():
+				continue
+			if button2.state != null and button2.state.has_method("is_usable") and !button2.state.is_usable():
+				continue
+			
+			var variants = _data_variants(player_id, button, actor, parry_read)
+			var variants2 = _data_variants(1, button2, actor.opponent, parry_read)
+			for vj in range(variants2.size()):
+				for vi in range(variants.size()):
+					for xi in range(action_extras.size()):
+						var entry = _scored_entry(button.action_name, variants[vi], action_extras[xi], player_id, button2.action_name, variants2[vj], my_session)
+						
+						if entry is GDScriptFunctionState:
+							entry = yield(entry, "completed")
+						if entry == null:
+							return null
+						entry.key = button.action_name + "|" + str(vi) + "|" + str(xi)
+						entry.hit = last_sim_hit
+						entry.extended = last_sim_extended
+						entry.advantage = last_sim_advantage
+						entry.terms = last_sim_terms
+						results.append(entry)
+						if debug_logging:
+							print("(%d-%d/%d) CombatAI Strategist sim P%s %s|%s|%s vs %s" % [results.size(),count,count_full,str(player_id), button.action_name, str(vi), str(xi), str(button2.action_name)])
+						
 	# Character-specific turn controls live in custom PlayerExtra scenes rather
 	# than a move's ActionUIData. The game's standard PlayerExtra is shared by
 	# every fighter and contains ordinary turn/DI controls; sweeping it again
@@ -2335,6 +2413,13 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 	var my_combo = me.combo_count
 	var foe_combo = foe.combo_count
 	var ComboUnbroken = true
+	var whiff_penalty = 0
+	
+	if ("Whiff" in action):
+		whiff_penalty += WHIFF_PENALTY
+	if ("Whiff" in versus_action):
+		whiff_penalty += WHIFF_PENALTY_OPP
+		whiff_penalty += WHIFF_PENALTY_OPP_SCALE * foe.turn_frames
 	# True 2D distance: an airborne juggled opponent is only "close" if we
 	# match their height too - X-only gap made the AI walk under juggles.
 	# get_pos() returns an {x, y} Dictionary, NOT a Vector2 - subtract per
@@ -2361,7 +2446,7 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 
 	var damage_dealt = foe_hp - foe.hp
 	var damage_taken = my_hp - me.hp
-	var throw_tech = _is_throw_capture(me)
+	var throw_tech = _is_throw_tech(me)
 	var throw_capture = _is_throw_capture(foe)
 	var foe_throw_capture = _is_throw_capture(me)
 	last_sim_hit = damage_dealt > 0 or throw_capture
@@ -2374,8 +2459,12 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 	# cautious value - the revert knob if aggression overshoots.)
 	var throw_tech_term = THROW_TECH_BONUS if throw_tech else 0.0
 	var throw_term = THROW_CAPTURE_BONUS if throw_capture and damage_dealt <= 0 else 0.0
-	var foe_throw_term = (THROW_CAPTURE_BONUS if throw_capture and damage_dealt <= 0 else 0.0) * -1
-	var score = damage_dealt * 1.1 - damage_taken * 1.25 + throw_term + foe_throw_term + throw_tech_term
+	var foe_throw_term = (THROW_CAPTURE_BONUS * 1.33 if foe_throw_capture and damage_taken <= 0 else 0.0) * -1
+	var score = damage_dealt * 1.1 - damage_taken * 1.25 + throw_term + foe_throw_term + throw_tech_term - whiff_penalty
+	
+	if damage_taken > 0 and damage_dealt <= 0:
+		score -= 150.0 
+	
 	# Recovery frames count fully in the two situations that decide rounds:
 	# the exchange made CONTACT (the punish, the pressure, "am I minus now"),
 	# or the move COMMITTED to travel (whiffing a lunge is how you die).
@@ -2455,8 +2544,7 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 			"advantage": last_sim_advantage,
 			"terms": last_sim_terms.duplicate(true),
 		}
-	if (me.current_state().get_script().get_path() == "res://characters/states/WhiffInstantCancel.gd"):
-		score -= WHIFF_PENALTY
+	
 	return score
 
 
@@ -2485,6 +2573,8 @@ func _is_throw_tech(sim_foe):
 	var state = sim_foe.current_state()
 	return state != null and state.name == "ThrowTech"
 
+func _get_real_state(id):
+	return game.get_player(id).current_state()
 
 func _is_grabbed_state_name(state_name):
 	var normalized = str(state_name).to_lower().replace(" ", "").replace("_", "")
@@ -3111,13 +3201,25 @@ func _burst_track(player_id, action):
 	var ckey = _book_char_key(player_id)
 	if ckey == "":
 		return
-	var rec = burst_book.get(ckey)
+	#var rec = burst_book.get(ckey)
+	var rec = burst_book.get("player")
 	if rec == null:
-		rec = {"bursts": 0, "sum_depth": 0, "min_depth": depth}
+		rec = {"bursts": 0, "sum_depth": 0, "min_depth": depth, "common_depth": depth, "depth_history": [depth]}
 		burst_book[ckey] = rec
 	rec.bursts = int(rec.bursts) + 1
 	rec.sum_depth = int(rec.sum_depth) + depth
 	rec.min_depth = int(min(int(rec.min_depth), depth))
+	if not rec.has("common_depth"):
+		rec["common_depth"] = depth
+	if not rec.has("common_depth"):
+		rec["depth_history"] = [depth]
+	else:
+		rec.depth_history.append(depth)
+	var common_depth := 0
+	for cdepth in rec.depth_history:
+		common_depth += cdepth
+	common_depth = int(common_depth / rec.depth_history.size())
+	rec.common_depth = common_depth
 	if debug_logging:
 		print("CombatAI: %s bursted at combo depth %d (avg now %.1f over %d)" % [ckey, depth, float(rec.sum_depth) / rec.bursts, rec.bursts])
 	_save_bursts()
@@ -3140,14 +3242,17 @@ func _save_bursts():
 					on_disk[ckey] = mine
 			burst_book = on_disk
 	if file.open(BURST_BOOK_PATH, File.WRITE) == OK:
-		file.store_string(JSON.print(burst_book))
+		file.store_string(JSON.print(burst_book, "   "))
 		file.close()
 
 
 # The combo depth at which this character tends to burst. Below the sample
 # floor we don't trust the average yet and use the generic "real combo" depth.
 func _burst_depth_for(player_id):
-	var rec = burst_book.get(_book_char_key(player_id))
+	if player_id != 1:
+		return 99999
+#	var rec = burst_book.get(_book_char_key(player_id))
+	var rec = burst_book.get("player")
 	if rec == null or int(rec.bursts) < BURST_MIN_SAMPLES:
 		return BURST_LEARN_MIN_DEPTH
 	# Bias toward the EARLIEST they've bursted, not the mean - reading a burst
@@ -4389,6 +4494,8 @@ func _update_stagnation():
 # Apply the loop breaker to decision copies only. Search tables, awareness
 # blending, beams, and study diagnostics retain their honest simulation score.
 func _break_stagnant_loop(scored):
+	return scored
+	# scrapped
 	if !both_ai or stagnation_turns < LOOP_STAGNATION_START or recent_ai_actions.empty():
 		return scored
 	var repeats = {}

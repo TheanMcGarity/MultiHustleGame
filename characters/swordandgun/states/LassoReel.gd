@@ -11,6 +11,8 @@ func _frame_0():
 	grabbed = false
 
 func _frame_1():
+	if (host.lasso_targets.size() < 1):
+		return "Wait"
 	var opp_pos = host.obj_local_center(host.lasso_targets[host.lasso_targets.size() - 1])
 	throw_box.activate()
 	throw_box.x = opp_pos.x * host.get_facing_int()
@@ -18,6 +20,8 @@ func _frame_1():
 
 func _tick():
 	grabbed = false
+	if (host.lasso_targets.size() < 1):
+		return "Wait"
 	var opp_pos = host.obj_local_center(host.lasso_targets[host.lasso_targets.size() - 1])
 	throw_box.x = opp_pos.x * host.get_facing_int()
 	throw_box.y = opp_pos.y

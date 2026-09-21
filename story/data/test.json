@@ -19,6 +19,132 @@
                         "data": {
                            "id": 2,
                            "dialogue": {
+                              "clone_died_1": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "next": "evil_mcshmevil.clone_died_2",
+                                       "text": "vro",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 127,
+                                          "b": 127,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 110,
+                                       "state_name": "Wait",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                                "data": {
+                                                   "target_fighter": 3,
+                                                   "trigger_once": true,
+                                                   "hp_percentage": 0.8
+                                                }
+                                             }
+                                          }
+                                       ]
+                                    }
+                                 }
+                              },
+                              "clone_died_2": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "next": "evil_mcshmevil.clone_died_3",
+                                       "text": "youre supposed to get hurt",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 127,
+                                          "b": 127,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 130,
+                                       "state_name": "Wait",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                                "data": {
+                                                   "target_fighter": 1,
+                                                   "trigger_once": true,
+                                                   "hp_percentage": 0.5
+                                                }
+                                             }
+                                          }
+                                       ]
+                                    }
+                                 }
+                              },
+                              "clone_died_3": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "next": "",
+                                       "text": "not my clone ... ... ... ... [color=#ff0000]kys[/color]",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 127,
+                                          "b": 127,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 80,
+                                       "state_name": "Wait",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                                "data": {
+                                                   "target_fighter": 1,
+                                                   "trigger_once": true,
+                                                   "hp_percentage": 0.5
+                                                }
+                                             }
+                                          }
+                                       ]
+                                    }
+                                 }
+                              },
                               "evil_intro_1": {
                                  "__is_resource__": true,
                                  "script_path": "res://story/script/DialogueInstance.gd",
@@ -42,7 +168,22 @@
                                        },
                                        "state_data": {
 
-                                       }
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                                "data": {
+                                                   "target_fighter": 1,
+                                                   "trigger_once": true,
+                                                   "hp_percentage": 0.5
+                                                }
+                                             }
+                                          }
+                                       ]
                                     }
                                  }
                               }
@@ -82,7 +223,22 @@
                                        },
                                        "state_data": {
 
-                                       }
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                                "data": {
+                                                   "target_fighter": 1,
+                                                   "trigger_once": true,
+                                                   "hp_percentage": 0.5
+                                                }
+                                             }
+                                          }
+                                       ]
                                     }
                                  }
                               },
@@ -115,7 +271,22 @@
                                           "Melee Parry Timing": {
                                              "count": 0
                                           }
-                                       }
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                                "data": {
+                                                   "target_fighter": 1,
+                                                   "trigger_once": true,
+                                                   "hp_percentage": 0.5
+                                                }
+                                             }
+                                          }
+                                       ]
                                     }
                                  }
                               },
@@ -142,7 +313,22 @@
                                        },
                                        "state_data": {
 
-                                       }
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
+                                                "data": {
+                                                   "target_fighter": 1,
+                                                   "trigger_once": true,
+                                                   "hp_percentage": 0.5
+                                                }
+                                             }
+                                          }
+                                       ]
                                     }
                                  }
                               }
