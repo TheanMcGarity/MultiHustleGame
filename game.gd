@@ -247,6 +247,7 @@ func _ready():
 
 var init_ai_counter = 0
 func init_ai(pid):
+	return
 	if Network.main.story_tres == null:
 		return
 	if pid == 1:
@@ -870,14 +871,81 @@ func process_fx():
 			fx.tick()
 
 var _story_intros = { }
-var _story_chars = {}
+var _story_dialogue = { }
+var _story_chars = { }
+var _story_triggers = [ ]
+var _story_dia_queue = { }
 const _STORY_DIALOGUE_DELAY = 5
 var hitlag_until_tick = -1
 
-func handle_story_intros():
+func queue_dialogue_set(key):
+	var story_tres = Network.main.story_tres
+	
+	_story_dia_queue = { }
+	
+	var curr_intro = key
+	var intros_search = true
+	var intro_start = current_tick
+	
+	while intros_search:
+		var intro_split = curr_intro.split('.')
+		var chara = story_tres.dialogue_collection.characters[intro_split[0]]
+		var dia = chara.dialogue[intro_split[1]]
+		var extra = {
+			"DI": {"x":0, "y":0},
+			"reverse": false,
+			"feint": false,
+			"prediction": -1,
+			"opponent": players[int(_story_chars[intro_split[0]])].opponent.id
+		}
+		extra.merge(dia.state_extra)
+		_story_dia_queue[intro_start] = {
+			"char": int(_story_chars[intro_split[0]]),
+			"text": dia.text,
+			"text_color": dia.color.to_html(),
+			"length": dia.length_ticks,
+			"action": dia.state_name,
+			"act_extra": extra,
+			"act_data": dia.state_data
+		}
+		curr_intro = dia.next
+		intro_start = intro_start + _STORY_DIALOGUE_DELAY + dia.length_ticks
+				
+		if (curr_intro == ""):
+			intros_search = false
+
+func trigger_dialogue(key):
+	
+	queue_dialogue_set(key)
+	if not _story_dia_queue.has(current_tick):
+		print("Failed to get trigger dialogue for %s" % key)
+		assert(false, "Failed to get dialogue")
+		return
+	
+	
+	var dia_data = _story_dia_queue[current_tick]
+	var chara = players[dia_data.char]
+	chara.emote("[color=%s]%s[/color]" % [dia_data.text_color, dia_data.text], dia_data.length)
+	chara.on_action_selected(dia_data.action, dia_data.act_data, dia_data.act_extra)
+	hitlag_until_tick = current_tick + _STORY_DIALOGUE_DELAY + dia_data.length
+	
+		
+func setup_story_triggers():
+	var story = Network.main.story_tres
+	var col = story.dialogue_collection
+	for i in col.characters:
+		var chara = col.characters[i]
+		for j in chara.dialogue:
+			var dia = chara.dialogue[j]
+			for trigger in dia.triggers:
+				trigger.connect("trigger", self, "trigger_dialogue", ["%s.%s" % [i, j]])
+				_story_triggers.append(trigger)
+	pass
+func handle_story_dialogue():
 	if (is_ghost):
 		return
 	if (current_tick == 0):
+		setup_story_triggers()
 		var story_tres = Network.main.story_tres
 		var includes_intro = false
 		var first_intro = ""
@@ -920,19 +988,19 @@ func handle_story_intros():
 				
 				if (curr_intro == ""):
 					intros_search = false
+			_story_dia_queue = _story_intros
+			intro_cutscene_playing = true
 		else:
 			emit_signal("end_intro_cutscene")
-	if not _story_intros.has(current_tick):
+	if not _story_dia_queue.has(current_tick):
 		return
-	var dia_data = _story_intros[current_tick]
+	var dia_data = _story_dia_queue[current_tick]
 	var chara = players[dia_data.char]
 	chara.emote("[color=%s]%s[/color]" % [dia_data.text_color, dia_data.text], dia_data.length)
 	chara.on_action_selected(dia_data.action, dia_data.act_data, dia_data.act_extra)
 	hitlag_until_tick = current_tick + _STORY_DIALOGUE_DELAY + dia_data.length
-	intro_cutscene_playing = true
-	for player in players.keys():
-		Network.main.ui_layer.silent_end_turn_for(player)
-	pass
+	
+	
 var intro_cutscene_playing := false
 signal end_intro_cutscene()
 func tick():
@@ -1001,7 +1069,7 @@ func tick():
 			for idx in Network.main.story_tres.characters:
 				var chara = Network.main.story_tres.characters[idx]
 				_story_chars[chara.id] = idx
-		handle_story_intros()
+		handle_story_dialogue()
 		for player in players.values():
 			if (current_tick < hitlag_until_tick):
 				player_turns[player.id] = false
@@ -1011,6 +1079,8 @@ func tick():
 			elif intro_cutscene_playing:
 				intro_cutscene_playing = false
 				emit_signal("end_intro_cutscene")
+		for trigger in _story_triggers:
+			var triggered = trigger.attempt_trigger()
 		
 	for player_key in range(1, players.size() + 1):
 		var player:Fighter = players[player_key]

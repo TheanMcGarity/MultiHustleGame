@@ -19,6 +19,47 @@
                         "data": {
                            "id": 2,
                            "dialogue": {
+                              "on_clone_death": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "next": "",
+                                       "text": "yo [color=red]fuck you[/color]",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 127,
+                                          "b": 127,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 250,
+                                       "state_name": "ConjureStorm",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+
+                                       },
+                                       "triggers": [
+                                          {
+                                             "__is_resource__": true,
+                                             "script_path": "res://story/script/trigger/StoryTriggerDead.gd",
+                                             "data": {
+                                                "__is_resource__": true,
+                                                "script_path": "res://story/script/trigger/StoryTriggerDead.gd",
+                                                "data": {
+                                                   "target_fighter": 3,
+                                                   "trigger_once": true
+                                                }
+                                             }
+                                          }
+                                       ]
+                                    }
+                                 }
+                              },
                               "clone_died_1": {
                                  "__is_resource__": true,
                                  "script_path": "res://story/script/DialogueInstance.gd",
@@ -86,19 +127,7 @@
 
                                        },
                                        "triggers": [
-                                          {
-                                             "__is_resource__": true,
-                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                             "data": {
-                                                "__is_resource__": true,
-                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                                "data": {
-                                                   "target_fighter": 1,
-                                                   "trigger_once": true,
-                                                   "hp_percentage": 0.5
-                                                }
-                                             }
-                                          }
+
                                        ]
                                     }
                                  }
@@ -128,19 +157,7 @@
 
                                        },
                                        "triggers": [
-                                          {
-                                             "__is_resource__": true,
-                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                             "data": {
-                                                "__is_resource__": true,
-                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                                "data": {
-                                                   "target_fighter": 1,
-                                                   "trigger_once": true,
-                                                   "hp_percentage": 0.5
-                                                }
-                                             }
-                                          }
+
                                        ]
                                     }
                                  }
@@ -170,19 +187,7 @@
 
                                        },
                                        "triggers": [
-                                          {
-                                             "__is_resource__": true,
-                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                             "data": {
-                                                "__is_resource__": true,
-                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                                "data": {
-                                                   "target_fighter": 1,
-                                                   "trigger_once": true,
-                                                   "hp_percentage": 0.5
-                                                }
-                                             }
-                                          }
+
                                        ]
                                     }
                                  }
@@ -225,19 +230,7 @@
 
                                        },
                                        "triggers": [
-                                          {
-                                             "__is_resource__": true,
-                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                             "data": {
-                                                "__is_resource__": true,
-                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                                "data": {
-                                                   "target_fighter": 1,
-                                                   "trigger_once": true,
-                                                   "hp_percentage": 0.5
-                                                }
-                                             }
-                                          }
+
                                        ]
                                     }
                                  }
@@ -273,19 +266,7 @@
                                           }
                                        },
                                        "triggers": [
-                                          {
-                                             "__is_resource__": true,
-                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                             "data": {
-                                                "__is_resource__": true,
-                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                                "data": {
-                                                   "target_fighter": 1,
-                                                   "trigger_once": true,
-                                                   "hp_percentage": 0.5
-                                                }
-                                             }
-                                          }
+
                                        ]
                                     }
                                  }
@@ -315,19 +296,7 @@
 
                                        },
                                        "triggers": [
-                                          {
-                                             "__is_resource__": true,
-                                             "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                             "data": {
-                                                "__is_resource__": true,
-                                                "script_path": "res://story/script/trigger/StoryTriggerHP.gd",
-                                                "data": {
-                                                   "target_fighter": 1,
-                                                   "trigger_once": true,
-                                                   "hp_percentage": 0.5
-                                                }
-                                             }
-                                          }
+
                                        ]
                                     }
                                  }
