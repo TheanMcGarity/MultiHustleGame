@@ -10,6 +10,7 @@ const BEAST = "Mutant"
 # add alien when bro drops
 
 export var name = "default name"
+export var id = "default_name"
 export var character_type = NINJA
 export var max_hp = 1500
 export var team = 1
@@ -48,3 +49,5 @@ export var ignored_moves = ""
 export var ignored_move_cache = {}
 export var di_policy = MHCombatAI.DI_POLICY_STRATEGIST
 export var resource_strategy = MHCombatAI.RESOURCE_ADAPTIVE
+
+export var intro_str = "1.example_intro"

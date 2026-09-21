@@ -1441,13 +1441,13 @@ func cube():
 	$"%CubeAStyled".get_material().set_shader_param("color",sprite.get_material().get_shader_param("color"))
 	$"%CubeAStyled".get_material().set_shader_param("outline_color",sprite.get_material().get_shader_param("outline_color"))
 	$"%CubeAStyled".get_material().set_shader_param("use_outline",sprite.get_material().get_shader_param("use_outline"))
-func emote(message:String):
+func emote(message:String, length:int = EMOTE_TIME):
 	if (use_emote2()):
 		emote2(message)
 		return
 	
 	last_emote = message
-	emote_live_counter = 0
+	emote_live_counter = EMOTE_TIME - length
 	if not is_ghost:
 		ReplayManager.emote(message, id, current_tick)
 	if !Global.enable_emotes:

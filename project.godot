@@ -174,7 +174,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://characters/BaseChar.gd"
 }, {
-"base": "",
+"base": "Reference",
 "class": "FixedMath",
 "language": "NativeScript",
 "path": "res://bin/FixedMath.gdns"
@@ -695,6 +695,7 @@ window/size/height=360
 window/size/borderless=true
 window/size/test_width=1280
 window/size/test_height=720
+window/vsync/use_vsync=false
 window/stretch/mode="viewport"
 window/stretch/aspect="keep"
 

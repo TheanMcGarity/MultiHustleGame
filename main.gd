@@ -550,7 +550,8 @@ func _on_ghost_button_toggled(toggled):
 
 func _on_player_actionable():
 #	if singleplayer or Network.player_id == id:
-	ui_layer.on_player_actionable()
+	if (not game.current_tick < game.hitlag_until_tick):
+		ui_layer.on_player_actionable()
 	if hooks:
 		hooks.turn_ui_opened()
 	$"%GhostWaitTimer".start()
@@ -761,6 +762,7 @@ func setup_game_deferred(singleplayer, data):
 	game = preload("res://Game.tscn").instance()
 	if data.has("story_tres_path"):
 		data["ai_config"] = { }
+		var team_data = {}
 		story_tres = load(data.story_tres_path)
 		data.selected_characters = { }
 		Network.player_character_names = {}
@@ -792,7 +794,9 @@ func setup_game_deferred(singleplayer, data):
 			data.selected_characters[int(index)] = selection_data
 			Network.player_character_names[int(index)] = chara.name
 			data.ai_config[int(index)] = ai_data
+			team_data[int(index)] = chara.team
 			
+		data["teams"] = team_data
 	#game.set_script(load("res://game.gd"))
 
 	game_layer.add_child(game)

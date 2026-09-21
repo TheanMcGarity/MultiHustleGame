@@ -97,7 +97,7 @@ var p2_info_scene
 
 onready var action_buttons := {
 	1: $"%P1ActionButtons",
-	2: $"%P2ActionButtons",
+	#2: $"%P2ActionButtons",
 }
 
 onready var global_option_check_buttons = {
@@ -934,6 +934,8 @@ func init(game):
 	var m = Network.main # mh function uses m as its func param but vanilla uses game
 	self.main = m
 	game = m.game
+	#if m.story_tres != null:
+	#	yield(game, "end_intro_cutscene")
 	game.turns_taken = {}
 	for index in game.players.keys():
 		game.turns_taken[index] = false
@@ -987,6 +989,7 @@ func init(game):
 	#	spacebar_handler = preload("res://multihustle/SpacebarControl.gd").new()
 	#	spacebar_handler.uilayer = self
 	#	add_child(spacebar_handler)
+	
 
 func _on_rematch_button_pressed():
 	Network.request_rematch()
@@ -1081,7 +1084,8 @@ func check_players_ready():
 	if is_instance_valid(game):
 		if game.is_waiting_on_player():
 			if lock_in_tick != game.current_tick:
-				on_player_actionable()
+				if (not game.current_tick < game.hitlag_until_tick):
+					on_player_actionable()
 
 func _on_network_timer_timeout():
 	if Network.multiplayer_active:
@@ -1173,12 +1177,6 @@ func on_player_actionable_110():
 
 #	$"%P1SuperContainer".rect_min_size.y = 40
 #	$"%P2SuperContainer".rect_min_size.y = 40
-	$"%P1ActionButtons".activate()
-	$"%P2ActionButtons".activate()
-	for ab in action_buttons:
-		if "1" in action_buttons[ab].name or "2" in action_buttons[ab].name:
-			continue
-		action_buttons[ab].activate()
 	
 	if is_instance_valid(game):
 		game.is_in_replay = false
@@ -1938,7 +1936,7 @@ func setup_action_buttons():
 	$"%P1ActionButtons".init(game, GetRealID(1))
 	$"%P2ActionButtons".init(game, GetRealID(2))
 	for ab in action_buttons:
-		if "1" in action_buttons[ab].name or "2" in action_buttons[ab].name:
+		if "1" in action_buttons[ab].name:
 			continue
 		action_buttons[ab].init(game, ab)	
 
@@ -2062,7 +2060,11 @@ func on_player_actionable():
 	$"%P1ActionButtons".re_init(GetRealID(1))
 	$"%P2ActionButtons".re_init(GetRealID(2))
 	for ab in action_buttons:
-		if "1" in action_buttons[ab].name or "2" in action_buttons[ab].name:
+		if "1" in action_buttons[ab].name:
+			continue
+		action_buttons[ab].re_init(ab)
+	for ab in action_buttons:
+		if "1" in action_buttons[ab].name:
 			continue
 		action_buttons[ab].re_init(ab)
 	if is_instance_valid(game):

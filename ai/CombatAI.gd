@@ -154,6 +154,8 @@ const AGGRESSION_BONUS = 25.0
 # to keep the combo going eats this penalty if ANY candidate can keep it
 # going - dropping a live combo to play safe is how Masters feel easy.
 const COMBO_DROP_PENALTY = 150.0
+
+const WHIFF_PENALTY = 60.0
 # A grab that whiffs against the foe's predicted plan in neutral is a
 # wasted turn: grabs are for starting combos and beating defense, not
 # fishing. (A grab that is genuinely the only damage-free option still
@@ -163,6 +165,8 @@ const GRAB_WHIFF_PENALTY = 40.0
 # that captured state as real contact or the evaluator calls every successful
 # throw starter a whiff and subtracts the penalty above.
 const THROW_CAPTURE_BONUS = 55.0
+
+const THROW_TECH_BONUS = 10.0
 # High-skill symmetric AI can deterministically agree on one safe answer
 # forever (Lightning Slice dittos exposed it). Only after several AI-vs-AI
 # turns with no damage, meaningful movement, meter, combo, or object progress
@@ -327,7 +331,7 @@ var di_policy = DI_POLICY_STRATEGIST
 var resource_strategy = RESOURCE_ADAPTIVE
 var show_error_popups = true
 var auto_lock_in = true
-var debug_logging = OS.is_debug_build()
+var debug_logging = true#OS.is_debug_build()
 # Which side this brain instance is FOR (game.gd spawns one per side); the
 # AI Controls setting decides whether this instance lives. In AI-vs-AI
 # both live and each locks independently as soon as it has decided.
@@ -340,10 +344,10 @@ var plan_ahead = true
 var resim_held = false
 # Fast is a strict workload cap. Balanced preserves the v1.1 adaptive
 # behavior. Epic raises the simulation horizon and per-frame CPU allowance.
-var performance_profile = PERFORMANCE_BALANCED
+var performance_profile = PERFORMANCE_FAST
 var performance_mode = false
 # CPU pacing, independent from Thinking Load/search quality.
-var patience_mode = PATIENCE_NOT
+var patience_mode = PATIENCE_GOD_LEVEL
 
 # Deferred-thinking mode: wait for the player's lock before spending any
 # cycles - for machines where background thinking lags the player's own
@@ -460,18 +464,21 @@ var burst_book = {}
 
 var rng = RandomNumberGenerator.new()
 
+var ai_index = 0
+
 func dupe_action_buttons(pid):
-	if (pid == 1 or pid == 2 or Network.main.ui_layer.action_buttons.has(pid)):
+	if (pid == 1 or Network.main.ui_layer.action_buttons.has(pid)):
 		return
 	var p2_buttons =  main_node.find_node("P%dActionButtons" % 2)
 	var new:ActionButtons = p2_buttons.duplicate()
-	new.name = "P%dActionButtons" % pid
+	new.name = "AI_P%dActionButtons" % pid
 	Network.main.ui_layer.action_buttons[pid] = new
 	new.opponent_action_buttons_path = "/root/Main/UILayer/GameUI/BottomBar/ActionButtons/P1ActionButtonsContainer/P1ActionButtons"
 	get_tree().get_root().get_node("/root/Main/UILayer/GameUI").add_child(new)
 	new.rect_position = Vector2(9999,9999)
 	new.player_id = pid
 	new.game = game
+	new.ai = true
 	pass
 
 func _ready():
@@ -605,7 +612,7 @@ func _ready():
 		difficulty = int(clamp(side_skill - 1, 0, DIFFICULTY_TEMPS.size() - 1))
 	behavior_profile = behavior
 	behavior_profile = int(clamp(behavior_profile, BEHAVIOR_CLASSIC, BEHAVIOR_DEFENSIVE))
-	if both_ai and random_skill_aivai:
+	if random_skill_aivai:
 		# Each side rolls independently after side settings resolve.
 		difficulty = rng.randi() % DIFFICULTY_TEMPS.size()
 		if debug_logging:
@@ -751,6 +758,7 @@ func _turn_started_player(player):
 		starting_hp[ai_player] = max(1.0, float(fighter.hp))
 		starting_hp[int(player.id)] = max(1.0, float(player.hp))
 func _on_turn_started():
+	game.ai_locked_in[ai_index] = false
 	if fighter == null:
 		fighter = game.get_player(ai_player)
 		if fighter == null:
@@ -886,6 +894,8 @@ func _on_turn_started():
 		decided_data = null
 		decided_extra = null
 		return
+		
+	var waiting_for_others = is_waiting_for_others()
 	# AI-vs-AI is strictly turn-taking: one brain thinks at the boundary and
 	# locks, THEN the other thinks (triggered by the first lock arriving in
 	# _on_foe_action) with the whole frame budget to itself. Two brains
@@ -894,15 +904,20 @@ func _on_turn_started():
 	# raced sessions. Fairness is intact: every sim freshly copies the game
 	# and overwrites BOTH fighters' queued actions with its own hypothesis,
 	# so the second thinker never reads the first's locked move.
-	if both_ai and ai_player != _aivai_first_player() and foe_lock_tick != game.current_tick:
-		decided_action = null
-		decided_data = null
-		decided_extra = null
-		return
+	if waiting_for_others:
+		while is_waiting_for_others():
+			yield(get_tree(), "idle_frame")
 	var t = _think()
 	if t is GDScriptFunctionState:
 		pass # thinking continues across frames
 
+func is_waiting_for_others():
+	for ai in range(game.ai_locked_in.size()):
+		if (ai >= ai_index):
+			break
+		if (!game.ai_locked_in[ai]):
+			return true
+	return false
 
 # The player locked the turn in. If we already decided, apply our move over
 # whatever the UI had selected for us. If we're still thinking, hold the turn
@@ -954,7 +969,6 @@ func _on_foe_action(action, data, extra, foe):
 		_burst_track(int(fighter.opponent.id), action)
 	# Fair mode ignores the cached lock. Visibility modes opt into using it;
 	# the permission check happens inside _think, never implicitly here.
-	foe_lock_tick = game.current_tick
 	# Deferred-thinking mode (human matches) and the second brain's turn in
 	# sequential AI-vs-AI both start here: the other side has committed -
 	# think NOW. A visibility-permitted side scores against the cached lock;
@@ -1085,7 +1099,7 @@ func _think():
 	fighter.queued_data = null
 	fighter.queued_extra = null
 	
-	_action_buttons(ai_player).activate()
+	#_action_buttons(ai_player).activate()
 	
 	_resim_begin()
 	if background_thinking:
@@ -1308,14 +1322,14 @@ func _think():
 # original single-brain behavior.
 func _resim_begin():
 	ReplayManager.resimulating = true
-	if both_ai and main_node != null and not resim_held:
+	if main_node != null and not resim_held:
 		resim_held = true
 		var n = main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 0
 		main_node.set_meta("combatai_resim", n + 1)
 
 
 func _resim_end():
-	if both_ai and main_node != null and resim_held:
+	if main_node != null and resim_held:
 		resim_held = false
 		var n = main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 1
 		n = max(0, n - 1)
@@ -1333,7 +1347,7 @@ func _finish(my_session):
 	# Never pause SceneTree here: the player must retain pause/menu control while
 	# the frame-sliced search runs. Any early Wait is intercepted by _on_lock_in
 	# and replaced synchronously below once the calculated action is ready.
-	var GuardDeferredSubmit = both_ai and !held_turn and decided_action != null and auto_lock_in
+	var GuardDeferredSubmit = !held_turn and decided_action != null and auto_lock_in
 	if LastThinker and !GuardDeferredSubmit:
 		ReplayManager.resimulating = false
 	if status_label:
@@ -1353,7 +1367,7 @@ func _finish(my_session):
 		return
 	if decided_action != null:
 		_maybe_speak()
-	var MustSubmit = held_turn
+	var MustSubmit = !game.player_turns[1]# = held_turn
 	held_turn = false
 	if MustSubmit and is_instance_valid(fighter):
 		# The game is holding the turn open waiting on us: submit right now.
@@ -1367,33 +1381,30 @@ func _finish(my_session):
 	elif decided_action != null and auto_lock_in:
 		# AI-vs-AI submits synchronously so no idle frame can accept a queued Wait.
 		# Solo AI stays deferred to avoid re-entering player_actionable.
-		if both_ai:
-			_auto_submit(my_session)
-		else:
-			call_deferred("_auto_submit", my_session)
+		_auto_submit(my_session)
 	# In sequential AI-vs-AI, the first lock immediately starts the second
 	# brain. Wait for that second decision before starting a preview so the
 	# ghost cannot race the live search in a half-ready state.
-	if LastThinker and (!both_ai or (auto_lock_in and ai_player == _aivai_second_player())):
+	if LastThinker and ((auto_lock_in and ai_player == _aivai_second_player())):
 		main_node.call_deferred("_start_ghost")
 
 
 func _auto_submit(my_session):
 	if session != my_session:
-		if both_ai and !session_active and main_node != null and int(main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 0) == 0:
+		if !session_active and main_node != null and int(main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 0) == 0:
 			ReplayManager.resimulating = false
 		return
 	if session_active:
 		return
 	if !is_instance_valid(game) or game.current_tick != last_turn_tick or bool(game.get("undoing")):
-		if both_ai and main_node != null and int(main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 0) == 0:
+		if main_node != null and int(main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 0) == 0:
 			ReplayManager.resimulating = false
 		decided_action = null
 		decided_data = null
 		decided_extra = null
 		return
 	if !is_instance_valid(fighter) or decided_action == null:
-		if both_ai and main_node != null and int(main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 0) == 0:
+		if main_node != null and int(main_node.get_meta("combatai_resim") if main_node.has_meta("combatai_resim") else 0) == 0:
 			ReplayManager.resimulating = false
 		return
 	var action = decided_action
@@ -1402,9 +1413,9 @@ func _auto_submit(my_session):
 		action = "Continue"
 	# Release immediately before the real lock signal. The second brain starts
 	# synchronously from that signal and acquires the guard for its own search.
-	if both_ai:
-		ReplayManager.resimulating = false
+	ReplayManager.resimulating = false
 	fighter.on_action_selected(action, decided_data, decided_extra)
+	game.ai_locked_in[ai_index] = true
 
 
 func _abort(my_session):
@@ -1568,7 +1579,7 @@ func _score_options(player_id, versus_action, versus_data, extra, my_session, be
 	# local time boundary so one unusual UI can never hold the entire turn.
 	var PlayerExtraScene = actor.get("player_extra_params_scene")
 	var PlayerExtraPath = str(PlayerExtraScene.resource_path) if PlayerExtraScene is PackedScene else ""
-	var BuiltInPlayerExtra = PlayerExtraPath.begins_with("res://ui/") or PlayerExtraPath.begins_with("res://characters/swordandgun/") or PlayerExtraPath.begins_with("res://characters/wizard/") or PlayerExtraPath.begins_with("res://characters/stickman/") or PlayerExtraPath.begins_with("res://characters/robo/") or PlayerExtraPath.begins_with("res://characters/mutant/")
+	var BuiltInPlayerExtra = (PlayerExtraPath.begins_with("res://ui/") or PlayerExtraPath.begins_with("res://characters/")) and not PlayerExtraPath.begins_with("res://_")
 	var CustomPlayerExtra = PlayerExtraScene is PackedScene and !BuiltInPlayerExtra
 	var IsMikoExtra = PlayerExtraPath.find("/_LamMiko/characters/Miko/States/Miko_Extra.tscn") != -1
 	if int(player_id) == ai_player and CustomPlayerExtra and results.size() > 0 and (IsMikoExtra or OS.get_ticks_msec() <= session_deadline):
@@ -1865,6 +1876,7 @@ func _score_options(player_id, versus_action, versus_data, extra, my_session, be
 
 func _scored_entry(action, data, extra, player_id, versus_action, versus_data, my_session, versus_extra = null):
 	var score = _run_sim(player_id, action, data, extra, versus_action, versus_data, my_session, versus_extra)
+	
 	if score is GDScriptFunctionState:
 		score = yield(score, "completed")
 	if score == null:
@@ -2349,7 +2361,9 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 
 	var damage_dealt = foe_hp - foe.hp
 	var damage_taken = my_hp - me.hp
+	var throw_tech = _is_throw_capture(me)
 	var throw_capture = _is_throw_capture(foe)
+	var foe_throw_capture = _is_throw_capture(me)
 	last_sim_hit = damage_dealt > 0 or throw_capture
 	last_sim_extended = ComboUnbroken and me.combo_count > my_combo
 	last_sim_advantage = foe_ready - me_ready
@@ -2358,8 +2372,10 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 
 	# Taken-damage weight 1.1: slightly brave trades. (1.2 was the old
 	# cautious value - the revert knob if aggression overshoots.)
+	var throw_tech_term = THROW_TECH_BONUS if throw_tech else 0.0
 	var throw_term = THROW_CAPTURE_BONUS if throw_capture and damage_dealt <= 0 else 0.0
-	var score = damage_dealt * 1.0 - damage_taken * 1.1 + throw_term
+	var foe_throw_term = (THROW_CAPTURE_BONUS if throw_capture and damage_dealt <= 0 else 0.0) * -1
+	var score = damage_dealt * 1.1 - damage_taken * 1.25 + throw_term + foe_throw_term + throw_tech_term
 	# Recovery frames count fully in the two situations that decide rounds:
 	# the exchange made CONTACT (the punish, the pressure, "am I minus now"),
 	# or the move COMMITTED to travel (whiffing a lunge is how you die).
@@ -2439,6 +2455,8 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 			"advantage": last_sim_advantage,
 			"terms": last_sim_terms.duplicate(true),
 		}
+	if (me.current_state().get_script().get_path() == "res://characters/states/WhiffInstantCancel.gd"):
+		score -= WHIFF_PENALTY
 	return score
 
 
@@ -2460,6 +2478,12 @@ func _is_throw_capture(sim_foe):
 		return false
 	var state = sim_foe.current_state()
 	return state != null and _is_grabbed_state_name(str(state.name))
+
+func _is_throw_tech(sim_foe):
+	if sim_foe == null or !is_instance_valid(sim_foe) or !sim_foe.has_method("current_state"):
+		return false
+	var state = sim_foe.current_state()
+	return state != null and state.name == "ThrowTech"
 
 
 func _is_grabbed_state_name(state_name):

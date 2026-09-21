@@ -225,6 +225,8 @@ var duel := false
 var distance_walls := {}
 var oob_enabled := true
 
+var ai_locked_in = []
+
 func get_ticks_left():
 	return time - Utils.int_min(current_tick, time)
 
@@ -242,7 +244,8 @@ func _ready():
 	else:
 		emit_signal("simulation_continue")
 	hooks.ready()
-	
+
+var init_ai_counter = 0
 func init_ai(pid):
 	if Network.main.story_tres == null:
 		return
@@ -253,6 +256,9 @@ func init_ai(pid):
 	brain.set_script(load("res://ai/CombatAI.gd"))
 	brain.forced_player = pid
 	brain.ai_player = pid
+	ai_locked_in.append(false)
+	brain.ai_index = init_ai_counter
+	init_ai_counter += 1
 	add_child(brain)
 
 func _spawn_particle_effect(particle_effect: PackedScene, pos: Vector2, dir= Vector2.RIGHT):
@@ -863,8 +869,75 @@ func process_fx():
 		if is_instance_valid(fx):
 			fx.tick()
 
+var _story_intros = { }
+var _story_chars = {}
+const _STORY_DIALOGUE_DELAY = 5
+var hitlag_until_tick = -1
+
+func handle_story_intros():
+	if (is_ghost):
+		return
+	if (current_tick == 0):
+		var story_tres = Network.main.story_tres
+		var includes_intro = false
+		var first_intro = ""
+		for idx in story_tres.characters:
+			var chara = story_tres.characters[idx]
+			if (chara.intro_str != ""):
+				includes_intro = true
+				first_intro = chara.intro_str
+				break
+		if includes_intro:
+			var curr_intro = first_intro
+			var intros_search = true
+			var intro_start = 0
+			
+			while intros_search:
+				
+				var intro_split = curr_intro.split('.')
+				var chara = story_tres.dialogue_collection.characters[intro_split[0]]
+				var dia = chara.dialogue[intro_split[1]]
+				var extra = {
+					"DI": {"x":0, "y":0},
+					"reverse": false,
+					"feint": false,
+					"prediction": -1,
+					"opponent": players[int(_story_chars[intro_split[0]])].opponent.id
+				}
+				extra.merge(dia.state_extra)
+				_story_intros[intro_start] = {
+					"char": int(_story_chars[intro_split[0]]),
+					"text": dia.text,
+					"text_color": dia.color.to_html(),
+					"length": dia.length_ticks,
+					"action": dia.state_name,
+					"act_extra": extra,
+					"act_data": dia.state_data
+				}
+				
+				curr_intro = dia.next
+				intro_start = intro_start + _STORY_DIALOGUE_DELAY + dia.length_ticks
+				
+				if (curr_intro == ""):
+					intros_search = false
+		else:
+			emit_signal("end_intro_cutscene")
+	if not _story_intros.has(current_tick):
+		return
+	var dia_data = _story_intros[current_tick]
+	var chara = players[dia_data.char]
+	chara.emote("[color=%s]%s[/color]" % [dia_data.text_color, dia_data.text], dia_data.length)
+	chara.on_action_selected(dia_data.action, dia_data.act_data, dia_data.act_extra)
+	hitlag_until_tick = current_tick + _STORY_DIALOGUE_DELAY + dia_data.length
+	intro_cutscene_playing = true
+	for player in players.keys():
+		Network.main.ui_layer.silent_end_turn_for(player)
+	pass
+var intro_cutscene_playing := false
+signal end_intro_cutscene()
 func tick():
 	if (current_tick == 0):
+		# replay song
 		if (ReplayManager.playback and not is_ghost and singleplayer and Global.replay_song_mode == 1):
 			Global.play_song(Global.REPLAY_SONG_PATH)
 	
@@ -923,6 +996,22 @@ func tick():
 			fx.tick()
 	self.current_tick += 1
 
+	if (Network.main.story_tres != null):
+		if (current_tick == 0):
+			for idx in Network.main.story_tres.characters:
+				var chara = Network.main.story_tres.characters[idx]
+				_story_chars[chara.id] = idx
+		handle_story_intros()
+		for player in players.values():
+			if (current_tick < hitlag_until_tick):
+				player_turns[player.id] = false
+				turns_taken[player.id] = true
+				#player.state_interruptable = false
+				#player.hitlag_ticks = 1
+			elif intro_cutscene_playing:
+				intro_cutscene_playing = false
+				emit_signal("end_intro_cutscene")
+		
 	for player_key in range(1, players.size() + 1):
 		var player:Fighter = players[player_key]
 
@@ -1443,6 +1532,8 @@ func get_colliding_hitbox(hitboxes, hurtbox) -> Hitbox:
 	return hit_by
 
 func is_waiting_on_player():
+	if (current_tick < hitlag_until_tick):
+		return false
 	set_vanilla_game_started(true)
 
 	if self.forfeit_player != null:
@@ -1599,11 +1690,9 @@ func process_tick():
 	if !ReplayManager.playback:
 		if !is_waiting_on_player():
 				if can_tick:
-
 					if not Global.frame_advance:
 						self.snapping_camera = true
 					call_deferred("simulate_one_tick")
-
 
 					for index in players.keys():
 						player_turns[index] = false

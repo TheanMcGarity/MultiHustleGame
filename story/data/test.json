@@ -19,13 +19,14 @@
                         "data": {
                            "id": 2,
                            "dialogue": {
-                              "evil_intro": {
+                              "evil_intro_1": {
                                  "__is_resource__": true,
                                  "script_path": "res://story/script/DialogueInstance.gd",
                                  "data": {
                                     "__is_resource__": true,
                                     "script_path": "res://story/script/DialogueInstance.gd",
                                     "data": {
+                                       "next": "player.player_intro_1",
                                        "text": "i listen to think of it by ksi",
                                        "color": {
                                           "__type__": "Color",
@@ -34,7 +35,14 @@
                                           "b": 127,
                                           "a": 255
                                        },
-                                       "length_ticks": 60
+                                       "length_ticks": 60,
+                                       "state_name": "DashBackward",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+
+                                       }
                                     }
                                  }
                               }
@@ -51,14 +59,15 @@
                         "data": {
                            "id": 1,
                            "dialogue": {
-                              "player_intro": {
+                              "player_intro_1": {
                                  "__is_resource__": true,
                                  "script_path": "res://story/script/DialogueInstance.gd",
                                  "data": {
                                     "__is_resource__": true,
                                     "script_path": "res://story/script/DialogueInstance.gd",
                                     "data": {
-                                       "text": "gross",
+                                       "next": "player.player_intro_2",
+                                       "text": "why",
                                        "color": {
                                           "__type__": "Color",
                                           "r": 255,
@@ -66,7 +75,74 @@
                                           "b": 255,
                                           "a": 255
                                        },
-                                       "length_ticks": 60
+                                       "length_ticks": 45,
+                                       "state_name": "Taunt",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+
+                                       }
+                                    }
+                                 }
+                              },
+                              "player_intro_2": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "next": "player.return_state",
+                                       "text": "thats just weird gng",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 255,
+                                          "b": 255,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 120,
+                                       "state_name": "ParryHigh",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+                                          "Block Height": {
+                                             "x": 0,
+                                             "y": 0
+                                          },
+                                          "Melee Parry Timing": {
+                                             "count": 0
+                                          }
+                                       }
+                                    }
+                                 }
+                              },
+                              "return_state": {
+                                 "__is_resource__": true,
+                                 "script_path": "res://story/script/DialogueInstance.gd",
+                                 "data": {
+                                    "__is_resource__": true,
+                                    "script_path": "res://story/script/DialogueInstance.gd",
+                                    "data": {
+                                       "next": "",
+                                       "text": "",
+                                       "color": {
+                                          "__type__": "Color",
+                                          "r": 255,
+                                          "g": 255,
+                                          "b": 255,
+                                          "a": 255
+                                       },
+                                       "length_ticks": 0,
+                                       "state_name": "Wait",
+                                       "state_extra": {
+
+                                       },
+                                       "state_data": {
+
+                                       }
                                     }
                                  }
                               }
@@ -87,6 +163,7 @@
                "script_path": "res://story/script/StoryChar.gd",
                "data": {
                   "name": "Player",
+                  "id": "player",
                   "character_type": "Cowboy",
                   "max_hp": 1500,
                   "team": 1,
@@ -109,7 +186,8 @@
 
                   },
                   "di_policy": 0,
-                  "resource_strategy": 0
+                  "resource_strategy": 0,
+                  "intro_str": ""
                }
             }
          },
@@ -121,19 +199,20 @@
                "script_path": "res://story/script/StoryChar.gd",
                "data": {
                   "name": "Evil Mcshmevil",
+                  "id": "evil_mcshmevil",
                   "character_type": "Wizard",
                   "max_hp": 1,
                   "team": 2,
-                  "difficulty": 2,
+                  "difficulty": 4,
                   "behavior": 2,
                   "search_mode": 1,
                   "awareness": 0,
                   "move_selection": 3,
                   "learning_enabled": true,
                   "LearningAlgorithm": 0,
-                  "preferred_winner": 1,
+                  "preferred_winner": 2,
                   "director_strength": 2,
-                  "battle_pacing": 0,
+                  "battle_pacing": 2,
                   "move_visibility": 0,
                   "exhaustive_limit": 0,
                   "tactical_depth": 1,
@@ -143,7 +222,8 @@
 
                   },
                   "di_policy": 0,
-                  "resource_strategy": 0
+                  "resource_strategy": 0,
+                  "intro_str": "evil_mcshmevil.evil_intro_1"
                }
             }
          },
@@ -155,19 +235,20 @@
                "script_path": "res://story/script/StoryChar.gd",
                "data": {
                   "name": "Evil Mcshmevil's clone",
+                  "id": "clone",
                   "character_type": "Wizard",
                   "max_hp": 1,
                   "team": 2,
-                  "difficulty": 2,
+                  "difficulty": 4,
                   "behavior": 2,
                   "search_mode": 1,
                   "awareness": 0,
                   "move_selection": 3,
                   "learning_enabled": true,
                   "LearningAlgorithm": 0,
-                  "preferred_winner": 1,
+                  "preferred_winner": 2,
                   "director_strength": 2,
-                  "battle_pacing": 0,
+                  "battle_pacing": 2,
                   "move_visibility": 0,
                   "exhaustive_limit": 0,
                   "tactical_depth": 1,
@@ -177,11 +258,11 @@
 
                   },
                   "di_policy": 0,
-                  "resource_strategy": 0
+                  "resource_strategy": 0,
+                  "intro_str": ""
                }
             }
          }
-
       }
    }
 }

@@ -476,7 +476,7 @@ void fragment() {
 
 [sub_resource type="ShaderMaterial" id=29]
 shader = SubResource( 28 )
-shader_param/mh_glitch_intensity = 0.004
+shader_param/mh_glitch_intensity = 0.0
 shader_param/mh_glitch_speed = 8.0
 shader_param/mh_glitch_height = 2.0
 shader_param/mh_glitch2_start = 1

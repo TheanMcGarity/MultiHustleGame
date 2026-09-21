@@ -15,6 +15,8 @@ const BUTTON_CATEGORY_DISTANCE = 100
 
 export var player_id = 1
 
+var ai := false
+
 var fighter: Fighter
 var fighter_extra: PlayerExtra
 #onready var button_container = $"%ButtonContainer"
@@ -103,7 +105,7 @@ func on_opponent_action_clicked(_action, _data, _extra):
 	pass
 
 func _get_opposite_buttons():
-	if id > 2:
+	if ai:
 		return opponent_action_buttons
 	return opposite_buttons
 
@@ -550,12 +552,12 @@ func update_buttons(refresh = true):
 
 	var initiative = fighter.check_initiative()
 	
-	if(id < 3):
-		print("buttons.size()=%d, initiative=%s" % [buttons.size(), initiative])
+	#if(id < 3):
+	#	print("buttons.size()=%d, initiative=%s" % [buttons.size(), initiative])
 	for button in buttons:
 		
-		if(id < 3):
-			print("buttons.action_name=\"%s\"" % [button.action_name])
+	#	if(id < 3):
+	#		print("buttons.action_name=\"%s\"" % [button.action_name])
 		var found = false
 		if fighter.extremely_turbo_mode and !fighter.busy_interrupt:
 			found = true
@@ -566,13 +568,13 @@ func update_buttons(refresh = true):
 		else:
 			for category in cancel_into:
 				if !fighter.action_cancels.has(category):
-					if(id < 3):
-						print("failed check 1")
+		#			if(id < 3):
+		#				print("failed check 1")
 					continue
 				
 				for cancel_state in fighter.action_cancels[category]:
 					#id check is temp
-					if id < 3 and !(cancel_state.state_name == button.action_name and \
+					if !(cancel_state.state_name == button.action_name and \
 					cancel_state.is_usable_with_grounded_check(force_aerial, force_grounded) and (cancel_state.allowed_in_stance())):
 						#if(id < 3 and not cancel_state.state_name == button.action_name):
 						#	print("failed check 2 (spec. info: state_name=\"%s\")" % cancel_state.state_name)
@@ -580,20 +582,20 @@ func update_buttons(refresh = true):
 					
 					if cancel_state.state_name == state.state_name:
 						if fighter.state_hit_cancellable and !state.self_hit_cancellable and !turbo_mode:
-							if(id < 3):
-								print("failed check 3")
+		#					if(id < 3):
+		#						print("failed check 3")
 							continue
 						elif !fighter.state_hit_cancellable and !state.self_interruptable and !turbo_mode:
-							if(id < 3):
-								print("failed check 4")
+		#					if(id < 3):
+		#						print("failed check 4")
 							continue
 					if fighter.state_hit_cancellable and cancel_state.state_name in state.hit_cancel_exceptions:
-						if(id < 3):
-							print("failed check 5")
+		#				if(id < 3):
+		#					print("failed check 5")
 						continue
 					elif fighter.state_interruptable and cancel_state.state_name in state.interrupt_exceptions:
-						if(id < 3):
-							print("failed check 6")
+		#				if(id < 3):
+		#					print("failed check 6")
 						continue
 					var excepted = false
 					if fighter.state_hit_cancellable:
@@ -610,8 +612,8 @@ func update_buttons(refresh = true):
 					
 					$"%ReverseButton".set_disabled(false)
 	#							$"%SelectButton".disabled = false
-					if(id < 3):
-						print("passed all checks")
+	#				if(id < 3):
+	#					print("passed all checks")
 					any_available_actions = true
 					button.set_disabled(false)
 					button.show()
@@ -723,6 +725,8 @@ func init(ngame, pid):
 	Network.log_to_file("Init finished for action buttons! ID: " + str(pid))
 
 func re_init(pid):
+	#if Network.main.story_tres != null:
+	#	yield(Global.current_game, "end_intro_cutscene")
 	id = pid
 	#Network.log_to_file("Re-Init called for action buttons! ID: " + str(pid))
 
@@ -1028,13 +1032,13 @@ func update_select_button():
 		$"%SelectButton".disabled = game.spectating or locked_in or game.get_player(id).game_over
 
 func activate(refresh = true):
-	Network.log_to_file("Action buttons should be showing: " + str(visible) + " | " + str(active))
+	#Network.log_to_file("Action buttons should be showing: " + str(visible) + " | " + str(active))
 	
 	if is_instance_valid(fighter) and is_instance_valid(game) and game.show_last_di_state:
 		$"%DI".set_last_di(fighter.current_di)
 		
 	if visible and refresh:
-		Network.log_to_file("Returning at point A")
+		Network.log_to_file("AB: Returning at point A")
 		return
 
 
@@ -1146,7 +1150,7 @@ func activate(refresh = true):
 
 	$"%ReverseButton".show()
 	if not refresh:
-		Network.log_to_file("Returning at point B")
+		Network.log_to_file("AB: Returning at point B")
 		return
 	fighter.update_property_list()
 	if not restored_selection:
