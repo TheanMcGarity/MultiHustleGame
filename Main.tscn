@@ -1,4 +1,4 @@
-[gd_scene load_steps=107 format=2]
+[gd_scene load_steps=106 format=2]
 
 [ext_resource path="res://ui/UILayer.gd" type="Script" id=1]
 [ext_resource path="res://main.gd" type="Script" id=2]
@@ -75,14 +75,13 @@
 [ext_resource path="res://sound/ui/outtatime2.wav" type="AudioStream" id=73]
 [ext_resource path="res://ui/airoptionbar.png" type="Texture" id=74]
 [ext_resource path="res://ui/tiktok.png" type="Texture" id=75]
-[ext_resource path="res://ui/MHDonate/DonateMenu.tscn" type="PackedScene" id=76]
+[ext_resource path="res://ModWarningWindow.tscn" type="PackedScene" id=76]
 [ext_resource path="res://multihustle/ui/HUD/UISelectors.tscn" type="PackedScene" id=77]
 [ext_resource path="res://RoadmapListContainer.gd" type="Script" id=78]
 [ext_resource path="res://ui/MultiColorUI.gd" type="Script" id=79]
 [ext_resource path="res://ui/DataFolderButton.gd" type="Script" id=80]
 [ext_resource path="res://ui/Tournaments/TournamentLobbyList.tscn" type="PackedScene" id=81]
 [ext_resource path="res://TitleSecret.gd" type="Script" id=82]
-[ext_resource path="res://ui/ModWarningWindow.gd" type="Script" id=83]
 [ext_resource path="res://ui/burstp2_4.png" type="Texture" id=84]
 [ext_resource path="res://ui/ReplaySong/ReplaySongConfirmDialogue.gd" type="Script" id=85]
 [ext_resource path="res://CharInfoUI.gd" type="Script" id=86]
@@ -4094,7 +4093,6 @@ margin_bottom = -9.0
 [node name="ModWarningWindow" parent="UILayer" instance=ExtResource( 76 )]
 unique_name_in_owner = true
 visible = false
-script = ExtResource( 83 )
 
 [node name="ResimRequestScreen" type="ColorRect" parent="UILayer"]
 visible = false

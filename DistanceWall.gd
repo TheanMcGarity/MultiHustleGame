@@ -9,7 +9,8 @@ var dont_adjust_warning = {}
 
 export(int) var warning_distance = 80
 export(int) var glitch_max_distance = 75
-export(int) var damage_distance = 90
+export(int) var damage4_distance = 275
+export(int) var damage1_distance = 80
 
 const PARTICLE_SCENE = preload("res://fx/DistanceWallHoverParticle.tscn")
 
@@ -128,8 +129,10 @@ func damage(player:Fighter):
 	var player_x = player.get_pos().x
 	var wall_x = get_pos().x
 	
-	if ((player_x > wall_x - damage_distance and dir == 1) or (dir == -1 and player_x < wall_x + damage_distance)):
+	if ((player_x > wall_x - damage1_distance and dir == 1) or (dir == -1 and player_x < wall_x + damage1_distance)):
 		return
-	player.take_damage(1)
+	var dist_to_wall = ((wall_x - damage1_distance) - player_x) if dir == 1 else (player_x - (wall_x + damage1_distance))
+	var percent = clamp(float(dist_to_wall) / float(damage4_distance - damage1_distance),0.0,1.0)
+	player.take_damage(lerp(4.0, 1.0, percent))
 	if player.hp < 2:
 		player.oob_death = true

@@ -829,6 +829,12 @@ func setup_game_deferred(singleplayer, data):
 				#user_data["p"+str(index)] = Network.pid_to_username(index)
 				#if user_data["p"+str(index)] == "":
 				#	user_data["p"+str(index)] = "p"+str(index)
+		elif story_tres != null:
+			
+			for index in data.selected_characters.keys():
+				user_data["p%d" % index] = story_tres.characters[str(index)].name
+				pass
+			pass
 		else:
 			for index in data.selected_characters.keys():
 				# Removed the normal username use because... why?

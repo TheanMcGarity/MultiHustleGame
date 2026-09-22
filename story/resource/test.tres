@@ -92,25 +92,6 @@ di_policy = 0
 resource_strategy = 0
 intro_str = ""
 
-[sub_resource type="Resource" id=4]
-script = ExtResource( 7 )
-target_fighter = 3
-trigger_once = true
-hp_percentage = 1.0
-
-[sub_resource type="Resource" id=5]
-script = ExtResource( 2 )
-next = ""
-text = "yo [color=red]fuck you[/color]"
-color = Color( 1, 0.498039, 0.498039, 1 )
-length_ticks = 250
-state_name = "ConjureStorm"
-state_extra = {
-}
-state_data = {
-}
-triggers = [ SubResource( 4 ) ]
-
 [sub_resource type="Resource" id=6]
 script = ExtResource( 6 )
 target_fighter = 3
@@ -146,7 +127,7 @@ triggers = [  ]
 [sub_resource type="Resource" id=9]
 script = ExtResource( 2 )
 next = ""
-text = "not my clone ... ... ... ... [color=#ff0000]kys[/color]"
+text = "not my clone ... ... ... ... [color=#ff5555]kys[/color] [color=#ff0000]NOW.[/color]"
 color = Color( 1, 0.498039, 0.498039, 1 )
 length_ticks = 80
 state_name = "Wait"
@@ -168,6 +149,25 @@ state_extra = {
 state_data = {
 }
 triggers = [  ]
+
+[sub_resource type="Resource" id=4]
+script = ExtResource( 7 )
+target_fighter = 3
+trigger_once = true
+hp_percentage = 1.0
+
+[sub_resource type="Resource" id=5]
+script = ExtResource( 2 )
+next = ""
+text = "yo [color=red]fuck you[/color]"
+color = Color( 1, 0.498039, 0.498039, 1 )
+length_ticks = 250
+state_name = "ConjureStorm"
+state_extra = {
+}
+state_data = {
+}
+triggers = [ SubResource( 4 ) ]
 
 [sub_resource type="Resource" id=11]
 script = ExtResource( 1 )

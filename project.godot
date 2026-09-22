@@ -184,7 +184,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://characters/BaseChar.gd"
 }, {
-"base": "",
+"base": "Reference",
 "class": "FixedMath",
 "language": "NativeScript",
 "path": "res://bin/FixedMath.gdns"
@@ -278,11 +278,6 @@ _global_script_classes=[ {
 "class": "HurtboxState",
 "language": "GDScript",
 "path": "res://HurtboxState.gd"
-}, {
-"base": "Button",
-"class": "KofiButton",
-"language": "GDScript",
-"path": "res://ui/MHDonate/KofiButton.gd"
 }, {
 "base": "CollisionBox",
 "class": "LimbHurtbox",
@@ -614,7 +609,6 @@ _global_script_class_icons={
 "HurtAerial": "",
 "HurtGrounded": "",
 "HurtboxState": "",
-"KofiButton": "res://ui/MHDonate/KofiLogo.png",
 "LimbHurtbox": "",
 "MHCharacterUI": "",
 "MHCombatAI": "",

@@ -3576,7 +3576,10 @@ func tick_before():
 	lowest_tick = current_state().current_real_tick
 
 func singleplayer_set_display_name():
-	Network.game.player_names_rich[id] = "[center][color=#"+Network.get_color(Network.get_team(id))+"]"+("p%d" % id)+"[/color][/center]"
+	var name_text = "p%d" % id
+	if (Network.main.story_tres != null):
+		name_text = Global.current_game.match_data.user_data["p%d"%id]
+	Network.game.player_names_rich[id] = "[center][color=#"+Network.get_color(Network.get_team(id))+"]"+(name_text)+"[/color][/center]"
 	Network.game.player_names[id] = ("p%d" % id)
 	
 	if is_ghost:

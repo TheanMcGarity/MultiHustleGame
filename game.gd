@@ -247,7 +247,6 @@ func _ready():
 
 var init_ai_counter = 0
 func init_ai(pid):
-	return
 	if Network.main.story_tres == null:
 		return
 	if pid == 1:
@@ -913,9 +912,10 @@ func queue_dialogue_set(key):
 				
 		if (curr_intro == ""):
 			intros_search = false
-
+var triggered_allow_test_move := false
 func trigger_dialogue(key):
-	
+	if key == "evil_mcshmevil.clone_died_1":
+		triggered_allow_test_move = true
 	queue_dialogue_set(key)
 	if not _story_dia_queue.has(current_tick):
 		print("Failed to get trigger dialogue for %s" % key)
@@ -944,7 +944,7 @@ func setup_story_triggers():
 func handle_story_dialogue():
 	if (is_ghost):
 		return
-	if (current_tick == 0):
+	if (current_tick == 5):
 		setup_story_triggers()
 		var story_tres = Network.main.story_tres
 		var includes_intro = false
@@ -958,7 +958,7 @@ func handle_story_dialogue():
 		if includes_intro:
 			var curr_intro = first_intro
 			var intros_search = true
-			var intro_start = 0
+			var intro_start = 5
 			
 			while intros_search:
 				
@@ -1001,10 +1001,13 @@ func handle_story_dialogue():
 	hitlag_until_tick = current_tick + _STORY_DIALOGUE_DELAY + dia_data.length
 	
 	
+const WAIT_FRAMES_ON_LOAD = 10
 var intro_cutscene_playing := false
 signal end_intro_cutscene()
 func tick():
 	if (current_tick == 0):
+		# wait
+		
 		# replay song
 		if (ReplayManager.playback and not is_ghost and singleplayer and Global.replay_song_mode == 1):
 			Global.play_song(Global.REPLAY_SONG_PATH)
@@ -1066,19 +1069,20 @@ func tick():
 
 	if (Network.main.story_tres != null):
 		if (current_tick == 0):
+			hitlag_until_tick = 6
 			for idx in Network.main.story_tres.characters:
 				var chara = Network.main.story_tres.characters[idx]
 				_story_chars[chara.id] = idx
 		handle_story_dialogue()
-		for player in players.values():
-			if (current_tick < hitlag_until_tick):
-				player_turns[player.id] = false
-				turns_taken[player.id] = true
-				#player.state_interruptable = false
-				#player.hitlag_ticks = 1
-			elif intro_cutscene_playing:
-				intro_cutscene_playing = false
-				emit_signal("end_intro_cutscene")
+		#for player in players.values():
+			#if (current_tick < hitlag_until_tick):
+			#	player_turns[player.id] = false
+			#	turns_taken[player.id] = true
+			#	#player.state_interruptable = false
+			#	#player.hitlag_ticks = 1
+			#elif intro_cutscene_playing:
+			#	intro_cutscene_playing = false
+			#	emit_signal("end_intro_cutscene")
 		for trigger in _story_triggers:
 			var triggered = trigger.attempt_trigger()
 		
@@ -1720,6 +1724,7 @@ func negative_on_hit(player):
 	return player.current_state().started_during_combo and !player.opponent.current_state().started_during_combo
 
 func process_tick():
+	
 	set_vanilla_game_started(true)
 	if super_freeze_ticks > 0:
 		# Keep camera ticking through freeze frames so screenshake plays out.
@@ -1862,7 +1867,7 @@ func handle_distance_wall():
 		distance_walls[1].set_pos(str(-half_dist + center * 0.6),"0")
 
 func _process(delta):
-	
+		
 	if (is_ghost):
 		for id in players:
 			players[id].set_ghost_outline()

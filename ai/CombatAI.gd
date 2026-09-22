@@ -211,6 +211,7 @@ const SKIP_ACTIONS = ["Taunt", "Forfeit", "Undo"]
 # a resource-spending cancel, burst, or repeated throw prove its value in the
 # sandbox instead of winning because it is the only non-idle button.
 const CANCEL_WASTE_PENALTY = 140.0
+const NO_HIT_PENALTY = 30.0
 const THROW_REPEAT_PENALTY = 85.0
 const PASSIVE_IDLE_PENALTY = 45.0
 const SUPER_CONTACT_BONUS = 30.0
@@ -1417,8 +1418,7 @@ func _auto_submit(my_session):
 	# synchronously from that signal and acquires the guard for its own search.
 		
 	ReplayManager.resimulating = false
-	if game.player_turns[1]:
-		fighter.on_action_selected(action, decided_data, decided_extra)
+	fighter.on_action_selected(action, decided_data, decided_extra)
 	game.ai_locked_in[ai_index] = true
 
 
@@ -2111,6 +2111,8 @@ func _apply_action_discipline(results, actor, versus_action):
 		var IsIdleAction = lower in ["continue", "continueauto", "wait", "fall"]
 		if (lower.find("whiffcancel") != -1 or lower.find("instantcancel") != -1) and !made_contact:
 			entry.score -= CANCEL_WASTE_PENALTY
+		elif !made_contact:
+			entry.score -= NO_HIT_PENALTY
 		if _is_throw_action(entry.action, actor) and entry.action == last_ai_choice:
 			entry.score -= THROW_REPEAT_PENALTY * max(1, last_ai_choice_streak)
 		if entry.action == last_ai_choice and last_ai_choice_streak >= 2 and !made_contact:
@@ -2414,12 +2416,14 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 	var foe_combo = foe.combo_count
 	var ComboUnbroken = true
 	var whiff_penalty = 0
+	var move_cancelled_penalty = 0
 	
 	if ("Whiff" in action):
 		whiff_penalty += WHIFF_PENALTY
 	if ("Whiff" in versus_action):
 		whiff_penalty += WHIFF_PENALTY_OPP
 		whiff_penalty += WHIFF_PENALTY_OPP_SCALE * foe.turn_frames
+	#if real_actor.opponent.current_state() todo
 	# True 2D distance: an airborne juggled opponent is only "close" if we
 	# match their height too - X-only gap made the AI walk under juggles.
 	# get_pos() returns an {x, y} Dictionary, NOT a Vector2 - subtract per
@@ -2544,7 +2548,8 @@ func _run_sim(player_id, action, data, extra, versus_action, versus_data, my_ses
 			"advantage": last_sim_advantage,
 			"terms": last_sim_terms.duplicate(true),
 		}
-	
+	if (action == "Continue"):
+		score *= 0.66
 	return score
 
 
