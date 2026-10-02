@@ -49,8 +49,8 @@ func init_data():
 	pass
 
 func _ready():
-	if (OS.is_debug_build()):
-		return
+	#if (OS.is_debug_build()):
+	#	return
 	if wait:
 		yield(self, "end_wait")
 		
@@ -99,11 +99,10 @@ func on_select_branch():
 	popup_node = load("res://_Installer/DebugRequest.tscn").instance()
 	
 	var selector:OptionButton = popup_node.get_node("Approve")
-	update_branches(selector)
 	selector.connect("item_selected", self, "select_approval", [selector])
 	get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
 	popup_node.popup()
-	yield(popup_node, "Confirmed")
+	yield(popup_node, "confirmed")
 	if (debug_allowed):
 		download_request = HTTPRequest.new()
 		add_child(download_request)
@@ -114,9 +113,8 @@ func on_select_branch():
 	
 	
 	download_request = HTTPRequest.new()
-
+	add_child(download_request)
 	download_request.connect("request_completed", self, "on_downloaded_ver")
-
 	download_request.request(get_ver_url())
 	
 func on_downloaded_ver(result, code, header, body):
