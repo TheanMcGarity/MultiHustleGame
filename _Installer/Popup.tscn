@@ -3,7 +3,6 @@
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 
 [node name="Popup" type="AcceptDialog"]
-visible = true
 margin_left = 214.0
 margin_top = 115.0
 margin_right = 444.0

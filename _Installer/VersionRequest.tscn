@@ -3,26 +3,26 @@
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 
 [node name="RequestPopup" type="AcceptDialog"]
+visible = true
 margin_left = 237.0
 margin_top = 141.0
 margin_right = 400.0
 margin_bottom = 241.0
 rect_min_size = Vector2( 100, 100 )
 theme = ExtResource( 1 )
-window_title = "Branch?"
-dialog_text = "Detected Vanilla YOMI
+window_title = "Special EXE?"
+dialog_text = "Would you like to have a modified engine EXE in the game files that will help with crashes?
 
-Please select a branch to
-download from:"
+We are asking in case you aren't comfortable with this.
+"
+dialog_autowrap = true
 
-[node name="UpdateBranch" type="OptionButton" parent="."]
+[node name="Approval" type="CheckBox" parent="."]
 unique_name_in_owner = true
-margin_left = 8.0
-margin_top = 61.0
-margin_right = 155.0
-margin_bottom = 73.0
+margin_left = 9.0
+margin_top = 105.0
+margin_right = 156.0
+margin_bottom = 122.0
 rect_min_size = Vector2( 65, 0 )
-text = "release"
+text = "click the box to agree."
 align = 2
-items = [ "release", null, false, 0, null, "beta", null, false, 1, null, "prev", null, false, 2, null, "alpha", null, false, 3, null ]
-selected = 0

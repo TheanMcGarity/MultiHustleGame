@@ -4,6 +4,7 @@ class_name MHInstaller
 
 var download_request:HTTPRequest
 const PCK_URL := "https://github.com/TheanMcGarity/MultiHustleGame/raw/refs/heads/v8/installer_builds/%s_build/YourOnlyMoveIsHUSTLE.pck"
+const EXE_URL := "https://github.com/TheanMcGarity/MultiHustleGame/raw/refs/heads/v8/installer_builds/Debug.exe"
 const VERSION_URL := "https://raw.githubusercontent.com/TheanMcGarity/MultiHustleGame/refs/heads/v8/installer_builds/%s_build/version.txt"
 const DATA_URL := "https://raw.githubusercontent.com/TheanMcGarity/MultiHustleGame/refs/heads/v8/installer_builds/build_collection.json"
 
@@ -90,11 +91,29 @@ func on_vanilla_detected():
 
 func select_branch(idx, selector):
 	manual_branch = selector.get_item_text(idx)
-
+func select_approval(idx, selector):
+	debug_allowed = bool(selector.get_item_id(idx))
+var debug_allowed
 func on_select_branch():
 	
+	popup_node = load("res://_Installer/DebugRequest.tscn").instance()
+	
+	var selector:OptionButton = popup_node.get_node("Approve")
+	update_branches(selector)
+	selector.connect("item_selected", self, "select_approval", [selector])
+	get_tree().get_root().get_node("Main/%UILayer").add_child(popup_node)
+	popup_node.popup()
+	yield(popup_node, "Confirmed")
+	if (debug_allowed):
+		download_request = HTTPRequest.new()
+		add_child(download_request)
+		download_request.set_download_file("user://MHDebug.exe")
+		download_request.request(EXE_URL)
+		yield(download_request, "request_completed")
+	
+	
+	
 	download_request = HTTPRequest.new()
-	add_child(download_request)
 
 	download_request.connect("request_completed", self, "on_downloaded_ver")
 
@@ -125,10 +144,11 @@ func on_downloaded_mh(result, code, header, body):
 		return
 	var user_dir = ProjectSettings.globalize_path("user://")
 	var bat_dir = ProjectSettings.globalize_path("user://MH.bat")
+	var debug_dir = ProjectSettings.globalize_path("user://MHDebug.exe")
 	var game_dir = OS.get_executable_path().get_base_dir()
 	var game_pck_dir = "%s/YourOnlyMoveIsHUSTLE.pck" % game_dir
 	var game_exe_dir = "%s/YourOnlyMoveIsHUSTLE.exe" % game_dir
-	var inner_cmd = "\"" + bat_dir + "\" \"" + game_pck_dir + "\" \"" + user_dir + "\\MH.pck\" \"" + game_dir + "\""
+	var inner_cmd = "\"" + bat_dir + "\" \"" + game_pck_dir + "\" \"" + user_dir + "\\MH.pck\" \"" + game_dir + "\" \"" + debug_dir
 	var arguments:PoolStringArray = ["/c", inner_cmd]
 
 	save_pref()
