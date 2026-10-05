@@ -11,6 +11,7 @@
     "err.download_failed.code502": "The installer failed to download that version of multihustle.\nThe server is down currently.\n\n(502)",
     "err.download_failed.code503": "The installer failed to download that version of multihustle.\nThe server is unavailable currently. Try again later.\n\n(503)",
     "err.download_failed.code200": "The installer failed to download that version of multihustle.\nWait... No it didn't???\n\n(200)",
+    "err.download_failed.code0": "The installer failed to download that version of multihustle.\nYour internet is broken or smth idk dont ping me for ts\n\n(0)",
     "w.unstable.lvl_0": "INVALID ERROR -- FIX PARSER",
     "w.unstable.lvl_1": "This branch of multihustle can be considered unstable at times! Use at your own risk.",
     "w.unstable.lvl_2": "This branch of multihustle is unstable at times! Use at your own risk.",
