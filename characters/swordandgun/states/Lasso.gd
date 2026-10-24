@@ -43,8 +43,8 @@ func on_lasso_hit(_opponent):
 #	endless = true
 
 func _tick():
-	if host.lasso_projectile:
-		var obj = host.objs_map[host.lasso_projectile]
+	var obj = host.live_obj(host.lasso_projectile) if host.lasso_projectile else null
+	if obj:
 		if !obj.is_connected("lasso_hit", self, "on_lasso_hit"):
 			obj.connect("lasso_hit", self, "on_lasso_hit")
 	
@@ -54,8 +54,8 @@ func _tick():
 
 func _exit():
 	if host.lasso_projectile and !lasso_hit:
-		if host.objs_map.has(host.lasso_projectile) and host.objs_map[host.lasso_projectile]:
-			host.objs_map[host.lasso_projectile].disable()
+		var _o = host.live_obj(host.lasso_projectile)
+		if _o: _o.disable()
 		host.lasso_projectile = null
 		
 		

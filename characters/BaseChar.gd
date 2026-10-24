@@ -525,7 +525,7 @@ const DEATH_EM_SHAKE_MAX := 6
 const SHAKE_TICKS = DESPAWN_TICKS / DEATH_EM_SHAKE_MAX
 
 export var oob_glitch_max = 0.1
-var _oob_glitch_max_original
+var _oob_glitch_max_original = 0.0
 var oob_glitch_effect := 0.0
 
 var interruptable_for_ticks := 0
@@ -1519,7 +1519,9 @@ func emit_hit_by_signal(hitbox):
 	if hitbox.get("host") == null:
 		return
 	if hitbox.host is String:
-		var host = objs_map[hitbox.host]
+		var host = live_obj(hitbox.host)
+		if host == null:
+			return
 		if host.is_in_group("Fighter"):
 			emit_signal("got_hit_by_fighter")
 		else:
@@ -1735,7 +1737,9 @@ func has_projectile_armor():
 	return has_projectile_armor
 
 func increment_opponent_combo(hitbox):
-	var host = objs_map[hitbox.host]
+	var host = live_obj(hitbox.host)
+	if host == null:
+		return
 	var projectile = !host.is_in_group("Fighter")
 	var will_scale = hitbox.scale_combo or opponent.combo_count == 0
 	if host.get("combo_scaling_disabled"):
@@ -1801,7 +1805,11 @@ func launched_by(hitbox):
 	
 	nudge_amount = hitbox.sdi_modifier
 	
-	var host = objs_map[hitbox.host]
+	# The hitbox's owner can already be reclaimed from objs_map; a method call on
+	# null is an instant crash in release builds.
+	var host = live_obj(hitbox.host)
+	if host == null:
+		return
 	var projectile = !host.is_in_group("Fighter")
 	
 	var will_launch =  hitbox.ignore_armor or !has_armor()
@@ -2024,7 +2032,9 @@ func hit_by(hitbox, force_hit=false):
 		block_hitbox(hitbox)
 
 func block_hitbox(hitbox, force_parry=false, force_block=false, ignore_guard_break=false, autoblock_armor=false):
-		var host = objs_map[hitbox.host]
+		var host = live_obj(hitbox.host)
+		if host == null:
+			return
 		var projectile = not host.is_in_group("Fighter")
 		var perfect_parry
 		var parry_type = current_state().parry_type
@@ -2379,7 +2389,10 @@ func combo_stale_damage(damage: int, combo_scaling_offset=0, self_hit=false):
 func _is_self_hit(hitbox) -> bool:
 	if not objs_map.has(hitbox.host):
 		return false
-	var attacker = objs_map[hitbox.host].get_fighter()
+	var host = live_obj(hitbox.host)
+	if host == null:
+		return false
+	var attacker = host.get_fighter()
 	return attacker == self
 
 func can_perfect_parry():
@@ -2476,7 +2489,7 @@ func consume_feint():
 
 func process_extra(extra):
 	if "opponent" in extra:
-		if (get_game() != null):
+		if (get_game() != null) and get_game().players.has(extra.opponent):
 			opponent = get_game().players[extra.opponent]
 	if "DI" in extra:
 		if di_enabled:

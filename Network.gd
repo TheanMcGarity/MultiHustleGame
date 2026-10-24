@@ -704,6 +704,11 @@ remote func receive_match_code(code):
 
 remote func send_action(action, data, extra, player_id):
 		print("received action: " + str(action))
+		# Packets keep arriving after a match stops (and reach lobby members who
+		# aren't in it); player_objects only holds this match's fighters.
+		if !action_inputs.has(player_id) or !is_instance_valid(player_objects.get(player_id)):
+			print("ignoring action for player %s: not in this match" % str(player_id))
+			return
 		action_inputs[player_id]["action"] = action
 		action_inputs[player_id]["data"] = data
 		action_inputs[player_id]["extra"] = extra

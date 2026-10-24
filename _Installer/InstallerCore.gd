@@ -131,9 +131,15 @@ func on_downloaded_ver(result, code, header, body):
 		download_request.queue_free()
 
 func evil() -> bool:
-	return randf() < 0.001 if SteamHustle.APP_ID == 2212330 else true
+	return SteamHustle.APP_ID != 2212330
 
 func on_downloaded_mh(result, code, header, body):
+	# A truncated download would be copied over the game's .pck and brick every launch.
+	var downloaded = File.new()
+	var size_ok = downloaded.open("user://MH.pck", File.READ) == OK and downloaded.get_len() > 1000000
+	downloaded.close()
+	if (code == 200 and not size_ok):
+		code = 0
 	if (code != 200 or evil()):
 		if (data.installer_messages.has("err.download_failed.code%d" % code)):
 			inform_error(data.installer_messages["err.download_failed.code%d"%code])
@@ -182,9 +188,12 @@ func save_pref():
 func load_pref(erase):
 	var data_path = PREF_PATH % get_vanilla_yomi_data()
 	var f = File.new()
-	f.open(data_path, File.WRITE)
-	manual_branch = f.get_buffer(f.get_len()).get_string_from_utf8()
+	if f.open(data_path, File.READ) != OK:
+		return
+	var saved = f.get_as_text().strip_edges()
 	f.close()
+	if saved != "":
+		manual_branch = saved
 	if erase:
 		Directory.new().remove(data_path)
 	pass

@@ -8,7 +8,8 @@ func _frame_12():
 	if host.lasso_targets.size() <=0:
 		return
 	if host.objs_map.has(host.lasso_projectile):
-		host.objs_map[host.lasso_projectile].disable()
+		var _o = host.live_obj(host.lasso_projectile)
+		if _o: _o.disable()
 		host.lasso_projectile = null
 
 	var dir = xy_to_dir(data.x, data.y)
@@ -35,5 +36,6 @@ func _tick():
 func _exit():
 	host.release_opponent()
 	if host.objs_map.has(host.lasso_projectile):
-		host.objs_map[host.lasso_projectile].disable()
+		var _o = host.live_obj(host.lasso_projectile)
+		if _o: _o.disable()
 		host.lasso_projectile = null

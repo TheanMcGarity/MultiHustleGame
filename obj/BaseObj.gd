@@ -183,7 +183,7 @@ func _ready():
 	state_machine.connect("state_exited", self, "_on_state_exited")
 	state_variables.append_array(Utils.split_lines(extra_state_variables))
 	if creator_name:
-		creator = objs_map[creator_name]
+		creator = objs_map.get(creator_name)
 	if !obj_name:
 		obj_name = name
 
@@ -256,8 +256,13 @@ func get_owner():
 		return creator.get_owner()
 	else:
 		if creator_name:
-			creator = objs_map[creator_name]
-			return creator.get_owner()
+			# The creator (e.g. a projectile that spawned this one) may already be gone
+			# from objs_map; fall back to the fighter that owns this object.
+			creator = objs_map.get(creator_name)
+			if creator:
+				return creator.get_owner()
+			if is_instance_valid(fighter_owner):
+				return fighter_owner
 	return self
 
 func current_state():
@@ -361,6 +366,13 @@ func change_state(state_name, state_data=null, enter=true, exit=true):
 	if hooks:
 		hooks.change_state(state_name, state_data)
 	state_machine._change_state(state_name, state_data, enter, exit)
+
+# Like objs_map[name] but never null-crashes: MultiHustle drops reclaimed husks from
+# objs_map and ghosts skip disabled objects, so a stored name can outlive its object.
+# Unlike obj_from_name this also returns disabled objects.
+func live_obj(name):
+	var obj = objs_map.get(name)
+	return obj if is_instance_valid(obj) else null
 
 func obj_from_name(name):
 	if name is String and name in objs_map:

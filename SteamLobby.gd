@@ -644,6 +644,10 @@ func _read_P2P_Packet():
 				emit_signal("received_match_settings", readable.match_settings_updated)
 		if readable.has("player_busy"):
 			pass
+		if readable.has("mh_rejoin_offer") and int(readable.mh_rejoin_offer.get("from", 0)) == PACKET_SENDER:
+			Network.receive_rejoin_offer(readable.mh_rejoin_offer)
+		if readable.has("mh_rejoin_request") and int(readable.mh_rejoin_request.get("steam_id", 0)) == PACKET_SENDER:
+			Network.receive_rejoin_request(readable.mh_rejoin_request)
 		if readable.has("request_match_settings"):
 			_send_P2P_Packet(readable.request_match_settings, {"match_settings_updated":MATCH_SETTINGS})
 		if readable.has("request_chat_history"):
@@ -1757,10 +1761,18 @@ func _on_Lobby_Chat_Update(lobby_id: int, change_id: int, making_change_id: int,
 			update_match_settings(MATCH_SETTINGS, change_id)
 		if can_get_messages_from_user(change_id):
 			emit_signal("user_joined", CHANGER)
+		Network.on_lobby_member_joined(change_id)
 	
 	# Else if a player has left the lobby
 	elif chat_state == 2:
 		print(str(CHANGER)+" has left the lobby.")
+		_user_left_lobby(change_id)
+		if can_get_messages_from_user(change_id):
+			emit_signal("user_left", CHANGER)
+
+	# Steam reports a crashed/timed-out client as "disconnected", not "left".
+	elif chat_state == 4:
+		print(str(CHANGER)+" disconnected from the lobby.")
 		_user_left_lobby(change_id)
 		if can_get_messages_from_user(change_id):
 			emit_signal("user_left", CHANGER)
@@ -2012,8 +2024,8 @@ func _user_left_lobby(steam_id):
 	if player_id == null:
 		return
 
-	Network.rpc_("client_disconnected", [player_id])
-	pass
+	# Hold their spot for a rejoin; the authority forfeits them if the grace runs out.
+	Network.on_player_left_lobby(player_id)
 
 
 func get_key_from_value(dictionary: Dictionary, target_value):

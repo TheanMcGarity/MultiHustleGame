@@ -37,11 +37,13 @@ func _tick():
 		for target in host.lasso_targets:
 			target.set_pos(global_opp_pos.x, global_opp_pos.y)
 		if host.objs_map.has(host.lasso_projectile):
-			host.objs_map[host.lasso_projectile].set_pos(global_opp_pos.x, global_opp_pos.y - 16)
+			var _o = host.live_obj(host.lasso_projectile)
+			if _o: _o.set_pos(global_opp_pos.x, global_opp_pos.y - 16)
 
 func _exit():
 	if host.objs_map.has(host.lasso_projectile):
-		host.objs_map[host.lasso_projectile].disable()
+		var _o = host.live_obj(host.lasso_projectile)
+		if _o: _o.disable()
 		host.lasso_projectile = null
 	if !grabbed:
 		for target in host.lasso_targets:

@@ -16,6 +16,7 @@ func _tick_shared():
 	if !triggered_orb_attack and current_tick == 0:
 		if trigger_orb_attack:
 			if host.orb_projectile:
-				host.objs_map[host.orb_projectile].trigger_attack(trigger_orb_type, trigger_orb_delay)
+				var _o = host.live_obj(host.orb_projectile)
+				if _o: _o.trigger_attack(trigger_orb_type, trigger_orb_delay)
 				triggered_orb_attack = true
 	return ._tick_shared()

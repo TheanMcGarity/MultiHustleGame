@@ -2783,6 +2783,7 @@ theme = ExtResource( 4 )
 alignment = 1
 
 [node name="Label" type="Label" parent="UILayer/PostGameButtons"]
+visible = false
 modulate = Color( 1, 0.25098, 0.25098, 1 )
 margin_top = 13.0
 margin_right = 86.0

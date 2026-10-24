@@ -285,7 +285,8 @@ func tick():
 	if orb_projectile:
 		use_super_meter(ORB_SUPER_DRAIN + orb_accumulator)
 		if super_meter == 0 and supers_available == 0:
-			objs_map[orb_projectile].disable()
+			var _o = live_obj(orb_projectile)
+			if _o: _o.disable()
 		orb_duration += 1
 		if orb_duration > 0 and orb_duration % ORB_DRAIN_INCREASE_FREQUENCY == 0:
 			orb_accumulator += 1
@@ -296,7 +297,8 @@ func tick():
 		if orb_projectile:
 			if !(current_orb_push.x == 0 and current_orb_push.y == 0):
 				var force = fixed.normalized_vec_times(str(current_orb_push.x), str(current_orb_push.y), ORB_PUSH_SPEED)
-				objs_map[orb_projectile].push(force.x, force.y)
+				var _o = live_obj(orb_projectile)
+				if _o: _o.push(force.x, force.y)
 		current_orb_push = null
 
 	if detonating_bombs:

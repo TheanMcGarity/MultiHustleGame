@@ -170,6 +170,18 @@ func get_opponents():
 	var result = []
 	for id in host.get_game().players:
 		var player = get_player(id)
-		if (player.attacker == host and player != host):
+		if player != host and _attacked_by_host(player):
 			result.append(player.id)
 	return result
+
+# Hit by the thrower or by one of the thrower's projectiles. Cowboy's lasso hits first
+# (attacker = the lasso), then Lasso Reel grabs and Izuna Drop throws; checking only
+# `attacker == host` found no target, so the victim was never released and stayed
+# Grabbed (and invulnerable) for the rest of the match.
+func _attacked_by_host(player):
+	var a = player.attacker
+	if !is_instance_valid(a):
+		return false
+	if a == host:
+		return true
+	return a.has_method("get_fighter") and a.get_fighter() == host

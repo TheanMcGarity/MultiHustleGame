@@ -76,6 +76,7 @@ func _ready():
 	ui_layer.connect("loaded_replay", self, "_on_loaded_replay")
 	connect("game_started", ui_layer, "on_game_started")
 	Network.connect("start_game", self, "_on_game_started", [false])
+	Network.connect("rejoin_offered", self, "_on_rejoin_offered")
 	Network.connect("match_ready", self, "_on_match_ready")
 	Network.connect("force_open_action_buttons", self, "_on_multiplayer_turn_started")
 	Network.connect("style_save_response_received", self, "_on_style_save_response_received")
@@ -977,3 +978,17 @@ func load_replay_chars(match_data):
 		char_names.append(match_data.selected_characters[index]["name"])
 	# The original gives match data... and does nothing with it
 	_Global.css_instance.net_loadReplayChars([char_names])
+
+var rejoin_dialog: ConfirmationDialog
+
+func _on_rejoin_offered(offer):
+	if !is_instance_valid(rejoin_dialog):
+		rejoin_dialog = ConfirmationDialog.new()
+		rejoin_dialog.window_title = "Rejoin match"
+		rejoin_dialog.get_ok().text = "Rejoin"
+		rejoin_dialog.get_cancel().text = "Not now"
+		rejoin_dialog.pause_mode = PAUSE_MODE_PROCESS
+		rejoin_dialog.connect("confirmed", Network, "accept_rejoin")
+		ui_layer.add_child(rejoin_dialog)
+	rejoin_dialog.dialog_text = "Your match is still going.\nRejoin as P%d?" % int(offer.player_id)
+	rejoin_dialog.popup_centered()

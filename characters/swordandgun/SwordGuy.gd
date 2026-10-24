@@ -413,7 +413,8 @@ func on_got_hit():
 	.on_got_hit()
 	if cut_projectile:
 		if objs_map.has(cut_projectile):
-			objs_map[cut_projectile].disable()
+			var _o = live_obj(cut_projectile)
+			if _o: _o.disable()
 			cut_projectile = null
 	if after_image_object:
 		var obj = obj_from_name(after_image_object)
@@ -444,10 +445,10 @@ func _draw():
 	._draw()
 	var draw_target = Vector2()
 	var draw_lasso = false
-	if lasso_projectile:
+	var lasso_obj = live_obj(lasso_projectile) if lasso_projectile else null
+	if lasso_obj:
 		draw_lasso = true
-		var obj = objs_map[lasso_projectile]
-		var obj_pos = obj.get_pos()
+		var obj_pos = lasso_obj.get_pos()
 		draw_target = to_local(Vector2(obj_pos.x, obj_pos.y))
 	elif lasso_parried:
 		draw_lasso = true

@@ -2020,13 +2020,23 @@ func ContinueAll():
 func on_player_actionable():
 	Network.action_submitted = false
 	multiHustle_UISelectors.ResetGhosts()
+	var opening = !Network.turn_open
 	for index in game.players.keys():
 		var player = game.players[index]
+		if !opening and !player.game_over and !Network.dropped_players.has(index):
+			continue # second call for the same turn; don't wipe readies already in
 		if player.game_over:
 			submit_dummy_action(index, "ContinueAuto")
+		elif Network.dropped_players.has(index):
+			# Counted ready now; their hold move is applied when the turn locks in
+			# (Network._apply_holds) so a rejoin this turn leaves no trace.
+			game.turns_taken[index] = true
+			Network.turns_ready[index] = true
 		else:
 			game.turns_taken[index] = false
 			Network.turns_ready[index] = false
+	if Network.multiplayer_active:
+		Network.open_turn()
 	if actionable and (Network.multiplayer_active and not Network.undo and not Network.auto):
 		return 
 	while is_instance_valid(game) and not game.game_paused:

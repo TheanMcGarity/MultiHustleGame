@@ -63,7 +63,8 @@ func init(pos=null):
 
 func explode_sticky_bomb():
 	if bomb_thrown and obj_from_name(bomb_projectile):
-		objs_map[bomb_projectile].explode()
+		var _o = live_obj(bomb_projectile)
+		if _o: _o.explode()
 
 func on_roll_started():
 	detach()

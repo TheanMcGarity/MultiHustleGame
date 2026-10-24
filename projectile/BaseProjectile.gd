@@ -56,6 +56,9 @@ func get_fighter():
 	if is_instance_valid(creator):
 		return creator.get_fighter()
 	else:
+		var game = get_game()
+		if game and game.players.has(id):
+			return game.players[id]
 		if id == 1:
 			return get_p1()
 		else:

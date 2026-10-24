@@ -344,7 +344,9 @@ func _send_ui_action(action=null):
 #	if current_extra.has("input_aerial") or current_extra.has("input_grounded"):
 	if action:
 		yield(get_tree(), "idle_frame")
-		emit_signal("action_clicked", action, current_button.get_data() if current_button else null, get_extra())
+		if !is_instance_valid(fighter):
+			return
+		emit_signal("action_clicked", action, current_button.get_data() if is_instance_valid(current_button) else null, get_extra())
 #			button.data_node.init()
 #			button.container.show_data_container()
 
@@ -352,6 +354,8 @@ func _send_ui_action(action=null):
 	can_lock_in = false
 	yield(get_tree(), "idle_frame")
 	can_lock_in = true
+	if !is_instance_valid(fighter):
+		return
 #	$"%SelectButton".shortcut = preload("res://ui/ActionSelector/SelectButtonShortcut.tres")
 	update_select_button()
 
@@ -364,7 +368,7 @@ func _send_ui_action(action=null):
 			"extra": current_extra
 		}
 
-	if current_button:
+	if is_instance_valid(current_button):
 		$"%ReverseButton".set_disabled(!current_button.is_reversible() if current_button.has_method("is_reversible") else !current_button.reversible)
 		if current_button.state:
 			$"%FeintButton".set_disabled(!current_button.state.can_feint())
@@ -439,6 +443,10 @@ func on_action_selected(action, button):
 
 func show_button_data_node(button):
 	yield(get_tree(), "idle_frame")
+	# reset() frees buttons outright when a new turn re-inits the panel; touching a
+	# freed button here is a hard crash in release builds.
+	if !is_instance_valid(button) or !is_instance_valid(button.data_node) or !is_instance_valid(fighter):
+		return
 	button.data_node.show()
 	var dir = fighter.get_opponent_dir()
 	if current_extra and current_extra.has("reverse") and current_extra["reverse"]:
@@ -993,7 +1001,9 @@ func _on_submit_pressed():
 	if attempting_lock_in:
 		return 
 	attempting_lock_in = true
-	while not can_lock_in:
+	# Online, a lock-in during the previous turn's simulation would be wiped when this
+	# turn opens (while peers keep it), deadlocking the turn. Wait for the turn to open.
+	while not can_lock_in or (Network.multiplayer_active and not Network.turn_open):
 		yield (get_tree(), "idle_frame")
 	attempting_lock_in = false
 	var data = null

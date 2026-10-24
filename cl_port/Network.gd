@@ -36,7 +36,7 @@ var steam_isHost = false
 
 func _ready():
 	._ready()
-	connect("multiplayer_stopped", self, "on_mh_stop")
+	connect("multiplayer_stopped", self, "on_stop_mh")
 
 remotesync func register_player(new_player_name, id, mods, isSteam = false):
 	# failsafe in case you connect to a non-modded player, it'll show up as having no mods
@@ -265,7 +265,26 @@ func send_current_action():
 	if last_action:
 		rpc_("send_action", [last_action["action"], last_action["data"], last_action["extra"], player_id], "remote")
 
+# A ready that arrives while we're still simulating can only be for the next turn
+# (this one couldn't finish without us). Readies were being wiped by the per-tick
+# reset and the turn-open reset, softlocking the turn; hold them until we open.
+var turn_open = false
+var early_readies = {}
+
+func open_turn():
+	if turn_open:
+		return
+	turn_open = true
+	var early = early_readies
+	early_readies = {}
+	for id in early:
+		multiplayer_turn_ready(id)
+
 remotesync func multiplayer_turn_ready(id):
+	if !turn_open and id != player_id:
+		early_readies[id] = true
+		Network.log("Early turn ready from player %d, holding until our turn opens" % id)
+		return
 	turns_ready[id] = true
 	Network.log("Turn ready for player " + str(id) + " | Turns ready: " + str(turns_ready))
 	emit_signal("player_turn_ready", id)
@@ -274,6 +293,8 @@ remotesync func multiplayer_turn_ready(id):
 	for r in turns_ready.values():
 		if !r:
 			return
+	turn_open = false
+	_apply_holds()
 	action_submitted = true
 	last_action = action_inputs[player_id]
 	if is_instance_valid(game):
@@ -297,6 +318,7 @@ remote func mh_opponent_tick(id):
 		game.network_simulate_readies[id] = true
 
 func reset_action_inputs():
+	turn_open = false
 	turns_ready = {}
 	action_inputs = {}
 	for player in game.players.keys():
@@ -329,6 +351,8 @@ remote func opponent_sync_check_unlock():
 	rpc_("mh_opponent_sync_unlock", player_id, "remote")
 
 remote func mh_opponent_sync_unlock(id):
+	if !is_instance_valid(game):
+		return
 	if !lock_sync_unlocks:
 		Network.log("Opponent sync unlocked, ID: " + str(id))
 		sync_unlocks[id] = true
@@ -337,7 +361,7 @@ remote func mh_opponent_sync_unlock(id):
 		for key in sync_unlocks:
 			var value = sync_unlocks[key]
 
-			if game.quitters.has(key):
+			if is_absent(key):
 				log_to_file("Ignoring sync unlock for quitter " + str(key))
 				continue
 
@@ -346,7 +370,7 @@ remote func mh_opponent_sync_unlock(id):
 				break
 		if done:
 			for key in sync_unlocks.keys():
-				if not game.players[key].game_over and not game.quitters.has(key):
+				if not game.players[key].game_over and not is_absent(key):
 					sync_unlocks[key] = false
 			can_open_action_buttons = true
 			Network.log("Unlocking action buttons")
@@ -658,8 +682,11 @@ remotesync func client_disconnected(id):
 	if not is_instance_valid(game):
 		print("Game is invalid!")
 		return
+	if game.quitters.has(id):
+		return
+	dropped_players.erase(id)
 	var ui = main.ui_layer
-	var player = game.players[id]
+	var player = game.players.get(id)
 	if player:
 		player.game_over = true
 		player.hp = 0
@@ -669,7 +696,6 @@ remotesync func client_disconnected(id):
 		game.quitters.append(id)
 		quitter_count += 1
 		ui.end_turn_for_real(id)
-		player.on_("Forfeit", null, null)
 
 		resync_counter += 1
 		if resync_counter >= game.players.size() - quitter_count and player_id == resync_request_player_id:
@@ -690,6 +716,10 @@ remotesync func net_replay_sync_confirm(steam_id, opps):
 	emit_signal("steam_lobby_replay_sync_confirmed", steam_id, opps)
 
 func on_stop_mh():
+	turn_open = false
+	early_readies = {}
+	dropped_players = {}
+	rejoin_offer = null
 	sync_unlocks = {}
 	turns_ready = {}
 	ticks = {}
@@ -804,3 +834,217 @@ remotesync func preload_replay_chars(chars, replay, sides):
 		Network.pending_replay_match_data["restore_timers"] = ui.get_node("%SidePickerRestoreTimers").visible and ui.get_node("%SidePickerRestoreTimers").pressed
 		SteamLobby.replay_challenge_user(pending_replay_match_data, sides)
 	ui.get_node("%SidePickerDialogScreen").hide()
+
+# --- Rejoin -----------------------------------------------------------------
+# A fighter who drops (lobby leave or Steam disconnect) is held in place instead
+# of forfeited: every peer auto-submits Continue for them each turn. If they come
+# back to the lobby within REJOIN_GRACE_MSEC they're offered their slot, rebuild
+# the match from the replay frames, and play on.
+#
+# One peer (rejoin_authority) decides when a drop/rejoin takes effect and sends it
+# *before* its own turn-ready for that turn. Steam's reliable channel keeps one
+# sender's packets in order, so every peer applies the change before the turn can
+# complete — no rewind needed, everyone switches on the same turn.
+
+const REJOIN_GRACE_MSEC = 90000
+const HOLD_EXTRA = {"DI": {"x": 0, "y": 0}, "reverse": false, "feint": false, "prediction": -1}
+
+signal rejoin_offered(offer)
+signal dropped_players_changed()
+
+var dropped_players = {} # player id -> {"steam_id": int, "since": msec}
+var rejoin_offer = null # on the dropped client: {"player_id", "from", ...}
+var _pending_drops = {}
+var _pending_rejoins = {}
+
+func is_absent(id):
+	if dropped_players.has(id):
+		return true
+	return is_instance_valid(game) and game.quitters.has(id)
+
+func rejoin_authority(excluding = 0):
+	var ids = network_ids.keys()
+	ids.sort()
+	for pid in ids:
+		if pid != excluding and !is_absent(pid):
+			return pid
+	return 0
+
+func _match_in_progress():
+	return multiplayer_active and steam and is_instance_valid(game) and !game.game_finished and !SteamLobby.SPECTATING
+
+# Turn open, and this peer hasn't sent its own turn-ready yet.
+func _at_open_turn():
+	return is_instance_valid(game) and turn_open and !turns_ready.get(player_id, false)
+
+func _wait_for_open_turn():
+	yield(get_tree(), "idle_frame")
+	while is_instance_valid(game) and !_at_open_turn():
+		yield(get_tree(), "idle_frame")
+
+# The move the authority has for `pid` on the turn in flight, if it got one.
+func _pending_action_for(pid):
+	var inp = action_inputs.get(pid)
+	if inp and inp.get("action") != null and action_submitted:
+		return {"action": inp.action, "data": inp.data, "extra": inp.extra}
+	return null
+
+# Called on every peer when Steam reports a lobby member gone. Only the authority acts.
+func on_player_left_lobby(pid):
+	if !_match_in_progress() or is_absent(pid) or pid == player_id:
+		return
+	if player_id != rejoin_authority(pid) or _pending_drops.has(pid):
+		return
+	_pending_drops[pid] = true
+	# A drop only adds readiness, so it can land whether or not we've readied (the
+	# turn can't finish without the dropped player anyway). If the turn already locked
+	# in, a peer may be stuck waiting for their move — settle it right away.
+	yield(get_tree(), "idle_frame")
+	while is_instance_valid(game) and !action_submitted and !turn_open:
+		yield(get_tree(), "idle_frame")
+	_pending_drops.erase(pid)
+	if !_match_in_progress() or is_absent(pid):
+		return
+	log_to_file("REJOIN: committing drop of player %d" % pid)
+	rpc_("mh_drop_commit", [pid, network_ids.get(pid, 0), _pending_action_for(pid)])
+
+remotesync func mh_drop_commit(pid, steam_id, inflight_action):
+	if !is_instance_valid(game) or dropped_players.has(pid) or game.quitters.has(pid):
+		return
+	dropped_players[pid] = {"steam_id": steam_id, "since": OS.get_ticks_msec()}
+	log_to_file("REJOIN: player %d dropped, holding their spot" % pid)
+	emit_signal("mh_chat_message_received_preformatted", "[color=#ffcc66]%s disconnected - holding their spot for %ds[/color]" % [_display_name(pid), REJOIN_GRACE_MSEC / 1000])
+	emit_signal("dropped_players_changed")
+	var fighter = player_objects.get(pid)
+	if !is_instance_valid(fighter):
+		return
+	if action_submitted:
+		# Everyone was ready and moves are in flight: use the dropped player's move if
+		# we have it, otherwise the authority's (their real move, or a hold).
+		var mine = action_inputs.get(pid)
+		if mine == null or mine.get("action") == null:
+			var a = inflight_action if inflight_action else {"action": "Continue", "data": null, "extra": HOLD_EXTRA}
+			log_to_file("REJOIN: applying %s for dropped player %d" % [a.action, pid])
+			action_inputs[pid] = a
+			fighter.on_action_selected(a.action, a.data, a.extra)
+	else:
+		# Turn still open: count them ready; the hold is applied when it locks in.
+		game.turns_taken[pid] = true
+		multiplayer_turn_ready(pid)
+
+# Every peer reaches "all ready" for the same turn before simulating it, so holds
+# applied here line up everywhere.
+func _apply_holds():
+	for pid in dropped_players:
+		var fighter = player_objects.get(pid)
+		if is_instance_valid(fighter) and !fighter.game_over:
+			action_inputs[pid] = {"action": "Continue", "data": null, "extra": HOLD_EXTRA}
+			fighter.on_action_selected("Continue", null, HOLD_EXTRA)
+
+func _display_name(pid):
+	if is_instance_valid(game) and game.player_names.has(pid):
+		return str(game.player_names[pid])
+	return "P%d" % pid
+
+func _process(delta):
+	._process(delta)
+	if dropped_players.empty() or !_match_in_progress():
+		return
+	if player_id != rejoin_authority():
+		return
+	for pid in dropped_players.keys():
+		if OS.get_ticks_msec() - dropped_players[pid].since > REJOIN_GRACE_MSEC and !_pending_rejoins.has(pid):
+			log_to_file("REJOIN: grace expired for player %d" % pid)
+			rpc_("client_disconnected", [pid])
+
+# Authority: a dropped fighter's Steam account is back in the lobby -> offer the slot.
+func on_lobby_member_joined(steam_id):
+	if !_match_in_progress() or player_id != rejoin_authority():
+		return
+	for pid in dropped_players:
+		if int(dropped_players[pid].steam_id) == int(steam_id):
+			log_to_file("REJOIN: offering slot %d to %s" % [pid, str(steam_id)])
+			SteamLobby._send_P2P_Packet(steam_id, {"mh_rejoin_offer": {
+				"player_id": pid,
+				"from": SteamHustle.STEAM_ID,
+			}})
+
+# Dropped client: an offer arrived. The UI shows a Rejoin button; the harness accepts directly.
+func receive_rejoin_offer(offer):
+	if _match_in_progress():
+		return
+	rejoin_offer = offer
+	log_to_file("REJOIN: offered slot %d" % offer.player_id)
+	emit_signal("rejoin_offered", offer)
+
+func accept_rejoin():
+	if rejoin_offer == null:
+		return
+	SteamLobby._send_P2P_Packet(rejoin_offer.from, {"mh_rejoin_request": {"player_id": rejoin_offer.player_id, "steam_id": SteamHustle.STEAM_ID}})
+
+# Authority: the dropped player accepted. Hand over the frames at the next open turn,
+# before our own turn-ready goes out.
+func receive_rejoin_request(request):
+	var pid = int(request.player_id)
+	if !_match_in_progress() or player_id != rejoin_authority() or _pending_rejoins.has(pid):
+		return
+	if !dropped_players.has(pid) or int(dropped_players[pid].steam_id) != int(request.steam_id):
+		return
+	_pending_rejoins[pid] = true
+	yield(_wait_for_open_turn(), "completed")
+	_pending_rejoins.erase(pid)
+	if !_match_in_progress() or !dropped_players.has(pid):
+		return
+	log_to_file("REJOIN: committing rejoin of player %d at tick %d" % [pid, game.current_tick])
+	rpc_("mh_rejoin_commit", [pid, int(request.steam_id), ReplayManager.frames, game.match_data, SteamLobby.OPPONENT_IDS, game.current_tick])
+
+remotesync func mh_rejoin_commit(pid, steam_id, frames, match_data, opponent_ids, tick):
+	if SteamHustle.STEAM_ID == steam_id:
+		_start_rejoined_match(pid, frames, match_data, opponent_ids, tick)
+		return
+	if !is_instance_valid(game) or !dropped_players.has(pid):
+		return
+	dropped_players.erase(pid)
+	# This turn's hold was already counted; take it back so we wait for their real move.
+	turns_ready[pid] = false
+	game.turns_taken[pid] = false
+	sync_unlocks[pid] = false
+	log_to_file("REJOIN: player %d is back (tick %d)" % [pid, tick])
+	emit_signal("mh_chat_message_received_preformatted", "[color=#66ff99]%s rejoined the match[/color]" % _display_name(pid))
+	emit_signal("dropped_players_changed")
+
+func _start_rejoined_match(pid, frames, match_data, opponent_ids, tick):
+	if rejoin_offer == null or int(rejoin_offer.player_id) != pid:
+		return
+	rejoin_offer = null
+	log_to_file("REJOIN: rebuilding match as player %d up to tick %d" % [pid, tick])
+	SteamLobby.OPPONENT_IDS = opponent_ids
+	SteamLobby.OPPONENT_ID = SteamLobby.LOBBY_OWNER
+	SteamLobby.PLAYER_SIDE = pid
+	SteamLobby.SETTINGS_LOCKED = true
+	player_id = pid
+	network_ids = opponent_ids
+	multiplayer_active = true
+	steam = true
+	_Global.isSteamGame = true
+	for sid in opponent_ids.values():
+		register_player_steam(sid)
+	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "player_id", str(pid))
+	Steam.setLobbyMemberData(SteamLobby.LOBBY_ID, "status", "fighting")
+	sync_unlocks = {}
+	for key in match_data.selected_characters.keys():
+		sync_unlocks[key] = false
+	# Fast-forward through the recorded frames to the turn everyone is sitting on.
+	ReplayManager.frames = frames.duplicate(true)
+	ReplayManager.playback = true
+	ReplayManager.resimulating = true
+	# Resim through the last recorded turn and hand over on the tick the others are
+	# waiting on (the default stops before the last move, for undo).
+	ReplayManager.resim_tick = tick - 2
+	var data = match_data.duplicate(true)
+	data["singleplayer"] = false
+	main.match_data = data
+	main.singleplayer = false
+	if is_instance_valid(_Global.css_instance):
+		_Global.css_instance.hide()
+	main.setup_game(false, data)

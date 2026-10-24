@@ -163,7 +163,8 @@ func on_got_hit():
 	
 func on_launched():
 	if orbital_strike_projectile and orbital_strike_projectile in objs_map:
-		objs_map[orbital_strike_projectile].deactivate()
+		var _o = live_obj(orbital_strike_projectile)
+		if _o: _o.deactivate()
 		orbital_strike_out = false
 		orbital_strike_projectile = null
 

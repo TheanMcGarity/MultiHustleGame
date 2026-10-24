@@ -353,8 +353,7 @@ func copy_to(game):
 								for index in old_hitboxes.size():
 									if old_hit == old_hitboxes[index]:
 										new_hitboxes[index] = new_hit
-			else:
-				game.objs_map[str(game.objs_map.size() + 1)] = null
+
 	game.camera.limit_left = camera.limit_left
 	game.camera.limit_right = camera.limit_right
 	
@@ -499,6 +498,8 @@ func on_global_hitlag(amount):
 
 func forfeit(id):
 	set_vanilla_game_started(true)
+	if !is_instance_valid(players.get(id)):
+		return
 	players[id].forfeit()
 	hooks.forfeit(id)
 
@@ -1877,6 +1878,14 @@ func _process(delta):
 		Network.sync_unlocks[quitter] = true
 		Network.turns_ready[quitter] = true
 		network_simulate_readies[quitter] = true
+	# Dropped fighters are held (auto-Continue) while they may rejoin.
+	if !is_ghost:
+		for pid in Network.dropped_players:
+			if players.has(pid):
+				Network.main.ui_layer.silent_end_turn_for(pid)
+				Network.sync_unlocks[pid] = true
+				Network.turns_ready[pid] = true
+				network_simulate_readies[pid] = true
 
 	set_vanilla_game_started(true)
 
@@ -3042,7 +3051,9 @@ func process_opponents():
 			if player.queued_extra:
 				var queued_extra = player.queued_extra
 				if queued_extra:
-					if "opponent" in queued_extra:
+					# An unknown id (e.g. 0) would set opponent to null in release builds,
+					# and the next opponent.method() call crashes.
+					if "opponent" in queued_extra and players.has(queued_extra["opponent"]):
 						player.opponent = players[queued_extra["opponent"]]
 		else:
 			# Apparently current tick doesn't update until after objects... so I'm forced check one ahead locally.
