@@ -18,7 +18,7 @@
     "w.unstable.lvl_3": "This branch of multihustle is EXTREMELY UNSTABLE. Use at your own risk.",
     "w.older_version": "This branch of multihustle is outdated and may contain bugs that already have been patched!",
     "w.newer_version": "This branch of multihustle is newer than the recommended version!",
-    "err.os":"The operating system on this computer is NOT compatiable with the multihustle installer! Please switch to Windows if possible."
+    "err.os": "The operating system on this computer is NOT compatiable with the multihustle installer! Please switch to Windows if possible."
   },
   "branches": {
     "0": {
@@ -27,15 +27,19 @@
       "yomi_ver": "1.10.0-steam",
       "stable_version_relative": 0,
       "unstable_level": 0,
-      "active": true
+      "active": true,
+      "mobile_supported": false,
+      "mobile_key": ""
     },
-    "100":{
+    "100": {
       "name": "tournament_fork",
       "mh_ver": "0.8.5b8",
       "yomi_ver": "1.10.0-steam",
       "stable_version_relative": 0,
       "unstable_level": 0,
-      "active": false
+      "active": false,
+      "mobile_supported": false,
+      "mobile_key": ""
     },
     "1": {
       "name": "beta",
@@ -43,7 +47,9 @@
       "yomi_ver": "1.10.0-steam",
       "stable_version_relative": 0,
       "unstable_level": 1,
-      "active": true
+      "active": true,
+      "mobile_supported": false,
+      "mobile_key": ""
     },
     "2": {
       "name": "alpha",
@@ -51,7 +57,9 @@
       "yomi_ver": "1.10.0-steam",
       "stable_version_relative": 1,
       "unstable_level": 2,
-      "active": true
+      "active": true,
+      "mobile_supported": false,
+      "mobile_key": ""
     },
     "4": {
       "name": "prev_beta",
@@ -59,7 +67,9 @@
       "yomi_ver": "1.10.0-steam",
       "stable_version_relative": -1,
       "unstable_level": 1,
-      "active": true
+      "active": true,
+      "mobile_supported": false,
+      "mobile_key": ""
     },
     "3": {
       "name": "prev",
@@ -67,7 +77,9 @@
       "yomi_ver": "1.9.20-steam",
       "stable_version_relative": -1,
       "unstable_level": 0,
-      "active": true
+      "active": true,
+      "mobile_supported": false,
+      "mobile_key": ""
     },
     "101": {
       "name": "scrapped_v9",
@@ -75,7 +87,22 @@
       "yomi_ver": "1.9.20-steam",
       "stable_version_relative": 1,
       "unstable_level": 3,
-      "active": true
+      "active": true,
+      "mobile_supported": false,
+      "mobile_key": ""
+    },
+    "900": {
+      "name": "v9_demo",
+      "mh_ver": "0.9.0",
+      "yomi_ver": "1.11.0",
+      "stable_version_relative": 0,
+      "unstable_level": 2,
+      "active": true,
+      "mobile_supported": true,
+      "mobile_key": "TUhQWAGuQEI/GBZSIXArMTgzZ6jwL4fOhI4zER7iVlzwfNaZ90Ww5GyNZH9xdPyURuAaH/3mcqTPeL9FrCpET4XpuvDKMg0="
     }
-  }
+  },
+  "private_branches": [
+    "TUhQWAFPrAcPhICJWvyJNRzfPkzK4sfZzplWTKQdvn7razEG/3F68M5er/zbx/wDmY7ccWfjerXMcHYZE9vlWaD0Sqm26pSwqqGARvYgp5aNBNJMEaZjBgveoO6bgoyZcdYob6WVrjuW8zN9WSfR7Hy4HG38fd89u9qRsPsqf+urTfPfIBGgPGIdZ1XjDFTEt+HmDCGybxw00moJ+PeM6Dx4C4NnNVvMLaCBov81kUFnz6X6bw3SUFWaO89uiYJWfyzf33nzf1WqwOhYOB9xiiCw241oIYJ+S1XOwnGfBbrZucSddlZTsPyIeaPjV2zvdX4nT4YH+M8="
+  ]
 }
