@@ -14,3 +14,6 @@ data_*/
 # PinkTarr stuff (remove later)
 /PeakOSTDoNotShare
 /SillyDillyMod
+
+# Full-game packs are never distributed (diff-based installer only)
+*.pck
